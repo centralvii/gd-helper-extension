@@ -44,16 +44,44 @@ export interface ValidationSummary {
   duplicateFileIds: Set<string>;
 }
 
-export interface StoredAppState {
-  filesMeta: Array<Omit<FileRow, 'file'>>;
+export interface BuildPackage {
+  id: string;
+  name: string;
+  files: FileRow[];
   template: string;
-  primaryTemplate?: string;
   startNumber: number;
   archiveName: string;
   readmeContent: string;
-  variables: VariableDefinition[];
   variableValues: Record<string, string>;
+  createdAt: number;
   updatedAt: number;
+}
+
+export interface StoredPackageMeta {
+  id: string;
+  name: string;
+  filesMeta: Array<Omit<FileRow, 'file'>>;
+  template: string;
+  startNumber: number;
+  archiveName: string;
+  readmeContent: string;
+  variableValues: Record<string, string>;
+  createdAt: number;
+  updatedAt: number;
+}
+
+export interface StoredAppState {
+  packages?: StoredPackageMeta[];
+  activePackageId?: string;
+  filesMeta?: Array<Omit<FileRow, 'file'>>;
+  template?: string;
+  primaryTemplate?: string;
+  startNumber?: number;
+  archiveName?: string;
+  readmeContent?: string;
+  variables?: VariableDefinition[];
+  variableValues?: Record<string, string>;
+  updatedAt?: number;
 }
 
 export type ActiveTool = 'packer' | 'implementation';

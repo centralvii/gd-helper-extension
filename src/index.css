@@ -3,52 +3,72 @@
 @tailwind utilities;
 
 @layer base {
-  :root {
-    --bg-primary: #090d16;
-    --bg-secondary: #0f172a;
-    --bg-card: #1e293b;
-    --border-color: #334155;
-    --accent: #10b981;
-  }
+    :root {
+        --bg-primary: #050b14;
+        --bg-secondary: #0f172a;
+        --bg-card: #101827;
+        --bg-card-strong: #111c2e;
+        --border-color: rgba(148, 163, 184, 0.18);
+        --accent: #34d399;
+        --accent-strong: #22c55e;
+        --surface-glow: rgba(52, 211, 153, 0.18);
+    }
 
-  body {
-    background-color: var(--bg-primary);
-    color: #f1f5f9;
-    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
-  }
+    html {
+        background:
+            radial-gradient(
+                circle at top,
+                rgba(16, 185, 129, 0.18),
+                transparent 24%
+            ),
+            radial-gradient(
+                circle at bottom right,
+                rgba(56, 189, 248, 0.14),
+                transparent 28%
+            ),
+            #050b14;
+    }
 
-  html, body, * {
-    /* Hide scrollbars across Firefox and legacy Edge */
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-  }
+    body {
+        min-height: 100vh;
+        background: transparent;
+        color: #e2e8f0;
+        font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+        letter-spacing: -0.01em;
+    }
 
-  /* Hide scrollbars for WebKit browsers (Chrome, Edge, Safari) */
-  ::-webkit-scrollbar,
-  *::-webkit-scrollbar {
-    display: none;
-    width: 0px;
-    height: 0px;
-    background: transparent;
-  }
+    html,
+    body,
+    * {
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+
+    ::-webkit-scrollbar,
+    *::-webkit-scrollbar {
+        display: none;
+        width: 0px;
+        height: 0px;
+        background: transparent;
+    }
 }
 
 @layer utilities {
-  .glass {
-    background: rgba(15, 23, 42, 0.75);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-  }
-  
-  .glass-card {
-    background: rgba(30, 41, 59, 0.6);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    border: 1px solid rgba(255, 255, 255, 0.06);
-  }
+    .glass {
+        background: rgba(15, 23, 42, 0.75);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+    }
 
-  .text-glow {
-    text-shadow: 0 0 16px rgba(16, 185, 129, 0.4);
-  }
+    .glass-card {
+        background: rgba(30, 41, 59, 0.6);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .text-glow {
+        text-shadow: 0 0 16px rgba(16, 185, 129, 0.4);
+    }
 }

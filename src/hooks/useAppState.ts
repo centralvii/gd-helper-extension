@@ -4,6 +4,7 @@ import {
   VariableDefinition,
   TemplatePreset,
   StoredAppState,
+  BuildPackage,
 } from '../types';
 import {
   applyTemplate,
@@ -15,11 +16,11 @@ import { extractZip, gufFilesToRows, generateZip } from '../core/zipHandler';
 import {
   saveAppStateToDB,
   loadAppStateFromDB,
-  clearAppStateDB,
 } from '../utils/indexedDB';
 
 const PRESETS_STORAGE_KEY = 'gd-helper-template-presets';
 const PRIMARY_TEMPLATE_KEY = 'gd-helper-primary-template';
+const ACTIVE_PACKAGE_KEY = 'gd-helper-active-package-id';
 
 const DEFAULT_VARIABLES: VariableDefinition[] = [
   { key: 'type', label: 'Тип (ДО/ПОСЛЕ)' },
@@ -61,6 +62,19 @@ const DEFAULT_PRESETS: TemplatePreset[] = [
   },
 ];
 
+const createDefaultPackage = (name: string = 'Пакет 1', tpl: string = DEFAULT_TEMPLATE): BuildPackage => ({
+  id: crypto.randomUUID(),
+  name,
+  files: [],
+  template: tpl,
+  startNumber: 1,
+  archiveName: 'renamed_files.zip',
+  readmeContent: '',
+  variableValues: {},
+  createdAt: Date.now(),
+  updatedAt: Date.now(),
+});
+
 export function useAppState() {
   const [primaryTemplate, setPrimaryTemplateState] = useState<string>(() => {
     try {
@@ -72,12 +86,7 @@ export function useAppState() {
     return DEFAULT_TEMPLATE;
   });
 
-  const [template, setTemplateState] = useState<string>(primaryTemplate);
-  const [startNumber, setStartNumberState] = useState<number>(1);
-  const [archiveName, setArchiveName] = useState<string>('renamed_files.zip');
-  const [readmeContent, setReadmeContent] = useState<string>('');
   const [variables, setVariables] = useState<VariableDefinition[]>(DEFAULT_VARIABLES);
-  const [variableValues, setVariableValues] = useState<Record<string, string>>({});
   const [presets, setPresets] = useState<TemplatePreset[]>(() => {
     try {
       const saved = localStorage.getItem(PRESETS_STORAGE_KEY);
@@ -90,48 +99,111 @@ export function useAppState() {
     return DEFAULT_PRESETS;
   });
 
-  const [files, setFiles] = useState<FileRow[]>([]);
+  const [packages, setPackages] = useState<BuildPackage[]>([createDefaultPackage('Пакет 1', primaryTemplate)]);
+  const [activePackageId, setActivePackageId] = useState<string>(packages[0].id);
+
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isExporting, setIsExporting] = useState<boolean>(false);
   const isInitialLoadedRef = useRef<boolean>(false);
+
+  // Active package computation
+  const activePackage = useMemo(() => {
+    return packages.find((p) => p.id === activePackageId) || packages[0];
+  }, [packages, activePackageId]);
+
+  const files = activePackage.files;
+  const template = activePackage.template;
+  const startNumber = activePackage.startNumber;
+  const archiveName = activePackage.archiveName;
+  const readmeContent = activePackage.readmeContent;
+  const variableValues = activePackage.variableValues;
 
   // Load state on mount from IndexedDB
   useEffect(() => {
     async function initFromStorage() {
       try {
         const { state, blobs } = await loadAppStateFromDB();
-        if (state && state.filesMeta.length > 0) {
-          const restoredFiles: FileRow[] = state.filesMeta.map((meta) => {
-            const blob = blobs.get(meta.id) || new Blob();
-            return {
-              ...meta,
-              file: blob,
-            };
-          });
-
-          const activeTpl = state.template || primaryTemplate;
-          setTemplateState(activeTpl);
-          setStartNumberState(state.startNumber || 1);
-          setArchiveName(state.archiveName || 'renamed_files.zip');
-          setReadmeContent(state.readmeContent || '');
+        if (state) {
           if (state.variables && state.variables.length > 0) {
             setVariables(state.variables);
           }
-          if (state.variableValues) {
-            setVariableValues(state.variableValues);
-          }
 
-          // Recalculate names to ensure freshness
-          const calculated = recalculateAllNames(
-            restoredFiles,
-            activeTpl,
-            state.startNumber || 1,
-            state.variableValues || {}
-          );
-          setFiles(calculated);
-        } else {
-          // If no saved state, use primary template
-          setTemplateState(primaryTemplate);
+          if (state.packages && state.packages.length > 0) {
+            const restoredPackages: BuildPackage[] = state.packages.map((pkgMeta) => {
+              const restoredFiles: FileRow[] = pkgMeta.filesMeta.map((meta) => {
+                const blob = blobs.get(meta.id) || new Blob();
+                return {
+                  ...meta,
+                  file: blob,
+                };
+              });
+
+              const tpl = pkgMeta.template || primaryTemplate;
+              const calculatedFiles = recalculateAllNames(
+                restoredFiles,
+                tpl,
+                pkgMeta.startNumber || 1,
+                pkgMeta.variableValues || {}
+              );
+
+              return {
+                id: pkgMeta.id,
+                name: pkgMeta.name || 'Пакет',
+                files: calculatedFiles,
+                template: tpl,
+                startNumber: pkgMeta.startNumber || 1,
+                archiveName: pkgMeta.archiveName || 'renamed_files.zip',
+                readmeContent: pkgMeta.readmeContent || '',
+                variableValues: pkgMeta.variableValues || {},
+                createdAt: pkgMeta.createdAt || Date.now(),
+                updatedAt: pkgMeta.updatedAt || Date.now(),
+              };
+            });
+
+            setPackages(restoredPackages);
+
+            const savedActiveId = localStorage.getItem(ACTIVE_PACKAGE_KEY);
+            if (savedActiveId && restoredPackages.some((p) => p.id === savedActiveId)) {
+              setActivePackageId(savedActiveId);
+            } else if (state.activePackageId && restoredPackages.some((p) => p.id === state.activePackageId)) {
+              setActivePackageId(state.activePackageId);
+            } else {
+              setActivePackageId(restoredPackages[0].id);
+            }
+          } else if (state.filesMeta && state.filesMeta.length > 0) {
+            // Legacy single-package migration
+            const restoredFiles: FileRow[] = state.filesMeta.map((meta) => {
+              const blob = blobs.get(meta.id) || new Blob();
+              return {
+                ...meta,
+                file: blob,
+              };
+            });
+
+            const tpl = state.template || primaryTemplate;
+            const calculated = recalculateAllNames(
+              restoredFiles,
+              tpl,
+              state.startNumber || 1,
+              state.variableValues || {}
+            );
+
+            const singlePkg: BuildPackage = {
+              id: crypto.randomUUID(),
+              name: 'Пакет 1',
+              files: calculated,
+              template: tpl,
+              startNumber: state.startNumber || 1,
+              archiveName: state.archiveName || 'renamed_files.zip',
+              readmeContent: state.readmeContent || '',
+              variableValues: state.variableValues || {},
+              createdAt: Date.now(),
+              updatedAt: Date.now(),
+            };
+
+            setPackages([singlePkg]);
+            setActivePackageId(singlePkg.id);
+          }
         }
       } catch (err) {
         console.error('Failed to initialize app state:', err);
@@ -153,26 +225,46 @@ export function useAppState() {
     }
   }, [presets]);
 
-  // Debounced auto-save to IndexedDB (300ms)
+  // Save activePackageId to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem(ACTIVE_PACKAGE_KEY, activePackageId);
+    } catch {
+      // ignore
+    }
+  }, [activePackageId]);
+
+  // Debounced auto-save all packages to IndexedDB (300ms)
   useEffect(() => {
     if (!isInitialLoadedRef.current || isLoading) {
       return;
     }
 
     const timer = setTimeout(() => {
-      const filesMeta = files.map(({ file: _, ...meta }) => meta);
       const blobsMap = new Map<string, Blob | File>();
-      files.forEach((f) => blobsMap.set(f.id, f.file));
+
+      const packagesMeta = packages.map((pkg) => {
+        pkg.files.forEach((f) => blobsMap.set(f.id, f.file));
+        const filesMeta = pkg.files.map(({ file: _, ...meta }) => meta);
+        return {
+          id: pkg.id,
+          name: pkg.name,
+          filesMeta,
+          template: pkg.template,
+          startNumber: pkg.startNumber,
+          archiveName: pkg.archiveName,
+          readmeContent: pkg.readmeContent,
+          variableValues: pkg.variableValues,
+          createdAt: pkg.createdAt,
+          updatedAt: pkg.updatedAt,
+        };
+      });
 
       const state: StoredAppState = {
-        filesMeta,
-        template,
+        packages: packagesMeta,
+        activePackageId,
         primaryTemplate,
-        startNumber,
-        archiveName,
-        readmeContent,
         variables,
-        variableValues,
         updatedAt: Date.now(),
       };
 
@@ -180,20 +272,106 @@ export function useAppState() {
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [files, template, primaryTemplate, startNumber, archiveName, readmeContent, variables, variableValues, isLoading]);
+  }, [packages, activePackageId, primaryTemplate, variables, isLoading]);
 
-  // Validation
+  // Validation for active package
   const validation = useMemo(() => {
     return validateFiles(files);
   }, [files]);
 
-  // Public Actions
+  // Package Management Actions
+  const createPackage = useCallback(
+    (name?: string) => {
+      const pkgName = name?.trim() || `Пакет ${packages.length + 1}`;
+      const newPkg = createDefaultPackage(pkgName, primaryTemplate);
+      setPackages((prev) => [...prev, newPkg]);
+      setActivePackageId(newPkg.id);
+      return newPkg.id;
+    },
+    [packages.length, primaryTemplate]
+  );
+
+  const selectPackage = useCallback((id: string) => {
+    setActivePackageId(id);
+  }, []);
+
+  const renamePackage = useCallback((id: string, newName: string) => {
+    const clean = newName.trim();
+    if (!clean) return;
+    setPackages((prev) =>
+      prev.map((p) => (p.id === id ? { ...p, name: clean, updatedAt: Date.now() } : p))
+    );
+  }, []);
+
+  const duplicatePackage = useCallback((id: string) => {
+    setPackages((prev) => {
+      const source = prev.find((p) => p.id === id);
+      if (!source) return prev;
+
+      const duplicatedFiles: FileRow[] = source.files.map((f) => ({
+        ...f,
+        id: crypto.randomUUID(),
+      }));
+
+      const newPkg: BuildPackage = {
+        ...source,
+        id: crypto.randomUUID(),
+        name: `${source.name} (копия)`,
+        files: duplicatedFiles,
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+      };
+
+      const idx = prev.findIndex((p) => p.id === id);
+      const updated = [...prev];
+      updated.splice(idx + 1, 0, newPkg);
+      setActivePackageId(newPkg.id);
+      return updated;
+    });
+  }, []);
+
+  const deletePackage = useCallback(
+    (id: string) => {
+      setPackages((prev) => {
+        const filtered = prev.filter((p) => p.id !== id);
+        if (filtered.length === 0) {
+          const fresh = createDefaultPackage('Пакет 1', primaryTemplate);
+          setActivePackageId(fresh.id);
+          return [fresh];
+        }
+        if (activePackageId === id) {
+          setActivePackageId(filtered[0].id);
+        }
+        return filtered;
+      });
+    },
+    [activePackageId, primaryTemplate]
+  );
+
+  // Helper to update active package
+  const updateActivePackage = useCallback(
+    (updater: (prevPkg: BuildPackage) => BuildPackage) => {
+      setPackages((prev) =>
+        prev.map((p) => {
+          if (p.id !== activePackageId) return p;
+          const updated = updater(p);
+          return { ...updated, updatedAt: Date.now() };
+        })
+      );
+    },
+    [activePackageId]
+  );
+
+  // Template and StartNumber actions on active package
   const setTemplate = useCallback(
     (newTemplate: string) => {
-      setTemplateState(newTemplate);
-      setFiles((prev) => recalculateAllNames(prev, newTemplate, startNumber, variableValues));
+      updateActivePackage((pkg) => ({
+        ...pkg,
+        template: newTemplate,
+        files: recalculateAllNames(pkg.files, newTemplate, pkg.startNumber, pkg.variableValues),
+      }));
     },
-    [startNumber, variableValues]
+    [updateActivePackage]
   );
 
   const setPrimaryTemplate = useCallback((newPrimaryTpl: string) => {
@@ -203,7 +381,6 @@ export function useAppState() {
     } catch {
       // ignore
     }
-    // Update presets primary flag
     setPresets((prev) =>
       prev.map((p) => ({
         ...p,
@@ -219,19 +396,41 @@ export function useAppState() {
   const setStartNumber = useCallback(
     (num: number) => {
       const validNum = Math.max(1, isNaN(num) ? 1 : num);
-      setStartNumberState(validNum);
-      setFiles((prev) => recalculateAllNames(prev, template, validNum, variableValues));
+      updateActivePackage((pkg) => ({
+        ...pkg,
+        startNumber: validNum,
+        files: recalculateAllNames(pkg.files, pkg.template, validNum, pkg.variableValues),
+      }));
     },
-    [template, variableValues]
+    [updateActivePackage]
+  );
+
+  const setArchiveName = useCallback(
+    (name: string) => {
+      updateActivePackage((pkg) => ({ ...pkg, archiveName: name }));
+    },
+    [updateActivePackage]
+  );
+
+  const setReadmeContent = useCallback(
+    (content: string) => {
+      updateActivePackage((pkg) => ({ ...pkg, readmeContent: content }));
+    },
+    [updateActivePackage]
   );
 
   const setVariableValue = useCallback(
     (key: string, value: string) => {
-      const updatedValues = { ...variableValues, [key]: value };
-      setVariableValues(updatedValues);
-      setFiles((prev) => recalculateAllNames(prev, template, startNumber, updatedValues));
+      updateActivePackage((pkg) => {
+        const updatedValues = { ...pkg.variableValues, [key]: value };
+        return {
+          ...pkg,
+          variableValues: updatedValues,
+          files: recalculateAllNames(pkg.files, pkg.template, pkg.startNumber, updatedValues),
+        };
+      });
     },
-    [template, startNumber, variableValues]
+    [updateActivePackage]
   );
 
   const addVariable = useCallback((key: string, label?: string) => {
@@ -247,33 +446,47 @@ export function useAppState() {
   const removeVariable = useCallback(
     (key: string) => {
       setVariables((prev) => prev.filter((v) => v.key !== key));
-      const newVals = { ...variableValues };
-      delete newVals[key];
-      setVariableValues(newVals);
-      setFiles((prev) => recalculateAllNames(prev, template, startNumber, newVals));
+      updateActivePackage((pkg) => {
+        const newVals = { ...pkg.variableValues };
+        delete newVals[key];
+        return {
+          ...pkg,
+          variableValues: newVals,
+          files: recalculateAllNames(pkg.files, pkg.template, pkg.startNumber, newVals),
+        };
+      });
     },
-    [template, startNumber, variableValues]
+    [updateActivePackage]
   );
 
   const applyMassVariables = useCallback(
     (values: Record<string, string>) => {
-      const merged = { ...variableValues, ...values };
-      setVariableValues(merged);
-      setFiles((prev) => recalculateAllNames(prev, template, startNumber, merged));
+      updateActivePackage((pkg) => {
+        const merged = { ...pkg.variableValues, ...values };
+        return {
+          ...pkg,
+          variableValues: merged,
+          files: recalculateAllNames(pkg.files, pkg.template, pkg.startNumber, merged),
+        };
+      });
     },
-    [template, startNumber, variableValues]
+    [updateActivePackage]
   );
 
+  // File loading actions
   const loadZip = useCallback(
     async (file: File) => {
       setIsLoading(true);
       try {
         const result = await extractZip(file, file.name);
-        const calculated = recalculateAllNames(result.files, template, startNumber, variableValues);
-        setFiles(calculated);
-        if (result.archiveName) {
-          setArchiveName(result.archiveName);
-        }
+        updateActivePackage((pkg) => {
+          const calculated = recalculateAllNames(result.files, pkg.template, pkg.startNumber, pkg.variableValues);
+          return {
+            ...pkg,
+            files: calculated,
+            archiveName: result.archiveName || pkg.archiveName,
+          };
+        });
       } catch (err) {
         console.error('Failed to extract ZIP:', err);
         throw err;
@@ -281,19 +494,22 @@ export function useAppState() {
         setIsLoading(false);
       }
     },
-    [template, startNumber, variableValues]
+    [updateActivePackage]
   );
 
   const loadGufFiles = useCallback(
     (gufFiles: File[]) => {
-      const newRows = gufFilesToRows(gufFiles, startNumber);
-      const calculated = recalculateAllNames(newRows, template, startNumber, variableValues);
-      setFiles(calculated);
-      if (gufFiles.length > 0) {
-        setArchiveName('renamed_guf_files.zip');
-      }
+      updateActivePackage((pkg) => {
+        const newRows = gufFilesToRows(gufFiles, pkg.startNumber);
+        const calculated = recalculateAllNames(newRows, pkg.template, pkg.startNumber, pkg.variableValues);
+        return {
+          ...pkg,
+          files: calculated,
+          archiveName: gufFiles.length > 0 ? 'renamed_guf_files.zip' : pkg.archiveName,
+        };
+      });
     },
-    [template, startNumber, variableValues]
+    [updateActivePackage]
   );
 
   const addFiles = useCallback(
@@ -301,95 +517,117 @@ export function useAppState() {
       const validFiles = newFiles.filter((f) => f.name.toLowerCase().endsWith('.guf'));
       if (validFiles.length === 0) return;
 
-      const newRows = gufFilesToRows(validFiles, startNumber + files.length);
-      const combined = [...files, ...newRows];
-      const calculated = recalculateAllNames(combined, template, startNumber, variableValues);
-      setFiles(calculated);
+      updateActivePackage((pkg) => {
+        const newRows = gufFilesToRows(validFiles, pkg.startNumber + pkg.files.length);
+        const combined = [...pkg.files, ...newRows];
+        const calculated = recalculateAllNames(combined, pkg.template, pkg.startNumber, pkg.variableValues);
+        return {
+          ...pkg,
+          files: calculated,
+        };
+      });
     },
-    [files, template, startNumber, variableValues]
+    [updateActivePackage]
   );
 
   const updateFileCleanName = useCallback(
     (id: string, cleanName: string) => {
-      setFiles((prev) =>
-        prev.map((f) => {
+      updateActivePackage((pkg) => ({
+        ...pkg,
+        files: pkg.files.map((f) => {
           if (f.id !== id) return f;
           const updated = { ...f, cleanName };
           return {
             ...updated,
-            newName: applyTemplate(template, updated, variableValues),
+            newName: applyTemplate(pkg.template, updated, pkg.variableValues),
           };
-        })
-      );
+        }),
+      }));
     },
-    [template, variableValues]
+    [updateActivePackage]
   );
 
-  const updateFileDescription = useCallback((id: string, description: string) => {
-    setFiles((prev) =>
-      prev.map((f) => (f.id === id ? { ...f, description } : f))
-    );
-  }, []);
+  const updateFileDescription = useCallback(
+    (id: string, description: string) => {
+      updateActivePackage((pkg) => ({
+        ...pkg,
+        files: pkg.files.map((f) => (f.id === id ? { ...f, description } : f)),
+      }));
+    },
+    [updateActivePackage]
+  );
 
   const updateFileVariable = useCallback(
     (id: string, key: string, value: string) => {
-      setFiles((prev) =>
-        prev.map((f) => {
+      updateActivePackage((pkg) => ({
+        ...pkg,
+        files: pkg.files.map((f) => {
           if (f.id !== id) return f;
           const updatedVars = { ...(f.variables || {}), [key]: value };
           const updated = { ...f, variables: updatedVars };
           return {
             ...updated,
-            newName: applyTemplate(template, updated, variableValues),
+            newName: applyTemplate(pkg.template, updated, pkg.variableValues),
           };
-        })
-      );
+        }),
+      }));
     },
-    [template, variableValues]
+    [updateActivePackage]
   );
 
   const reorderFiles = useCallback(
     (fromIndex: number, toIndex: number) => {
       if (fromIndex === toIndex) return;
 
-      setFiles((prev) => {
-        const result = Array.from(prev);
+      updateActivePackage((pkg) => {
+        const result = Array.from(pkg.files);
         const [removed] = result.splice(fromIndex, 1);
         result.splice(toIndex, 0, removed);
-        return recalculateAllNames(result, template, startNumber, variableValues);
+        return {
+          ...pkg,
+          files: recalculateAllNames(result, pkg.template, pkg.startNumber, pkg.variableValues),
+        };
       });
     },
-    [template, startNumber, variableValues]
+    [updateActivePackage]
   );
 
   const removeFile = useCallback(
     (id: string) => {
-      setFiles((prev) => {
-        const filtered = prev.filter((f) => f.id !== id);
-        return recalculateAllNames(filtered, template, startNumber, variableValues);
+      updateActivePackage((pkg) => {
+        const filtered = pkg.files.filter((f) => f.id !== id);
+        return {
+          ...pkg,
+          files: recalculateAllNames(filtered, pkg.template, pkg.startNumber, pkg.variableValues),
+        };
       });
     },
-    [template, startNumber, variableValues]
+    [updateActivePackage]
   );
 
   const removeFiles = useCallback(
     (ids: string[]) => {
       const idSet = new Set(ids);
-      setFiles((prev) => {
-        const filtered = prev.filter((f) => !idSet.has(f.id));
-        return recalculateAllNames(filtered, template, startNumber, variableValues);
+      updateActivePackage((pkg) => {
+        const filtered = pkg.files.filter((f) => !idSet.has(f.id));
+        return {
+          ...pkg,
+          files: recalculateAllNames(filtered, pkg.template, pkg.startNumber, pkg.variableValues),
+        };
       });
     },
-    [template, startNumber, variableValues]
+    [updateActivePackage]
   );
 
   const clearFiles = useCallback(async () => {
-    setFiles([]);
-    setReadmeContent('');
-    setVariableValues({});
-    setArchiveName('renamed_files.zip');
-    await clearAppStateDB();
-  }, []);
+    updateActivePackage((pkg) => ({
+      ...pkg,
+      files: [],
+      readmeContent: '',
+      variableValues: {},
+      archiveName: 'renamed_files.zip',
+    }));
+  }, [updateActivePackage]);
 
   const savePreset = useCallback(
     (name: string, isPrimary: boolean = false) => {
@@ -435,23 +673,19 @@ export function useAppState() {
 
   const loadPreset = useCallback(
     (preset: TemplatePreset) => {
-      setTemplateState(preset.template);
-      if (preset.startNumber !== undefined) {
-        setStartNumberState(preset.startNumber);
-      }
-      if (preset.variables) {
-        setVariableValues(preset.variables);
-      }
-      setFiles((prev) =>
-        recalculateAllNames(
-          prev,
-          preset.template,
-          preset.startNumber ?? startNumber,
-          preset.variables || variableValues
-        )
-      );
+      updateActivePackage((pkg) => {
+        const targetStartNumber = preset.startNumber !== undefined ? preset.startNumber : pkg.startNumber;
+        const targetVars = preset.variables || pkg.variableValues;
+        return {
+          ...pkg,
+          template: preset.template,
+          startNumber: targetStartNumber,
+          variableValues: targetVars,
+          files: recalculateAllNames(pkg.files, preset.template, targetStartNumber, targetVars),
+        };
+      });
     },
-    [startNumber, variableValues]
+    [updateActivePackage]
   );
 
   const exportZip = useCallback(async () => {
@@ -470,6 +704,14 @@ export function useAppState() {
   }, [validation.hasErrors, files, template, readmeContent, archiveName, variableValues]);
 
   return {
+    packages,
+    activePackage,
+    activePackageId,
+    createPackage,
+    selectPackage,
+    renamePackage,
+    duplicatePackage,
+    deletePackage,
     files,
     template,
     primaryTemplate,

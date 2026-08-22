@@ -40,8 +40,17 @@ export async function saveAppStateToDB(
     // Save meta
     metaStore.put(state, 'current_state');
 
+    // Collect all active file IDs across all packages
+    const currentIds = new Set<string>();
+    if (state.packages && state.packages.length > 0) {
+      state.packages.forEach((pkg) => {
+        pkg.filesMeta.forEach((f) => currentIds.add(f.id));
+      });
+    } else if (state.filesMeta) {
+      state.filesMeta.forEach((f) => currentIds.add(f.id));
+    }
+
     // Clean up orphaned blobs
-    const currentIds = new Set(state.filesMeta.map((f) => f.id));
     const allKeysReq = blobStore.getAllKeys();
 
     allKeysReq.onsuccess = () => {
@@ -85,20 +94,35 @@ export async function loadAppStateFromDB(): Promise<{
     return new Promise((resolve) => {
       metaReq.onsuccess = () => {
         const state = (metaReq.result as StoredAppState) || null;
-        if (!state || !state.filesMeta || state.filesMeta.length === 0) {
+        if (!state) {
           resolve({ state: null, blobs: new Map() });
+          return;
+        }
+
+        // Collect all file IDs needed across packages or legacy filesMeta
+        const fileIds: string[] = [];
+        if (state.packages && state.packages.length > 0) {
+          state.packages.forEach((pkg) => {
+            pkg.filesMeta.forEach((f) => fileIds.push(f.id));
+          });
+        } else if (state.filesMeta && state.filesMeta.length > 0) {
+          state.filesMeta.forEach((f) => fileIds.push(f.id));
+        }
+
+        if (fileIds.length === 0) {
+          resolve({ state, blobs: new Map() });
           return;
         }
 
         const blobs = new Map<string, Blob>();
         let loadedCount = 0;
-        const totalFiles = state.filesMeta.length;
+        const totalFiles = fileIds.length;
 
-        state.filesMeta.forEach((file) => {
-          const blobReq = blobStore.get(file.id);
+        fileIds.forEach((id) => {
+          const blobReq = blobStore.get(id);
           blobReq.onsuccess = () => {
             if (blobReq.result) {
-              blobs.set(file.id, blobReq.result as Blob);
+              blobs.set(id, blobReq.result as Blob);
             }
             loadedCount++;
             if (loadedCount === totalFiles) {
