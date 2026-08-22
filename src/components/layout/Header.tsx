@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import {
-  Package,
   Layers,
   FileText,
   Bookmark,
@@ -43,9 +42,11 @@ export const Header: React.FC<HeaderProps> = ({
       <header className="sticky top-0 z-30 flex items-center justify-between px-3.5 py-2.5 bg-slate-900/95 border-b border-slate-800 backdrop-blur-md">
         {/* Brand */}
         <div className="flex items-center gap-2 min-w-0">
-          <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center shadow-sm shadow-emerald-950/60 flex-shrink-0">
-            <Package className="w-4 h-4 text-white" />
-          </div>
+          <img
+            src="/icons/icon48.png"
+            alt="GDHelper"
+            className="w-7 h-7 rounded-lg shadow-sm shadow-emerald-950/60 flex-shrink-0 object-cover border border-emerald-500/30"
+          />
           <div className="flex items-center gap-1.5 truncate">
             <span className="font-bold text-sm text-slate-100 tracking-tight">GDHelper</span>
             <Badge variant="success" size="sm">
