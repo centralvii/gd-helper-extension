@@ -57,56 +57,47 @@ export const PackageSelector: React.FC<PackageSelectorProps> = ({
 
   return (
     <>
-      {/* ── Toolbar row ── */}
+      {/* Toolbar */}
       <div
-        className="flex flex-wrap items-center justify-between gap-2 px-2.5 py-2 rounded-xl"
+        className="flex flex-wrap items-center justify-between gap-2 px-2.5 py-1.5 rounded-xl"
         style={{
-          background: 'rgba(13,21,13,0.8)',
-          border: '1px solid rgba(34,197,94,0.12)',
+          background: '#ffffff',
+          border: '1px solid #e2e8e2',
+          boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
         }}
       >
-        {/* Package selector button */}
+        {/* Selector */}
         <div className="relative flex-1 min-w-[180px]">
           <button
             onClick={() => setIsOpenList(!isOpenList)}
             className="w-full flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-lg text-left transition-all group"
             style={{
-              background: 'rgba(17,26,17,0.9)',
-              border: `1px solid ${isOpenList ? 'rgba(34,197,94,0.35)' : 'rgba(34,197,94,0.15)'}`,
+              background: isOpenList ? '#dcfce7' : '#f0f4f0',
+              border: `1.5px solid ${isOpenList ? '#22c55e' : '#e2e8e2'}`,
             }}
           >
             <div className="flex items-center gap-1.5 min-w-0">
-              <Icon28ArchiveOutline
-                width={14} height={14}
-                style={{ color: '#22c55e', flexShrink: 0 }}
-              />
-              <span
-                className="text-xs font-bold truncate"
-                style={{ color: '#d4edda', fontFamily: 'monospace' }}
-              >
+              {/* Иконка с pop при открытии */}
+              <span style={{ display: 'inline-flex', color: '#22c55e', transition: 'transform 0.25s cubic-bezier(0.34,1.56,0.64,1)', transform: isOpenList ? 'scale(1.18)' : 'scale(1)' }}>
+                <Icon28ArchiveOutline width={15} height={15} />
+              </span>
+              <span className="text-xs font-bold truncate" style={{ color: '#111827' }}>
                 {activePackage.name}
               </span>
             </div>
             <div className="flex items-center gap-1.5 flex-shrink-0">
               <span
-                className="text-[9px] font-mono rounded px-1.5 py-0.5"
+                className="text-[9px] font-bold rounded-full px-1.5 py-0.5"
                 style={{
-                  background: activePackage.files.length > 0
-                    ? 'rgba(34,197,94,0.18)'
-                    : 'rgba(34,197,94,0.06)',
-                  color: activePackage.files.length > 0 ? '#22c55e' : '#3d5c3d',
+                  background: activePackage.files.length > 0 ? '#22c55e' : '#f0f4f0',
+                  color:      activePackage.files.length > 0 ? '#fff'    : '#6b7280',
                 }}
               >
-                {activePackage.files.length} files
+                {activePackage.files.length}
               </span>
-              <Icon28ChevronDownOutline
-                width={13} height={13}
-                style={{
-                  color: '#6b9a6b',
-                  transition: 'transform 0.2s',
-                  transform: isOpenList ? 'rotate(180deg)' : 'rotate(0deg)',
-                }}
-              />
+              <span style={{ display: 'inline-flex', color: '#6b7280', transition: 'transform 0.2s', transform: isOpenList ? 'rotate(180deg)' : 'rotate(0deg)' }}>
+                <Icon28ChevronDownOutline width={14} height={14} />
+              </span>
             </div>
           </button>
 
@@ -115,11 +106,11 @@ export const PackageSelector: React.FC<PackageSelectorProps> = ({
             <>
               <div className="fixed inset-0 z-40" onClick={() => setIsOpenList(false)} />
               <div
-                className="absolute top-full left-0 right-0 mt-1 z-50 rounded-xl shadow-2xl overflow-hidden animate-fade-in"
+                className="absolute top-full left-0 right-0 mt-1 z-50 rounded-xl overflow-hidden animate-fade-in"
                 style={{
-                  background: '#0d150d',
-                  border: '1px solid rgba(34,197,94,0.2)',
-                  boxShadow: '0 8px 32px rgba(0,0,0,0.7)',
+                  background: '#ffffff',
+                  border: '1.5px solid #e2e8e2',
+                  boxShadow: '0 8px 24px rgba(0,0,0,0.1)',
                   maxHeight: 272,
                   display: 'flex',
                   flexDirection: 'column',
@@ -128,73 +119,58 @@ export const PackageSelector: React.FC<PackageSelectorProps> = ({
                 {/* Header */}
                 <div
                   className="flex items-center justify-between px-3 py-2"
-                  style={{ borderBottom: '1px solid rgba(34,197,94,0.10)' }}
+                  style={{ borderBottom: '1px solid #f0f4f0', background: '#f8faf8' }}
                 >
-                  <span className="console-label">ПАКЕТЫ ({packages.length})</span>
+                  <span className="text-[10px] font-semibold tracking-wider uppercase" style={{ color: '#6b7280' }}>
+                    Пакеты ({packages.length})
+                  </span>
                   <button
                     onClick={() => { onCreatePackage(); setIsOpenList(false); }}
-                    className="flex items-center gap-1 text-[11px] font-semibold transition-colors"
-                    style={{ color: '#22c55e', fontFamily: 'monospace' }}
+                    className="flex items-center gap-1 text-[11px] font-semibold transition-all icon-btn py-0.5 px-1.5 rounded-md"
+                    style={{ color: '#16a34a' }}
                   >
-                    <Icon24AddOutline width={12} height={12} />
-                    <span>+ NEW</span>
+                    <Icon24AddOutline width={13} height={13} />
+                    <span>+ Новый</span>
                   </button>
                 </div>
 
                 {/* List */}
-                <div className="overflow-y-auto flex-1 p-1 space-y-0.5">
+                <div className="overflow-y-auto flex-1 p-1.5 space-y-0.5">
                   {packages.map((pkg) => {
                     const isActive = pkg.id === activePackage.id;
                     return (
                       <div
                         key={pkg.id}
-                        className="group/item flex items-center justify-between gap-1 px-2.5 py-1.5 rounded-lg transition-all"
+                        className="group/item flex items-center justify-between gap-1 px-2.5 py-1.5 rounded-lg transition-all cursor-pointer"
                         style={{
-                          background: isActive
-                            ? 'rgba(34,197,94,0.12)'
-                            : 'transparent',
-                          border: isActive
-                            ? '1px solid rgba(34,197,94,0.25)'
-                            : '1px solid transparent',
+                          background: isActive ? '#dcfce7' : 'transparent',
+                          border: isActive ? '1px solid rgba(34,197,94,0.3)' : '1px solid transparent',
                         }}
+                        onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = '#f8faf8'; }}
+                        onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = 'transparent'; }}
                       >
                         <button
                           onClick={() => { onSelectPackage(pkg.id); setIsOpenList(false); }}
                           className="flex-1 text-left truncate min-w-0 flex items-center gap-1.5"
                         >
-                          <span
-                            className="text-xs font-semibold truncate"
-                            style={{
-                              color: isActive ? '#22c55e' : '#d4edda',
-                              fontFamily: 'monospace',
-                            }}
-                          >
-                            {isActive ? '▸ ' : '  '}{pkg.name}
+                          <span className="text-xs font-semibold truncate" style={{ color: isActive ? '#16a34a' : '#111827' }}>
+                            {pkg.name}
                           </span>
                         </button>
                         <div className="flex items-center gap-1 flex-shrink-0">
-                          <span
-                            className="text-[9px] font-mono"
-                            style={{ color: '#3d5c3d' }}
-                          >
-                            {pkg.files.length}f
-                          </span>
-                          {isActive && (
-                            <Icon16Done width={12} height={12} style={{ color: '#22c55e' }} />
-                          )}
+                          <span className="text-[9px]" style={{ color: '#9ca3af' }}>{pkg.files.length}f</span>
+                          {isActive && <Icon16Done width={13} height={13} style={{ color: '#22c55e' }} />}
                           <button
                             onClick={(e) => { e.stopPropagation(); handleOpenRename(pkg); }}
-                            title="Переименовать"
-                            className="p-1 rounded opacity-0 group-hover/item:opacity-100 transition-all icon-btn"
+                            className="icon-btn p-1 opacity-0 group-hover/item:opacity-100"
                           >
-                            <Icon28EditOutline width={11} height={11} />
+                            <Icon28EditOutline width={12} height={12} />
                           </button>
                           <button
                             onClick={(e) => { e.stopPropagation(); setPackageToDelete(pkg); }}
-                            title="Удалить"
-                            className="p-1 rounded opacity-0 group-hover/item:opacity-100 transition-all icon-btn icon-btn--danger"
+                            className="icon-btn icon-btn--danger p-1 opacity-0 group-hover/item:opacity-100"
                           >
-                            <Icon20DeleteOutline width={11} height={11} />
+                            <Icon20DeleteOutline width={12} height={12} />
                           </button>
                         </div>
                       </div>
@@ -203,22 +179,16 @@ export const PackageSelector: React.FC<PackageSelectorProps> = ({
                 </div>
 
                 {/* Footer */}
-                <div
-                  className="p-1.5"
-                  style={{ borderTop: '1px solid rgba(34,197,94,0.08)' }}
-                >
+                <div style={{ borderTop: '1px solid #f0f4f0' }} className="p-1.5">
                   <button
                     onClick={() => { onCreatePackage(); setIsOpenList(false); }}
-                    className="w-full flex items-center justify-center gap-1.5 py-1 rounded-md text-xs font-semibold transition-colors"
-                    style={{
-                      color: '#22c55e',
-                      fontFamily: 'monospace',
-                    }}
-                    onMouseEnter={e => (e.currentTarget.style.background = 'rgba(34,197,94,0.07)')}
-                    onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                    className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-semibold transition-all"
+                    style={{ color: '#16a34a' }}
+                    onMouseEnter={e => e.currentTarget.style.background = '#dcfce7'}
+                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                   >
                     <Icon24AddOutline width={13} height={13} />
-                    + Создать новый пакет сборки
+                    Создать новый пакет сборки
                   </button>
                 </div>
               </div>
@@ -226,83 +196,50 @@ export const PackageSelector: React.FC<PackageSelectorProps> = ({
           )}
         </div>
 
-        {/* Right: Actions */}
+        {/* Правые кнопки */}
         <div className="flex items-center gap-1">
-          {/* Auto-collect Toggle */}
+          {/* Автосбор */}
           <button
             onClick={onToggleAutoCollect}
-            title={
-              isAutoCollectEnabled
-                ? 'Автосбор ВКЛЮЧЕН: скачанные .guf файлы добавляются в активный пакет'
-                : 'Автосбор ВЫКЛЮЧЕН: нажмите для включения'
-            }
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold transition-all"
+            title={isAutoCollectEnabled ? 'Автосбор ВКЛЮЧЕН' : 'Автосбор ВЫКЛЮЧЕН'}
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all"
             style={{
-              fontFamily: 'monospace',
-              background: isAutoCollectEnabled
-                ? 'rgba(34,197,94,0.14)'
-                : 'rgba(17,26,17,0.8)',
-              border: isAutoCollectEnabled
-                ? '1px solid rgba(34,197,94,0.4)'
-                : '1px solid rgba(34,197,94,0.12)',
-              color: isAutoCollectEnabled ? '#22c55e' : '#6b9a6b',
+              background: isAutoCollectEnabled ? '#dcfce7' : '#f0f4f0',
+              border: `1.5px solid ${isAutoCollectEnabled ? '#22c55e' : '#e2e8e2'}`,
+              color: isAutoCollectEnabled ? '#16a34a' : '#6b7280',
             }}
           >
-            {isAutoCollectEnabled ? (
-              <>
-                <span className="relative flex h-1.5 w-1.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
-                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-green-500" />
-                </span>
-                <Icon20FlashOutline width={13} height={13} />
-                <span>AUTO</span>
-              </>
-            ) : (
-              <>
-                <Icon20FlashOutline width={13} height={13} style={{ opacity: 0.4 }} />
-                <span>AUTO</span>
-              </>
+            {isAutoCollectEnabled && (
+              <span className="relative flex h-1.5 w-1.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-green-500" />
+              </span>
             )}
+            {/* Flash icon с bounce */}
+            <span className="icon-btn p-0" style={{ pointerEvents: 'none' }}>
+              <Icon20FlashOutline width={14} height={14} />
+            </span>
+            <span>AUTO</span>
           </button>
 
-          {/* Divider */}
-          <div className="w-px h-4 mx-0.5" style={{ background: 'rgba(34,197,94,0.1)' }} />
+          <div className="w-px h-4" style={{ background: '#e2e8e2' }} />
 
-          <button
-            onClick={() => onCreatePackage()}
-            title="Новый пакет"
-            className="icon-btn"
-          >
-            <Icon24AddOutline width={15} height={15} />
+          <button onClick={() => onCreatePackage()} title="Новый пакет" className="icon-btn">
+            <Icon24AddOutline width={16} height={16} />
           </button>
-
-          <button
-            onClick={() => handleOpenRename(activePackage)}
-            title="Переименовать пакет"
-            className="icon-btn"
-          >
-            <Icon28EditOutline width={15} height={15} />
+          <button onClick={() => handleOpenRename(activePackage)} title="Переименовать" className="icon-btn">
+            <Icon28EditOutline width={16} height={16} />
           </button>
-
-          <button
-            onClick={() => onDuplicatePackage(activePackage.id)}
-            title="Дублировать пакет"
-            className="icon-btn"
-          >
-            <Icon20CopyOutline width={15} height={15} />
+          <button onClick={() => onDuplicatePackage(activePackage.id)} title="Дублировать" className="icon-btn">
+            <Icon20CopyOutline width={16} height={16} />
           </button>
-
-          <button
-            onClick={() => setPackageToDelete(activePackage)}
-            title="Удалить пакет"
-            className="icon-btn icon-btn--danger"
-          >
-            <Icon20DeleteOutline width={15} height={15} />
+          <button onClick={() => setPackageToDelete(activePackage)} title="Удалить пакет" className="icon-btn icon-btn--danger">
+            <Icon20DeleteOutline width={16} height={16} />
           </button>
         </div>
       </div>
 
-      {/* Delete Confirmation Modal */}
+      {/* Delete Modal */}
       <Modal
         isOpen={Boolean(packageToDelete)}
         onClose={() => setPackageToDelete(null)}
@@ -310,27 +247,22 @@ export const PackageSelector: React.FC<PackageSelectorProps> = ({
         maxWidth="sm"
         footer={
           <>
-            <Button variant="secondary" size="sm" onClick={() => setPackageToDelete(null)}>
-              Отмена
-            </Button>
+            <Button variant="secondary" size="sm" onClick={() => setPackageToDelete(null)}>Отмена</Button>
             <Button
               variant="danger"
               size="sm"
               leftIcon={<Icon20DeleteOutline width={14} height={14} />}
-              onClick={() => {
-                if (packageToDelete) onDeletePackage(packageToDelete.id);
-                setPackageToDelete(null);
-              }}
+              onClick={() => { if (packageToDelete) onDeletePackage(packageToDelete.id); setPackageToDelete(null); }}
             >
               Удалить
             </Button>
           </>
         }
       >
-        <p className="text-xs" style={{ color: '#d4edda' }}>
-          Вы уверены, что хотите удалить пакет сборки{' '}
-          <strong style={{ color: '#22c55e', fontFamily: 'monospace' }}>{packageToDelete?.name}</strong>{' '}
-          ({packageToDelete?.files.length} файлов в очереди)?
+        <p className="text-xs text-gray-600">
+          Вы уверены, что хотите удалить пакет{' '}
+          <strong className="text-gray-900">{packageToDelete?.name}</strong>{' '}
+          ({packageToDelete?.files.length} файлов)?
         </p>
       </Modal>
 
@@ -342,24 +274,15 @@ export const PackageSelector: React.FC<PackageSelectorProps> = ({
         maxWidth="sm"
         footer={
           <>
-            <Button variant="secondary" size="sm" onClick={() => setPackageToRename(null)}>
-              Отмена
-            </Button>
-            <Button
-              variant="primary"
-              size="sm"
-              disabled={!renameInputValue.trim()}
-              onClick={handleConfirmRename}
-            >
+            <Button variant="secondary" size="sm" onClick={() => setPackageToRename(null)}>Отмена</Button>
+            <Button variant="primary" size="sm" disabled={!renameInputValue.trim()} onClick={handleConfirmRename}>
               Сохранить
             </Button>
           </>
         }
       >
         <form onSubmit={handleConfirmRename} className="space-y-3">
-          <label className="block text-xs font-medium" style={{ color: '#d4edda' }}>
-            Название пакета сборки:
-          </label>
+          <label className="block text-xs font-medium text-gray-700">Название пакета:</label>
           <Input
             value={renameInputValue}
             onChange={(e) => setRenameInputValue(e.target.value)}

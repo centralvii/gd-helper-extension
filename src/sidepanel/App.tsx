@@ -136,67 +136,62 @@ export const App: React.FC = () => {
 
     if (isLoading) {
         return (
-            <div className="flex flex-col items-center justify-center min-h-screen text-xs gap-3"
-                style={{ background: '#080d08', color: '#22c55e', fontFamily: 'monospace' }}>
+            <div className="flex flex-col items-center justify-center min-h-screen gap-3"
+                style={{ background: '#f0f4f0' }}>
                 <svg className="animate-spin w-7 h-7" style={{ color: '#22c55e' }} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                 </svg>
-                <span>[ ИНИЦИАЛИЗАЦИЯ GDHELPER... ]</span>
+                <span className="text-sm font-medium" style={{ color: '#6b7280' }}>Загрузка GDHelper...</span>
             </div>
         );
     }
 
     return (
-        <div className="flex flex-col min-h-screen relative" style={{ background: '#080d08', color: '#d4edda' }}>
+        <div className="flex flex-col min-h-screen relative" style={{ background: '#f0f4f0', color: '#111827' }}>
             {/* Global Drag Overlay */}
             {isDraggingOver && (
                 <div
                     className="fixed inset-0 z-50 flex flex-col items-center justify-center p-6 text-center pointer-events-none animate-fade-in"
                     style={{
-                        background: 'rgba(8,13,8,0.93)',
-                        border: '3px dashed rgba(34,197,94,0.6)',
-                        backdropFilter: 'blur(8px)',
+                        background: 'rgba(240,244,240,0.95)',
+                        border: '3px dashed #22c55e',
                     }}
                 >
                     <UploadCloud className="w-14 h-14 animate-bounce mb-3" style={{ color: '#22c55e' }} />
-                    <h2 className="text-base font-bold mb-1" style={{ color: '#d4edda', fontFamily: 'monospace' }}>
-                        &gt; ОТПУСТИТЕ ФАЙЛЫ
+                    <h2 className="text-base font-bold mb-1" style={{ color: '#111827' }}>
+                        Отпустите файлы здесь
                     </h2>
-                    <p className="text-xs" style={{ color: '#6b9a6b', fontFamily: 'monospace' }}>
+                    <p className="text-xs" style={{ color: '#6b7280' }}>
                         ZIP-архив или пачка .guf файлов будет импортирована
                     </p>
                 </div>
             )}
 
-            {/* Auto-Collect Toast Notification */}
+            {/* Auto-Collect Toast */}
             {autoCollectNotification && (
                 <div
-                    className="fixed top-3 right-3 z-50 max-w-xs p-3 rounded-xl shadow-2xl backdrop-blur-md flex items-start gap-2.5 animate-fade-in"
+                    className="fixed top-3 right-3 z-50 max-w-xs p-3 rounded-xl shadow-xl flex items-start gap-2.5 animate-fade-in"
                     style={{
-                        background: 'rgba(13,21,13,0.97)',
-                        border: '1px solid rgba(34,197,94,0.45)',
-                        boxShadow: '0 0 0 1px rgba(34,197,94,0.15), 0 8px 32px rgba(0,0,0,0.7)',
+                        background: '#ffffff',
+                        border: '1.5px solid #22c55e',
+                        boxShadow: '0 4px 20px rgba(34,197,94,0.15)',
                     }}
                 >
                     <Zap className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: '#22c55e' }} />
                     <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1 text-xs font-bold" style={{ color: '#d4edda', fontFamily: 'monospace' }}>
+                        <div className="flex items-center gap-1 text-xs font-bold" style={{ color: '#111827' }}>
                             <Check className="w-3 h-3" style={{ color: '#22c55e' }} />
-                            <span>FILE CAPTURED</span>
+                            <span>Файл перехвачен</span>
                         </div>
-                        <p className="text-[11px] truncate mt-0.5" style={{ color: '#22c55e', fontFamily: 'monospace' }}>
+                        <p className="text-[11px] truncate mt-0.5 font-medium" style={{ color: '#16a34a' }}>
                             {autoCollectNotification.fileName}
                         </p>
-                        <p className="text-[10px] mt-0.5" style={{ color: '#6b9a6b', fontFamily: 'monospace' }}>
+                        <p className="text-[10px] mt-0.5" style={{ color: '#6b7280' }}>
                             → {activePackage.name}
                         </p>
                     </div>
-                    <button
-                        onClick={clearNotification}
-                        className="icon-btn p-0.5"
-                        style={{ color: '#6b9a6b' }}
-                    >
+                    <button onClick={clearNotification} className="icon-btn p-0.5">
                         <X className="w-3.5 h-3.5" />
                     </button>
                 </div>
@@ -206,9 +201,7 @@ export const App: React.FC = () => {
             <Header
                 activeTool={activeTool}
                 fileCount={files.length}
-                hasReadme={Boolean(
-                    readmeContent && readmeContent.trim().length > 0,
-                )}
+                hasReadme={Boolean(readmeContent && readmeContent.trim().length > 0)}
                 onSelectTool={handleSelectTool}
                 onOpenPresets={() => setIsPresetsOpen(true)}
                 onOpenMassActions={() => setIsMassActionsOpen(true)}

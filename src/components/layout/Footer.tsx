@@ -37,7 +37,7 @@ export const Footer: React.FC<FooterProps> = ({
         if (validation.hasErrors || fileCount === 0 || isExporting) return;
         try {
             await onExportZip();
-            confetti({ particleCount: 80, spread: 60, origin: { y: 0.9 }, colors: ['#22c55e', '#16a34a', '#4ade80'] });
+            confetti({ particleCount: 80, spread: 60, origin: { y: 0.9 }, colors: ['#22c55e', '#16a34a', '#86efac'] });
         } catch (err) {
             console.error('Export failed:', err);
         }
@@ -55,27 +55,22 @@ export const Footer: React.FC<FooterProps> = ({
 
     return (
         <footer
-            className="sticky bottom-0 z-30 p-3"
+            className="sticky bottom-0 z-30 p-2.5"
             style={{
-                background: 'rgba(8,13,8,0.95)',
-                borderTop: '1px solid rgba(34,197,94,0.14)',
-                backdropFilter: 'blur(16px)',
-                WebkitBackdropFilter: 'blur(16px)',
-                boxShadow: '0 -4px 24px rgba(0,0,0,0.5)',
+                background: '#ffffff',
+                borderTop: '1px solid #e2e8e2',
+                boxShadow: '0 -2px 12px rgba(0,0,0,0.06)',
             }}
         >
-            {/* Status bar row */}
+            {/* Имя архива + статус */}
             <div
-                className="flex items-center gap-2 mb-2 px-2.5 py-1.5 rounded-lg text-xs"
-                style={{
-                    background: 'rgba(13,21,13,0.8)',
-                    border: '1px solid rgba(34,197,94,0.10)',
-                    fontFamily: 'monospace',
-                }}
+                className="flex items-center gap-2 mb-2 px-3 py-2 rounded-lg"
+                style={{ background: '#f0f4f0', border: '1px solid #e2e8e2' }}
             >
-                <Icon24ArchiveOutline width={13} height={13} style={{ color: '#22c55e', flexShrink: 0 }} />
-
-                <span style={{ color: '#6b9a6b' }}>ARCHIVE:</span>
+                {/* Иконка архива с bounce-анимацией */}
+                <span className="icon-btn p-0" style={{ color: '#22c55e', pointerEvents: 'none' }}>
+                    <Icon24ArchiveOutline width={15} height={15} />
+                </span>
 
                 {isEditingName ? (
                     <input
@@ -88,57 +83,58 @@ export const Footer: React.FC<FooterProps> = ({
                             if (e.key === 'Escape') setIsEditingName(false);
                         }}
                         autoFocus
-                        className="flex-1 bg-transparent outline-none text-xs"
-                        style={{ color: '#d4edda', fontFamily: 'monospace' }}
+                        className="flex-1 bg-transparent text-xs outline-none font-medium"
+                        style={{ color: '#111827' }}
                     />
                 ) : (
                     <button
                         onClick={() => { setTempName(archiveName); setIsEditingName(true); }}
                         className="group flex flex-1 items-center gap-1.5 text-left truncate"
-                        style={{ color: '#d4edda' }}
                         title="Нажмите для изменения имени архива"
                     >
-                        <span className="truncate">{archiveName}</span>
-                        <Icon24PenOutline
-                            width={11} height={11}
-                            className="opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
-                            style={{ color: '#6b9a6b' }}
-                        />
+                        <span className="text-xs font-semibold truncate" style={{ color: '#111827' }}>
+                            {archiveName}
+                        </span>
+                        {/* Pen icon с pop-анимацией */}
+                        <span className="icon-btn p-0 opacity-0 group-hover:opacity-100">
+                            <Icon24PenOutline width={13} height={13} />
+                        </span>
                     </button>
                 )}
 
-                <span style={{ color: '#3d5c3d' }}>·</span>
-                <span style={{ color: '#6b9a6b' }}>{fileCount} files</span>
+                <span className="text-[10px] font-medium" style={{ color: '#6b7280' }}>
+                    {fileCount} файлов
+                </span>
 
-                <div className="ml-auto">
+                {/* Статус */}
+                <div className="ml-auto flex-shrink-0">
                     {validation.hasErrors ? (
-                        <button onClick={onOpenValidation} className="hover:opacity-90 transition-opacity">
+                        <button onClick={onOpenValidation} className="hover:opacity-80 transition-opacity">
                             <Badge variant="danger" size="sm" className="cursor-pointer gap-1">
                                 <Icon16WarningTriangleOutline width={10} height={10} />
-                                {validation.errors.length} {validation.errors.length === 1 ? 'ошибка' : 'ошибок'}
+                                {validation.errors.length} ошибок
                             </Badge>
                         </button>
                     ) : (
                         <Badge variant="success" size="sm" className="gap-1">
                             <Icon16CheckCircleOutline width={10} height={10} />
-                            READY
+                            Готово
                         </Badge>
                     )}
                 </div>
             </div>
 
-            {/* Export button */}
+            {/* Кнопка экспорта */}
             <Button
                 variant="emerald"
                 size="md"
-                className="w-full font-bold tracking-wide"
-                style={{ fontFamily: 'monospace', letterSpacing: '0.06em' }}
+                className="w-full font-bold"
                 isLoading={isExporting}
                 disabled={validation.hasErrors || fileCount === 0}
                 onClick={handleExport}
                 leftIcon={<Icon20DownloadOutline width={16} height={16} />}
             >
-                {isExporting ? '[ УПАКОВКА... ]' : `[ ЭКСПОРТ ZIP · ${fileCount} файлов ]`}
+                {isExporting ? 'Создание архива...' : `Экспорт ZIP (${fileCount} файлов)`}
             </Button>
         </footer>
     );
