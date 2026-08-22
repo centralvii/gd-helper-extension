@@ -64,11 +64,11 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
     };
 
     return (
-        <div className="overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-slate-900 via-slate-900 to-slate-950 shadow-[0_30px_80px_rgba(15,23,42,0.7)] ring-1 ring-inset ring-white/5">
-            <div className="border-b border-white/10 bg-slate-950/50 px-3 py-3">
+        <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+            <div className="border-b border-gray-100 bg-gray-50/70 px-3 py-2.5">
                 <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2 text-sm font-semibold text-slate-100">
-                        <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-emerald-500/15 text-emerald-300 ring-1 ring-emerald-400/20">
+                    <div className="flex items-center gap-2 text-xs font-bold text-gray-900">
+                        <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700">
                             <Sparkles className="h-3.5 w-3.5" />
                         </div>
                         <span>Шаблон имени</span>
@@ -76,16 +76,16 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
                         {isPrimary ? (
                             <span
                                 title="Этот шаблон выбран основным и применяется всегда по умолчанию"
-                                className="inline-flex items-center gap-1 rounded-full border border-amber-500/30 bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-medium text-amber-200"
+                                className="inline-flex items-center gap-1 rounded-full border border-amber-300 bg-amber-50 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700"
                             >
-                                <Star className="h-2.5 w-2.5 fill-amber-300 text-amber-300" />
+                                <Star className="h-2.5 w-2.5 fill-amber-500 text-amber-500" />
                                 Основной
                             </span>
                         ) : (
                             <button
                                 onClick={() => onSetPrimaryTemplate(template)}
                                 title="Сделать текущий шаблон основным по умолчанию"
-                                className="inline-flex items-center gap-1 rounded-full border border-slate-700 bg-slate-900/70 px-1.5 py-0.5 text-[10px] font-medium text-slate-300 transition-colors hover:border-amber-500/40 hover:text-amber-200"
+                                className="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-white px-1.5 py-0.5 text-[10px] font-medium text-gray-600 transition-colors hover:border-amber-400 hover:text-amber-700"
                             >
                                 <Star className="h-2.5 w-2.5" />
                                 Сделать основным
@@ -93,9 +93,9 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
                         )}
                     </div>
 
-                    <div className="flex items-center gap-1.5 rounded-xl border border-white/10 bg-slate-900/70 px-2 py-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
-                        <label className="flex items-center gap-1 text-[11px] text-slate-400">
-                            <Hash className="h-3 w-3 text-slate-500" />
+                    <div className="flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-2 py-1 shadow-sm">
+                        <label className="flex items-center gap-1 text-[11px] text-gray-500">
+                            <Hash className="h-3 w-3 text-gray-400" />
                             <span>Старт</span>
                         </label>
                         <input
@@ -107,12 +107,12 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
                                     parseInt(e.target.value, 10) || 1,
                                 )
                             }
-                            className="w-14 rounded-lg border border-slate-700 bg-slate-950 px-2 py-0.5 text-center text-xs text-slate-100 outline-none transition-colors focus:border-emerald-500"
+                            className="w-12 rounded border border-gray-200 bg-gray-50 px-1.5 py-0.5 text-center text-xs font-semibold text-gray-900 outline-none transition-colors focus:border-emerald-500 focus:bg-white"
                         />
                         <button
                             onClick={onResetTemplate}
                             title="Сбросить к основному шаблону"
-                            className="rounded-lg p-1 text-slate-400 transition-colors hover:bg-slate-800 hover:text-slate-100"
+                            className="rounded p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700"
                         >
                             <RotateCcw className="h-3.5 w-3.5" />
                         </button>
@@ -122,19 +122,19 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
 
             <div className="space-y-3 p-3">
                 <div className="relative">
-                    <Wand2 className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-emerald-300" />
+                    <Wand2 className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-emerald-600" />
                     <input
                         ref={inputRef}
                         type="text"
                         value={template}
                         onChange={(e) => onSetTemplate(e.target.value)}
                         placeholder="{indexPad6}_{type}_{module}_{task}_{cleanName}"
-                        className="w-full rounded-xl border border-slate-700 bg-slate-950/80 pl-9 pr-3 py-2.5 font-mono text-xs text-emerald-300 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] outline-none transition-colors placeholder:text-slate-500 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/30"
+                        className="w-full rounded-xl border border-gray-200 bg-gray-50/50 pl-9 pr-3 py-2 font-mono text-xs font-semibold text-emerald-700 outline-none transition-colors placeholder:text-gray-400 focus:border-emerald-500 focus:bg-white focus:ring-1 focus:ring-emerald-500"
                     />
                 </div>
 
-                <div className="space-y-2">
-                    <div className="flex items-center justify-between text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+                <div className="space-y-1.5">
+                    <div className="flex items-center justify-between text-[10px] font-semibold uppercase tracking-wider text-gray-500">
                         <span>Быстрая вставка тегов</span>
                     </div>
 
@@ -145,7 +145,7 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
                                 type="button"
                                 onClick={() => insertTag(tag)}
                                 title={`${tag} — ${desc}`}
-                                className="rounded-lg border border-slate-700 bg-slate-900/80 px-2 py-1 font-mono text-[11px] text-slate-200 transition-all duration-200 hover:border-emerald-500/50 hover:bg-emerald-500/10 hover:text-emerald-200"
+                                className="rounded-lg border border-gray-200 bg-gray-50 px-2 py-1 font-mono text-[11px] font-medium text-gray-700 transition-all duration-150 hover:border-emerald-400 hover:bg-emerald-50 hover:text-emerald-800"
                             >
                                 {tag}
                             </button>
@@ -162,7 +162,7 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
                                     type="button"
                                     onClick={() => insertTag(`{${v.key}}`)}
                                     title={`Пользовательская переменная: {${v.key}}`}
-                                    className="rounded-lg border border-cyan-800/50 bg-cyan-950/40 px-2 py-1 font-mono text-[11px] text-cyan-200 transition-all duration-200 hover:border-cyan-500/60 hover:bg-cyan-500/10"
+                                    className="rounded-lg border border-cyan-200 bg-cyan-50 px-2 py-1 font-mono text-[11px] font-medium text-cyan-800 transition-all duration-150 hover:border-cyan-400 hover:bg-cyan-100"
                                 >
                                     {`{${v.key}}`}
                                 </button>
@@ -171,14 +171,14 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
                 </div>
 
                 {firstFile && (
-                    <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 px-3 py-2">
+                    <div className="rounded-xl border border-emerald-200 bg-emerald-50/70 px-3 py-2">
                         <div className="flex items-start gap-2 text-[11px]">
-                            <Eye className="mt-0.5 h-3.5 w-3.5 text-emerald-300" />
+                            <Eye className="mt-0.5 h-3.5 w-3.5 text-emerald-600 flex-shrink-0" />
                             <div className="min-w-0 flex-1">
-                                <span className="text-slate-400">
+                                <span className="text-gray-600">
                                     Пример (файл 1):{' '}
                                 </span>
-                                <span className="block truncate font-mono text-emerald-300">
+                                <span className="block truncate font-mono font-bold text-emerald-700">
                                     {firstFile.newName || '—'}
                                 </span>
                             </div>

@@ -81,10 +81,10 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
   return (
     <div className="space-y-3.5">
       {/* Task Metadata Card */}
-      <div className="p-3 bg-slate-900/90 border border-slate-800 rounded-xl space-y-3 shadow-sm">
+      <div className="p-3 bg-white border border-gray-200 rounded-2xl space-y-3 shadow-sm">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
           <div className="sm:col-span-1">
-            <label className="block text-[11px] font-semibold text-slate-300 mb-1">
+            <label className="block text-[11px] font-semibold text-gray-700 mb-1">
               Номер / Код задачи
             </label>
             <Input
@@ -94,7 +94,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
             />
           </div>
           <div className="sm:col-span-2">
-            <label className="block text-[11px] font-semibold text-slate-300 mb-1">
+            <label className="block text-[11px] font-semibold text-gray-700 mb-1">
               Название задачи
             </label>
             <Input
@@ -108,29 +108,29 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
         {/* Task Summary / Description */}
         <div>
           <div className="flex items-center justify-between mb-1">
-            <label className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-300">
-              <FileText className="w-3.5 h-3.5 text-emerald-400" />
+            <label className="flex items-center gap-1.5 text-[11px] font-semibold text-gray-700">
+              <FileText className="w-3.5 h-3.5 text-emerald-600" />
               <span>Общее описание реализации / Заметка</span>
             </label>
-            <span className="text-[10px] text-slate-500">Краткая суть и детали</span>
+            <span className="text-[10px] text-gray-400">Краткая суть и детали</span>
           </div>
           <textarea
             value={task.summary}
             onChange={(e) => onUpdateTask(task.id, { summary: e.target.value })}
             placeholder="Опишите общую суть решения, архитектурные особенности или примечания для тестировщиков..."
             rows={3}
-            className="w-full px-3 py-2 bg-slate-950/80 border border-slate-800 focus:border-emerald-500 rounded-lg text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 text-xs resize-y transition-colors"
+            className="w-full px-3 py-2 bg-white border border-gray-200 focus:border-emerald-500 rounded-xl text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-emerald-500 text-xs resize-y transition-colors"
           />
         </div>
       </div>
 
       {/* Changes Section */}
-      <div className="p-3 bg-slate-900/90 border border-slate-800 rounded-xl space-y-3 shadow-sm">
-        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-2.5">
+      <div className="p-3 bg-white border border-gray-200 rounded-2xl space-y-3 shadow-sm">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-100 pb-2.5">
           <div className="flex items-center gap-2">
-            <ListOrdered className="w-4 h-4 text-emerald-400" />
-            <h3 className="font-bold text-xs text-slate-100">Внесенные изменения</h3>
-            <span className="px-1.5 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 text-[10px] font-bold border border-emerald-500/30">
+            <ListOrdered className="w-4 h-4 text-emerald-600" />
+            <h3 className="font-bold text-xs text-gray-900">Внесенные изменения</h3>
+            <span className="px-1.5 py-0.5 rounded-md bg-emerald-50 text-emerald-700 text-[10px] font-bold border border-emerald-200">
               {task.items.length}
             </span>
           </div>
@@ -142,14 +142,14 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
               onClick={handleOpenAddWithTab}
               disabled={isTabFetching}
               title="Добавить пункт и автоматически подставить ссылку на открытую вкладку"
-              leftIcon={<Sparkles className="w-3.5 h-3.5 text-emerald-400" />}
+              leftIcon={<Sparkles className="w-3.5 h-3.5 text-emerald-600" />}
             >
               <span className="hidden sm:inline">С текущей вкладки</span>
               <span className="sm:hidden">С вкладки</span>
             </Button>
 
             <Button
-              variant="primary"
+              variant="emerald"
               size="sm"
               onClick={() => {
                 setEditingItem(null);
@@ -164,17 +164,17 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
 
         {/* Change Items List */}
         {task.items.length === 0 ? (
-          <div className="py-8 px-4 text-center border-2 border-dashed border-slate-800/80 rounded-xl bg-slate-950/40">
-            <Info className="w-8 h-8 text-slate-600 mx-auto mb-2" />
-            <p className="text-xs font-semibold text-slate-300 mb-1">
+          <div className="py-8 px-4 text-center border-2 border-dashed border-gray-200 rounded-2xl bg-gray-50/50">
+            <Info className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+            <p className="text-xs font-semibold text-gray-800 mb-1">
               Список изменений пуст
             </p>
-            <p className="text-[11px] text-slate-500 mb-3 max-w-sm mx-auto">
+            <p className="text-[11px] text-gray-500 mb-3 max-w-sm mx-auto">
               Зафиксируйте, что конкретно было изменено, и прикрепите ссылки на алгоритмы, экранные формы или модули.
             </p>
             <div className="flex items-center justify-center gap-2">
               <Button
-                variant="primary"
+                variant="emerald"
                 size="sm"
                 onClick={() => {
                   setEditingItem(null);
@@ -188,7 +188,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
                 variant="secondary"
                 size="sm"
                 onClick={handleOpenAddWithTab}
-                leftIcon={<Sparkles className="w-3.5 h-3.5 text-emerald-400" />}
+                leftIcon={<Sparkles className="w-3.5 h-3.5 text-emerald-600" />}
               >
                 Вставить ссылку вкладки
               </Button>
@@ -216,21 +216,21 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
       </div>
 
       {/* Action Toolbar */}
-      <div className="flex items-center justify-between gap-2 p-2.5 bg-slate-900 border border-slate-800 rounded-xl">
+      <div className="flex items-center justify-between gap-2 p-2 bg-white border border-gray-200 rounded-xl shadow-sm">
         <Button
           variant="secondary"
           size="sm"
           onClick={() => setIsPreviewModalOpen(true)}
-          leftIcon={<Eye className="w-3.5 h-3.5 text-sky-400" />}
+          leftIcon={<Eye className="w-3.5 h-3.5 text-sky-600" />}
         >
           Предпросмотр и экспорт
         </Button>
 
         <Button
-          variant="primary"
+          variant="emerald"
           size="sm"
           onClick={handleQuickCopyMarkdown}
-          leftIcon={quickCopied ? <Check className="w-3.5 h-3.5 text-emerald-200" /> : <Copy className="w-3.5 h-3.5" />}
+          leftIcon={quickCopied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
         >
           {quickCopied ? 'Скопировано в Markdown!' : 'Копировать Markdown'}
         </Button>

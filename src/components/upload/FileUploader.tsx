@@ -60,7 +60,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
                 <Button
                     variant="secondary"
                     size="xs"
-                    leftIcon={<Plus className="w-3.5 h-3.5" />}
+                    leftIcon={<Plus className="w-3.5 h-3.5 text-emerald-600" />}
                     onClick={() => addGufInputRef.current?.click()}
                 >
                     Добавить .guf
@@ -70,9 +70,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
     }
 
     return (
-        <div className="relative overflow-hidden rounded-2xl border border-emerald-500/20 bg-gradient-to-br from-slate-900 via-slate-900 to-slate-950 p-5 shadow-[0_24px_60px_rgba(15,23,42,0.8)] ring-1 ring-inset ring-white/5">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(16,185,129,0.18),_transparent_30%),radial-gradient(circle_at_bottom_left,_rgba(14,165,233,0.12),_transparent_35%)]" />
-
+        <div className="relative overflow-hidden rounded-2xl border-2 border-dashed border-emerald-500/30 bg-white p-6 shadow-sm hover:border-emerald-500/50 hover:shadow-md transition-all">
             <div className="relative flex flex-col items-center justify-center text-center">
                 <input
                     ref={zipInputRef}
@@ -90,15 +88,15 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
                     onChange={handleGufChange}
                 />
 
-                <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-emerald-400/30 bg-gradient-to-br from-emerald-500/25 to-teal-500/15 text-emerald-300 shadow-[0_0_30px_rgba(16,185,129,0.18)]">
+                <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-emerald-200 bg-emerald-50 text-emerald-600 shadow-sm transition-transform hover:scale-105">
                     <UploadCloud className="h-8 w-8" />
                 </div>
 
                 <div className="mb-2 space-y-1">
-                    <h4 className="text-lg font-semibold text-slate-100">
+                    <h4 className="text-base font-bold text-gray-900">
                         Перетащите файлы сюда
                     </h4>
-                    <p className="max-w-md text-xs leading-relaxed text-slate-400">
+                    <p className="max-w-md text-xs leading-relaxed text-gray-500">
                         Поддерживается ZIP-архив или несколько отдельных файлов
                         .guf для пакетной обработки.
                     </p>
@@ -109,7 +107,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
                         variant="secondary"
                         size="sm"
                         leftIcon={
-                            <FileArchive className="h-3.5 w-3.5 text-emerald-400" />
+                            <FileArchive className="h-3.5 w-3.5 text-emerald-600" />
                         }
                         onClick={() => zipInputRef.current?.click()}
                     >
@@ -119,7 +117,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
                         variant="secondary"
                         size="sm"
                         leftIcon={
-                            <FileCode className="h-3.5 w-3.5 text-sky-400" />
+                            <FileCode className="h-3.5 w-3.5 text-sky-600" />
                         }
                         onClick={() => gufInputRef.current?.click()}
                     >
@@ -127,8 +125,8 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
                     </Button>
                 </div>
 
-                <div className="mt-4 inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-slate-950/40 px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.18em] text-slate-300">
-                    <ArrowUpRight className="h-3 w-3 text-emerald-400" />
+                <div className="mt-4 inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-emerald-700">
+                    <ArrowUpRight className="h-3 w-3 text-emerald-600" />
                     Импорт пакета
                 </div>
             </div>

@@ -37,29 +37,29 @@ export const TaskSelector: React.FC<TaskSelectorProps> = ({
 
   return (
     <>
-      <div className="flex items-center justify-between gap-2 p-2 bg-slate-900/90 border border-slate-800 rounded-xl">
+      <div className="flex items-center justify-between gap-2 p-1.5 bg-white border border-gray-200 rounded-xl shadow-sm">
         {/* Active Task Trigger / Dropdown */}
         <div className="relative flex-1 min-w-0">
           <button
             onClick={() => setIsOpenList(!isOpenList)}
-            className="w-full flex items-center justify-between gap-2 px-3 py-1.5 bg-slate-800/80 hover:bg-slate-800 text-left border border-slate-700/80 rounded-lg transition-colors group"
+            className="w-full flex items-center justify-between gap-2 px-3 py-1.5 bg-gray-50 hover:bg-gray-100 text-left border border-gray-200 rounded-lg transition-colors group"
           >
             <div className="flex items-center gap-2 min-w-0">
-              <FileCode className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+              <FileCode className="w-4 h-4 text-emerald-600 flex-shrink-0" />
               <div className="truncate">
-                <span className="font-bold text-xs text-emerald-300 mr-1.5">
+                <span className="font-bold text-xs text-emerald-700 mr-1.5">
                   {activeTask?.taskNumber || 'Задача'}:
                 </span>
-                <span className="text-xs text-slate-200 truncate">
+                <span className="text-xs text-gray-900 font-medium truncate">
                   {activeTask?.title || 'Без названия'}
                 </span>
               </div>
             </div>
-            <div className="flex items-center gap-1 flex-shrink-0">
+            <div className="flex items-center gap-1.5 flex-shrink-0">
               <Badge variant="default" size="sm">
                 {activeTask?.items.length || 0} изм.
               </Badge>
-              <ChevronDown className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-200 transition-transform" />
+              <ChevronDown className="w-3.5 h-3.5 text-gray-500 group-hover:text-gray-900 transition-transform" />
             </div>
           </button>
 
@@ -70,31 +70,31 @@ export const TaskSelector: React.FC<TaskSelectorProps> = ({
                 className="fixed inset-0 z-40"
                 onClick={() => setIsOpenList(false)}
               />
-              <div className="absolute top-full left-0 right-0 mt-1 z-50 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl overflow-hidden animate-fade-in max-h-72 flex flex-col">
+              <div className="absolute top-full left-0 right-0 mt-1 z-50 bg-white border border-gray-200 rounded-2xl shadow-xl overflow-hidden animate-fade-in max-h-72 flex flex-col">
                 {/* Search */}
                 {tasks.length > 2 && (
-                  <div className="p-2 border-b border-slate-800">
+                  <div className="p-2 border-b border-gray-100 bg-gray-50">
                     <input
                       type="text"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       placeholder="Поиск задачи..."
-                      className="w-full px-2.5 py-1 bg-slate-950 border border-slate-800 rounded-md text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-emerald-500"
+                      className="w-full px-2.5 py-1 bg-white border border-gray-200 rounded-md text-xs text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-emerald-500"
                     />
                   </div>
                 )}
 
                 {/* List */}
-                <div className="overflow-y-auto flex-1 p-1 space-y-0.5">
+                <div className="overflow-y-auto flex-1 p-1.5 space-y-0.5">
                   {filteredTasks.map((t) => {
                     const isActive = t.id === activeTask?.id;
                     return (
                       <div
                         key={t.id}
-                        className={`group/item flex items-center justify-between gap-1.5 px-2.5 py-1.5 rounded-lg text-xs transition-colors ${
+                        className={`group/item flex items-center justify-between gap-1.5 px-2.5 py-1.5 rounded-lg text-xs transition-colors cursor-pointer ${
                           isActive
-                            ? 'bg-emerald-500/20 text-emerald-200 border border-emerald-500/30'
-                            : 'hover:bg-slate-800 text-slate-300'
+                            ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                            : 'hover:bg-gray-50 text-gray-800'
                         }`}
                       >
                         <button
@@ -104,25 +104,25 @@ export const TaskSelector: React.FC<TaskSelectorProps> = ({
                           }}
                           className="flex-1 text-left truncate min-w-0 flex items-center gap-1.5"
                         >
-                          <span className="font-semibold text-emerald-400 flex-shrink-0">
+                          <span className="font-bold text-emerald-700 flex-shrink-0">
                             {t.taskNumber}
                           </span>
-                          <span className="truncate">{t.title}</span>
+                          <span className="truncate font-medium">{t.title}</span>
                         </button>
                         <div className="flex items-center gap-1 flex-shrink-0">
-                          <span className="text-[10px] text-slate-500">
+                          <span className="text-[10px] text-gray-400">
                             {t.items.length} изм.
                           </span>
-                          {isActive && <Check className="w-3.5 h-3.5 text-emerald-400" />}
+                          {isActive && <Check className="w-3.5 h-3.5 text-emerald-600" />}
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
                               setTaskToDelete(t);
                             }}
                             title="Удалить задачу"
-                            className="p-1 text-slate-500 hover:text-rose-400 hover:bg-slate-700/80 rounded transition-colors opacity-0 group-hover/item:opacity-100"
+                            className="icon-btn icon-btn--danger p-1 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors opacity-0 group-hover/item:opacity-100"
                           >
-                            <Trash2 className="w-3 h-3" />
+                            <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         </div>
                       </div>
@@ -131,13 +131,13 @@ export const TaskSelector: React.FC<TaskSelectorProps> = ({
                 </div>
 
                 {/* Footer of dropdown */}
-                <div className="p-1.5 border-t border-slate-800 bg-slate-950/60">
+                <div className="p-1.5 border-t border-gray-100 bg-gray-50/70">
                   <button
                     onClick={() => {
                       onCreateTask();
                       setIsOpenList(false);
                     }}
-                    className="w-full flex items-center justify-center gap-1.5 py-1 text-xs text-emerald-400 hover:text-emerald-300 hover:bg-slate-800/80 rounded-md transition-colors font-medium"
+                    className="w-full flex items-center justify-center gap-1.5 py-1 text-xs text-emerald-700 hover:text-emerald-800 hover:bg-emerald-50 rounded-lg transition-colors font-semibold"
                   >
                     <Plus className="w-3.5 h-3.5" />
                     <span>Создать новую задачу</span>
@@ -155,7 +155,7 @@ export const TaskSelector: React.FC<TaskSelectorProps> = ({
             size="sm"
             onClick={onCreateTask}
             title="Создать новую задачу"
-            leftIcon={<Plus className="w-3.5 h-3.5 text-emerald-400" />}
+            leftIcon={<Plus className="w-3.5 h-3.5 text-emerald-600" />}
           >
             <span className="hidden sm:inline">Создать</span>
           </Button>
@@ -164,7 +164,7 @@ export const TaskSelector: React.FC<TaskSelectorProps> = ({
             <button
               onClick={() => onDuplicateTask(activeTask.id)}
               title="Дублировать задачу"
-              className="p-1.5 text-slate-400 hover:text-emerald-400 hover:bg-slate-800 rounded-lg transition-colors"
+              className="icon-btn p-1.5 text-gray-500 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors"
             >
               <Copy className="w-3.5 h-3.5" />
             </button>
@@ -174,7 +174,7 @@ export const TaskSelector: React.FC<TaskSelectorProps> = ({
             <button
               onClick={() => setTaskToDelete(activeTask)}
               title="Удалить задачу"
-              className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-slate-800 rounded-lg transition-colors"
+              className="icon-btn icon-btn--danger p-1.5 text-gray-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
             >
               <Trash2 className="w-3.5 h-3.5" />
             </button>
@@ -213,9 +213,9 @@ export const TaskSelector: React.FC<TaskSelectorProps> = ({
           </>
         }
       >
-        <p className="text-xs text-slate-300">
+        <p className="text-xs text-gray-700">
           Вы уверены, что хотите удалить задачу{' '}
-          <strong className="text-slate-100">{taskToDelete?.taskNumber}</strong> (
+          <strong className="text-gray-900">{taskToDelete?.taskNumber}</strong> (
           {taskToDelete?.title}) и все записанные в ней изменения ({taskToDelete?.items.length} шт.)?
         </p>
       </Modal>

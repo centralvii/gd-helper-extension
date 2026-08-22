@@ -68,8 +68,8 @@ export const MassActionsModal: React.FC<MassActionsModalProps> = ({
       }
     >
       <div className="space-y-4">
-        <p className="text-slate-400 text-xs">
-          Значения переменных подставляются в шаблон вместо соответствующих тегов (например, <code className="text-emerald-400 font-mono">{'{module}'}</code>) для всех файлов.
+        <p className="text-gray-600 text-xs">
+          Значения переменных подставляются в шаблон вместо соответствующих тегов (например, <code className="text-emerald-700 font-mono font-bold">{'{module}'}</code>) для всех файлов.
         </p>
 
         {/* List of current variables */}
@@ -77,12 +77,12 @@ export const MassActionsModal: React.FC<MassActionsModalProps> = ({
           {variables.map((v) => (
             <div
               key={v.key}
-              className="flex items-center gap-2 p-2 rounded-lg bg-slate-950/60 border border-slate-800"
+              className="flex items-center gap-2 p-2 rounded-xl bg-gray-50 border border-gray-200"
             >
               <div className="w-28 flex-shrink-0">
-                <span className="font-mono text-emerald-400 text-xs">{`{${v.key}}`}</span>
+                <span className="font-mono text-emerald-700 font-bold text-xs">{`{${v.key}}`}</span>
                 {v.label && v.label !== v.key && (
-                  <span className="text-[10px] text-slate-500 block truncate">{v.label}</span>
+                  <span className="text-[10px] text-gray-500 block truncate">{v.label}</span>
                 )}
               </div>
               <div className="flex-1">
@@ -91,14 +91,14 @@ export const MassActionsModal: React.FC<MassActionsModalProps> = ({
                   placeholder={`Значение для {${v.key}}`}
                   value={formValues[v.key] ?? variableValues[v.key] ?? ''}
                   onChange={(e) => handleValueChange(v.key, e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-700/80 rounded px-2.5 py-1 text-xs text-slate-100 placeholder-slate-500 focus:border-emerald-500 focus:outline-none"
+                  className="w-full bg-white border border-gray-200 rounded-lg px-2.5 py-1 text-xs text-gray-900 placeholder:text-gray-400 focus:border-emerald-500 focus:outline-none"
                 />
               </div>
               <button
                 type="button"
                 onClick={() => onRemoveVariable(v.key)}
                 title="Удалить переменную"
-                className="p-1 text-slate-500 hover:text-rose-400 rounded transition-colors"
+                className="icon-btn icon-btn--danger p-1 rounded-lg text-gray-400 hover:text-rose-600 hover:bg-rose-50"
               >
                 <Trash2 className="w-3.5 h-3.5" />
               </button>
@@ -109,7 +109,7 @@ export const MassActionsModal: React.FC<MassActionsModalProps> = ({
         {/* Add New Variable Form */}
         <form
           onSubmit={handleAddNewVariable}
-          className="pt-3 border-t border-slate-800 flex items-end gap-2"
+          className="pt-3 border-t border-gray-100 flex items-end gap-2"
         >
           <div className="flex-1">
             <Input
@@ -124,7 +124,7 @@ export const MassActionsModal: React.FC<MassActionsModalProps> = ({
             variant="secondary"
             size="sm"
             disabled={!newVarKey.trim()}
-            leftIcon={<Plus className="w-3.5 h-3.5" />}
+            leftIcon={<Plus className="w-3.5 h-3.5 text-emerald-600" />}
           >
             Добавить
           </Button>

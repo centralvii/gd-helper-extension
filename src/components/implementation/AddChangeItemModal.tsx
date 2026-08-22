@@ -94,7 +94,7 @@ export const AddChangeItemModal: React.FC<AddChangeItemModalProps> = ({
             Отмена
           </Button>
           <Button
-            variant="primary"
+            variant="emerald"
             size="sm"
             disabled={!description.trim()}
             onClick={handleSubmit}
@@ -109,10 +109,10 @@ export const AddChangeItemModal: React.FC<AddChangeItemModalProps> = ({
         {/* Description textarea */}
         <div>
           <div className="flex items-center justify-between mb-1">
-            <label className="font-semibold text-slate-200">
-              Описание изменения <span className="text-rose-400">*</span>
+            <label className="font-bold text-gray-800">
+              Описание изменения <span className="text-rose-500">*</span>
             </label>
-            <span className="text-[10px] text-slate-400">Что было изменено/доработано</span>
+            <span className="text-[10px] text-gray-400">Что было изменено/доработано</span>
           </div>
           <textarea
             value={description}
@@ -120,15 +120,15 @@ export const AddChangeItemModal: React.FC<AddChangeItemModalProps> = ({
             placeholder="Например: Изменен алгоритм, добавили цикл по участникам проверки, проверяем статус согласования..."
             rows={3}
             autoFocus
-            className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 text-xs resize-y"
+            className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 text-xs resize-y"
           />
         </div>
 
         {/* Browser tab insertion bar */}
-        <div className="p-2.5 bg-slate-900/90 border border-slate-800 rounded-xl space-y-2.5">
+        <div className="p-3 bg-gray-50 border border-gray-200 rounded-2xl space-y-2.5">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1.5 text-slate-300 font-medium">
-              <LinkIcon className="w-3.5 h-3.5 text-emerald-400" />
+            <div className="flex items-center gap-1.5 text-gray-700 font-semibold">
+              <LinkIcon className="w-3.5 h-3.5 text-emerald-600" />
               <span>Ссылка на объект / сущность (опционально)</span>
             </div>
             <button
@@ -136,23 +136,23 @@ export const AddChangeItemModal: React.FC<AddChangeItemModalProps> = ({
               onClick={handleFetchActiveTab}
               disabled={isLoadingTab}
               title="Получить заголовок и адрес текущей открытой вкладки Chrome"
-              className="inline-flex items-center gap-1 px-2 py-1 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 rounded-lg text-[11px] font-medium transition-colors"
+              className="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-lg text-[11px] font-semibold transition-colors"
             >
-              <Sparkles className="w-3 h-3 text-emerald-400" />
+              <Sparkles className="w-3 h-3 text-emerald-600" />
               {isLoadingTab ? 'Считывание...' : 'Вставить из активной вкладки'}
             </button>
           </div>
 
           {tabLoadedMessage && (
-            <div className="text-[11px] text-emerald-400 bg-emerald-950/40 px-2 py-1 rounded border border-emerald-900/50 flex items-center gap-1 truncate animate-fade-in">
-              <Check className="w-3 h-3 flex-shrink-0" />
+            <div className="text-[11px] text-emerald-800 bg-emerald-100/70 px-2 py-1 rounded-lg border border-emerald-300 flex items-center gap-1 truncate animate-fade-in">
+              <Check className="w-3 h-3 flex-shrink-0 text-emerald-600" />
               <span className="truncate">{tabLoadedMessage}</span>
             </div>
           )}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <div>
-              <label className="block text-[11px] text-slate-400 mb-1">
+              <label className="block text-[11px] text-gray-600 mb-1">
                 Название ссылки в тексте:
               </label>
               <Input
@@ -162,7 +162,7 @@ export const AddChangeItemModal: React.FC<AddChangeItemModalProps> = ({
               />
             </div>
             <div>
-              <label className="block text-[11px] text-slate-400 mb-1">
+              <label className="block text-[11px] text-gray-600 mb-1">
                 URL адрес страницы:
               </label>
               <Input
@@ -175,7 +175,7 @@ export const AddChangeItemModal: React.FC<AddChangeItemModalProps> = ({
                       href={linkUrl}
                       target="_blank"
                       rel="noreferrer"
-                      className="text-slate-400 hover:text-emerald-400 p-1"
+                      className="text-gray-400 hover:text-emerald-600 p-1"
                       title="Открыть ссылку в новой вкладке"
                     >
                       <ExternalLink className="w-3 h-3" />
@@ -190,10 +190,10 @@ export const AddChangeItemModal: React.FC<AddChangeItemModalProps> = ({
         {/* Live Preview */}
         {description.trim() && (
           <div>
-            <span className="block text-[11px] font-medium text-slate-400 mb-1">
+            <span className="block text-[11px] font-medium text-gray-500 mb-1">
               Предпросмотр строки:
             </span>
-            <div className="p-2 bg-slate-900/60 border border-slate-800 rounded-lg text-slate-300 font-mono text-[11px] break-all select-all">
+            <div className="p-2.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 font-mono text-[11px] break-all select-all">
               {previewText}
             </div>
           </div>

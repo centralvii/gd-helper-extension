@@ -14,25 +14,25 @@ export const ToolSelector: React.FC<ToolSelectorProps> = ({
   fileCount,
 }) => {
   return (
-    <div className="px-3 pt-2 pb-1 bg-slate-900 border-b border-slate-800/80">
-      <div className="flex items-center p-1 bg-slate-950/90 rounded-xl border border-slate-800/90 shadow-inner">
+    <div className="px-3 pt-2 pb-1 bg-white border-b border-gray-200">
+      <div className="flex items-center p-1 bg-gray-50 rounded-xl border border-gray-200">
         {/* Tool 1: Упаковка (guf-packer) */}
         <button
           onClick={() => onSelectTool('packer')}
           className={`flex-1 flex items-center justify-center gap-2 py-1.5 px-3 rounded-lg text-xs font-semibold transition-all ${
             activeTool === 'packer'
-              ? 'bg-emerald-600 text-white shadow-md shadow-emerald-950/50 ring-1 ring-emerald-400/30'
-              : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60'
+              ? 'bg-emerald-600 text-white shadow-sm'
+              : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
           }`}
         >
-          <Package className={`w-3.5 h-3.5 ${activeTool === 'packer' ? 'text-emerald-200' : 'text-slate-400'}`} />
+          <Package className={`w-3.5 h-3.5 ${activeTool === 'packer' ? 'text-white' : 'text-gray-500'}`} />
           <span>Упаковка</span>
           {fileCount > 0 && (
             <span
               className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
                 activeTool === 'packer'
-                  ? 'bg-emerald-800/80 text-emerald-100'
-                  : 'bg-slate-800 text-slate-400'
+                  ? 'bg-emerald-800 text-white'
+                  : 'bg-gray-200 text-gray-700'
               }`}
             >
               {fileCount}
@@ -45,11 +45,11 @@ export const ToolSelector: React.FC<ToolSelectorProps> = ({
           onClick={() => onSelectTool('implementation')}
           className={`flex-1 flex items-center justify-center gap-2 py-1.5 px-3 rounded-lg text-xs font-semibold transition-all ${
             activeTool === 'implementation'
-              ? 'bg-emerald-600 text-white shadow-md shadow-emerald-950/50 ring-1 ring-emerald-400/30'
-              : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60'
+              ? 'bg-emerald-600 text-white shadow-sm'
+              : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
           }`}
         >
-          <FileEdit className={`w-3.5 h-3.5 ${activeTool === 'implementation' ? 'text-emerald-200' : 'text-slate-400'}`} />
+          <FileEdit className={`w-3.5 h-3.5 ${activeTool === 'implementation' ? 'text-white' : 'text-gray-500'}`} />
           <span>Реализация</span>
         </button>
       </div>

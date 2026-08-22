@@ -75,15 +75,15 @@ export const FileTable: React.FC<FileTableProps> = ({
 
     return (
         <div className="space-y-3">
-            <div className="flex items-center justify-between gap-2 rounded-2xl border border-white/10 bg-slate-900/80 p-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+            <div className="flex items-center justify-between gap-2 rounded-2xl border border-gray-200 bg-white p-2.5 shadow-sm">
                 <div className="relative flex-1">
-                    <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-500" />
+                    <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" />
                     <input
                         type="text"
                         placeholder="Поиск по файлам..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full rounded-xl border border-slate-700 bg-slate-950/80 py-2 pl-9 pr-3 text-xs text-slate-100 placeholder:text-slate-500 outline-none transition-colors focus:border-emerald-500"
+                        className="w-full rounded-xl border border-gray-200 bg-gray-50/50 py-1.5 pl-9 pr-3 text-xs text-gray-900 placeholder:text-gray-400 outline-none transition-colors focus:border-emerald-500 focus:bg-white"
                     />
                 </div>
 
@@ -96,7 +96,7 @@ export const FileTable: React.FC<FileTableProps> = ({
             </div>
 
             {isFiltered && (
-                <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-2.5 py-1.5 text-[11px] text-amber-200">
+                <div className="rounded-xl border border-amber-300 bg-amber-50 px-2.5 py-1.5 text-[11px] text-amber-800">
                     Показано {filteredFiles.length} из {files.length} файлов.
                     Перетаскивание отключено во время поиска.
                 </div>

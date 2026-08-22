@@ -54,14 +54,14 @@ export const ReadmeEditorModal: React.FC<ReadmeEditorModalProps> = ({
     >
       <div className="space-y-3">
         {/* Tabs */}
-        <div className="flex items-center gap-2 border-b border-slate-800 pb-2">
+        <div className="flex items-center gap-2 border-b border-gray-100 pb-2">
           <button
             type="button"
             onClick={() => setActiveTab('edit')}
-            className={`flex items-center gap-1.5 px-3 py-1 text-xs font-medium rounded-lg transition-colors ${
+            className={`flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-lg transition-colors ${
               activeTab === 'edit'
-                ? 'bg-slate-800 text-emerald-400 border border-slate-700'
-                : 'text-slate-400 hover:text-slate-200'
+                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'
             }`}
           >
             <FileText className="w-3.5 h-3.5" />
@@ -70,10 +70,10 @@ export const ReadmeEditorModal: React.FC<ReadmeEditorModalProps> = ({
           <button
             type="button"
             onClick={() => setActiveTab('preview')}
-            className={`flex items-center gap-1.5 px-3 py-1 text-xs font-medium rounded-lg transition-colors ${
+            className={`flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-lg transition-colors ${
               activeTab === 'preview'
-                ? 'bg-slate-800 text-emerald-400 border border-slate-700'
-                : 'text-slate-400 hover:text-slate-200'
+                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'
             }`}
           >
             <Eye className="w-3.5 h-3.5" />
@@ -83,7 +83,7 @@ export const ReadmeEditorModal: React.FC<ReadmeEditorModalProps> = ({
 
         {activeTab === 'edit' ? (
           <div className="space-y-2">
-            <p className="text-[11px] text-slate-400">
+            <p className="text-[11px] text-gray-500">
               Введите общий текст примечаний к релизу / обновлению. Описания отдельных файлов добавятся автоматически перед вашим текстом.
             </p>
             <textarea
@@ -91,15 +91,15 @@ export const ReadmeEditorModal: React.FC<ReadmeEditorModalProps> = ({
               value={text}
               onChange={(e) => setText(e.target.value)}
               placeholder="Например: Обновление конфигурации и сценариев GreenData..."
-              className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-xs text-slate-100 placeholder-slate-500 font-sans focus:border-emerald-500 focus:outline-none"
+              className="w-full bg-white border border-gray-200 rounded-xl p-3 text-xs text-gray-900 placeholder:text-gray-400 font-sans focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none"
             />
           </div>
         ) : (
           <div className="space-y-2">
-            <p className="text-[11px] text-slate-400">
-              Так будет выглядеть итоговый файл <code className="text-emerald-400">README.txt</code> внутри ZIP архива:
+            <p className="text-[11px] text-gray-500">
+              Так будет выглядеть итоговый файл <code className="text-emerald-700 font-bold font-mono">README.txt</code> внутри ZIP архива:
             </p>
-            <pre className="w-full max-h-64 overflow-y-auto bg-slate-950 border border-slate-800 rounded-lg p-3 font-mono text-[11px] text-slate-300 whitespace-pre-wrap">
+            <pre className="w-full max-h-64 overflow-y-auto bg-gray-50 border border-gray-200 rounded-xl p-3 font-mono text-[11px] text-gray-800 whitespace-pre-wrap select-all">
               {previewOutput || '(Файл README.txt пуст)'}
             </pre>
           </div>

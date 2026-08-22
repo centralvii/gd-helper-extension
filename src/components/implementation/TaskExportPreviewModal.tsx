@@ -62,16 +62,16 @@ export const TaskExportPreviewModal: React.FC<TaskExportPreviewModalProps> = ({
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           <button
             onClick={() => handleCopy('md', markdownText)}
-            className="flex items-center justify-center gap-2 p-2.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 rounded-xl transition-all font-medium text-xs shadow-sm"
+            className="flex items-center justify-center gap-2 p-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-xl transition-all font-semibold text-xs shadow-sm"
           >
             {copiedFormat === 'md' ? (
               <>
-                <Check className="w-4 h-4 text-emerald-400" />
+                <Check className="w-4 h-4 text-emerald-600" />
                 <span>Скопировано в буфер!</span>
               </>
             ) : (
               <>
-                <Code className="w-4 h-4 text-emerald-400" />
+                <Code className="w-4 h-4 text-emerald-600" />
                 <span>Копировать как Markdown</span>
               </>
             )}
@@ -85,16 +85,16 @@ export const TaskExportPreviewModal: React.FC<TaskExportPreviewModalProps> = ({
                 .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '$1 ($2)');
               handleCopy('plain', plainText);
             }}
-            className="flex items-center justify-center gap-2 p-2.5 bg-slate-800 hover:bg-slate-750 text-slate-200 border border-slate-700 rounded-xl transition-all font-medium text-xs shadow-sm"
+            className="flex items-center justify-center gap-2 p-2.5 bg-gray-50 hover:bg-gray-100 text-gray-800 border border-gray-200 rounded-xl transition-all font-semibold text-xs shadow-sm"
           >
             {copiedFormat === 'plain' ? (
               <>
-                <Check className="w-4 h-4 text-emerald-400" />
+                <Check className="w-4 h-4 text-emerald-600" />
                 <span>Скопировано как текст!</span>
               </>
             ) : (
               <>
-                <FileText className="w-4 h-4 text-slate-300" />
+                <FileText className="w-4 h-4 text-gray-600" />
                 <span>Копировать чистый текст</span>
               </>
             )}
@@ -104,15 +104,15 @@ export const TaskExportPreviewModal: React.FC<TaskExportPreviewModalProps> = ({
         {/* Content Viewer */}
         <div>
           <div className="flex items-center justify-between mb-1.5">
-            <span className="font-semibold text-slate-300 text-[11px]">
+            <span className="font-semibold text-gray-700 text-[11px]">
               Предпросмотр сформированного описания:
             </span>
-            <span className="text-[10px] text-slate-500">
+            <span className="text-[10px] text-gray-400">
               {markdownText.split('\n').length} строк • {markdownText.length} символов
             </span>
           </div>
 
-          <pre className="p-3 bg-slate-900 border border-slate-800 rounded-xl text-slate-200 font-mono text-[11px] leading-relaxed whitespace-pre-wrap max-h-72 overflow-y-auto select-all">
+          <pre className="p-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 font-mono text-[11px] leading-relaxed whitespace-pre-wrap max-h-72 overflow-y-auto select-all">
             {markdownText || '(Описание пока пусто)'}
           </pre>
         </div>

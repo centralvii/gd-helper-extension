@@ -47,12 +47,12 @@ export const FileRowItem: React.FC<FileRowItemProps> = ({
         <div
             ref={setNodeRef}
             style={style}
-            className={`group relative flex items-center gap-2 rounded-2xl border p-2.5 transition-all duration-200 ${
+            className={`group relative flex items-center gap-2 rounded-xl border p-2.5 transition-all duration-150 ${
                 isDragging
-                    ? 'border-emerald-400/60 bg-slate-800/95 shadow-[0_20px_40px_rgba(16,185,129,0.12)]'
+                    ? 'border-emerald-500 bg-emerald-50/90 shadow-lg'
                     : hasError
-                      ? 'border-rose-500/30 bg-rose-500/5 hover:border-rose-400/50'
-                      : 'border-white/10 bg-slate-900/75 hover:border-emerald-500/30 hover:bg-slate-900/90'
+                      ? 'border-rose-300 bg-rose-50/50 hover:border-rose-400'
+                      : 'border-gray-200 bg-white hover:border-emerald-500/40 hover:shadow-sm'
             }`}
         >
             <button
@@ -60,18 +60,18 @@ export const FileRowItem: React.FC<FileRowItemProps> = ({
                 {...attributes}
                 {...listeners}
                 aria-label="Перетащить для изменения порядка"
-                className="flex h-7 w-7 flex-shrink-0 touch-none items-center justify-center rounded-lg border border-white/10 bg-slate-950/60 text-slate-500 transition-colors hover:border-slate-600 hover:text-slate-200"
+                className="flex h-7 w-7 flex-shrink-0 touch-none items-center justify-center rounded-lg border border-gray-200 bg-gray-50 text-gray-400 transition-colors hover:border-gray-300 hover:text-gray-700"
             >
                 <GripVertical className="h-3.5 w-3.5" />
             </button>
 
-            <div className="flex h-7 w-8 flex-shrink-0 items-center justify-center rounded-lg border border-white/10 bg-slate-950/60 text-[11px] font-semibold text-slate-300">
+            <div className="flex h-7 w-8 flex-shrink-0 items-center justify-center rounded-lg border border-gray-200 bg-gray-50 text-[11px] font-bold text-gray-600">
                 #{file.order}
             </div>
 
-            <div className="min-w-0 flex-1 space-y-1.5">
+            <div className="min-w-0 flex-1 space-y-1">
                 <div className="flex min-w-0 items-center gap-1.5">
-                    <span className="block truncate font-mono text-xs font-semibold text-emerald-300">
+                    <span className="block truncate font-mono text-xs font-bold text-gray-900">
                         {file.newName || file.originalName}
                     </span>
 
@@ -98,14 +98,14 @@ export const FileRowItem: React.FC<FileRowItemProps> = ({
                     {file.description && (
                         <span
                             title={`README: ${file.description}`}
-                            className="flex-shrink-0 text-slate-400"
+                            className="flex-shrink-0 text-emerald-600"
                         >
-                            <FileText className="h-3 w-3 text-teal-300" />
+                            <FileText className="h-3 w-3" />
                         </span>
                     )}
                 </div>
 
-                <div className="flex flex-wrap items-center gap-2 text-[10px] text-slate-400">
+                <div className="flex flex-wrap items-center gap-2 text-[10px] text-gray-500">
                     <span
                         className="truncate max-w-[220px]"
                         title={file.originalName}
@@ -114,26 +114,26 @@ export const FileRowItem: React.FC<FileRowItemProps> = ({
                     </span>
 
                     {file.detectedDate && (
-                        <span className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-slate-950/60 px-1.5 py-0.5 text-slate-300">
-                            <Calendar className="h-2.5 w-2.5" />
+                        <span className="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-gray-50 px-1.5 py-0.5 text-gray-600">
+                            <Calendar className="h-2.5 w-2.5 text-gray-400" />
                             {file.detectedDate}
                         </span>
                     )}
                 </div>
             </div>
 
-            <div className="flex flex-shrink-0 items-center gap-1 opacity-80 transition-opacity group-hover:opacity-100">
+            <div className="flex flex-shrink-0 items-center gap-1 opacity-70 transition-opacity group-hover:opacity-100">
                 <button
                     onClick={() => onEdit(file)}
                     title="Редактировать параметры файла"
-                    className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-800 hover:text-emerald-300"
+                    className="icon-btn p-1.5 rounded-lg text-gray-400 hover:text-emerald-700 hover:bg-emerald-50"
                 >
                     <Edit3 className="h-3.5 w-3.5" />
                 </button>
                 <button
                     onClick={() => onDelete(file.id)}
                     title="Удалить из списка"
-                    className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-800 hover:text-rose-300"
+                    className="icon-btn icon-btn--danger p-1.5 rounded-lg text-gray-400 hover:text-rose-600 hover:bg-rose-50"
                 >
                     <Trash2 className="h-3.5 w-3.5" />
                 </button>

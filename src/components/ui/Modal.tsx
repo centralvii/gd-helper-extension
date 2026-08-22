@@ -41,35 +41,35 @@ export const Modal: React.FC<ModalProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm transition-opacity animate-fade-in"
+        className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity animate-fade-in"
         onClick={onClose}
       />
 
       {/* Modal Container */}
       <div
-        className={`relative w-full ${maxWidthClasses[maxWidth]} bg-slate-900 border border-slate-700/80 rounded-xl shadow-2xl shadow-black/80 overflow-hidden flex flex-col max-h-[90vh] animate-slide-up z-10`}
+        className={`relative w-full ${maxWidthClasses[maxWidth]} bg-white border border-gray-200 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-slide-up z-10`}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-slate-800 bg-slate-900/90">
-          <h3 className="text-sm font-semibold text-slate-100 flex items-center gap-2">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-gray-50/80">
+          <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
             {title}
           </h3>
           <button
             onClick={onClose}
-            className="p-1 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors"
+            className="p-1 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-200/60 transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Body */}
-        <div className="p-4 overflow-y-auto flex-1 space-y-4 text-xs text-slate-200">
+        <div className="p-4 overflow-y-auto flex-1 space-y-4 text-xs text-gray-700">
           {children}
         </div>
 
         {/* Footer */}
         {footer && (
-          <div className="flex items-center justify-end gap-2 px-4 py-3 border-t border-slate-800 bg-slate-950/50">
+          <div className="flex items-center justify-end gap-2 px-4 py-3 border-t border-gray-100 bg-gray-50/80">
             {footer}
           </div>
         )}
