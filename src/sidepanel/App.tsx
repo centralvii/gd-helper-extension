@@ -18,6 +18,7 @@ export const App: React.FC = () => {
   const {
     files,
     template,
+    primaryTemplate,
     startNumber,
     archiveName,
     readmeContent,
@@ -28,6 +29,7 @@ export const App: React.FC = () => {
     isExporting,
     validation,
     setTemplate,
+    setPrimaryTemplate,
     resetTemplate,
     setStartNumber,
     setArchiveName,
@@ -46,6 +48,7 @@ export const App: React.FC = () => {
     clearFiles,
     savePreset,
     deletePreset,
+    setPresetAsPrimary,
     loadPreset,
     exportZip,
   } = useAppState();
@@ -128,10 +131,12 @@ export const App: React.FC = () => {
             {/* Template Editor */}
             <TemplateEditor
               template={template}
+              primaryTemplate={primaryTemplate}
               startNumber={startNumber}
               variables={variables}
               firstFile={files[0]}
               onSetTemplate={setTemplate}
+              onSetPrimaryTemplate={setPrimaryTemplate}
               onSetStartNumber={setStartNumber}
               onResetTemplate={resetTemplate}
             />
@@ -179,6 +184,7 @@ export const App: React.FC = () => {
         onLoadPreset={loadPreset}
         onSavePreset={savePreset}
         onDeletePreset={deletePreset}
+        onSetPresetAsPrimary={setPresetAsPrimary}
       />
 
       <ReadmeEditorModal

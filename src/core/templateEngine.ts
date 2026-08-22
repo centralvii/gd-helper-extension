@@ -1,6 +1,6 @@
 import { FileRow } from '../types';
 
-export const DEFAULT_TEMPLATE = '{indexPad6}_{cleanName}';
+export const DEFAULT_TEMPLATE = '{indexPad6}_{type}_{module}_{task}_{cleanName}';
 
 /**
  * Applies template to a single FileRow

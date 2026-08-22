@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Trash2, Check, Sparkles } from 'lucide-react';
+import { Plus, Trash2, Check, Sparkles, Star } from 'lucide-react';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
@@ -11,8 +11,9 @@ interface PresetManagerModalProps {
   presets: TemplatePreset[];
   currentTemplate: string;
   onLoadPreset: (preset: TemplatePreset) => void;
-  onSavePreset: (name: string) => void;
+  onSavePreset: (name: string, isPrimary?: boolean) => void;
   onDeletePreset: (id: string) => void;
+  onSetPresetAsPrimary: (id: string) => void;
 }
 
 export const PresetManagerModal: React.FC<PresetManagerModalProps> = ({
@@ -23,14 +24,17 @@ export const PresetManagerModal: React.FC<PresetManagerModalProps> = ({
   onLoadPreset,
   onSavePreset,
   onDeletePreset,
+  onSetPresetAsPrimary,
 }) => {
   const [newPresetName, setNewPresetName] = useState('');
+  const [setAsPrimary, setSetAsPrimary] = useState(false);
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newPresetName.trim()) return;
-    onSavePreset(newPresetName.trim());
+    onSavePreset(newPresetName.trim(), setAsPrimary);
     setNewPresetName('');
+    setSetAsPrimary(false);
   };
 
   return (
@@ -47,15 +51,25 @@ export const PresetManagerModal: React.FC<PresetManagerModalProps> = ({
     >
       <div className="space-y-4">
         {/* Preset List */}
-        <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
+        <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
           {presets.map((preset) => (
             <div
               key={preset.id}
-              className="flex items-center justify-between gap-3 p-2.5 rounded-lg bg-slate-950/70 border border-slate-800 hover:border-slate-700 transition-colors"
+              className={`flex items-center justify-between gap-3 p-2.5 rounded-lg border transition-colors ${
+                preset.isPrimary
+                  ? 'bg-amber-950/20 border-amber-800/60'
+                  : 'bg-slate-950/70 border-slate-800 hover:border-slate-700'
+              }`}
             >
               <div className="min-w-0 flex-1">
-                <div className="font-medium text-slate-200 text-xs truncate">
-                  {preset.name}
+                <div className="flex items-center gap-1.5 font-medium text-slate-200 text-xs truncate">
+                  <span className="truncate">{preset.name}</span>
+                  {preset.isPrimary && (
+                    <span className="inline-flex items-center gap-0.5 text-[10px] text-amber-400 font-normal">
+                      <Star className="w-3 h-3 fill-amber-400" />
+                      Основной
+                    </span>
+                  )}
                 </div>
                 <div className="font-mono text-[11px] text-emerald-400 truncate">
                   {preset.template}
@@ -63,6 +77,15 @@ export const PresetManagerModal: React.FC<PresetManagerModalProps> = ({
               </div>
 
               <div className="flex items-center gap-1.5 flex-shrink-0">
+                {!preset.isPrimary && (
+                  <button
+                    onClick={() => onSetPresetAsPrimary(preset.id)}
+                    title="Сделать основным шаблоном по умолчанию"
+                    className="p-1.5 text-slate-400 hover:text-amber-400 hover:bg-slate-800/80 rounded transition-colors"
+                  >
+                    <Star className="w-3.5 h-3.5" />
+                  </button>
+                )}
                 <Button
                   variant="secondary"
                   size="xs"
@@ -89,7 +112,7 @@ export const PresetManagerModal: React.FC<PresetManagerModalProps> = ({
         </div>
 
         {/* Save Current Template */}
-        <form onSubmit={handleSave} className="pt-3 border-t border-slate-800 space-y-2">
+        <form onSubmit={handleSave} className="pt-3 border-t border-slate-800 space-y-2.5">
           <div className="text-xs font-medium text-slate-300 flex items-center gap-1.5">
             <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
             <span>Сохранить текущий шаблон как пресет</span>
@@ -112,8 +135,19 @@ export const PresetManagerModal: React.FC<PresetManagerModalProps> = ({
               Сохранить
             </Button>
           </div>
-          <div className="text-[11px] font-mono text-slate-500 truncate">
-            Текущий: {currentTemplate}
+          <div className="flex items-center justify-between text-[11px]">
+            <span className="font-mono text-slate-400 truncate max-w-[240px]">
+              Текущий: {currentTemplate}
+            </span>
+            <label className="flex items-center gap-1.5 text-slate-300 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={setAsPrimary}
+                onChange={(e) => setSetAsPrimary(e.target.checked)}
+                className="rounded bg-slate-900 border-slate-700 text-emerald-500 focus:ring-emerald-500 focus:ring-offset-slate-900"
+              />
+              <span>Сделать основным</span>
+            </label>
           </div>
         </form>
       </div>

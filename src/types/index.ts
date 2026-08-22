@@ -26,6 +26,7 @@ export interface TemplatePreset {
   startNumber?: number;
   variables?: Record<string, string>;
   isDefault?: boolean;
+  isPrimary?: boolean;
   createdAt?: number;
 }
 
@@ -46,6 +47,7 @@ export interface ValidationSummary {
 export interface StoredAppState {
   filesMeta: Array<Omit<FileRow, 'file'>>;
   template: string;
+  primaryTemplate?: string;
   startNumber: number;
   archiveName: string;
   readmeContent: string;

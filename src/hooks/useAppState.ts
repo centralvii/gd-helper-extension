@@ -19,18 +19,26 @@ import {
 } from '../utils/indexedDB';
 
 const PRESETS_STORAGE_KEY = 'gd-helper-template-presets';
+const PRIMARY_TEMPLATE_KEY = 'gd-helper-primary-template';
+
+const DEFAULT_VARIABLES: VariableDefinition[] = [
+  { key: 'type', label: 'Тип (ДО/ПОСЛЕ)' },
+  { key: 'module', label: 'Модуль' },
+  { key: 'task', label: 'Задача' },
+];
 
 const DEFAULT_PRESETS: TemplatePreset[] = [
   {
-    id: 'default',
-    name: 'Стандартный (000001_Имя)',
-    template: '{indexPad6}_{cleanName}',
+    id: 'gd-task-release',
+    name: 'GreenData Релиз ({indexPad6}_{type}_{module}_{task}_{cleanName})',
+    template: '{indexPad6}_{type}_{module}_{task}_{cleanName}',
     isDefault: true,
+    isPrimary: true,
   },
   {
-    id: 'index-only',
-    name: 'Простая нумерация (1_Имя)',
-    template: '{index}_{cleanName}',
+    id: 'standard-pad6',
+    name: 'Стандартный (000001_Имя)',
+    template: '{indexPad6}_{cleanName}',
     isDefault: true,
   },
   {
@@ -40,22 +48,35 @@ const DEFAULT_PRESETS: TemplatePreset[] = [
     isDefault: true,
   },
   {
-    id: 'with-module',
+    id: 'with-module-only',
     name: 'С модулем (000001_{module}_{cleanName})',
     template: '{indexPad6}_{module}_{cleanName}',
+    isDefault: true,
+  },
+  {
+    id: 'index-only',
+    name: 'Простая нумерация (1_Имя)',
+    template: '{index}_{cleanName}',
     isDefault: true,
   },
 ];
 
 export function useAppState() {
-  const [files, setFiles] = useState<FileRow[]>([]);
-  const [template, setTemplateState] = useState<string>(DEFAULT_TEMPLATE);
+  const [primaryTemplate, setPrimaryTemplateState] = useState<string>(() => {
+    try {
+      const saved = localStorage.getItem(PRIMARY_TEMPLATE_KEY);
+      if (saved) return saved;
+    } catch {
+      // ignore
+    }
+    return DEFAULT_TEMPLATE;
+  });
+
+  const [template, setTemplateState] = useState<string>(primaryTemplate);
   const [startNumber, setStartNumberState] = useState<number>(1);
   const [archiveName, setArchiveName] = useState<string>('renamed_files.zip');
   const [readmeContent, setReadmeContent] = useState<string>('');
-  const [variables, setVariables] = useState<VariableDefinition[]>([
-    { key: 'module', label: 'Модуль' },
-  ]);
+  const [variables, setVariables] = useState<VariableDefinition[]>(DEFAULT_VARIABLES);
   const [variableValues, setVariableValues] = useState<Record<string, string>>({});
   const [presets, setPresets] = useState<TemplatePreset[]>(() => {
     try {
@@ -69,6 +90,7 @@ export function useAppState() {
     return DEFAULT_PRESETS;
   });
 
+  const [files, setFiles] = useState<FileRow[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isExporting, setIsExporting] = useState<boolean>(false);
   const isInitialLoadedRef = useRef<boolean>(false);
@@ -87,7 +109,8 @@ export function useAppState() {
             };
           });
 
-          setTemplateState(state.template || DEFAULT_TEMPLATE);
+          const activeTpl = state.template || primaryTemplate;
+          setTemplateState(activeTpl);
           setStartNumberState(state.startNumber || 1);
           setArchiveName(state.archiveName || 'renamed_files.zip');
           setReadmeContent(state.readmeContent || '');
@@ -101,11 +124,14 @@ export function useAppState() {
           // Recalculate names to ensure freshness
           const calculated = recalculateAllNames(
             restoredFiles,
-            state.template || DEFAULT_TEMPLATE,
+            activeTpl,
             state.startNumber || 1,
             state.variableValues || {}
           );
           setFiles(calculated);
+        } else {
+          // If no saved state, use primary template
+          setTemplateState(primaryTemplate);
         }
       } catch (err) {
         console.error('Failed to initialize app state:', err);
@@ -116,7 +142,7 @@ export function useAppState() {
     }
 
     initFromStorage();
-  }, []);
+  }, [primaryTemplate]);
 
   // Save presets to localStorage
   useEffect(() => {
@@ -141,6 +167,7 @@ export function useAppState() {
       const state: StoredAppState = {
         filesMeta,
         template,
+        primaryTemplate,
         startNumber,
         archiveName,
         readmeContent,
@@ -153,7 +180,7 @@ export function useAppState() {
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [files, template, startNumber, archiveName, readmeContent, variables, variableValues, isLoading]);
+  }, [files, template, primaryTemplate, startNumber, archiveName, readmeContent, variables, variableValues, isLoading]);
 
   // Validation
   const validation = useMemo(() => {
@@ -169,9 +196,25 @@ export function useAppState() {
     [startNumber, variableValues]
   );
 
+  const setPrimaryTemplate = useCallback((newPrimaryTpl: string) => {
+    setPrimaryTemplateState(newPrimaryTpl);
+    try {
+      localStorage.setItem(PRIMARY_TEMPLATE_KEY, newPrimaryTpl);
+    } catch {
+      // ignore
+    }
+    // Update presets primary flag
+    setPresets((prev) =>
+      prev.map((p) => ({
+        ...p,
+        isPrimary: p.template === newPrimaryTpl,
+      }))
+    );
+  }, []);
+
   const resetTemplate = useCallback(() => {
-    setTemplate(DEFAULT_TEMPLATE);
-  }, [setTemplate]);
+    setTemplate(primaryTemplate);
+  }, [setTemplate, primaryTemplate]);
 
   const setStartNumber = useCallback(
     (num: number) => {
@@ -349,23 +392,46 @@ export function useAppState() {
   }, []);
 
   const savePreset = useCallback(
-    (name: string) => {
+    (name: string, isPrimary: boolean = false) => {
       const newPreset: TemplatePreset = {
         id: crypto.randomUUID(),
         name,
         template,
         startNumber,
         variables: variableValues,
+        isPrimary,
         createdAt: Date.now(),
       };
-      setPresets((prev) => [...prev, newPreset]);
+      if (isPrimary) {
+        setPrimaryTemplate(template);
+      }
+      setPresets((prev) => [
+        ...prev.map((p) => (isPrimary ? { ...p, isPrimary: false } : p)),
+        newPreset,
+      ]);
     },
-    [template, startNumber, variableValues]
+    [template, startNumber, variableValues, setPrimaryTemplate]
   );
 
   const deletePreset = useCallback((id: string) => {
     setPresets((prev) => prev.filter((p) => p.id !== id));
   }, []);
+
+  const setPresetAsPrimary = useCallback(
+    (id: string) => {
+      const targetPreset = presets.find((p) => p.id === id);
+      if (!targetPreset) return;
+
+      setPrimaryTemplate(targetPreset.template);
+      setPresets((prev) =>
+        prev.map((p) => ({
+          ...p,
+          isPrimary: p.id === id,
+        }))
+      );
+    },
+    [presets, setPrimaryTemplate]
+  );
 
   const loadPreset = useCallback(
     (preset: TemplatePreset) => {
@@ -406,6 +472,7 @@ export function useAppState() {
   return {
     files,
     template,
+    primaryTemplate,
     startNumber,
     archiveName,
     readmeContent,
@@ -416,6 +483,7 @@ export function useAppState() {
     isExporting,
     validation,
     setTemplate,
+    setPrimaryTemplate,
     resetTemplate,
     setStartNumber,
     setArchiveName,
@@ -436,6 +504,7 @@ export function useAppState() {
     clearFiles,
     savePreset,
     deletePreset,
+    setPresetAsPrimary,
     loadPreset,
     exportZip,
   };
