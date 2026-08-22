@@ -4,6 +4,8 @@ import { useAppState } from '../hooks/useAppState';
 import { useGlobalFileDrop } from '../hooks/useGlobalFileDrop';
 import { Header } from '../components/layout/Header';
 import { Footer } from '../components/layout/Footer';
+import { ToolSelector } from '../components/layout/ToolSelector';
+import { ImplementationTool } from '../components/implementation/ImplementationTool';
 import { FileUploader } from '../components/upload/FileUploader';
 import { TemplateEditor } from '../components/template/TemplateEditor';
 import { FileTable } from '../components/table/FileTable';
@@ -12,7 +14,7 @@ import { PresetManagerModal } from '../components/template/PresetManagerModal';
 import { ReadmeEditorModal } from '../components/readme/ReadmeEditorModal';
 import { ValidationPanel } from '../components/validation/ValidationPanel';
 import { FileEditModal } from '../components/table/FileEditModal';
-import { FileRow } from '../types';
+import { FileRow, ActiveTool } from '../types';
 
 export const App: React.FC = () => {
   const {
@@ -53,6 +55,28 @@ export const App: React.FC = () => {
     exportZip,
   } = useAppState();
 
+  // Active Tool state
+  const [activeTool, setActiveTool] = useState<ActiveTool>(() => {
+    try {
+      const saved = localStorage.getItem('gd-helper-active-tool');
+      if (saved === 'packer' || saved === 'implementation') {
+        return saved;
+      }
+    } catch {
+      // ignore
+    }
+    return 'packer';
+  });
+
+  const handleSelectTool = (tool: ActiveTool) => {
+    setActiveTool(tool);
+    try {
+      localStorage.setItem('gd-helper-active-tool', tool);
+    } catch {
+      // ignore
+    }
+  };
+
   // Modals state
   const [isPresetsOpen, setIsPresetsOpen] = useState(false);
   const [isMassActionsOpen, setIsMassActionsOpen] = useState(false);
@@ -60,10 +84,14 @@ export const App: React.FC = () => {
   const [isValidationOpen, setIsValidationOpen] = useState(false);
   const [editingFile, setEditingFile] = useState<FileRow | null>(null);
 
-  // Global Drag and Drop
+  // Global Drag and Drop (active only when in packer tool)
   const { isDraggingOver } = useGlobalFileDrop({
-    onDropZip: loadZip,
+    onDropZip: (zipFile) => {
+      handleSelectTool('packer');
+      loadZip(zipFile);
+    },
     onDropGufFiles: (droppedFiles) => {
+      handleSelectTool('packer');
       if (files.length > 0) {
         addFiles(droppedFiles);
       } else {
@@ -109,6 +137,7 @@ export const App: React.FC = () => {
 
       {/* Header */}
       <Header
+        activeTool={activeTool}
         fileCount={files.length}
         hasReadme={Boolean(readmeContent && readmeContent.trim().length > 0)}
         onOpenPresets={() => setIsPresetsOpen(true)}
@@ -117,9 +146,18 @@ export const App: React.FC = () => {
         onClearFiles={clearFiles}
       />
 
+      {/* Tool Selector Bar */}
+      <ToolSelector
+        activeTool={activeTool}
+        onSelectTool={handleSelectTool}
+        fileCount={files.length}
+      />
+
       {/* Main Content Area */}
       <main className="flex-1 p-3 space-y-3.5 pb-6">
-        {files.length === 0 ? (
+        {activeTool === 'implementation' ? (
+          <ImplementationTool />
+        ) : files.length === 0 ? (
           <div className="py-6">
             <FileUploader
               onLoadZip={loadZip}
@@ -154,16 +192,18 @@ export const App: React.FC = () => {
         )}
       </main>
 
-      {/* Footer / Export bar */}
-      <Footer
-        fileCount={files.length}
-        validation={validation}
-        archiveName={archiveName}
-        isExporting={isExporting}
-        onSetArchiveName={setArchiveName}
-        onExportZip={exportZip}
-        onOpenValidation={() => setIsValidationOpen(true)}
-      />
+      {/* Footer / Export bar (only for packer tool) */}
+      {activeTool === 'packer' && (
+        <Footer
+          fileCount={files.length}
+          validation={validation}
+          archiveName={archiveName}
+          isExporting={isExporting}
+          onSetArchiveName={setArchiveName}
+          onExportZip={exportZip}
+          onOpenValidation={() => setIsValidationOpen(true)}
+        />
+      )}
 
       {/* Modals */}
       <MassActionsModal

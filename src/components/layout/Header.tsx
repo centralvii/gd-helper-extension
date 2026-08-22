@@ -10,7 +10,10 @@ import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
 import { Modal } from '../ui/Modal';
 
+import { ActiveTool } from '../../types';
+
 interface HeaderProps {
+  activeTool: ActiveTool;
   fileCount: number;
   hasReadme: boolean;
   onOpenPresets: () => void;
@@ -20,6 +23,7 @@ interface HeaderProps {
 }
 
 export const Header: React.FC<HeaderProps> = ({
+  activeTool,
   fileCount,
   hasReadme,
   onOpenPresets,
@@ -49,10 +53,10 @@ export const Header: React.FC<HeaderProps> = ({
           />
           <div className="flex items-center gap-1.5 truncate">
             <span className="font-bold text-sm text-slate-100 tracking-tight">GDHelper</span>
-            <Badge variant="success" size="sm">
-              GUF
+            <Badge variant={activeTool === 'packer' ? 'success' : 'info'} size="sm">
+              {activeTool === 'packer' ? 'GUF Packer' : 'Реализация'}
             </Badge>
-            {fileCount > 0 && (
+            {activeTool === 'packer' && fileCount > 0 && (
               <Badge variant="default" size="sm">
                 {fileCount}
               </Badge>
@@ -62,33 +66,37 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* Action Toolbar */}
         <div className="flex items-center gap-1">
-          <button
-            onClick={onOpenPresets}
-            title="Пресеты шаблонов"
-            className="p-1.5 text-slate-400 hover:text-emerald-400 hover:bg-slate-800 rounded-lg transition-colors"
-          >
-            <Bookmark className="w-4 h-4" />
-          </button>
+          {activeTool === 'packer' && (
+            <>
+              <button
+                onClick={onOpenPresets}
+                title="Пресеты шаблонов"
+                className="p-1.5 text-slate-400 hover:text-emerald-400 hover:bg-slate-800 rounded-lg transition-colors"
+              >
+                <Bookmark className="w-4 h-4" />
+              </button>
 
-          <button
-            onClick={onOpenMassActions}
-            title="Массовые действия"
-            disabled={fileCount === 0}
-            className="p-1.5 text-slate-400 hover:text-emerald-400 hover:bg-slate-800 rounded-lg transition-colors disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-slate-400"
-          >
-            <Layers className="w-4 h-4" />
-          </button>
+              <button
+                onClick={onOpenMassActions}
+                title="Массовые действия"
+                disabled={fileCount === 0}
+                className="p-1.5 text-slate-400 hover:text-emerald-400 hover:bg-slate-800 rounded-lg transition-colors disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-slate-400"
+              >
+                <Layers className="w-4 h-4" />
+              </button>
 
-          <button
-            onClick={onOpenReadme}
-            title="Редактор README.txt"
-            className="relative p-1.5 text-slate-400 hover:text-emerald-400 hover:bg-slate-800 rounded-lg transition-colors"
-          >
-            <FileText className="w-4 h-4" />
-            {hasReadme && (
-              <span className="absolute top-1 right-1 w-1.5 h-1.5 bg-emerald-400 rounded-full ring-2 ring-slate-900" />
-            )}
-          </button>
+              <button
+                onClick={onOpenReadme}
+                title="Редактор README.txt"
+                className="relative p-1.5 text-slate-400 hover:text-emerald-400 hover:bg-slate-800 rounded-lg transition-colors"
+              >
+                <FileText className="w-4 h-4" />
+                {hasReadme && (
+                  <span className="absolute top-1 right-1 w-1.5 h-1.5 bg-emerald-400 rounded-full ring-2 ring-slate-900" />
+                )}
+              </button>
+            </>
+          )}
 
           <button
             onClick={handleOpenFullscreen}
@@ -98,7 +106,7 @@ export const Header: React.FC<HeaderProps> = ({
             <Maximize2 className="w-4 h-4" />
           </button>
 
-          {fileCount > 0 && (
+          {activeTool === 'packer' && fileCount > 0 && (
             <button
               onClick={() => setIsClearConfirmOpen(true)}
               title="Очистить все файлы"

@@ -6,7 +6,8 @@
   "permissions": [
     "sidePanel",
     "storage",
-    "downloads"
+    "downloads",
+    "tabs"
   ],
   "action": {
     "default_title": "Открыть GDHelper",

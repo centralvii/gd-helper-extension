@@ -55,3 +55,23 @@ export interface StoredAppState {
   variableValues: Record<string, string>;
   updatedAt: number;
 }
+
+export type ActiveTool = 'packer' | 'implementation';
+
+export interface ImplementationChangeItem {
+  id: string;
+  description: string;
+  linkTitle?: string;
+  linkUrl?: string;
+}
+
+export interface ImplementationTask {
+  id: string;
+  taskNumber: string;
+  title: string;
+  summary: string;
+  items: ImplementationChangeItem[];
+  createdAt: number;
+  updatedAt: number;
+}
+
