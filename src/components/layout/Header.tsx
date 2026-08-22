@@ -53,68 +53,49 @@ export const Header: React.FC<HeaderProps> = ({
                     boxShadow: '0 1px 0 #e2e8e2, 0 2px 8px rgba(0,0,0,0.04)',
                 }}
             >
-                <div className="flex items-center justify-between gap-2 px-3 py-2">
+                <div className="relative flex items-center justify-between gap-2 px-3 py-2 min-h-[44px]">
 
-                    {/* ── Лого ── */}
-                    <div className="flex items-center gap-2.5 flex-shrink-0">
+                    {/* ── Центрированное навигационное меню (StealthSurf / VKUI style) ── */}
+                    <div className="absolute left-1/2 -translate-x-1/2 flex items-center justify-center">
                         <div
-                            className="flex h-8 w-8 items-center justify-center rounded-xl flex-shrink-0"
-                            style={{
-                                background: 'linear-gradient(135deg, #16a34a 0%, #22c55e 100%)',
-                                boxShadow: '0 2px 8px rgba(34,197,94,0.3)',
-                            }}
+                            className="flex items-center gap-0.5 rounded-xl p-0.5 shadow-sm"
+                            style={{ background: '#f0f4f0', border: '1px solid #e2e8e2' }}
                         >
-                            <img src="/icons/icon48.png" alt="GD" className="h-5 w-5 rounded-lg object-cover" />
-                        </div>
-                        <div className="hidden sm:block">
-                            <div className="text-sm font-bold leading-tight" style={{ color: '#111827' }}>
-                                GD<span style={{ color: '#22c55e' }}>Helper</span>
-                            </div>
-                            <div className="text-[9px] font-medium tracking-wider uppercase" style={{ color: '#6b7280' }}>
-                                GreenData Tools
-                            </div>
+                            {/* Упаковка */}
+                            <button
+                                type="button"
+                                onClick={() => onSelectTool('packer')}
+                                className={`header-tab ${activeTool === 'packer' ? 'header-tab--active' : ''}`}
+                            >
+                                <Icon28ArchiveOutline width={15} height={15} />
+                                <span>Упаковка</span>
+                                {fileCount > 0 && (
+                                    <span
+                                        className="rounded-full px-1.5 text-[9px] font-bold"
+                                        style={{
+                                            background: activeTool === 'packer' ? '#22c55e' : '#d1fae5',
+                                            color:      activeTool === 'packer' ? '#fff'    : '#16a34a',
+                                        }}
+                                    >
+                                        {fileCount}
+                                    </span>
+                                )}
+                            </button>
+
+                            {/* Реализация */}
+                            <button
+                                type="button"
+                                onClick={() => onSelectTool('implementation')}
+                                className={`header-tab ${activeTool === 'implementation' ? 'header-tab--active' : ''}`}
+                            >
+                                <Icon28ArticleOutline width={15} height={15} />
+                                <span>Реализация</span>
+                            </button>
                         </div>
                     </div>
 
-                    {/* ── Tabs (StealthSurf-style) ── */}
-                    <div
-                        className="flex items-center gap-0.5 rounded-xl p-0.5"
-                        style={{ background: '#f0f4f0', border: '1px solid #e2e8e2' }}
-                    >
-                        {/* Упаковка */}
-                        <button
-                            type="button"
-                            onClick={() => onSelectTool('packer')}
-                            className={`header-tab ${activeTool === 'packer' ? 'header-tab--active' : ''}`}
-                        >
-                            <Icon28ArchiveOutline width={15} height={15} />
-                            <span>Упаковка</span>
-                            {fileCount > 0 && (
-                                <span
-                                    className="rounded-full px-1.5 text-[9px] font-bold"
-                                    style={{
-                                        background: activeTool === 'packer' ? '#22c55e' : '#d1fae5',
-                                        color:      activeTool === 'packer' ? '#fff'    : '#16a34a',
-                                    }}
-                                >
-                                    {fileCount}
-                                </span>
-                            )}
-                        </button>
-
-                        {/* Реализация */}
-                        <button
-                            type="button"
-                            onClick={() => onSelectTool('implementation')}
-                            className={`header-tab ${activeTool === 'implementation' ? 'header-tab--active' : ''}`}
-                        >
-                            <Icon28ArticleOutline width={15} height={15} />
-                            <span>Реализация</span>
-                        </button>
-                    </div>
-
-                    {/* ── Правые кнопки ── */}
-                    <div className="flex items-center gap-1 flex-shrink-0">
+                    {/* ── Правые кнопки действий ── */}
+                    <div className="ml-auto flex items-center gap-1 flex-shrink-0 z-10">
                         {activeTool === 'packer' && (
                             <>
                                 <button
@@ -122,7 +103,6 @@ export const Header: React.FC<HeaderProps> = ({
                                     title="Пресеты шаблонов"
                                     className="icon-btn hidden sm:inline-flex"
                                 >
-                                    {/* bounce при hover */}
                                     <Icon20BookmarkOutline width={17} height={17} />
                                 </button>
 
