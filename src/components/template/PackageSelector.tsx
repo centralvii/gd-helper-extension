@@ -1,17 +1,18 @@
 import React, { useState } from 'react';
 import {
-  Icon28ArchiveOutline,
-  Icon24AddOutline,
-  Icon20CopyOutline,
-  Icon20DeleteOutline,
-  Icon28EditOutline,
-  Icon28ChevronDownOutline,
-  Icon16Done,
-  Icon20FlashOutline,
-} from '@vkontakte/icons';
+  Package,
+  Plus,
+  Trash2,
+  Copy,
+  Edit2,
+  ChevronDown,
+  Check,
+  Zap,
+} from 'lucide-react';
 import { BuildPackage } from '../../types';
 import { Button } from '../ui/Button';
 import { Modal } from '../ui/Modal';
+import { Badge } from '../ui/Badge';
 import { Input } from '../ui/Input';
 
 interface PackageSelectorProps {
@@ -41,6 +42,7 @@ export const PackageSelector: React.FC<PackageSelectorProps> = ({
   const [packageToDelete, setPackageToDelete] = useState<BuildPackage | null>(null);
   const [packageToRename, setPackageToRename] = useState<BuildPackage | null>(null);
   const [renameInputValue, setRenameInputValue] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
 
   const handleOpenRename = (pkg: BuildPackage) => {
     setPackageToRename(pkg);
@@ -55,122 +57,109 @@ export const PackageSelector: React.FC<PackageSelectorProps> = ({
     setPackageToRename(null);
   };
 
+  const filteredPackages = packages.filter((pkg) => {
+    const query = searchQuery.toLowerCase();
+    return pkg.name.toLowerCase().includes(query);
+  });
+
   return (
     <>
-      {/* Toolbar */}
-      <div
-        className="flex flex-wrap items-center justify-between gap-2 px-2.5 py-1.5 rounded-xl"
-        style={{
-          background: '#ffffff',
-          border: '1px solid #e2e8e2',
-          boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
-        }}
-      >
-        {/* Selector */}
-        <div className="relative flex-1 min-w-[180px]">
+      <div className="flex items-center justify-between gap-2 p-1.5 bg-white border border-gray-200 rounded-xl shadow-sm">
+        {/* Active Package Trigger / Dropdown */}
+        <div className="relative flex-1 min-w-0">
           <button
             onClick={() => setIsOpenList(!isOpenList)}
-            className="w-full flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-lg text-left transition-all group"
-            style={{
-              background: isOpenList ? '#dcfce7' : '#f0f4f0',
-              border: `1.5px solid ${isOpenList ? '#22c55e' : '#e2e8e2'}`,
-            }}
+            className="w-full flex items-center justify-between gap-2 px-3 py-1.5 bg-gray-50 hover:bg-gray-100 text-left border border-gray-200 rounded-lg transition-colors group"
           >
-            <div className="flex items-center gap-1.5 min-w-0">
-              {/* Иконка с pop при открытии */}
-              <span style={{ display: 'inline-flex', color: '#22c55e', transition: 'transform 0.25s cubic-bezier(0.34,1.56,0.64,1)', transform: isOpenList ? 'scale(1.18)' : 'scale(1)' }}>
-                <Icon28ArchiveOutline width={15} height={15} />
-              </span>
-              <span className="text-xs font-bold truncate" style={{ color: '#111827' }}>
-                {activePackage.name}
-              </span>
+            <div className="flex items-center gap-2 min-w-0">
+              <Package className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+              <div className="truncate">
+                <span className="font-bold text-xs text-emerald-700 mr-1.5">
+                  Пакет:
+                </span>
+                <span className="text-xs text-gray-900 font-medium truncate">
+                  {activePackage.name}
+                </span>
+              </div>
             </div>
             <div className="flex items-center gap-1.5 flex-shrink-0">
-              <span
-                className="text-[9px] font-bold rounded-full px-1.5 py-0.5"
-                style={{
-                  background: activePackage.files.length > 0 ? '#22c55e' : '#f0f4f0',
-                  color:      activePackage.files.length > 0 ? '#fff'    : '#6b7280',
-                }}
-              >
-                {activePackage.files.length}
-              </span>
-              <span style={{ display: 'inline-flex', color: '#6b7280', transition: 'transform 0.2s', transform: isOpenList ? 'rotate(180deg)' : 'rotate(0deg)' }}>
-                <Icon28ChevronDownOutline width={14} height={14} />
-              </span>
+              <Badge variant={activePackage.files.length > 0 ? 'success' : 'default'} size="sm">
+                {activePackage.files.length} {activePackage.files.length === 1 ? 'файл' : 'файлов'}
+              </Badge>
+              <ChevronDown className="w-3.5 h-3.5 text-gray-500 group-hover:text-gray-900 transition-transform" />
             </div>
           </button>
 
-          {/* Dropdown */}
+          {/* Package Dropdown Menu */}
           {isOpenList && (
             <>
-              <div className="fixed inset-0 z-40" onClick={() => setIsOpenList(false)} />
               <div
-                className="absolute top-full left-0 right-0 mt-1 z-50 rounded-xl overflow-hidden animate-fade-in"
-                style={{
-                  background: '#ffffff',
-                  border: '1.5px solid #e2e8e2',
-                  boxShadow: '0 8px 24px rgba(0,0,0,0.1)',
-                  maxHeight: 272,
-                  display: 'flex',
-                  flexDirection: 'column',
-                }}
-              >
-                {/* Header */}
-                <div
-                  className="flex items-center justify-between px-3 py-2"
-                  style={{ borderBottom: '1px solid #f0f4f0', background: '#f8faf8' }}
-                >
-                  <span className="text-[10px] font-semibold tracking-wider uppercase" style={{ color: '#6b7280' }}>
-                    Пакеты ({packages.length})
-                  </span>
-                  <button
-                    onClick={() => { onCreatePackage(); setIsOpenList(false); }}
-                    className="flex items-center gap-1 text-[11px] font-semibold transition-all icon-btn py-0.5 px-1.5 rounded-md"
-                    style={{ color: '#16a34a' }}
-                  >
-                    <Icon24AddOutline width={13} height={13} />
-                    <span>+ Новый</span>
-                  </button>
-                </div>
+                className="fixed inset-0 z-40"
+                onClick={() => setIsOpenList(false)}
+              />
+              <div className="absolute top-full left-0 right-0 mt-1 z-50 bg-white border border-gray-200 rounded-2xl shadow-xl overflow-hidden animate-fade-in max-h-72 flex flex-col">
+                {/* Search */}
+                {packages.length > 2 && (
+                  <div className="p-2 border-b border-gray-100 bg-gray-50">
+                    <input
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder="Поиск пакета..."
+                      className="w-full px-2.5 py-1 bg-white border border-gray-200 rounded-md text-xs text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-emerald-500"
+                    />
+                  </div>
+                )}
 
                 {/* List */}
                 <div className="overflow-y-auto flex-1 p-1.5 space-y-0.5">
-                  {packages.map((pkg) => {
+                  {filteredPackages.map((pkg) => {
                     const isActive = pkg.id === activePackage.id;
                     return (
                       <div
                         key={pkg.id}
-                        className="group/item flex items-center justify-between gap-1 px-2.5 py-1.5 rounded-lg transition-all cursor-pointer"
-                        style={{
-                          background: isActive ? '#dcfce7' : 'transparent',
-                          border: isActive ? '1px solid rgba(34,197,94,0.3)' : '1px solid transparent',
-                        }}
-                        onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = '#f8faf8'; }}
-                        onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = 'transparent'; }}
+                        className={`group/item flex items-center justify-between gap-1.5 px-2.5 py-1.5 rounded-lg text-xs transition-colors cursor-pointer ${
+                          isActive
+                            ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                            : 'hover:bg-gray-50 text-gray-800'
+                        }`}
                       >
                         <button
-                          onClick={() => { onSelectPackage(pkg.id); setIsOpenList(false); }}
+                          onClick={() => {
+                            onSelectPackage(pkg.id);
+                            setIsOpenList(false);
+                          }}
                           className="flex-1 text-left truncate min-w-0 flex items-center gap-1.5"
                         >
-                          <span className="text-xs font-semibold truncate" style={{ color: isActive ? '#16a34a' : '#111827' }}>
-                            {pkg.name}
+                          <span className="font-bold text-emerald-700 flex-shrink-0">
+                            {isActive ? '▸' : '•'}
                           </span>
+                          <span className="truncate font-medium">{pkg.name}</span>
                         </button>
                         <div className="flex items-center gap-1 flex-shrink-0">
-                          <span className="text-[9px]" style={{ color: '#9ca3af' }}>{pkg.files.length}f</span>
-                          {isActive && <Icon16Done width={13} height={13} style={{ color: '#22c55e' }} />}
+                          <span className="text-[10px] text-gray-400">
+                            {pkg.files.length} ф.
+                          </span>
+                          {isActive && <Check className="w-3.5 h-3.5 text-emerald-600" />}
                           <button
-                            onClick={(e) => { e.stopPropagation(); handleOpenRename(pkg); }}
-                            className="icon-btn p-1 opacity-0 group-hover/item:opacity-100"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleOpenRename(pkg);
+                            }}
+                            title="Переименовать пакет"
+                            className="icon-btn p-1 text-gray-400 hover:text-sky-600 hover:bg-sky-50 rounded transition-colors opacity-0 group-hover/item:opacity-100"
                           >
-                            <Icon28EditOutline width={12} height={12} />
+                            <Edit2 className="w-3.5 h-3.5" />
                           </button>
                           <button
-                            onClick={(e) => { e.stopPropagation(); setPackageToDelete(pkg); }}
-                            className="icon-btn icon-btn--danger p-1 opacity-0 group-hover/item:opacity-100"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setPackageToDelete(pkg);
+                            }}
+                            title="Удалить пакет"
+                            className="icon-btn icon-btn--danger p-1 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors opacity-0 group-hover/item:opacity-100"
                           >
-                            <Icon20DeleteOutline width={12} height={12} />
+                            <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         </div>
                       </div>
@@ -178,17 +167,17 @@ export const PackageSelector: React.FC<PackageSelectorProps> = ({
                   })}
                 </div>
 
-                {/* Footer */}
-                <div style={{ borderTop: '1px solid #f0f4f0' }} className="p-1.5">
+                {/* Footer of dropdown */}
+                <div className="p-1.5 border-t border-gray-100 bg-gray-50/70">
                   <button
-                    onClick={() => { onCreatePackage(); setIsOpenList(false); }}
-                    className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-semibold transition-all"
-                    style={{ color: '#16a34a' }}
-                    onMouseEnter={e => e.currentTarget.style.background = '#dcfce7'}
-                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                    onClick={() => {
+                      onCreatePackage();
+                      setIsOpenList(false);
+                    }}
+                    className="w-full flex items-center justify-center gap-1.5 py-1 text-xs text-emerald-700 hover:text-emerald-800 hover:bg-emerald-50 rounded-lg transition-colors font-semibold"
                   >
-                    <Icon24AddOutline width={13} height={13} />
-                    Создать новый пакет сборки
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Создать новый пакет сборки</span>
                   </button>
                 </div>
               </div>
@@ -196,50 +185,73 @@ export const PackageSelector: React.FC<PackageSelectorProps> = ({
           )}
         </div>
 
-        {/* Правые кнопки */}
+        {/* Package Actions Toolbar */}
         <div className="flex items-center gap-1">
-          {/* Автосбор */}
+          {/* Auto-collect toggle */}
           <button
             onClick={onToggleAutoCollect}
-            title={isAutoCollectEnabled ? 'Автосбор ВКЛЮЧЕН' : 'Автосбор ВЫКЛЮЧЕН'}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all"
-            style={{
-              background: isAutoCollectEnabled ? '#dcfce7' : '#f0f4f0',
-              border: `1.5px solid ${isAutoCollectEnabled ? '#22c55e' : '#e2e8e2'}`,
-              color: isAutoCollectEnabled ? '#16a34a' : '#6b7280',
-            }}
+            title={
+              isAutoCollectEnabled
+                ? 'Автосбор ВКЛЮЧЕН: скачанные .guf файлы добавляются в активный пакет'
+                : 'Автосбор ВЫКЛЮЧЕН: нажмите для включения'
+            }
+            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
+              isAutoCollectEnabled
+                ? 'bg-emerald-50 text-emerald-700 border-emerald-200 shadow-sm'
+                : 'bg-gray-50 hover:bg-gray-100 text-gray-600 border-gray-200'
+            }`}
           >
             {isAutoCollectEnabled && (
               <span className="relative flex h-1.5 w-1.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-green-500" />
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
               </span>
             )}
-            {/* Flash icon с bounce */}
-            <span className="icon-btn p-0" style={{ pointerEvents: 'none' }}>
-              <Icon20FlashOutline width={14} height={14} />
-            </span>
-            <span>AUTO</span>
+            <Zap className={`w-3.5 h-3.5 ${isAutoCollectEnabled ? 'text-emerald-600' : 'text-gray-400'}`} />
+            <span className="text-[11px]">AUTO</span>
           </button>
 
-          <div className="w-px h-4" style={{ background: '#e2e8e2' }} />
+          {/* Create new package */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onCreatePackage()}
+            title="Создать новый пакет"
+            leftIcon={<Plus className="w-3.5 h-3.5 text-emerald-600" />}
+          >
+            <span className="hidden sm:inline">Создать</span>
+          </Button>
 
-          <button onClick={() => onCreatePackage()} title="Новый пакет" className="icon-btn">
-            <Icon24AddOutline width={16} height={16} />
+          {/* Rename active package */}
+          <button
+            onClick={() => handleOpenRename(activePackage)}
+            title="Переименовать пакет"
+            className="icon-btn p-1.5 text-gray-500 hover:text-sky-700 hover:bg-sky-50 rounded-lg transition-colors"
+          >
+            <Edit2 className="w-3.5 h-3.5" />
           </button>
-          <button onClick={() => handleOpenRename(activePackage)} title="Переименовать" className="icon-btn">
-            <Icon28EditOutline width={16} height={16} />
+
+          {/* Duplicate active package */}
+          <button
+            onClick={() => onDuplicatePackage(activePackage.id)}
+            title="Дублировать пакет"
+            className="icon-btn p-1.5 text-gray-500 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors"
+          >
+            <Copy className="w-3.5 h-3.5" />
           </button>
-          <button onClick={() => onDuplicatePackage(activePackage.id)} title="Дублировать" className="icon-btn">
-            <Icon20CopyOutline width={16} height={16} />
-          </button>
-          <button onClick={() => setPackageToDelete(activePackage)} title="Удалить пакет" className="icon-btn icon-btn--danger">
-            <Icon20DeleteOutline width={16} height={16} />
+
+          {/* Delete active package */}
+          <button
+            onClick={() => setPackageToDelete(activePackage)}
+            title="Удалить пакет"
+            className="icon-btn icon-btn--danger p-1.5 text-gray-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>
 
-      {/* Delete Modal */}
+      {/* Delete Confirmation Modal */}
       <Modal
         isOpen={Boolean(packageToDelete)}
         onClose={() => setPackageToDelete(null)}
@@ -247,22 +259,33 @@ export const PackageSelector: React.FC<PackageSelectorProps> = ({
         maxWidth="sm"
         footer={
           <>
-            <Button variant="secondary" size="sm" onClick={() => setPackageToDelete(null)}>Отмена</Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => setPackageToDelete(null)}
+            >
+              Отмена
+            </Button>
             <Button
               variant="danger"
               size="sm"
-              leftIcon={<Icon20DeleteOutline width={14} height={14} />}
-              onClick={() => { if (packageToDelete) onDeletePackage(packageToDelete.id); setPackageToDelete(null); }}
+              leftIcon={<Trash2 className="w-3.5 h-3.5" />}
+              onClick={() => {
+                if (packageToDelete) {
+                  onDeletePackage(packageToDelete.id);
+                }
+                setPackageToDelete(null);
+              }}
             >
               Удалить
             </Button>
           </>
         }
       >
-        <p className="text-xs text-gray-600">
-          Вы уверены, что хотите удалить пакет{' '}
-          <strong className="text-gray-900">{packageToDelete?.name}</strong>{' '}
-          ({packageToDelete?.files.length} файлов)?
+        <p className="text-xs text-gray-700">
+          Вы уверены, что хотите удалить пакет сборки{' '}
+          <strong className="text-gray-900">{packageToDelete?.name}</strong> (
+          {packageToDelete?.files.length} файлов в очереди)?
         </p>
       </Modal>
 
@@ -274,15 +297,28 @@ export const PackageSelector: React.FC<PackageSelectorProps> = ({
         maxWidth="sm"
         footer={
           <>
-            <Button variant="secondary" size="sm" onClick={() => setPackageToRename(null)}>Отмена</Button>
-            <Button variant="primary" size="sm" disabled={!renameInputValue.trim()} onClick={handleConfirmRename}>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => setPackageToRename(null)}
+            >
+              Отмена
+            </Button>
+            <Button
+              variant="primary"
+              size="sm"
+              disabled={!renameInputValue.trim()}
+              onClick={handleConfirmRename}
+            >
               Сохранить
             </Button>
           </>
         }
       >
         <form onSubmit={handleConfirmRename} className="space-y-3">
-          <label className="block text-xs font-medium text-gray-700">Название пакета:</label>
+          <label className="block text-xs font-medium text-gray-700">
+            Название пакета сборки:
+          </label>
           <Input
             value={renameInputValue}
             onChange={(e) => setRenameInputValue(e.target.value)}
