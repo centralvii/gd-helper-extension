@@ -1,16 +1,15 @@
 import React, { useState } from 'react';
 import {
-    Layers,
-    FileText,
-    Bookmark,
-    Trash2,
-    Maximize2,
-    Package,
-    FileCheck2,
-} from 'lucide-react';
-import { Button } from '../ui/Button';
+    Icon28ArchiveOutline,
+    Icon28ArticleOutline,
+    Icon28DeleteOutline,
+    Icon28FullscreenOutline,
+    Icon20BookmarkOutline,
+    Icon20ListBulletOutline,
+    Icon20DocumentOutline,
+} from '@vkontakte/icons';
 import { Modal } from '../ui/Modal';
-
+import { Button } from '../ui/Button';
 import { ActiveTool } from '../../types';
 
 interface HeaderProps {
@@ -37,11 +36,7 @@ export const Header: React.FC<HeaderProps> = ({
     const [isClearConfirmOpen, setIsClearConfirmOpen] = useState(false);
 
     const handleOpenFullscreen = () => {
-        if (
-            typeof chrome !== 'undefined' &&
-            chrome.tabs &&
-            chrome.tabs.create
-        ) {
+        if (typeof chrome !== 'undefined' && chrome.tabs && chrome.tabs.create) {
             chrome.tabs.create({ url: chrome.runtime.getURL('index.html') });
         } else {
             window.open(window.location.href, '_blank');
@@ -50,121 +45,142 @@ export const Header: React.FC<HeaderProps> = ({
 
     return (
         <>
-            <header className="sticky top-0 z-30 border-b border-white/10 bg-slate-950/80 backdrop-blur-xl shadow-[0_12px_30px_rgba(2,6,23,0.55)]">
-                <div className="flex items-center justify-between gap-3 px-3 py-3">
-                    <div className="flex items-center gap-3 min-w-0">
-                        <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-emerald-400/30 bg-gradient-to-br from-emerald-400 via-emerald-500 to-teal-500 shadow-lg shadow-emerald-500/20">
-                            <img
-                                src="/icons/icon48.png"
-                                alt="GDHelper"
-                                className="h-6 w-6 rounded-lg object-cover"
-                            />
-                        </div>
+            <header className="sticky top-0 z-30"
+                style={{
+                    background: 'rgba(8,13,8,0.92)',
+                    borderBottom: '1px solid rgba(34,197,94,0.14)',
+                    backdropFilter: 'blur(16px)',
+                    WebkitBackdropFilter: 'blur(16px)',
+                    boxShadow: '0 1px 0 rgba(34,197,94,0.06), 0 4px 24px rgba(0,0,0,0.5)',
+                }}
+            >
+                <div className="flex items-center justify-between gap-2 px-3 py-2">
 
-                        <div className="hidden sm:flex items-center gap-2 text-xs uppercase tracking-[0.18em] text-slate-400">
-                            <span className="font-semibold text-slate-200">
-                                GDHelper
-                            </span>
-                            <span className="text-slate-600">•</span>
-                            <span className="text-emerald-300">
-                                {activeTool === 'packer'
-                                    ? 'Упаковка'
-                                    : 'Реализация'}
-                            </span>
+                    {/* ── Left: Logo + title ── */}
+                    <div className="flex items-center gap-2.5 flex-shrink-0">
+                        <div
+                            className="flex h-8 w-8 items-center justify-center rounded-lg flex-shrink-0"
+                            style={{
+                                background: 'linear-gradient(135deg, #166534 0%, #22c55e 100%)',
+                                boxShadow: '0 0 0 1px rgba(34,197,94,0.3), 0 2px 12px rgba(34,197,94,0.2)',
+                            }}
+                        >
+                            <img src="/icons/icon48.png" alt="GD" className="h-5 w-5 rounded object-cover" />
+                        </div>
+                        <div className="hidden sm:block">
+                            <div
+                                className="text-xs font-bold leading-none"
+                                style={{ color: '#22c55e', fontFamily: 'monospace', letterSpacing: '0.06em' }}
+                            >
+                                GD<span style={{ color: '#d4edda' }}>Helper</span>
+                            </div>
+                            <div className="console-label mt-0.5">
+                                GreenData · v1.0
+                            </div>
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-2 min-w-0">
-                        <div className="flex items-center gap-1 rounded-2xl border border-white/10 bg-slate-900/80 p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
-                            <button
-                                type="button"
-                                onClick={() => onSelectTool('packer')}
-                                className={`group relative flex items-center justify-center gap-2 rounded-xl px-3 py-1.5 text-[11px] font-semibold transition-all duration-200 ${
-                                    activeTool === 'packer'
-                                        ? 'bg-gradient-to-r from-emerald-500/25 via-emerald-400/15 to-cyan-400/15 text-emerald-50 shadow-[0_0_0_1px_rgba(16,185,129,0.2),0_10px_25px_rgba(16,185,129,0.18)]'
-                                        : 'text-slate-400 hover:bg-slate-800/80 hover:text-slate-200'
-                                }`}
-                            >
-                                <Package
-                                    className={`h-3.5 w-3.5 ${activeTool === 'packer' ? 'text-emerald-200' : 'text-slate-400 group-hover:text-slate-200'}`}
-                                />
-                                <span>Упаковка</span>
-                                {fileCount > 0 && (
-                                    <span
-                                        className={`min-w-[18px] rounded-full px-1.5 text-[9px] font-bold ${activeTool === 'packer' ? 'bg-emerald-600/90 text-white' : 'bg-slate-700 text-slate-300'}`}
-                                    >
-                                        {fileCount}
-                                    </span>
-                                )}
-                            </button>
+                    {/* ── Center: Tool tabs ── */}
+                    <div
+                        className="flex items-center gap-0.5 rounded-lg p-0.5"
+                        style={{ background: 'rgba(17,26,17,0.9)', border: '1px solid rgba(34,197,94,0.12)' }}
+                    >
+                        <button
+                            type="button"
+                            onClick={() => onSelectTool('packer')}
+                            className={`header-tab ${activeTool === 'packer' ? 'header-tab--active' : ''}`}
+                        >
+                            <Icon28ArchiveOutline width={14} height={14} />
+                            <span>&gt; УПАКОВКА</span>
+                            {fileCount > 0 && (
+                                <span
+                                    className="rounded-full px-1.5 text-[9px] font-bold"
+                                    style={{
+                                        background: activeTool === 'packer'
+                                            ? 'rgba(34,197,94,0.25)'
+                                            : 'rgba(34,197,94,0.1)',
+                                        color: activeTool === 'packer' ? '#22c55e' : '#6b9a6b',
+                                        fontFamily: 'monospace',
+                                    }}
+                                >
+                                    {fileCount}
+                                </span>
+                            )}
+                        </button>
 
-                            <button
-                                type="button"
-                                onClick={() => onSelectTool('implementation')}
-                                className={`flex items-center justify-center gap-2 rounded-xl px-3 py-1.5 text-[11px] font-semibold transition-all duration-200 ${
-                                    activeTool === 'implementation'
-                                        ? 'bg-gradient-to-r from-cyan-500/25 via-sky-400/15 to-violet-400/15 text-sky-50 shadow-[0_0_0_1px_rgba(56,189,248,0.18),0_10px_25px_rgba(14,165,233,0.16)]'
-                                        : 'text-slate-400 hover:bg-slate-800/80 hover:text-slate-200'
-                                }`}
-                            >
-                                <FileCheck2
-                                    className={`h-3.5 w-3.5 ${activeTool === 'implementation' ? 'text-sky-200' : 'text-slate-400'}`}
-                                />
-                                <span>Реализация</span>
-                            </button>
-                        </div>
+                        <button
+                            type="button"
+                            onClick={() => onSelectTool('implementation')}
+                            className={`header-tab ${activeTool === 'implementation' ? 'header-tab--active' : ''}`}
+                        >
+                            <Icon28ArticleOutline width={14} height={14} />
+                            <span>&gt; РЕАЛИЗАЦИЯ</span>
+                        </button>
+                    </div>
 
+                    {/* ── Right: Action buttons ── */}
+                    <div className="flex items-center gap-1 flex-shrink-0">
                         {activeTool === 'packer' && (
-                            <div className="hidden sm:flex items-center gap-1 rounded-xl border border-white/10 bg-slate-900/70 p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
+                            <>
                                 <button
                                     onClick={onOpenPresets}
                                     title="Пресеты шаблонов"
-                                    className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-800 hover:text-emerald-300"
+                                    className="icon-btn hidden sm:inline-flex"
                                 >
-                                    <Bookmark className="h-4 w-4" />
+                                    <Icon20BookmarkOutline width={16} height={16} />
                                 </button>
 
                                 <button
                                     onClick={onOpenMassActions}
                                     title="Массовые действия"
                                     disabled={fileCount === 0}
-                                    className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-800 hover:text-emerald-300 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-slate-400"
+                                    className="icon-btn hidden sm:inline-flex disabled:opacity-30 disabled:cursor-not-allowed"
                                 >
-                                    <Layers className="h-4 w-4" />
+                                    <Icon20ListBulletOutline width={16} height={16} />
                                 </button>
 
                                 <button
                                     onClick={onOpenReadme}
                                     title="Редактор README.txt"
-                                    className="relative rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-800 hover:text-emerald-300"
+                                    className="icon-btn relative hidden sm:inline-flex"
                                 >
-                                    <FileText className="h-4 w-4" />
+                                    <Icon20DocumentOutline width={16} height={16} />
                                     {hasReadme && (
-                                        <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-emerald-400 ring-2 ring-slate-950" />
+                                        <span
+                                            className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full"
+                                            style={{
+                                                background: '#22c55e',
+                                                boxShadow: '0 0 4px rgba(34,197,94,0.8)',
+                                            }}
+                                        />
                                     )}
                                 </button>
-                            </div>
+
+                                {/* Divider */}
+                                <div
+                                    className="hidden sm:block w-px h-4 mx-0.5"
+                                    style={{ background: 'rgba(34,197,94,0.12)' }}
+                                />
+                            </>
                         )}
 
-                        <div className="flex items-center gap-1 rounded-xl border border-white/10 bg-slate-900/70 p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
-                            <button
-                                onClick={handleOpenFullscreen}
-                                title="Открыть во весь экран"
-                                className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-800 hover:text-sky-300"
-                            >
-                                <Maximize2 className="h-4 w-4" />
-                            </button>
+                        <button
+                            onClick={handleOpenFullscreen}
+                            title="Открыть во весь экран"
+                            className="icon-btn"
+                        >
+                            <Icon28FullscreenOutline width={16} height={16} />
+                        </button>
 
-                            {activeTool === 'packer' && fileCount > 0 && (
-                                <button
-                                    onClick={() => setIsClearConfirmOpen(true)}
-                                    title="Очистить все файлы"
-                                    className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-800 hover:text-rose-300"
-                                >
-                                    <Trash2 className="h-4 w-4" />
-                                </button>
-                            )}
-                        </div>
+                        {activeTool === 'packer' && fileCount > 0 && (
+                            <button
+                                onClick={() => setIsClearConfirmOpen(true)}
+                                title="Очистить все файлы"
+                                className="icon-btn icon-btn--danger"
+                            >
+                                <Icon28DeleteOutline width={16} height={16} />
+                            </button>
+                        )}
                     </div>
                 </div>
             </header>
@@ -176,17 +192,13 @@ export const Header: React.FC<HeaderProps> = ({
                 maxWidth="sm"
                 footer={
                     <>
-                        <Button
-                            variant="secondary"
-                            size="sm"
-                            onClick={() => setIsClearConfirmOpen(false)}
-                        >
+                        <Button variant="secondary" size="sm" onClick={() => setIsClearConfirmOpen(false)}>
                             Отмена
                         </Button>
                         <Button
                             variant="danger"
                             size="sm"
-                            leftIcon={<Trash2 className="w-3.5 h-3.5" />}
+                            leftIcon={<Icon28DeleteOutline width={14} height={14} />}
                             onClick={() => {
                                 onClearFiles();
                                 setIsClearConfirmOpen(false);
@@ -197,9 +209,8 @@ export const Header: React.FC<HeaderProps> = ({
                     </>
                 }
             >
-                <p className="text-xs text-slate-300">
-                    Вы уверены, что хотите удалить все загруженные файлы (
-                    {fileCount} шт.) из памяти и очистить состояние?
+                <p className="text-xs" style={{ color: '#d4edda' }}>
+                    Вы уверены, что хотите удалить все загруженные файлы ({fileCount} шт.) из памяти и очистить состояние?
                 </p>
             </Modal>
         </>

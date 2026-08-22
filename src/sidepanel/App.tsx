@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { UploadCloud, Loader2, Zap, Check, X } from 'lucide-react';
+import { UploadCloud, Zap, Check, X } from 'lucide-react';
 import { useAppState } from '../hooks/useAppState';
 import { useGlobalFileDrop } from '../hooks/useGlobalFileDrop';
 import { useAutoCollector } from '../hooks/useAutoCollector';
@@ -136,48 +136,66 @@ export const App: React.FC = () => {
 
     if (isLoading) {
         return (
-            <div className="flex flex-col items-center justify-center min-h-screen bg-slate-950 text-slate-400 gap-3">
-                <Loader2 className="w-8 h-8 text-emerald-500 animate-spin" />
-                <span className="text-xs">Загрузка данных GDHelper...</span>
+            <div className="flex flex-col items-center justify-center min-h-screen text-xs gap-3"
+                style={{ background: '#080d08', color: '#22c55e', fontFamily: 'monospace' }}>
+                <svg className="animate-spin w-7 h-7" style={{ color: '#22c55e' }} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+                <span>[ ИНИЦИАЛИЗАЦИЯ GDHELPER... ]</span>
             </div>
         );
     }
 
     return (
-        <div className="flex flex-col min-h-screen bg-slate-950 text-slate-100 relative">
+        <div className="flex flex-col min-h-screen relative" style={{ background: '#080d08', color: '#d4edda' }}>
             {/* Global Drag Overlay */}
             {isDraggingOver && (
-                <div className="fixed inset-0 z-50 bg-emerald-950/90 border-4 border-dashed border-emerald-400 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center animate-fade-in pointer-events-none">
-                    <UploadCloud className="w-16 h-16 text-emerald-300 animate-bounce mb-3" />
-                    <h2 className="text-lg font-bold text-white mb-1">
-                        Отпустите файлы здесь
+                <div
+                    className="fixed inset-0 z-50 flex flex-col items-center justify-center p-6 text-center pointer-events-none animate-fade-in"
+                    style={{
+                        background: 'rgba(8,13,8,0.93)',
+                        border: '3px dashed rgba(34,197,94,0.6)',
+                        backdropFilter: 'blur(8px)',
+                    }}
+                >
+                    <UploadCloud className="w-14 h-14 animate-bounce mb-3" style={{ color: '#22c55e' }} />
+                    <h2 className="text-base font-bold mb-1" style={{ color: '#d4edda', fontFamily: 'monospace' }}>
+                        &gt; ОТПУСТИТЕ ФАЙЛЫ
                     </h2>
-                    <p className="text-xs text-emerald-200">
-                        ZIP-архив или пачка .guf файлов будет моментально
-                        импортирована
+                    <p className="text-xs" style={{ color: '#6b9a6b', fontFamily: 'monospace' }}>
+                        ZIP-архив или пачка .guf файлов будет импортирована
                     </p>
                 </div>
             )}
 
             {/* Auto-Collect Toast Notification */}
             {autoCollectNotification && (
-                <div className="fixed top-3 right-3 z-50 max-w-xs p-3 bg-emerald-950/95 border border-emerald-500 text-emerald-200 rounded-xl shadow-2xl backdrop-blur-md flex items-start gap-2.5 animate-fade-in">
-                    <Zap className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
+                <div
+                    className="fixed top-3 right-3 z-50 max-w-xs p-3 rounded-xl shadow-2xl backdrop-blur-md flex items-start gap-2.5 animate-fade-in"
+                    style={{
+                        background: 'rgba(13,21,13,0.97)',
+                        border: '1px solid rgba(34,197,94,0.45)',
+                        boxShadow: '0 0 0 1px rgba(34,197,94,0.15), 0 8px 32px rgba(0,0,0,0.7)',
+                    }}
+                >
+                    <Zap className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: '#22c55e' }} />
                     <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1 font-semibold text-xs text-white">
-                            <Check className="w-3 h-3 text-emerald-400" />
-                            <span>Файл перехвачен и добавлен</span>
+                        <div className="flex items-center gap-1 text-xs font-bold" style={{ color: '#d4edda', fontFamily: 'monospace' }}>
+                            <Check className="w-3 h-3" style={{ color: '#22c55e' }} />
+                            <span>FILE CAPTURED</span>
                         </div>
-                        <p className="text-[11px] text-emerald-300 truncate mt-0.5">
+                        <p className="text-[11px] truncate mt-0.5" style={{ color: '#22c55e', fontFamily: 'monospace' }}>
                             {autoCollectNotification.fileName}
                         </p>
-                        <p className="text-[10px] text-emerald-400/80 mt-0.5">
-                            Добавлен в «{activePackage.name}»
+                        <p className="text-[10px] mt-0.5" style={{ color: '#6b9a6b', fontFamily: 'monospace' }}>
+                            → {activePackage.name}
                         </p>
                     </div>
                     <button
                         onClick={clearNotification}
-                        className="text-emerald-400 hover:text-emerald-200 p-0.5 rounded"
+                        className="icon-btn p-0.5"
+                        style={{ color: '#6b9a6b' }}
                     >
                         <X className="w-3.5 h-3.5" />
                     </button>
