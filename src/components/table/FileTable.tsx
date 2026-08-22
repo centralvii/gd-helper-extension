@@ -75,7 +75,7 @@ export const FileTable: React.FC<FileTableProps> = ({
 
     return (
         <div className="space-y-3">
-            <div className="flex items-center justify-between gap-2 rounded-2xl border border-gray-200 bg-white p-2.5 shadow-sm">
+            <div className="flex items-center justify-between gap-2 p-1.5 bg-white border border-gray-200 rounded-xl shadow-sm">
                 <div className="relative flex-1">
                     <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" />
                     <input
@@ -83,7 +83,7 @@ export const FileTable: React.FC<FileTableProps> = ({
                         placeholder="Поиск по файлам..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full rounded-xl border border-gray-200 bg-gray-50/50 py-1.5 pl-9 pr-3 text-xs text-gray-900 placeholder:text-gray-400 outline-none transition-colors focus:border-emerald-500 focus:bg-white"
+                        className="w-full rounded-lg border border-gray-200 bg-gray-50/50 py-1.5 pl-9 pr-3 text-xs text-gray-900 placeholder:text-gray-400 outline-none transition-colors focus:border-emerald-500 focus:bg-white"
                     />
                 </div>
 

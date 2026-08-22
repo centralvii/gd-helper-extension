@@ -210,7 +210,7 @@ export const App: React.FC = () => {
             />
 
             {/* Main Content Area */}
-            <main className="flex-1 p-3 space-y-3.5 pb-6">
+            <main className="flex-1 p-3 space-y-3 pb-6">
                 {activeTool === 'implementation' ? (
                     <ImplementationTool />
                 ) : (
@@ -229,12 +229,10 @@ export const App: React.FC = () => {
                         />
 
                         {files.length === 0 ? (
-                            <div className="py-6">
-                                <FileUploader
-                                    onLoadZip={loadZip}
-                                    onLoadGufFiles={loadGufFiles}
-                                />
-                            </div>
+                            <FileUploader
+                                onLoadZip={loadZip}
+                                onLoadGufFiles={loadGufFiles}
+                            />
                         ) : (
                             <>
                                 {/* Template Editor */}

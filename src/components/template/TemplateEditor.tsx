@@ -64,7 +64,7 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
     };
 
     return (
-        <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+        <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
             <div className="border-b border-gray-100 bg-gray-50/70 px-3 py-2.5">
                 <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2 text-xs font-bold text-gray-900">

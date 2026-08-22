@@ -70,7 +70,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
     }
 
     return (
-        <div className="relative overflow-hidden rounded-2xl border-2 border-dashed border-emerald-500/30 bg-white p-6 shadow-sm hover:border-emerald-500/50 hover:shadow-md transition-all">
+        <div className="relative overflow-hidden rounded-xl border-2 border-dashed border-emerald-500/30 bg-white p-6 shadow-sm hover:border-emerald-500/50 hover:shadow-md transition-all">
             <div className="relative flex flex-col items-center justify-center text-center">
                 <input
                     ref={zipInputRef}
