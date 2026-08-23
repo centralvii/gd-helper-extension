@@ -260,12 +260,13 @@ export const AlgorithmIdGenerator: React.FC = () => {
 
       {/* ── Generated Result Card ── */}
       <div className="overflow-hidden rounded-xl border border-emerald-300 bg-white shadow-sm">
-        {/* Header */}
-        <div className="flex items-center justify-between border-b border-emerald-100 bg-emerald-50/70 px-3 py-2">
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-800">
-              Сгенерированный Идентификатор
+        {/* Header — single compact row: label left, char-count right */}
+        <div className="flex items-center gap-2 border-b border-emerald-100 bg-emerald-50/70 px-3 py-2">
+          <div className="flex-1 min-w-0 flex items-center gap-2 flex-wrap">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-800 whitespace-nowrap">
+              Сгенерированный ID
             </span>
+            {/* Badge inline — wraps together with title */}
             <Badge
               variant={getTypeBadgeVariant(parsed.detectedType)}
               size="sm"
@@ -274,9 +275,10 @@ export const AlgorithmIdGenerator: React.FC = () => {
             </Badge>
           </div>
 
+          {/* Char count — right, never wraps */}
           {parsed.generatedId && (
-            <span className="text-[10px] font-mono text-emerald-700">
-              {parsed.generatedId.length} символов
+            <span className="text-[10px] font-mono text-emerald-700 whitespace-nowrap flex-shrink-0">
+              {parsed.generatedId.length} симв.
             </span>
           )}
         </div>
@@ -285,12 +287,13 @@ export const AlgorithmIdGenerator: React.FC = () => {
         <div className="p-3 space-y-3">
           {parsed.generatedId ? (
             <div className="space-y-2.5">
-              {/* ID display and Copy button */}
-              <div className="flex items-center justify-between gap-2 rounded-xl border border-emerald-200 bg-emerald-50/30 p-2.5">
-                <span className="break-all font-mono text-sm font-extrabold text-emerald-800 select-all">
+              {/* ID display and Copy button — stack on very narrow, row on wider */}
+              <div className="rounded-xl border border-emerald-200 bg-emerald-50/30 p-2.5">
+                {/* ID text — takes full width, breaks all to avoid overflow */}
+                <div className="font-mono text-sm font-extrabold text-emerald-800 select-all break-all leading-snug mb-2">
                   {parsed.generatedId}
-                </span>
-
+                </div>
+                {/* Copy button — full-width compact on narrow panels */}
                 <Button
                   variant="primary"
                   size="sm"
@@ -302,7 +305,7 @@ export const AlgorithmIdGenerator: React.FC = () => {
                     )
                   }
                   onClick={() => handleCopy()}
-                  className="flex-shrink-0"
+                  className="w-full justify-center"
                 >
                   {copied ? 'Скопировано!' : 'Копировать'}
                 </Button>

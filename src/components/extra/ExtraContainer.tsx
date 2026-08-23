@@ -4,38 +4,55 @@ import { ExtraSubTool } from '../../types';
 import { AlgorithmIdGenerator } from './AlgorithmIdGenerator';
 import { SiteCssStyler } from './SiteCssStyler';
 
+const SUB_TOOLS: { id: ExtraSubTool; label: string; icon: React.ReactNode }[] = [
+  { id: 'alg_generator', label: 'Генератор ID алгоритмов', icon: <Wand2 className="w-3.5 h-3.5 flex-shrink-0" /> },
+  { id: 'site_css',      label: 'CSS стили сайтов',        icon: <Palette className="w-3.5 h-3.5 flex-shrink-0" /> },
+];
+
 export const ExtraContainer: React.FC = () => {
   const [activeSubTool, setActiveSubTool] = useState<ExtraSubTool>('alg_generator');
 
   return (
     <div className="space-y-3">
-      {/* ── Sub-tool Switcher Toolbar ── */}
-      <div className="flex items-center justify-between gap-1.5 p-1.5 bg-white border border-gray-200 rounded-xl shadow-sm">
-        <button
-          type="button"
-          onClick={() => setActiveSubTool('alg_generator')}
-          className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg text-xs font-semibold transition-all ${
-            activeSubTool === 'alg_generator'
-              ? 'bg-emerald-50 text-emerald-800 border border-emerald-300 shadow-sm'
-              : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-          }`}
-        >
-          <Wand2 className="w-3.5 h-3.5 text-emerald-600" />
-          <span>Генератор ID алгоритмов</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setActiveSubTool('site_css')}
-          className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg text-xs font-semibold transition-all ${
-            activeSubTool === 'site_css'
-              ? 'bg-emerald-50 text-emerald-800 border border-emerald-300 shadow-sm'
-              : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-          }`}
-        >
-          <Palette className="w-3.5 h-3.5 text-emerald-600" />
-          <span>CSS стили сайтов</span>
-        </button>
+      {/* ── Sub-tool Switcher ── */}
+      {/*
+        Key design fix: BOTH buttons always have the same border (1.5px).
+        Active  → border-emerald-300, bg-emerald-50, text-emerald-800
+        Inactive → border-transparent, bg-transparent, text-gray-500
+        This prevents any layout jump when switching tabs.
+      */}
+      <div
+        className="flex items-stretch gap-1 p-1 rounded-xl"
+        style={{ background: '#f0f4f0', border: '1px solid #e2e8e2' }}
+      >
+        {SUB_TOOLS.map((tool) => {
+          const isActive = activeSubTool === tool.id;
+          return (
+            <button
+              key={tool.id}
+              type="button"
+              onClick={() => setActiveSubTool(tool.id)}
+              className={[
+                'flex flex-1 items-center justify-center gap-1.5',
+                'rounded-lg px-2 py-2',
+                'text-xs font-semibold',
+                'border',          // always 1px border — no layout shift
+                'transition-colors duration-150',
+                'min-w-0',         // allow text to shrink
+                isActive
+                  ? 'bg-white border-emerald-300 text-emerald-800 shadow-sm'
+                  : 'bg-transparent border-transparent text-gray-500 hover:text-gray-800 hover:bg-white/60',
+              ].join(' ')}
+            >
+              {/* Icon always visible */}
+              <span className={`flex-shrink-0 ${isActive ? 'text-emerald-600' : 'text-gray-400'}`}>
+                {tool.icon}
+              </span>
+              {/* Label — truncates gracefully on very narrow panels */}
+              <span className="truncate leading-tight text-center">{tool.label}</span>
+            </button>
+          );
+        })}
       </div>
 
       {/* ── Sub-tool View ── */}
