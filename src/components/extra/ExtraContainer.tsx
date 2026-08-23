@@ -9,8 +9,21 @@ const SUB_TOOLS: { id: ExtraSubTool; label: string; icon: React.ReactNode }[] = 
   { id: 'site_css',      label: 'CSS стили сайтов',        icon: <Palette className="w-3.5 h-3.5 flex-shrink-0" /> },
 ];
 
+const SUBTOOL_KEY = 'gd-helper-extra-subtool';
+
 export const ExtraContainer: React.FC = () => {
-  const [activeSubTool, setActiveSubTool] = useState<ExtraSubTool>('alg_generator');
+  const [activeSubTool, setActiveSubTool] = useState<ExtraSubTool>(() => {
+    try {
+      const saved = localStorage.getItem(SUBTOOL_KEY);
+      if (saved === 'alg_generator' || saved === 'site_css') return saved as ExtraSubTool;
+    } catch { /* ignore */ }
+    return 'alg_generator';
+  });
+
+  const handleSetSubTool = (id: ExtraSubTool) => {
+    setActiveSubTool(id);
+    try { localStorage.setItem(SUBTOOL_KEY, id); } catch { /* ignore */ }
+  };
 
   return (
     <div className="space-y-3">
@@ -31,7 +44,7 @@ export const ExtraContainer: React.FC = () => {
             <button
               key={tool.id}
               type="button"
-              onClick={() => setActiveSubTool(tool.id)}
+              onClick={() => handleSetSubTool(tool.id)}
               className={[
                 'flex flex-1 items-center justify-center gap-1.5',
                 'rounded-lg px-2 py-2',

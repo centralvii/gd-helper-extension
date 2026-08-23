@@ -68,7 +68,7 @@ export const App: React.FC = () => {
     const [activeTool, setActiveTool] = useState<ActiveTool>(() => {
         try {
             const saved = localStorage.getItem('gd-helper-active-tool');
-            if (saved === 'packer' || saved === 'implementation') {
+            if (saved === 'packer' || saved === 'implementation' || saved === 'extra') {
                 return saved;
             }
         } catch {

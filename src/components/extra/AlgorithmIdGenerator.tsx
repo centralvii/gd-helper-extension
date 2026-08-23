@@ -56,9 +56,33 @@ const POSTFIX_OPTIONS = [
 
 const HISTORY_STORAGE_KEY = 'gd_alg_id_history';
 
+const ALG_INPUT_KEY   = 'gd-helper-alg-input';
+const ALG_POSTFIX_KEY = 'gd-helper-alg-postfix';
+
 export const AlgorithmIdGenerator: React.FC = () => {
-  const [inputText, setInputText] = useState('Лимиты. Рассчитать VaR по портфелю');
-  const [postfix, setPostfix] = useState('_ALG');
+  const [inputText, setInputText] = useState<string>(() => {
+    try {
+      return localStorage.getItem(ALG_INPUT_KEY) ?? 'Лимиты. Рассчитать VaR по портфелю';
+    } catch { return 'Лимиты. Рассчитать VaR по портфелю'; }
+  });
+
+  const [postfix, setPostfix] = useState<string>(() => {
+    try {
+      const saved = localStorage.getItem(ALG_POSTFIX_KEY);
+      return POSTFIX_OPTIONS.some(o => o.value === saved) ? saved! : '_ALG';
+    } catch { return '_ALG'; }
+  });
+
+  const handleSetInputText = (val: string) => {
+    setInputText(val);
+    try { localStorage.setItem(ALG_INPUT_KEY, val); } catch { /* ignore */ }
+  };
+
+  const handleSetPostfix = (val: string) => {
+    setPostfix(val);
+    try { localStorage.setItem(ALG_POSTFIX_KEY, val); } catch { /* ignore */ }
+  };
+
   const [copied, setCopied] = useState(false);
   const [showRulesGuide, setShowRulesGuide] = useState(false);
   const [history, setHistory] = useState<AlgorithmHistoryItem[]>([]);
@@ -182,7 +206,7 @@ export const AlgorithmIdGenerator: React.FC = () => {
 
           {inputText && (
             <button
-              onClick={() => setInputText('')}
+              onClick={() => handleSetInputText('')}
               className="text-[11px] text-gray-400 hover:text-gray-600 transition-colors"
             >
               Очистить
@@ -194,7 +218,7 @@ export const AlgorithmIdGenerator: React.FC = () => {
         <div className="relative">
           <textarea
             value={inputText}
-            onChange={(e) => setInputText(e.target.value)}
+            onChange={(e) => handleSetInputText(e.target.value)}
             placeholder="Например: Лимиты. Рассчитать VaR по портфелю"
             rows={3}
             className="w-full rounded-xl border border-gray-200 bg-gray-50/60 p-2.5 text-xs text-gray-900 placeholder:text-gray-400 outline-none transition-colors focus:border-emerald-500 focus:bg-white focus:ring-1 focus:ring-emerald-500"
@@ -213,7 +237,7 @@ export const AlgorithmIdGenerator: React.FC = () => {
               <button
                 key={ex.label}
                 type="button"
-                onClick={() => setInputText(ex.text)}
+                onClick={() => handleSetInputText(ex.text)}
                 title={`${ex.desc}: "${ex.text}"`}
                 className="rounded-lg border border-gray-200 bg-gray-50 px-2 py-1 text-[11px] font-medium text-gray-700 transition-colors hover:border-emerald-400 hover:bg-emerald-50 hover:text-emerald-800"
               >
@@ -231,7 +255,7 @@ export const AlgorithmIdGenerator: React.FC = () => {
             </label>
             <select
               value={postfix}
-              onChange={(e) => setPostfix(e.target.value)}
+              onChange={(e) => handleSetPostfix(e.target.value)}
               className="rounded-lg border border-gray-200 bg-gray-50 px-2 py-1 text-[11px] font-medium text-gray-800 outline-none focus:border-emerald-500"
             >
               {POSTFIX_OPTIONS.map((opt) => (
