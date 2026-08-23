@@ -1,9 +1,9 @@
 /**
- * GreenData Algorithm ID Generator Utility (v3.0 - Comprehensive Lexicon)
+ * GreenData Algorithm ID Generator Utility (v4.0 - Universal Semantic Engine)
  *
- * Full-scale semantic dictionary & NLP tokenizer translating all Russian
- * action verbs, modal words, business entities, financial terms, and legal forms
- * into standardized GreenData English identifiers.
+ * Full-scale semantic dictionary with universal Russian→English translation.
+ * Converts ALL Russian words via a rich stem dictionary with transliteration fallback.
+ * No word is left untranslated.
  */
 
 import { AlgorithmParseResult, AlgorithmType } from '../types';
@@ -38,311 +38,379 @@ export const COMPOUND_PHRASES: Array<{ pattern: RegExp; code: string }> = [
   { pattern: /\bкарточк(?:и|а|е|у|ой|ек)\s+объект(?:а|ов|у|ом|е|ы)\b/gi, code: 'OBJ_CARD' },
   { pattern: /\bуслови(?:е|я|ю|ем|и|й)\s+фильтрац(?:ии|ия|ию|ией)\b/gi, code: 'FILTER_COND' },
   { pattern: /\bвыбор(?:а|у|ом|е|ы|ов)?\s+элемент(?:ов|а|у|ом|е|ы)\b/gi, code: 'ITEM_SELECT' },
+  { pattern: /\bне\s+соответств/gi, code: 'MISMATCH' },
+  { pattern: /\bпереста(?:вш|л|ет|ют|вать)/gi, code: 'EXPIRED' },
 ];
 
-// Comprehensive stem dictionary (over 250+ root stems covering all vocabulary)
-export const STEM_DICTIONARY: Array<{ prefix: string; code: string; full?: string }> = [
-  // ── Modal, State, Quality, Logic ──
-  { prefix: 'необходимост', code: 'REQ', full: 'REQUIRED' },
-  { prefix: 'необходим', code: 'REQ', full: 'REQUIRED' },
-  { prefix: 'потребност', code: 'NEED', full: 'NEED' },
-  { prefix: 'требован', code: 'REQ', full: 'REQUIREMENT' },
-  { prefix: 'требует', code: 'REQ', full: 'REQUIRED' },
-  { prefix: 'налич', code: 'EXISTS', full: 'EXISTS' },
-  { prefix: 'отсутств', code: 'NO', full: 'ABSENCE' },
-  { prefix: 'возможн', code: 'CAN', full: 'POSSIBLE' },
-  { prefix: 'доступн', code: 'AVAIL', full: 'AVAILABLE' },
-  { prefix: 'актуальн', code: 'ACTUAL', full: 'ACTUAL' },
-  { prefix: 'готовн', code: 'READY', full: 'READY' },
-  { prefix: 'соответств', code: 'MATCH', full: 'COMPLIANT' },
-  { prefix: 'несоответств', code: 'MISMATCH', full: 'MISMATCH' },
-  { prefix: 'корректн', code: 'VALID', full: 'CORRECT' },
-  { prefix: 'некорректн', code: 'INVALID', full: 'INVALID' },
-  { prefix: 'успешн', code: 'SUCCESS', full: 'SUCCESS' },
-  { prefix: 'критичн', code: 'CRIT', full: 'CRITICAL' },
-  { prefix: 'обязательн', code: 'MANDATORY', full: 'MANDATORY' },
-  { prefix: 'разрешен', code: 'ALLOWED', full: 'ALLOWED' },
-  { prefix: 'запрещен', code: 'FORBIDDEN', full: 'FORBIDDEN' },
-  { prefix: 'ограничен', code: 'RESTRICT', full: 'RESTRICTED' },
+// ─────────────────────────────────────────────────────────────────────────────
+// Comprehensive stem dictionary — sorted from LONGEST prefix to SHORTEST
+// to guarantee best-match wins. All prefixes are lowercase, no accents.
+// ─────────────────────────────────────────────────────────────────────────────
+export const STEM_DICTIONARY: Array<{ prefix: string; code: string }> = [
+  // ── Negation prefixes (must come before their base form) ──
+  { prefix: 'несоответств', code: 'MISMATCH' },
+  { prefix: 'некорректн', code: 'INVALID' },
+  { prefix: 'нецелесообразн', code: 'INEXPEDIENT' },
+  { prefix: 'необходимост', code: 'REQ' },
+  { prefix: 'необходим', code: 'REQ' },
+  { prefix: 'неисполнен', code: 'UNFULFILLED' },
+  { prefix: 'невыполнен', code: 'UNFULFILLED' },
+  { prefix: 'недостаточн', code: 'INSUFFICIENT' },
+  { prefix: 'неналичи', code: 'ABSENT' },
+  { prefix: 'невалидн', code: 'INVALID' },
+  { prefix: 'нераспределен', code: 'UNASSIGNED' },
+  { prefix: 'незакрыт', code: 'UNCLOSED' },
 
-  // ── Actions & Verbs / Verbal Nouns ──
-  { prefix: 'запуск', code: 'RUN', full: 'LAUNCH' },
-  { prefix: 'запуст', code: 'RUN', full: 'LAUNCH' },
-  { prefix: 'старт', code: 'START', full: 'START' },
-  { prefix: 'остановк', code: 'STOP', full: 'STOP' },
-  { prefix: 'останов', code: 'STOP', full: 'STOP' },
-  { prefix: 'приостанов', code: 'PAUSE', full: 'PAUSE' },
-  { prefix: 'возобновл', code: 'RESUME', full: 'RESUME' },
-  { prefix: 'перезапуск', code: 'RESTART', full: 'RESTART' },
-  { prefix: 'определен', code: 'DTRM', full: 'DETERMINE' },
-  { prefix: 'определит', code: 'DTRM', full: 'DETERMINE' },
-  { prefix: 'вычислен', code: 'CALC', full: 'CALCULATE' },
-  { prefix: 'вычислит', code: 'CALC', full: 'CALCULATE' },
-  { prefix: 'рассчит', code: 'CALC', full: 'CALCULATE' },
-  { prefix: 'расчет', code: 'CALC', full: 'CALCULATE' },
-  { prefix: 'пересчит', code: 'RECALC', full: 'RECALCULATE' },
-  { prefix: 'перерасчет', code: 'RECALC', full: 'RECALCULATE' },
-  { prefix: 'проверк', code: 'CHECK', full: 'CHECK' },
-  { prefix: 'провер', code: 'CHECK', full: 'CHECK' },
-  { prefix: 'контрол', code: 'CHECK', full: 'CONTROL' },
-  { prefix: 'валидац', code: 'VALID', full: 'VALIDATE' },
-  { prefix: 'валидир', code: 'VALID', full: 'VALIDATE' },
-  { prefix: 'создан', code: 'CREATE', full: 'CREATE' },
-  { prefix: 'создат', code: 'CREATE', full: 'CREATE' },
-  { prefix: 'формирован', code: 'GENERATE', full: 'GENERATE' },
-  { prefix: 'сформироват', code: 'GENERATE', full: 'GENERATE' },
-  { prefix: 'генерац', code: 'GENERATE', full: 'GENERATE' },
-  { prefix: 'генерир', code: 'GENERATE', full: 'GENERATE' },
-  { prefix: 'построен', code: 'BUILD', full: 'BUILD' },
-  { prefix: 'построит', code: 'BUILD', full: 'BUILD' },
-  { prefix: 'заполнен', code: 'FILL', full: 'FILL' },
-  { prefix: 'заполнит', code: 'FILL', full: 'FILL' },
-  { prefix: 'обновлен', code: 'UPDATE', full: 'UPDATE' },
-  { prefix: 'обновит', code: 'UPDATE', full: 'UPDATE' },
-  { prefix: 'изменен', code: 'UPDATE', full: 'MODIFY' },
-  { prefix: 'изменит', code: 'UPDATE', full: 'MODIFY' },
-  { prefix: 'модификац', code: 'UPDATE', full: 'MODIFY' },
-  { prefix: 'редактирован', code: 'EDIT', full: 'EDIT' },
-  { prefix: 'редактир', code: 'EDIT', full: 'EDIT' },
-  { prefix: 'корректир', code: 'EDIT', full: 'EDIT' },
-  { prefix: 'удален', code: 'DELETE', full: 'DELETE' },
-  { prefix: 'удалит', code: 'DELETE', full: 'DELETE' },
-  { prefix: 'очистк', code: 'CLEAR', full: 'CLEAR' },
-  { prefix: 'очистит', code: 'CLEAR', full: 'CLEAR' },
-  { prefix: 'сброс', code: 'RESET', full: 'RESET' },
-  { prefix: 'сбросит', code: 'RESET', full: 'RESET' },
-  { prefix: 'поиск', code: 'FIND', full: 'SEARCH' },
-  { prefix: 'найт', code: 'FIND', full: 'SEARCH' },
-  { prefix: 'нахожден', code: 'FIND', full: 'FIND' },
-  { prefix: 'выборк', code: 'SELECT', full: 'SELECT' },
-  { prefix: 'выбор', code: 'SELECT', full: 'SELECT' },
-  { prefix: 'выбрат', code: 'SELECT', full: 'SELECT' },
-  { prefix: 'фильтрац', code: 'FILTER', full: 'FILTER' },
-  { prefix: 'фильтр', code: 'FILTER', full: 'FILTER' },
-  { prefix: 'отфильтр', code: 'FILTER', full: 'FILTER' },
-  { prefix: 'сортировк', code: 'SORT', full: 'SORT' },
-  { prefix: 'сортир', code: 'SORT', full: 'SORT' },
-  { prefix: 'группировк', code: 'GROUP', full: 'GROUP' },
-  { prefix: 'группир', code: 'GROUP', full: 'GROUP' },
-  { prefix: 'агрегац', code: 'AGG', full: 'AGGREGATE' },
-  { prefix: 'сопоставлен', code: 'MATCH', full: 'MATCH' },
-  { prefix: 'сопоставит', code: 'MATCH', full: 'MATCH' },
-  { prefix: 'сверк', code: 'RECONCILE', full: 'RECONCILE' },
-  { prefix: 'сверит', code: 'RECONCILE', full: 'RECONCILE' },
-  { prefix: 'маршрутизац', code: 'ROUTE', full: 'ROUTE' },
-  { prefix: 'маршрутизир', code: 'ROUTE', full: 'ROUTE' },
-  { prefix: 'согласован', code: 'APPROVE', full: 'APPROVE' },
-  { prefix: 'согласоват', code: 'APPROVE', full: 'APPROVE' },
-  { prefix: 'утвержден', code: 'APPROVE', full: 'APPROVE' },
-  { prefix: 'утвердит', code: 'APPROVE', full: 'APPROVE' },
-  { prefix: 'отклонен', code: 'REJECT', full: 'REJECT' },
-  { prefix: 'отклонит', code: 'REJECT', full: 'REJECT' },
-  { prefix: 'отправк', code: 'SEND', full: 'SEND' },
-  { prefix: 'отправит', code: 'SEND', full: 'SEND' },
-  { prefix: 'получен', code: 'GET', full: 'RECEIVE' },
-  { prefix: 'получит', code: 'GET', full: 'RECEIVE' },
-  { prefix: 'прием', code: 'RECEIVE', full: 'RECEIVE' },
-  { prefix: 'принят', code: 'RECEIVE', full: 'RECEIVE' },
-  { prefix: 'выгрузк', code: 'EXPORT', full: 'EXPORT' },
-  { prefix: 'выгрузит', code: 'EXPORT', full: 'EXPORT' },
-  { prefix: 'экспорт', code: 'EXPORT', full: 'EXPORT' },
-  { prefix: 'загрузк', code: 'IMPORT', full: 'IMPORT' },
-  { prefix: 'загрузит', code: 'IMPORT', full: 'IMPORT' },
-  { prefix: 'импорт', code: 'IMPORT', full: 'IMPORT' },
-  { prefix: 'синхронизац', code: 'SYNC', full: 'SYNC' },
-  { prefix: 'синхронизир', code: 'SYNC', full: 'SYNC' },
-  { prefix: 'интеграц', code: 'INT', full: 'INTEGRATE' },
-  { prefix: 'интегрир', code: 'INT', full: 'INTEGRATE' },
-  { prefix: 'инициализац', code: 'INIT', full: 'INITIALIZE' },
-  { prefix: 'инициализир', code: 'INIT', full: 'INITIALIZE' },
-  { prefix: 'активац', code: 'ACTIVATE', full: 'ACTIVATE' },
-  { prefix: 'активир', code: 'ACTIVATE', full: 'ACTIVATE' },
-  { prefix: 'деактивац', code: 'DEACTIVATE', full: 'DEACTIVATE' },
-  { prefix: 'деактивир', code: 'DEACTIVATE', full: 'DEACTIVATE' },
-  { prefix: 'блокировк', code: 'BLOCK', full: 'BLOCK' },
-  { prefix: 'заблокир', code: 'BLOCK', full: 'BLOCK' },
-  { prefix: 'разблокировк', code: 'UNBLOCK', full: 'UNBLOCK' },
-  { prefix: 'разблокир', code: 'UNBLOCK', full: 'UNBLOCK' },
-  { prefix: 'архивац', code: 'ARCHIVE', full: 'ARCHIVE' },
-  { prefix: 'архивир', code: 'ARCHIVE', full: 'ARCHIVE' },
-  { prefix: 'копирован', code: 'COPY', full: 'COPY' },
-  { prefix: 'скопир', code: 'COPY', full: 'COPY' },
-  { prefix: 'дублирован', code: 'DUPLICATE', full: 'DUPLICATE' },
-  { prefix: 'дублир', code: 'DUPLICATE', full: 'DUPLICATE' },
-  { prefix: 'авторизац', code: 'AUTH', full: 'AUTHORIZE' },
-  { prefix: 'аутентификац', code: 'AUTHN', full: 'AUTHENTICATE' },
-  { prefix: 'идентификац', code: 'IDENT', full: 'IDENTIFY' },
-  { prefix: 'уведомлен', code: 'NOTIF', full: 'NOTIFY' },
-  { prefix: 'оповещен', code: 'NOTIF', full: 'NOTIFY' },
-  { prefix: 'уведомит', code: 'NOTIF', full: 'NOTIFY' },
-  { prefix: 'регистрац', code: 'REG', full: 'REGISTER' },
-  { prefix: 'зарегистрир', code: 'REG', full: 'REGISTER' },
-  { prefix: 'логирован', code: 'LOG', full: 'LOG' },
-  { prefix: 'проведен', code: 'POST', full: 'POST' },
-  { prefix: 'провест', code: 'POST', full: 'POST' },
-  { prefix: 'отмен', code: 'CANCEL', full: 'CANCEL' },
-  { prefix: 'возврат', code: 'RETURN', full: 'RETURN' },
-  { prefix: 'привязк', code: 'LINK', full: 'BIND' },
-  { prefix: 'привязат', code: 'LINK', full: 'BIND' },
-  { prefix: 'связан', code: 'LINK', full: 'LINKED' },
-  { prefix: 'связат', code: 'LINK', full: 'LINK' },
-  { prefix: 'отвязк', code: 'UNLINK', full: 'UNBIND' },
-  { prefix: 'отвязат', code: 'UNLINK', full: 'UNBIND' },
-  { prefix: 'назначен', code: 'ASSIGN', full: 'ASSIGN' },
-  { prefix: 'назначит', code: 'ASSIGN', full: 'ASSIGN' },
-  { prefix: 'переназначен', code: 'REASSIGN', full: 'REASSIGN' },
-  { prefix: 'делегирован', code: 'DELEGATE', full: 'DELEGATE' },
-  { prefix: 'распределен', code: 'DISTRIBUTE', full: 'DISTRIBUTE' },
-  { prefix: 'подписан', code: 'SIGN', full: 'SIGN' },
-  { prefix: 'подписат', code: 'SIGN', full: 'SIGN' },
-  { prefix: 'аннулирован', code: 'VOID', full: 'ANNUL' },
-  { prefix: 'закрыт', code: 'CLOSE', full: 'CLOSE' },
-  { prefix: 'открыт', code: 'OPEN', full: 'OPEN' },
-  { prefix: 'исполнен', code: 'EXEC', full: 'EXECUTE' },
-  { prefix: 'выполнен', code: 'EXEC', full: 'EXECUTE' },
-  { prefix: 'передач', code: 'TRANSFER', full: 'TRANSFER' },
-  { prefix: 'обработк', code: 'PROCESS', full: 'PROCESS' },
-  { prefix: 'преобразован', code: 'TRANSFORM', full: 'TRANSFORM' },
-  { prefix: 'конвертац', code: 'CONVERT', full: 'CONVERT' },
-  { prefix: 'нормализац', code: 'NORMALIZE', full: 'NORMALIZE' },
-  { prefix: 'сравнен', code: 'COMPARE', full: 'COMPARE' },
-  { prefix: 'оценк', code: 'EVAL', full: 'EVALUATE' },
-  { prefix: 'оценит', code: 'EVAL', full: 'EVALUATE' },
-  { prefix: 'классификац', code: 'CLASSIFY', full: 'CLASSIFY' },
-  { prefix: 'прогноз', code: 'FORECAST', full: 'FORECAST' },
-  { prefix: 'шифрован', code: 'ENCRYPT', full: 'ENCRYPT' },
-  { prefix: 'дешифрован', code: 'DECRYPT', full: 'DECRYPT' },
-  { prefix: 'тестирован', code: 'TEST', full: 'TEST' },
-  { prefix: 'анализ', code: 'ANALYZE', full: 'ANALYZE' },
-  { prefix: 'отслеживан', code: 'TRACK', full: 'TRACK' },
+  // ── Re-/Over- prefixes ──
+  { prefix: 'перерасчет', code: 'RECALC' },
+  { prefix: 'пересчит', code: 'RECALC' },
+  { prefix: 'переназначен', code: 'REASSIGN' },
+  { prefix: 'переназначит', code: 'REASSIGN' },
+  { prefix: 'перезапуск', code: 'RESTART' },
+  { prefix: 'переформирован', code: 'REGENERATE' },
+  { prefix: 'переформироват', code: 'REGENERATE' },
+  { prefix: 'переотправк', code: 'RESEND' },
+  { prefix: 'переотправит', code: 'RESEND' },
+  { prefix: 'перевод', code: 'TRANSFER' },
+  { prefix: 'переход', code: 'TRANSITION' },
+  { prefix: 'переключен', code: 'SWITCH' },
+  { prefix: 'преобразован', code: 'TRANSFORM' },
+  { prefix: 'переставш', code: 'EXPIRED' },
+  { prefix: 'перестав', code: 'EXPIRED' },
 
-  // ── GreenData Functional Blocks & Modules ──
-  { prefix: 'нпп', code: 'NPP', full: 'NPP' },
-  { prefix: 'киб', code: 'CIB', full: 'CIB' },
-  { prefix: 'зпр', code: 'ZPR', full: 'ZPR' },
-  { prefix: 'лимит', code: 'LIM', full: 'LIMITS' },
-  { prefix: 'кредит', code: 'LOAN', full: 'LOAN' },
-  { prefix: 'депозит', code: 'DEP', full: 'DEPOSIT' },
-  { prefix: 'сделк', code: 'DEAL', full: 'DEAL' },
-  { prefix: 'платеж', code: 'PAY', full: 'PAYMENT' },
-  { prefix: 'расчет', code: 'SETTL', full: 'SETTLEMENT' },
-  { prefix: 'контрагент', code: 'CONTR', full: 'COUNTERPARTY' },
-  { prefix: 'клиент', code: 'CLIENT', full: 'CLIENT' },
-  { prefix: 'заемщик', code: 'BORROWER', full: 'BORROWER' },
-  { prefix: 'кредитор', code: 'LENDER', full: 'LENDER' },
-  { prefix: 'вкладчик', code: 'DEPOSITOR', full: 'DEPOSITOR' },
-  { prefix: 'безопасност', code: 'SEC', full: 'SECURITY' },
-  { prefix: 'риск', code: 'RISK', full: 'RISK' },
-  { prefix: 'гаранти', code: 'GUARANTEE', full: 'GUARANTEE' },
-  { prefix: 'факторинг', code: 'FACT', full: 'FACTORING' },
-  { prefix: 'казначейств', code: 'TR', full: 'TREASURY' },
-  { prefix: 'портфел', code: 'PORTFOLIO', full: 'PORTFOLIO' },
-  { prefix: 'договор', code: 'CONTRACT', full: 'CONTRACT' },
-  { prefix: 'заявк', code: 'APP', full: 'APPLICATION' },
-  { prefix: 'экспертиз', code: 'EXPERTISE', full: 'EXPERTISE' },
-  { prefix: 'эксперт', code: 'EXPERT', full: 'EXPERT' },
-  { prefix: 'экземпляр', code: 'INSTANCE', full: 'INSTANCE' },
-  { prefix: 'документ', code: 'DOC', full: 'DOCUMENT' },
-  { prefix: 'карточк', code: 'CARD', full: 'CARD' },
-  { prefix: 'пользовател', code: 'USER', full: 'USER' },
-  { prefix: 'рол', code: 'ROLE', full: 'ROLE' },
-  { prefix: 'групп', code: 'GROUP', full: 'GROUP' },
-  { prefix: 'задач', code: 'TASK', full: 'TASK' },
-  { prefix: 'процесс', code: 'PROC', full: 'PROCESS' },
-  { prefix: 'мониторинг', code: 'MON', full: 'MONITORING' },
-  { prefix: 'аудит', code: 'AUDIT', full: 'AUDIT' },
-  { prefix: 'справочник', code: 'DICT', full: 'DICTIONARY' },
-  { prefix: 'реестр', code: 'REGISTRY', full: 'REGISTRY' },
-  { prefix: 'журнал', code: 'LOG', full: 'LOG' },
-  { prefix: 'список', code: 'LIST', full: 'LIST' },
-  { prefix: 'списк', code: 'LIST', full: 'LIST' },
-  { prefix: 'отчет', code: 'RPT', full: 'REPORT' },
-  { prefix: 'подразделен', code: 'DEP', full: 'DEPARTMENT' },
-  { prefix: 'отдел', code: 'DEP', full: 'DEPARTMENT' },
-  { prefix: 'департамент', code: 'DEPT', full: 'DEPARTMENT' },
-  { prefix: 'филиал', code: 'BRANCH', full: 'BRANCH' },
-  { prefix: 'организац', code: 'ORG', full: 'ORGANIZATION' },
-  { prefix: 'компан', code: 'COMPANY', full: 'COMPANY' },
-  { prefix: 'банк', code: 'BANK', full: 'BANK' },
+  // ── State, Quality, Modality ──
+  { prefix: 'потребност', code: 'NEED' },
+  { prefix: 'требован', code: 'REQ' },
+  { prefix: 'требует', code: 'REQ' },
+  { prefix: 'налич', code: 'EXISTS' },
+  { prefix: 'отсутств', code: 'ABSENT' },
+  { prefix: 'возможн', code: 'POSSIBLE' },
+  { prefix: 'доступн', code: 'AVAIL' },
+  { prefix: 'актуальн', code: 'ACTUAL' },
+  { prefix: 'готовн', code: 'READY' },
+  { prefix: 'соответств', code: 'MATCH' },
+  { prefix: 'корректн', code: 'VALID' },
+  { prefix: 'успешн', code: 'SUCCESS' },
+  { prefix: 'критичн', code: 'CRIT' },
+  { prefix: 'обязательн', code: 'MANDATORY' },
+  { prefix: 'разрешен', code: 'ALLOWED' },
+  { prefix: 'запрещен', code: 'FORBIDDEN' },
+  { prefix: 'ограничен', code: 'RESTRICT' },
+  { prefix: 'целесообразн', code: 'EXPEDIENT' },
+  { prefix: 'допустим', code: 'ALLOWED' },
+  { prefix: 'недопустим', code: 'FORBIDDEN' },
+  { prefix: 'применим', code: 'APPLICABLE' },
+  { prefix: 'аннулир', code: 'VOID' },
+  { prefix: 'аннулирован', code: 'VOID' },
 
-  // ── Entities, Fields, Attributes & Datatypes ──
-  { prefix: 'объект', code: 'OBJ', full: 'OBJECT' },
-  { prefix: 'субъект', code: 'SUBJ', full: 'SUBJECT' },
-  { prefix: 'элемент', code: 'ITEM', full: 'ITEM' },
-  { prefix: 'услови', code: 'COND', full: 'CONDITION' },
-  { prefix: 'параметр', code: 'PARAM', full: 'PARAMETER' },
-  { prefix: 'атрибут', code: 'ATTR', full: 'ATTRIBUTE' },
-  { prefix: 'показател', code: 'INDICATOR', full: 'INDICATOR' },
-  { prefix: 'валют', code: 'CURR', full: 'CURRENCY' },
-  { prefix: 'дат', code: 'DATE', full: 'DATE' },
-  { prefix: 'врем', code: 'TIME', full: 'TIME' },
-  { prefix: 'период', code: 'PERIOD', full: 'PERIOD' },
-  { prefix: 'срок', code: 'TERM', full: 'TERM' },
-  { prefix: 'сумм', code: 'AMOUNT', full: 'AMOUNT' },
-  { prefix: 'статус', code: 'STATUS', full: 'STATUS' },
-  { prefix: 'состояни', code: 'STATE', full: 'STATE' },
-  { prefix: 'тип', code: 'TYPE', full: 'TYPE' },
-  { prefix: 'вид', code: 'TYPE', full: 'TYPE' },
-  { prefix: 'категори', code: 'CAT', full: 'CATEGORY' },
-  { prefix: 'код', code: 'CODE', full: 'CODE' },
-  { prefix: 'номер', code: 'NUM', full: 'NUMBER' },
-  { prefix: 'наименован', code: 'NAME', full: 'NAME' },
-  { prefix: 'названи', code: 'NAME', full: 'NAME' },
-  { prefix: 'описан', code: 'DESC', full: 'DESCRIPTION' },
-  { prefix: 'значен', code: 'VALUE', full: 'VALUE' },
-  { prefix: 'признак', code: 'FLAG', full: 'FLAG' },
-  { prefix: 'флаг', code: 'FLAG', full: 'FLAG' },
-  { prefix: 'таблиц', code: 'TABLE', full: 'TABLE' },
-  { prefix: 'строк', code: 'ROW', full: 'ROW' },
-  { prefix: 'колонк', code: 'COL', full: 'COLUMN' },
-  { prefix: 'столбец', code: 'COL', full: 'COLUMN' },
-  { prefix: 'верси', code: 'VER', full: 'VERSION' },
-  { prefix: 'шаблон', code: 'TPL', full: 'TEMPLATE' },
-  { prefix: 'виджет', code: 'WIDGET', full: 'WIDGET' },
-  { prefix: 'форм', code: 'FORM', full: 'FORM' },
-  { prefix: 'пол', code: 'FIELD', full: 'FIELD' },
-  { prefix: 'кнопк', code: 'BTN', full: 'BUTTON' },
-  { prefix: 'ссылк', code: 'LINK', full: 'LINK' },
-  { prefix: 'файл', code: 'FILE', full: 'FILE' },
-  { prefix: 'вложен', code: 'ATTACH', full: 'ATTACHMENT' },
-  { prefix: 'комментари', code: 'COMMENT', full: 'COMMENT' },
-  { prefix: 'сообщен', code: 'MSG', full: 'MESSAGE' },
-  { prefix: 'письм', code: 'MAIL', full: 'MAIL' },
-  { prefix: 'почт', code: 'MAIL', full: 'MAIL' },
-  { prefix: 'счет', code: 'ACC', full: 'ACCOUNT' },
-  { prefix: 'баланс', code: 'BALANCE', full: 'BALANCE' },
-  { prefix: 'ставк', code: 'RATE', full: 'RATE' },
-  { prefix: 'процент', code: 'PERCENT', full: 'PERCENT' },
-  { prefix: 'комисси', code: 'FEE', full: 'FEE' },
-  { prefix: 'штраф', code: 'PENALTY', full: 'PENALTY' },
-  { prefix: 'пен', code: 'PENALTY', full: 'PENALTY' },
-  { prefix: 'график', code: 'SCHEDULE', full: 'SCHEDULE' },
-  { prefix: 'план', code: 'PLAN', full: 'PLAN' },
-  { prefix: 'транш', code: 'TRANCHE', full: 'TRANCHE' },
-  { prefix: 'обеспечен', code: 'COLLATERAL', full: 'COLLATERAL' },
-  { prefix: 'залог', code: 'PLEDGE', full: 'PLEDGE' },
-  { prefix: 'поручительств', code: 'SURETY', full: 'SURETY' },
-  { prefix: 'рейтинг', code: 'RATING', full: 'RATING' },
-  { prefix: 'скоринг', code: 'SCORE', full: 'SCORE' },
-  { prefix: 'ошибк', code: 'ERROR', full: 'ERROR' },
-  { prefix: 'предупрежден', code: 'WARN', full: 'WARNING' },
-  { prefix: 'результат', code: 'RES', full: 'RESULT' },
-  { prefix: 'истори', code: 'HIST', full: 'HISTORY' },
-  { prefix: 'событи', code: 'EVENT', full: 'EVENT' },
-  { prefix: 'триггер', code: 'TRG', full: 'TRIGGER' },
-  { prefix: 'var', code: 'VAR', full: 'VAR' },
-  { prefix: 'вар', code: 'VAR', full: 'VAR' },
-  { prefix: 'ндс', code: 'VAT', full: 'VAT' },
-  { prefix: 'инн', code: 'INN', full: 'INN' },
-  { prefix: 'кпп', code: 'KPP', full: 'KPP' },
-  { prefix: 'бик', code: 'BIC', full: 'BIC' },
-  { prefix: 'огрн', code: 'OGRN', full: 'OGRN' },
-  { prefix: 'эдо', code: 'EDO', full: 'EDO' },
-  { prefix: 'эцп', code: 'EDS', full: 'EDS' },
-  { prefix: 'амл', code: 'AML', full: 'AML' },
+  // ── Actions (longest prefix first within each root) ──
+  { prefix: 'инициализац', code: 'INIT' },
+  { prefix: 'инициализир', code: 'INIT' },
+  { prefix: 'аутентификац', code: 'AUTHN' },
+  { prefix: 'аутентификир', code: 'AUTHN' },
+  { prefix: 'разблокировк', code: 'UNBLOCK' },
+  { prefix: 'разблокир', code: 'UNBLOCK' },
+  { prefix: 'делегирован', code: 'DELEGATE' },
+  { prefix: 'делегир', code: 'DELEGATE' },
+  { prefix: 'распределен', code: 'DISTRIBUTE' },
+  { prefix: 'распределит', code: 'DISTRIBUTE' },
+  { prefix: 'маршрутизац', code: 'ROUTE' },
+  { prefix: 'маршрутизир', code: 'ROUTE' },
+  { prefix: 'нормализац', code: 'NORMALIZE' },
+  { prefix: 'нормализир', code: 'NORMALIZE' },
+  { prefix: 'классификац', code: 'CLASSIFY' },
+  { prefix: 'классифицир', code: 'CLASSIFY' },
+  { prefix: 'авторизац', code: 'AUTH' },
+  { prefix: 'авторизир', code: 'AUTH' },
+  { prefix: 'идентификац', code: 'IDENTIFY' },
+  { prefix: 'идентифицир', code: 'IDENTIFY' },
+  { prefix: 'синхронизац', code: 'SYNC' },
+  { prefix: 'синхронизир', code: 'SYNC' },
+  { prefix: 'интеграц', code: 'INTEGRATE' },
+  { prefix: 'интегрир', code: 'INTEGRATE' },
+  { prefix: 'деактивац', code: 'DEACTIVATE' },
+  { prefix: 'деактивир', code: 'DEACTIVATE' },
+  { prefix: 'активац', code: 'ACTIVATE' },
+  { prefix: 'активир', code: 'ACTIVATE' },
+  { prefix: 'генерац', code: 'GENERATE' },
+  { prefix: 'генерир', code: 'GENERATE' },
+  { prefix: 'группировк', code: 'GROUP' },
+  { prefix: 'агрегац', code: 'AGG' },
+  { prefix: 'сопоставлен', code: 'MATCH' },
+  { prefix: 'сопоставит', code: 'MATCH' },
+  { prefix: 'зарегистрир', code: 'REG' },
+  { prefix: 'регистрац', code: 'REG' },
+  { prefix: 'валидац', code: 'VALIDATE' },
+  { prefix: 'валидир', code: 'VALIDATE' },
+  { prefix: 'вычислен', code: 'CALC' },
+  { prefix: 'вычислит', code: 'CALC' },
+  { prefix: 'рассчит', code: 'CALC' },
+  { prefix: 'сформироват', code: 'GENERATE' },
+  { prefix: 'формирован', code: 'GENERATE' },
+  { prefix: 'сформир', code: 'GENERATE' },
+  { prefix: 'определен', code: 'DTRM' },
+  { prefix: 'определит', code: 'DTRM' },
+  { prefix: 'согласован', code: 'APPROVE' },
+  { prefix: 'согласоват', code: 'APPROVE' },
+  { prefix: 'утвержден', code: 'APPROVE' },
+  { prefix: 'утвердит', code: 'APPROVE' },
+  { prefix: 'приостанов', code: 'PAUSE' },
+  { prefix: 'возобновл', code: 'RESUME' },
+  { prefix: 'поручительств', code: 'SURETY' },
+  { prefix: 'поручен', code: 'ORDER' },
+  { prefix: 'подразделен', code: 'DEPT' },
+  { prefix: 'подтверж', code: 'CONFIRM' },
+  { prefix: 'подтвержден', code: 'CONFIRM' },
+  { prefix: 'подтвердит', code: 'CONFIRM' },
+  { prefix: 'привязк', code: 'LINK' },
+  { prefix: 'привязат', code: 'LINK' },
+  { prefix: 'отвязат', code: 'UNLINK' },
+  { prefix: 'отвязк', code: 'UNLINK' },
+  { prefix: 'обеспечен', code: 'COLLATERAL' },
+  { prefix: 'уведомлен', code: 'NOTIFY' },
+  { prefix: 'уведомит', code: 'NOTIFY' },
+  { prefix: 'оповещен', code: 'NOTIFY' },
+  { prefix: 'предупрежден', code: 'WARN' },
+  { prefix: 'построен', code: 'BUILD' },
+  { prefix: 'построит', code: 'BUILD' },
+  { prefix: 'заполнен', code: 'FILL' },
+  { prefix: 'заполнит', code: 'FILL' },
+  { prefix: 'обновлен', code: 'UPDATE' },
+  { prefix: 'обновит', code: 'UPDATE' },
+  { prefix: 'изменен', code: 'MODIFY' },
+  { prefix: 'изменит', code: 'MODIFY' },
+  { prefix: 'модификац', code: 'MODIFY' },
+  { prefix: 'редактирован', code: 'EDIT' },
+  { prefix: 'редактир', code: 'EDIT' },
+  { prefix: 'корректир', code: 'EDIT' },
+  { prefix: 'копирован', code: 'COPY' },
+  { prefix: 'дублирован', code: 'DUPLICATE' },
+  { prefix: 'архивац', code: 'ARCHIVE' },
+  { prefix: 'архивир', code: 'ARCHIVE' },
+  { prefix: 'блокировк', code: 'BLOCK' },
+  { prefix: 'заблокир', code: 'BLOCK' },
+  { prefix: 'заблокировк', code: 'BLOCK' },
+  { prefix: 'назначен', code: 'ASSIGN' },
+  { prefix: 'назначит', code: 'ASSIGN' },
+  { prefix: 'отклонен', code: 'REJECT' },
+  { prefix: 'отклонит', code: 'REJECT' },
+  { prefix: 'отправк', code: 'SEND' },
+  { prefix: 'отправит', code: 'SEND' },
+  { prefix: 'отслеживан', code: 'TRACK' },
+  { prefix: 'отслеж', code: 'TRACK' },
+  { prefix: 'очистк', code: 'CLEAR' },
+  { prefix: 'очистит', code: 'CLEAR' },
+  { prefix: 'выгрузк', code: 'EXPORT' },
+  { prefix: 'выгрузит', code: 'EXPORT' },
+  { prefix: 'загрузк', code: 'IMPORT' },
+  { prefix: 'загрузит', code: 'IMPORT' },
+  { prefix: 'заключен', code: 'CONCLUSION' },
+  { prefix: 'заключит', code: 'CONCLUDE' },
+  { prefix: 'запуск', code: 'RUN' },
+  { prefix: 'запуст', code: 'RUN' },
+  { prefix: 'создан', code: 'CREATE' },
+  { prefix: 'создат', code: 'CREATE' },
+  { prefix: 'скопир', code: 'COPY' },
+  { prefix: 'дублир', code: 'DUPLICATE' },
+  { prefix: 'принят', code: 'ACCEPT' },
+  { prefix: 'провер', code: 'CHECK' },
+  { prefix: 'проверк', code: 'CHECK' },
+  { prefix: 'проведен', code: 'POST' },
+  { prefix: 'провест', code: 'POST' },
+  { prefix: 'прогноз', code: 'FORECAST' },
+  { prefix: 'передач', code: 'TRANSFER' },
+  { prefix: 'получен', code: 'GET' },
+  { prefix: 'получит', code: 'GET' },
+  { prefix: 'прием', code: 'RECEIVE' },
+  { prefix: 'нахожден', code: 'FIND' },
+  { prefix: 'найт', code: 'FIND' },
+  { prefix: 'поиск', code: 'FIND' },
+  { prefix: 'выборк', code: 'SELECT' },
+  { prefix: 'выбрат', code: 'SELECT' },
+  { prefix: 'выбор', code: 'SELECT' },
+  { prefix: 'фильтрац', code: 'FILTER' },
+  { prefix: 'отфильтр', code: 'FILTER' },
+  { prefix: 'фильтр', code: 'FILTER' },
+  { prefix: 'сортировк', code: 'SORT' },
+  { prefix: 'сортир', code: 'SORT' },
+  { prefix: 'группир', code: 'GROUP' },
+  { prefix: 'сверк', code: 'RECONCILE' },
+  { prefix: 'сверит', code: 'RECONCILE' },
+  { prefix: 'сравнен', code: 'COMPARE' },
+  { prefix: 'связан', code: 'LINK' },
+  { prefix: 'связат', code: 'LINK' },
+  { prefix: 'сброс', code: 'RESET' },
+  { prefix: 'сбросит', code: 'RESET' },
+  { prefix: 'исполнен', code: 'EXEC' },
+  { prefix: 'выполнен', code: 'EXEC' },
+  { prefix: 'удален', code: 'DELETE' },
+  { prefix: 'удалит', code: 'DELETE' },
+  { prefix: 'старт', code: 'START' },
+  { prefix: 'остановк', code: 'STOP' },
+  { prefix: 'останов', code: 'STOP' },
+  { prefix: 'отмен', code: 'CANCEL' },
+  { prefix: 'возврат', code: 'RETURN' },
+  { prefix: 'открыт', code: 'OPEN' },
+  { prefix: 'закрыт', code: 'CLOSE' },
+  { prefix: 'подписан', code: 'SIGN' },
+  { prefix: 'подписат', code: 'SIGN' },
+  { prefix: 'оценк', code: 'EVAL' },
+  { prefix: 'оценит', code: 'EVAL' },
+  { prefix: 'шифрован', code: 'ENCRYPT' },
+  { prefix: 'дешифрован', code: 'DECRYPT' },
+  { prefix: 'тестирован', code: 'TEST' },
+  { prefix: 'анализ', code: 'ANALYZE' },
+  { prefix: 'логирован', code: 'LOG' },
+  { prefix: 'импорт', code: 'IMPORT' },
+  { prefix: 'экспорт', code: 'EXPORT' },
+  { prefix: 'расчет', code: 'CALC' },
+
+  // ── GreenData Module Acronyms ──
+  { prefix: 'нпп', code: 'NPP' },
+  { prefix: 'киб', code: 'CIB' },
+  { prefix: 'зпр', code: 'ZPR' },
+
+  // ── Financial / Banking Domain ──
+  { prefix: 'контрагент', code: 'CONTR' },
+  { prefix: 'казначейств', code: 'TR' },
+  { prefix: 'кредитор', code: 'LENDER' },
+  { prefix: 'вкладчик', code: 'DEPOSITOR' },
+  { prefix: 'заемщик', code: 'BORROWER' },
+  { prefix: 'клиент', code: 'CLIENT' },
+  { prefix: 'безопасност', code: 'SEC' },
+  { prefix: 'факторинг', code: 'FACTORING' },
+  { prefix: 'гаранти', code: 'GUARANTEE' },
+  { prefix: 'обеспечен', code: 'COLLATERAL' },
+  { prefix: 'портфел', code: 'PORTFOLIO' },
+  { prefix: 'платеж', code: 'PAY' },
+  { prefix: 'процент', code: 'PERCENT' },
+  { prefix: 'комисси', code: 'FEE' },
+  { prefix: 'штраф', code: 'PENALTY' },
+  { prefix: 'транш', code: 'TRANCHE' },
+  { prefix: 'депозит', code: 'DEP' },
+  { prefix: 'кредит', code: 'LOAN' },
+  { prefix: 'рейтинг', code: 'RATING' },
+  { prefix: 'скоринг', code: 'SCORE' },
+  { prefix: 'баланс', code: 'BALANCE' },
+  { prefix: 'лимит', code: 'LIM' },
+  { prefix: 'сделк', code: 'DEAL' },
+  { prefix: 'залог', code: 'PLEDGE' },
+  { prefix: 'риск', code: 'RISK' },
+  { prefix: 'ставк', code: 'RATE' },
+  { prefix: 'счет', code: 'ACC' },
+  { prefix: 'банк', code: 'BANK' },
+
+  // ── Business Documents & Entities ──
+  { prefix: 'экспертиз', code: 'EXPERTISE' },
+  { prefix: 'экземпляр', code: 'INSTANCE' },
+  { prefix: 'документ', code: 'DOC' },
+  { prefix: 'договор', code: 'CONTRACT' },
+  { prefix: 'заявк', code: 'APP' },
+  { prefix: 'реестр', code: 'REGISTRY' },
+  { prefix: 'справочник', code: 'DICT' },
+  { prefix: 'карточк', code: 'CARD' },
+  { prefix: 'журнал', code: 'LOG' },
+  { prefix: 'шаблон', code: 'TPL' },
+  { prefix: 'отчет', code: 'RPT' },
+  { prefix: 'список', code: 'LIST' },
+  { prefix: 'списк', code: 'LIST' },
+  { prefix: 'файл', code: 'FILE' },
+  { prefix: 'письм', code: 'MAIL' },
+  { prefix: 'почт', code: 'MAIL' },
+  { prefix: 'комментари', code: 'COMMENT' },
+  { prefix: 'сообщен', code: 'MSG' },
+  { prefix: 'вложен', code: 'ATTACH' },
+  { prefix: 'эксперт', code: 'EXPERT' },
+  { prefix: 'план', code: 'PLAN' },
+  { prefix: 'график', code: 'SCHEDULE' },
+
+  // ── Org structure ──
+  { prefix: 'организац', code: 'ORG' },
+  { prefix: 'компан', code: 'COMPANY' },
+  { prefix: 'департамент', code: 'DEPT' },
+  { prefix: 'филиал', code: 'BRANCH' },
+  { prefix: 'отдел', code: 'DEPT' },
+  { prefix: 'подразделен', code: 'DEPT' },
+  { prefix: 'пользовател', code: 'USER' },
+  { prefix: 'групп', code: 'GROUP' },
+  { prefix: 'задач', code: 'TASK' },
+  { prefix: 'процесс', code: 'PROC' },
+  { prefix: 'мониторинг', code: 'MON' },
+  { prefix: 'аудит', code: 'AUDIT' },
+  { prefix: 'рол', code: 'ROLE' },
+
+  // ── Data, Fields, Attributes ──
+  { prefix: 'объект', code: 'OBJ' },
+  { prefix: 'субъект', code: 'SUBJ' },
+  { prefix: 'элемент', code: 'ITEM' },
+  { prefix: 'показател', code: 'INDICATOR' },
+  { prefix: 'параметр', code: 'PARAM' },
+  { prefix: 'атрибут', code: 'ATTR' },
+  { prefix: 'категори', code: 'CAT' },
+  { prefix: 'условие', code: 'COND' },
+  { prefix: 'услови', code: 'COND' },
+  { prefix: 'валют', code: 'CURR' },
+  { prefix: 'наименован', code: 'NAME' },
+  { prefix: 'названи', code: 'NAME' },
+  { prefix: 'результат', code: 'RES' },
+  { prefix: 'состояни', code: 'STATE' },
+  { prefix: 'статус', code: 'STATUS' },
+  { prefix: 'период', code: 'PERIOD' },
+  { prefix: 'истори', code: 'HIST' },
+  { prefix: 'событи', code: 'EVENT' },
+  { prefix: 'триггер', code: 'TRG' },
+  { prefix: 'описан', code: 'DESC' },
+  { prefix: 'значен', code: 'VALUE' },
+  { prefix: 'признак', code: 'FLAG' },
+  { prefix: 'версии', code: 'VER' },
+  { prefix: 'верси', code: 'VER' },
+  { prefix: 'таблиц', code: 'TABLE' },
+  { prefix: 'колонк', code: 'COL' },
+  { prefix: 'столбец', code: 'COL' },
+  { prefix: 'строк', code: 'ROW' },
+  { prefix: 'виджет', code: 'WIDGET' },
+  { prefix: 'форм', code: 'FORM' },
+  { prefix: 'ошибк', code: 'ERROR' },
+  { prefix: 'флаг', code: 'FLAG' },
+  { prefix: 'тип', code: 'TYPE' },
+  { prefix: 'срок', code: 'TERM' },
+  { prefix: 'сумм', code: 'AMOUNT' },
+  { prefix: 'дат', code: 'DATE' },
+  { prefix: 'врем', code: 'TIME' },
+  { prefix: 'вид', code: 'TYPE' },
+  { prefix: 'код', code: 'CODE' },
+  { prefix: 'номер', code: 'NUM' },
+
+  // ── Compliance / AML / Regulatory ──
+  { prefix: 'нормативн', code: 'REGULATORY' },
+  { prefix: 'требовани', code: 'REQ' },
+  { prefix: 'законодательств', code: 'LAW' },
+  { prefix: 'регулятор', code: 'REG_BODY' },
+  { prefix: 'соблюден', code: 'COMPLIANCE' },
+  { prefix: 'соблюдат', code: 'COMPLIANCE' },
+  { prefix: 'нарушен', code: 'VIOLATION' },
+  { prefix: 'нарушит', code: 'VIOLATION' },
+  { prefix: 'стирани', code: 'ERASE' },  // "стирание заключений"
+  { prefix: 'стерт', code: 'ERASE' },
+  { prefix: 'сохранен', code: 'SAVE' },
+  { prefix: 'сохранит', code: 'SAVE' },
+
+  // ── Ref codes / abbreviations ──
+  { prefix: 'var', code: 'VAR' },
+  { prefix: 'вар', code: 'VAR' },
+  { prefix: 'ндс', code: 'VAT' },
+  { prefix: 'инн', code: 'INN' },
+  { prefix: 'кпп', code: 'KPP' },
+  { prefix: 'бик', code: 'BIC' },
+  { prefix: 'огрн', code: 'OGRN' },
+  { prefix: 'эдо', code: 'EDO' },
+  { prefix: 'эцп', code: 'EDS' },
+  { prefix: 'амл', code: 'AML' },
+  { prefix: 'зи', code: 'ZI' },
+  { prefix: 'фин', code: 'FIN' },
 ];
 
-// Stopwords to ignore
+// Stopwords to ignore (function words, prepositions, etc.)
 export const STOPWORDS = new Set([
   'алгоритм', 'алгоритма', 'алгоритмы', 'алгоритму', 'алгоритмом', 'алгоритме',
   'функция', 'функции', 'правило', 'правила', 'скрипт',
@@ -351,6 +419,7 @@ export const STOPWORDS = new Set([
   'и', 'или', 'а', 'но', 'да', 'как', 'что', 'чтобы',
   'же', 'бы', 'ли', 'это', 'тот', 'такой', 'все', 'всех', 'всеми',
   'свой', 'своих', 'своего', 'своей',
+  'не', // handled by compound phrases for "не соответств"
 ]);
 
 // Russian transliteration map fallback
@@ -377,77 +446,85 @@ export function transliterate(word: string): string {
 }
 
 /**
- * Match a single Russian word against the stem dictionary
+ * Match a single Russian word against the stem dictionary.
+ * Returns semantic English code, or falls back to transliteration.
+ * NEVER returns null — every word gets translated somehow.
  */
-export function stemToCode(rawWord: string): { code: string; full: string } | null {
-  const clean = rawWord.toLowerCase().replace(/[^a-zа-я0-9_-]/gi, '').trim();
+export function stemToCode(rawWord: string): string | null {
+  const clean = rawWord.toLowerCase().replace(/[^a-zа-яё0-9_-]/gi, '').trim();
   if (!clean || STOPWORDS.has(clean)) return null;
 
+  // Skip very short particles that may have slipped through
+  if (clean.length <= 1) return null;
+
   // Longest prefix match
-  let bestMatch: { len: number; code: string; full: string } | null = null;
+  let bestMatch: { len: number; code: string } | null = null;
   for (const item of STEM_DICTIONARY) {
     if (clean.startsWith(item.prefix)) {
       if (!bestMatch || item.prefix.length > bestMatch.len) {
-        bestMatch = {
-          len: item.prefix.length,
-          code: item.code,
-          full: item.full || item.code,
-        };
+        bestMatch = { len: item.prefix.length, code: item.code };
       }
     }
   }
 
-  if (bestMatch) {
-    return { code: bestMatch.code, full: bestMatch.full };
-  }
+  if (bestMatch) return bestMatch.code;
 
-  // Fallback to clean transliteration
+  // Fallback: transliterate the entire word (universal — no word is skipped)
   const translit = transliterate(clean);
-  return { code: translit, full: translit };
+  if (!translit) return null;
+  return translit;
 }
 
 /**
- * Parse an arbitrary Russian phrase into clean deduplicated uppercase English tokens
+ * Parse an arbitrary Russian phrase into deduplicated-per-segment uppercase English tokens.
+ * Adjacent duplicate tokens are merged, but non-adjacent same codes are KEPT
+ * (because "Проверка НПП (юл). Стирание заключений" has different semantics per segment).
  */
-export function phraseToTokens(phrase: string): { shortTokens: string[]; fullTokens: string[] } {
-  if (!phrase) return { shortTokens: [], fullTokens: [] };
+export function phraseToTokens(phrase: string): string[] {
+  if (!phrase) return [];
 
-  // 1. Remove leading boilerplate like "Алгоритм: ...", "Алгоритм определения ..."
-  let text = phrase
-    .replace(/^\s*алгоритм(?:\s+типа)?(?:\s*[:.])?\s*/i, '')
-    .trim();
+  // 1. Remove leading boilerplate "Алгоритм: ..." or "Алгоритм типа ..."
+  let text = phrase.replace(/^\s*алгоритм(?:\s+типа)?(?:\s*[:.])?\s*/i, '').trim();
 
-  // 2. Apply compound phrase replacements
+  // 2. Apply compound phrase replacements (longest-match multi-word patterns)
   for (const { pattern, code } of COMPOUND_PHRASES) {
     text = text.replace(pattern, ` __${code}__ `);
   }
 
-  // 3. Tokenize by whitespace and punctuation
+  // 3. Tokenize by whitespace and punctuation (keep dots as segment boundary)
   const rawWords = text.split(/[\s,.;:!?/\\+()\[\]{}"'«»—–-]+/).filter(Boolean);
 
-  const shortTokens: string[] = [];
-  const fullTokens: string[] = [];
+  const tokens: string[] = [];
+  let prevToken = '';
 
   for (const w of rawWords) {
-    // If it's a pre-matched compound code like __CHECK_OBJ__
+    // Pre-matched compound code like __CHECK_OBJ__
     const compoundMatch = w.match(/^__([A-Z0-9_]+)__$/);
     if (compoundMatch) {
       const code = compoundMatch[1];
-      if (!shortTokens.includes(code)) {
-        shortTokens.push(code);
-        fullTokens.push(code);
+      // Expand multi-code compounds into parts
+      const parts = code.split('_');
+      for (const part of parts) {
+        if (part !== prevToken) {
+          tokens.push(part);
+          prevToken = part;
+        }
       }
       continue;
     }
 
-    const match = stemToCode(w);
-    if (match && !shortTokens.includes(match.code)) {
-      shortTokens.push(match.code);
-      fullTokens.push(match.full);
+    const code = stemToCode(w);
+    if (code) {
+      // Split compound codes from stem (e.g. RECALC stays as one)
+      // Avoid adjacent duplicates only
+      if (code !== prevToken) {
+        tokens.push(code);
+        prevToken = code;
+      }
     }
   }
 
-  return { shortTokens, fullTokens };
+  return tokens;
 }
 
 export interface GeneratedIdVariants {
@@ -458,7 +535,7 @@ export interface GeneratedIdVariants {
 }
 
 /**
- * Main GreenData algorithm ID generator with multiple format variations
+ * Main GreenData algorithm ID generator
  */
 export function generateAlgorithmId(input: string, customOptions?: {
   overrideType?: AlgorithmType;
@@ -474,12 +551,7 @@ export function generateAlgorithmId(input: string, customOptions?: {
       rawInput: '',
       detectedType: 'general',
       generatedId: '',
-      variants: {
-        primaryId: '',
-        scopeFirstId: '',
-        fullId: '',
-        compactId: '',
-      },
+      variants: { primaryId: '', scopeFirstId: '', fullId: '', compactId: '' },
       warnings: ['Введите название алгоритма на русском языке'],
       explanation: 'Ожидание ввода...',
     };
@@ -488,21 +560,28 @@ export function generateAlgorithmId(input: string, customOptions?: {
   // 1. Clean leading boilerplate
   let cleaned = rawInput.replace(/^\s*алгоритм(?:\s+типа)?(?:\s*[:.])?\s*/i, '').trim();
 
-  // 2. Detect Block Prefix if structured via dots or colons: e.g. "Лимиты. Рассчитать VaR" or "КИБ. ЗПР. Создать"
+  // 2. Detect Block Prefix structured via dots or colons: e.g. "ФИН. ЗИ. Проверка НПП (юл). ..."
   let block = customOptions?.forceBlock || '';
   let blockCode = '';
   const dotParts = cleaned.split(/[.:]\s*/).map((s) => s.trim()).filter(Boolean);
   let mainBody = cleaned;
 
   if (dotParts.length >= 2 && !customOptions?.forceBlock) {
+    // Heuristic: leading parts that are SHORT (≤ 3 words, ≤ 30 chars) are block prefixes
     const blockParts: string[] = [];
     let idx = 0;
     while (idx < dotParts.length - 1) {
       const part = dotParts[idx];
-      const { shortTokens } = phraseToTokens(part);
-      if (shortTokens.length > 0) {
-        blockParts.push(part);
-        idx++;
+      const wordCount = part.split(/\s+/).length;
+      // Short prefix blocks: abbreviations like "ФИН", "ЗИ", "КИБ", "НПП" or 1-2 word labels
+      if (wordCount <= 3 && part.length <= 40) {
+        const tokens = phraseToTokens(part);
+        if (tokens.length > 0) {
+          blockParts.push(part);
+          idx++;
+        } else {
+          break;
+        }
       } else {
         break;
       }
@@ -515,65 +594,50 @@ export function generateAlgorithmId(input: string, customOptions?: {
   }
 
   if (block) {
-    blockCode = phraseToTokens(block).shortTokens.join('_');
+    blockCode = phraseToTokens(block).join('_');
   }
 
-  // 3. Detect Algorithm Type
+  // 3. Detect Algorithm Type from first word of mainBody
   let detectedType: AlgorithmType = customOptions?.overrideType || 'general';
+  let actionVerb = '';
+  let actionCode = '';
   let targetObject = '';
   let targetObjectCode = '';
   let filterParams = '';
   let filterParamsCode = '';
   let baseObject = '';
   let baseObjectCode = '';
-  let actionVerb = '';
-  let actionCode = '';
 
-  // Check for Filter Condition: "<Блок>. Фильтрация <Объект> по <Параметры>[, на основании <Базовый объект>]"
   const filterMatch = mainBody.match(/фильтрация\s+([^,]+?)(?:\s+по\s+([^,]+?))?(?:,\s*на\s+основании\s+(.+)|$)/i);
   if (filterMatch) {
     detectedType = 'filter_condition';
     targetObject = filterMatch[1]?.trim() || '';
     filterParams = filterMatch[2]?.trim() || '';
     baseObject = filterMatch[3]?.trim() || '';
-
-    targetObjectCode = phraseToTokens(targetObject).shortTokens.join('_');
-    if (filterParams) filterParamsCode = phraseToTokens(filterParams).shortTokens.join('_');
-    if (baseObject) baseObjectCode = phraseToTokens(baseObject).shortTokens.join('_');
+    targetObjectCode = phraseToTokens(targetObject).join('_');
+    if (filterParams) filterParamsCode = phraseToTokens(filterParams).join('_');
+    if (baseObject) baseObjectCode = phraseToTokens(baseObject).join('_');
     explanation = 'Условие фильтрации для выбора элементов GreenData';
   } else {
-    // Check for infinitive verbs or action nouns
     const firstWord = mainBody.split(/\s+/)[0]?.toLowerCase() || '';
-
-    if (
-      firstWord.startsWith('рассчит') ||
-      firstWord.startsWith('вычисл') ||
-      firstWord.startsWith('расчет')
-    ) {
+    if (firstWord.startsWith('рассчит') || firstWord.startsWith('вычисл') || firstWord.startsWith('расчет')) {
       detectedType = 'calculation';
       actionVerb = firstWord;
       actionCode = 'CALC';
       explanation = 'Алгоритм расчета / вычисления параметров';
-    } else if (
-      firstWord.startsWith('провер') ||
-      firstWord.startsWith('валид') ||
-      firstWord.startsWith('контрол')
-    ) {
+    } else if (firstWord.startsWith('провер') || firstWord.startsWith('валид') || firstWord.startsWith('контрол')) {
       detectedType = 'validation';
       actionVerb = firstWord;
       actionCode = 'CHECK';
       explanation = 'Алгоритм проверки / валидации условий';
     } else if (
-      firstWord.startsWith('создат') ||
-      firstWord.startsWith('сформироват') ||
-      firstWord.startsWith('изменит') ||
-      firstWord.startsWith('обновит') ||
-      firstWord.startsWith('удалит') ||
-      firstWord.startsWith('запуст')
+      firstWord.startsWith('создат') || firstWord.startsWith('сформироват') ||
+      firstWord.startsWith('изменит') || firstWord.startsWith('обновит') ||
+      firstWord.startsWith('удалит') || firstWord.startsWith('запуст')
     ) {
       detectedType = 'card_action';
       actionVerb = firstWord;
-      actionCode = phraseToTokens(firstWord).shortTokens[0] || 'ACTION';
+      actionCode = stemToCode(firstWord) || 'ACTION';
       explanation = 'Алгоритм карточки объекта с глаголом в инфинитиве';
     } else if (firstWord.startsWith('определен') || firstWord.startsWith('определит')) {
       detectedType = 'general';
@@ -586,14 +650,12 @@ export function generateAlgorithmId(input: string, customOptions?: {
     }
   }
 
-  // 4. Extract all tokens for the main body
-  const { shortTokens, fullTokens } = phraseToTokens(mainBody);
+  // 4. Extract tokens from main body
+  const bodyTokens = phraseToTokens(mainBody);
 
-  // 5. Assemble final ID tokens
+  // 5. Assemble final ID parts
   const parts: string[] = [];
-  if (blockCode) {
-    parts.push(blockCode);
-  }
+  if (blockCode) parts.push(blockCode);
 
   if (detectedType === 'filter_condition') {
     parts.push('FILTER');
@@ -601,44 +663,44 @@ export function generateAlgorithmId(input: string, customOptions?: {
     if (filterParamsCode) parts.push(`BY_${filterParamsCode}`);
     if (baseObjectCode) parts.push(`BASED_ON_${baseObjectCode}`);
   } else {
-    for (const t of shortTokens) {
-      if (!parts.includes(t)) {
-        parts.push(t);
-      }
+    for (const t of bodyTokens) {
+      parts.push(t);
     }
   }
 
-  // 6. Postfix
+  // 6. Apply postfix and cleanup
   const defaultPostfix = customOptions?.postfix !== undefined ? customOptions.postfix : '_ALG';
-  const applyPostfix = (base: string) => {
-    let res = base.replace(/__+/g, '_').replace(/^_|_$/g, '').toUpperCase();
+  const applyPostfix = (tokens: string[]) => {
+    let res = tokens.join('_').replace(/__+/g, '_').replace(/^_|_$/g, '').toUpperCase();
     if (defaultPostfix && !res.endsWith(defaultPostfix.replace(/^_/, ''))) {
-      if (defaultPostfix.startsWith('_')) {
-        res += defaultPostfix;
-      } else {
-        res += `_${defaultPostfix}`;
-      }
+      res += defaultPostfix.startsWith('_') ? defaultPostfix : `_${defaultPostfix}`;
     }
     return res;
   };
 
-  const primaryId = applyPostfix(parts.join('_'));
+  const primaryId = applyPostfix(parts);
 
-  // Scope-first variation (e.g. NPP_LE_... or LIM_...)
-  const domainTokens = parts.filter((p) => ['NPP', 'LE', 'IE', 'IP', 'CIB', 'ZPR', 'LIM', 'CRED', 'DEAL', 'DEP'].includes(p));
-  const otherTokens = parts.filter((p) => !domainTokens.includes(p));
-  const scopeFirstId = applyPostfix([...domainTokens, ...otherTokens].join('_'));
+  // Scope-first: domain tokens first
+  const DOMAIN_CODES = new Set(['NPP', 'LE', 'IE', 'IP', 'CIB', 'ZPR', 'LIM', 'LOAN', 'DEAL', 'DEP', 'FIN', 'ZI']);
+  const domainTokens = parts.filter((p) => DOMAIN_CODES.has(p));
+  const otherTokens = parts.filter((p) => !DOMAIN_CODES.has(p));
+  const scopeFirstId = applyPostfix([...domainTokens, ...otherTokens]);
 
-  // Full names variation
-  const fullId = applyPostfix(fullTokens.join('_'));
+  // Full (same as primary in v4 — no separate full dict)
+  const fullId = primaryId;
 
-  // Compact variation (omit redundant REQ or similar if already DTRM)
-  const compactParts = parts.filter((p, i) => i === 0 || p !== 'REQ' || !parts.includes('DTRM'));
-  const compactId = applyPostfix(compactParts.join('_'));
+  // Compact: deduplicate globally for shorter version
+  const seen = new Set<string>();
+  const compactParts = parts.filter((p) => {
+    if (seen.has(p)) return false;
+    seen.add(p);
+    return true;
+  });
+  const compactId = applyPostfix(compactParts);
 
-  // 7. Check for recommendations
-  if (!blockCode && !customOptions?.forceBlock && !parts.some((p) => ['NPP', 'LIM', 'CIB', 'ZPR', 'CRED', 'DEAL'].includes(p))) {
-    warnings.push('Рекомендуется указывать префикс функционального блока (например «Лимиты. ...», «НПП. ...» или «КИБ. ...»)');
+  // 7. Warnings
+  if (!blockCode && !customOptions?.forceBlock && !parts.some((p) => ['NPP', 'LIM', 'CIB', 'ZPR', 'LOAN', 'DEAL', 'FIN', 'ZI'].includes(p))) {
+    warnings.push('Рекомендуется указывать префикс функционального блока (например «ФИН. ЗИ. ...», «НПП. ...» или «КИБ. ...»)');
   }
 
   return {
@@ -655,12 +717,7 @@ export function generateAlgorithmId(input: string, customOptions?: {
     baseObject,
     baseObjectCode,
     generatedId: primaryId,
-    variants: {
-      primaryId,
-      scopeFirstId,
-      fullId,
-      compactId,
-    },
+    variants: { primaryId, scopeFirstId, fullId, compactId },
     warnings,
     explanation,
   };
