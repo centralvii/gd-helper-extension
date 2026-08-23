@@ -96,6 +96,20 @@ export const CssRuleModal: React.FC<CssRuleModalProps> = ({
     onClose();
   };
 
+  const handleAddImportant = () => {
+    if (!css.trim()) return;
+    const fixed = css.replace(/([^;{}]+?)(;|\s*(?=}))/g, (match, propVal, terminator) => {
+      if (propVal.includes('{') || propVal.includes('/*') || propVal.includes('*/') || propVal.includes('@') || !propVal.includes(':')) {
+        return match;
+      }
+      if (propVal.toLowerCase().includes('!important')) {
+        return match;
+      }
+      return `${propVal.trimEnd()} !important${terminator || ';'}`;
+    });
+    setCss(fixed);
+  };
+
   return (
     <Modal
       isOpen={isOpen}
@@ -132,7 +146,7 @@ export const CssRuleModal: React.FC<CssRuleModalProps> = ({
           <Input
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="Например: GreenData Portal — компактный вид"
+            placeholder="Например: GreenData Portal — размер редактора формул"
           />
         </div>
 
@@ -154,10 +168,10 @@ export const CssRuleModal: React.FC<CssRuleModalProps> = ({
           <Input
             value={urlPattern}
             onChange={(e) => setUrlPattern(e.target.value)}
-            placeholder="*://*.greendata.ru/*, jira.company.com или * для всех"
+            placeholder="*://expo.greendatasoft.ru/*, expo.greendatasoft.ru или * для всех"
           />
           <p className="mt-1 text-[10px] text-gray-500">
-            Поддерживаются маски (*://*.domain.com/*), конкретные домены (example.com) или * для всех сайтов.
+            Поддерживаются маски (*://*.domain.com/*), домены (expo.greendatasoft.ru) или * для всех сайтов.
           </p>
         </div>
 
@@ -167,9 +181,14 @@ export const CssRuleModal: React.FC<CssRuleModalProps> = ({
               <Code2 className="w-3.5 h-3.5 text-emerald-600" />
               CSS стили
             </label>
-            <span className="text-[10px] font-mono text-gray-400">
-              {css.split('\n').length} строк
-            </span>
+            <button
+              type="button"
+              onClick={handleAddImportant}
+              title="Добавить !important ко всем свойствам для гарантированного переопределения стилей сайта"
+              className="text-[10px] font-semibold text-emerald-700 hover:text-emerald-800 hover:underline"
+            >
+              + Добавить !important
+            </button>
           </div>
 
           <div className="mb-2 flex flex-wrap gap-1.5">
@@ -192,10 +211,14 @@ export const CssRuleModal: React.FC<CssRuleModalProps> = ({
           <textarea
             value={css}
             onChange={(e) => setCss(e.target.value)}
-            placeholder={`/* Введите ваши CSS правила */\nbody {\n  font-size: 13px !important;\n}`}
+            placeholder={`.formula-editor-box {\n  height: 1000px !important;\n}`}
             rows={8}
             className="w-full rounded-xl border border-gray-200 bg-gray-50/60 p-2.5 font-mono text-xs text-gray-900 placeholder:text-gray-400 outline-none transition-colors focus:border-emerald-500 focus:bg-white focus:ring-1 focus:ring-emerald-500"
           />
+
+          <p className="mt-1 text-[10px] text-gray-500 leading-tight">
+            💡 <strong>Важно:</strong> Для гарантированного переопределения встроенных стилей сайта добавляйте <code className="font-mono text-emerald-700 bg-gray-100 px-1 py-0.5 rounded font-bold">!important</code> (например, <code className="font-mono text-gray-700">height: 1000px !important;</code>).
+          </p>
         </div>
       </form>
     </Modal>
