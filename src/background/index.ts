@@ -1,9 +1,11 @@
 /**
  * GDHelper Extension Background Service Worker
- * Configures Side Panel behavior for Chrome Manifest V3
+ * Configures Side Panel behavior for Chrome Manifest V3.
+ * Also handles auto-collect of .guf downloads.
  */
 
-// Open side panel when the action (toolbar icon) is clicked
+// ── Side Panel setup ──────────────────────────────────────────────────────────
+
 chrome.runtime.onInstalled.addListener(() => {
   if (chrome.sidePanel && chrome.sidePanel.setPanelBehavior) {
     chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true }).catch((error) => {
@@ -13,7 +15,6 @@ chrome.runtime.onInstalled.addListener(() => {
   console.log('GDHelper Extension installed successfully.');
 });
 
-// Fallback click handler if setPanelBehavior is not supported
 chrome.action.onClicked.addListener(async (tab) => {
   if (chrome.sidePanel && chrome.sidePanel.open && tab.id) {
     try {
@@ -24,7 +25,91 @@ chrome.action.onClicked.addListener(async (tab) => {
   }
 });
 
-// Helper: match URL against rule pattern
+// ── Auto-Collector: .guf download watcher ────────────────────────────────────
+// chrome.downloads.onChanged MUST be in the background service worker —
+// it does NOT fire in side panel / content scripts.
+
+const AUTO_COLLECT_KEY = 'gd-helper-auto-collect-enabled';
+const processedDownloads = new Set<number>();
+
+chrome.downloads.onChanged.addListener(async (delta) => {
+  // Only react to completed downloads
+  if (!delta.state || delta.state.current !== 'complete') return;
+
+  // Check if auto-collect is enabled
+  try {
+    const stored = await chrome.storage.local.get([AUTO_COLLECT_KEY]);
+    const isEnabled = stored[AUTO_COLLECT_KEY] === true;
+    if (!isEnabled) return;
+  } catch {
+    return;
+  }
+
+  const downloadId = delta.id;
+  if (processedDownloads.has(downloadId)) return;
+
+  try {
+    // Get full download info
+    const items = await chrome.downloads.search({ id: downloadId });
+    if (!items || items.length === 0) return;
+
+    const item = items[0];
+    const fullPath = item.filename || '';
+    const filename = fullPath.replace(/\\/g, '/').split('/').pop() || '';
+
+    // Only process .guf files
+    if (!filename.toLowerCase().endsWith('.guf')) return;
+
+    processedDownloads.add(downloadId);
+
+    // Read the file content using XMLHttpRequest with the file:// path
+    // Background SW cannot use fetch() for file:// URLs, so we use chrome.downloads.search
+    // and send the download item info to the side panel which can fetch it.
+
+    // Strategy: send a message to all side panel ports / runtime with the download info.
+    // The side panel will fetch the blob URL (item.url is still valid as a blob: URL if it was blob:).
+    // If it was a regular https:// URL, we can re-fetch it.
+
+    const downloadUrl = item.url || '';
+    const finalUrl = item.finalUrl || item.url || '';
+
+    // Send message to side panel
+    chrome.runtime.sendMessage({
+      type: 'GUF_DOWNLOAD_COMPLETE',
+      payload: {
+        downloadId,
+        filename,
+        url: finalUrl || downloadUrl,
+        mime: item.mime || 'application/octet-stream',
+      },
+    }).catch(() => {
+      // Side panel may not be open — store in pending queue
+      storePendingDownload({ downloadId, filename, url: finalUrl || downloadUrl });
+    });
+  } catch (err) {
+    console.warn('[GDHelper BG] AutoCollector error:', err);
+  }
+});
+
+// Store pending downloads for when side panel opens
+async function storePendingDownload(info: {
+  downloadId: number;
+  filename: string;
+  url: string;
+}) {
+  try {
+    const stored = await chrome.storage.local.get(['gd_pending_guf_downloads']);
+    const pending: typeof info[] = stored.gd_pending_guf_downloads || [];
+    // Keep only last 20 to avoid stale entries
+    const next = [info, ...pending].slice(0, 20);
+    await chrome.storage.local.set({ gd_pending_guf_downloads: next });
+  } catch {
+    // ignore
+  }
+}
+
+// ── CSS injection for Site CSS Styler ────────────────────────────────────────
+
 export function urlMatchesPattern(url: string, pattern: string): boolean {
   if (!url || !pattern) return false;
   const p = pattern.trim().toLowerCase();
@@ -35,32 +120,27 @@ export function urlMatchesPattern(url: string, pattern: string): boolean {
     const host = parsedUrl.hostname.toLowerCase();
     const fullUrl = url.toLowerCase();
 
-    // Ignore browser internal schemes
-    if (['chrome:', 'chrome-extension:', 'about:', 'edge:', 'devtools:', 'view-source:'].includes(parsedUrl.protocol)) {
+    const internalSchemes = ['chrome:', 'chrome-extension:', 'about:', 'edge:', 'devtools:', 'view-source:'];
+    if (internalSchemes.includes(parsedUrl.protocol)) {
       return false;
     }
 
-    // Direct domain or substring match (e.g. "expo.greendatasoft.ru" or "greendata")
     if (!p.includes('://') && !p.includes('*')) {
       return host === p || host.endsWith('.' + p) || fullUrl.includes(p);
     }
 
-    // Wildcard domain match (e.g. "*.greendatasoft.ru")
     if (!p.includes('://') && p.startsWith('*.')) {
       const baseDomain = p.slice(2);
       return host === baseDomain || host.endsWith('.' + baseDomain);
     }
 
-    // Convert Chrome match pattern e.g. "*://expo.greendatasoft.ru/*"
     let cleanPattern = p;
-    // Normalize *:// to match http or https
     cleanPattern = cleanPattern.replace(/^\*:\/\//, 'https?://');
-    // If ends with /*, match with or without path
     if (cleanPattern.endsWith('/*')) {
       cleanPattern = cleanPattern.slice(0, -2);
       const regexStr = '^' + cleanPattern
         .replace(/[.+?^${}()|[\]\\]/g, '\\$&')
-        .replace(/\*/g, '.*') + '(?:\/.*)?$';
+        .replace(/\*/g, '.*') + '(?:\\/.*)?$';
       return new RegExp(regexStr, 'i').test(fullUrl);
     }
 
@@ -73,7 +153,6 @@ export function urlMatchesPattern(url: string, pattern: string): boolean {
   }
 }
 
-// Inject or remove CSS for a single tab
 async function syncCssForTab(tabId: number, url: string) {
   if (!url || typeof chrome === 'undefined' || !chrome.scripting) return;
 
@@ -88,18 +167,14 @@ async function syncCssForTab(tabId: number, url: string) {
       const styleId = `gd-css-${rule.id}`;
 
       if (isMatch) {
-        // 1. Try native user stylesheet injection
         try {
           await chrome.scripting.insertCSS({
             target: { tabId, allFrames: true },
             css: rule.css,
             origin: 'USER',
           });
-        } catch {
-          // Ignore if permission or restricted frame
-        }
+        } catch { /* restricted frame */ }
 
-        // 2. Also inject DOM <style> tag for 100% guarantee & visibility in DevTools Elements
         try {
           await chrome.scripting.executeScript({
             target: { tabId, allFrames: true },
@@ -114,44 +189,30 @@ async function syncCssForTab(tabId: number, url: string) {
                   (document.head || document.documentElement).appendChild(el);
                 }
                 el.textContent = cssText;
-              } catch (e) {
-                // ignore
-              }
+              } catch { /* ignore */ }
             },
             args: [styleId, rule.css, rule.name || 'Custom CSS'],
           });
-        } catch {
-          // May fail on restricted pages
-        }
+        } catch { /* restricted */ }
       } else {
-        // 1. Remove native insertCSS
         try {
           await chrome.scripting.removeCSS({
             target: { tabId, allFrames: true },
             css: rule.css,
             origin: 'USER',
           });
-        } catch {
-          // Ignore
-        }
+        } catch { /* ignore */ }
 
-        // 2. Remove DOM <style> tag
         try {
           await chrome.scripting.executeScript({
             target: { tabId, allFrames: true },
             func: (sId: string) => {
-              try {
-                const el = document.getElementById(sId);
-                if (el) el.remove();
-              } catch (e) {
-                // ignore
-              }
+              const el = document.getElementById(sId);
+              if (el) el.remove();
             },
             args: [styleId],
           });
-        } catch {
-          // Ignore
-        }
+        } catch { /* ignore */ }
       }
     }
   } catch (err) {
@@ -159,7 +220,6 @@ async function syncCssForTab(tabId: number, url: string) {
   }
 }
 
-// Listen for tab updates to inject matching CSS
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   const currentUrl = tab.url || tab.pendingUrl;
   if ((changeInfo.status === 'complete' || changeInfo.status === 'loading') && currentUrl) {
@@ -167,7 +227,6 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   }
 });
 
-// Listen for messages from Side Panel to sync all open tabs
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (message && (message.type === 'SYNC_ALL_SITE_CSS' || message.type === 'APPLY_SITE_CSS')) {
     chrome.tabs.query({}, (tabs) => {
