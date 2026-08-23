@@ -6,6 +6,7 @@ import { useAutoCollector } from '../hooks/useAutoCollector';
 import { Header } from '../components/layout/Header';
 import { Footer } from '../components/layout/Footer';
 import { ImplementationTool } from '../components/implementation/ImplementationTool';
+import { ExtraContainer } from '../components/extra/ExtraContainer';
 import { PackageSelector } from '../components/template/PackageSelector';
 import { FileUploader } from '../components/upload/FileUploader';
 import { TemplateEditor } from '../components/template/TemplateEditor';
@@ -211,7 +212,9 @@ export const App: React.FC = () => {
 
             {/* Main Content Area */}
             <main className="flex-1 p-3 space-y-3 pb-6">
-                {activeTool === 'implementation' ? (
+                {activeTool === 'extra' ? (
+                    <ExtraContainer />
+                ) : activeTool === 'implementation' ? (
                     <ImplementationTool />
                 ) : (
                     <>

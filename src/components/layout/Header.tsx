@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import {
     Icon28ArchiveOutline,
     Icon28ArticleOutline,
+    Icon28FlashOutline,
     Icon28DeleteOutline,
     Icon28FullscreenOutline,
     Icon20BookmarkOutline,
@@ -90,6 +91,16 @@ export const Header: React.FC<HeaderProps> = ({
                             >
                                 <Icon28ArticleOutline width={15} height={15} />
                                 <span>Реализация</span>
+                            </button>
+
+                            {/* Экстра (без текста, с иконкой молнии) */}
+                            <button
+                                type="button"
+                                onClick={() => onSelectTool('extra')}
+                                title="Экстра инструменты"
+                                className={`header-tab ${activeTool === 'extra' ? 'header-tab--active' : ''} px-2`}
+                            >
+                                <Icon28FlashOutline width={15} height={15} />
                             </button>
                         </div>
                     </div>

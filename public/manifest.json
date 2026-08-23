@@ -7,7 +7,11 @@
     "sidePanel",
     "storage",
     "downloads",
-    "tabs"
+    "tabs",
+    "scripting"
+  ],
+  "host_permissions": [
+    "<all_urls>"
   ],
   "action": {
     "default_title": "Открыть GDHelper",

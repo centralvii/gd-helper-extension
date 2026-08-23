@@ -84,7 +84,7 @@ export interface StoredAppState {
   updatedAt?: number;
 }
 
-export type ActiveTool = 'packer' | 'implementation';
+export type ActiveTool = 'packer' | 'implementation' | 'extra';
 
 export interface ImplementationChangeItem {
   id: string;
@@ -99,6 +99,51 @@ export interface ImplementationTask {
   title: string;
   summary: string;
   items: ImplementationChangeItem[];
+  createdAt: number;
+  updatedAt: number;
+}
+
+export type ExtraSubTool = 'alg_generator' | 'site_css';
+
+export type AlgorithmType =
+  | 'general'
+  | 'card_action'
+  | 'filter_condition'
+  | 'validation'
+  | 'calculation';
+
+export interface AlgorithmParseResult {
+  rawInput: string;
+  detectedType: AlgorithmType;
+  block?: string;
+  blockCode?: string;
+  actionVerb?: string;
+  actionCode?: string;
+  targetObject?: string;
+  targetObjectCode?: string;
+  filterParams?: string;
+  filterParamsCode?: string;
+  baseObject?: string;
+  baseObjectCode?: string;
+  generatedId: string;
+  warnings: string[];
+  explanation: string;
+}
+
+export interface AlgorithmHistoryItem {
+  id: string;
+  russianName: string;
+  generatedId: string;
+  type: AlgorithmType;
+  createdAt: number;
+}
+
+export interface SiteCssRule {
+  id: string;
+  name: string;
+  urlPattern: string;
+  css: string;
+  isEnabled: boolean;
   createdAt: number;
   updatedAt: number;
 }
