@@ -169,6 +169,16 @@ export function useSiteCssRules() {
     return null;
   }, []);
 
+  const syncAllTabs = useCallback(async () => {
+    try {
+      if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.sendMessage) {
+        await chrome.runtime.sendMessage({ type: 'SYNC_ALL_SITE_CSS' });
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
+
   return {
     rules,
     isLoading,
@@ -177,5 +187,6 @@ export function useSiteCssRules() {
     deleteRule,
     toggleRule,
     getCurrentTabUrl,
+    syncAllTabs,
   };
 }

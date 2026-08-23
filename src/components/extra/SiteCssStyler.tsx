@@ -10,6 +10,7 @@ import {
   Layers,
   ChevronDown,
   ChevronUp,
+  RefreshCw,
 } from 'lucide-react';
 import { useSiteCssRules } from '../../hooks/useSiteCssRules';
 import { SiteCssRule } from '../../types';
@@ -25,7 +26,11 @@ export const SiteCssStyler: React.FC = () => {
     deleteRule,
     toggleRule,
     getCurrentTabUrl,
+    syncAllTabs,
   } = useSiteCssRules();
+
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [syncToast, setSyncToast] = useState(false);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -78,6 +83,16 @@ export const SiteCssStyler: React.FC = () => {
     });
   };
 
+  const handleSyncAll = async () => {
+    setIsSyncing(true);
+    await syncAllTabs();
+    setTimeout(() => {
+      setIsSyncing(false);
+      setSyncToast(true);
+      setTimeout(() => setSyncToast(false), 2500);
+    }, 400);
+  };
+
   return (
     <div className="space-y-3">
       {/* ── Toolbar: Search & Create Button ── */}
@@ -105,7 +120,7 @@ export const SiteCssStyler: React.FC = () => {
       </div>
 
       {/* ── Summary & Status Card ── */}
-      <div className="rounded-xl border border-gray-200 bg-white p-3 shadow-sm flex items-center justify-between gap-2">
+      <div className="rounded-xl border border-gray-200 bg-white p-3 shadow-sm flex items-center justify-between gap-2 flex-wrap">
         <div className="flex items-center gap-2">
           <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-200">
             <Layers className="w-4 h-4" />
@@ -115,18 +130,35 @@ export const SiteCssStyler: React.FC = () => {
               Пользовательские стили для сайтов
             </div>
             <div className="text-[10px] text-gray-500">
-              Применяются поверх страниц браузера в реальном времени
+              {syncToast ? (
+                <span className="font-semibold text-emerald-600 animate-fade-in">
+                  ✓ Стили успешно синхронизированы с открытыми вкладками
+                </span>
+              ) : (
+                'Мгновенно внедряются в страницы браузера'
+              )}
             </div>
           </div>
         </div>
 
-        <Badge
-          variant={activeCount > 0 ? 'success' : 'default'}
-          size="sm"
-          className="flex-shrink-0"
-        >
-          {activeCount > 0 ? `Активно: ${activeCount}` : 'Все отключены'}
-        </Badge>
+        <div className="flex items-center gap-1.5 ml-auto">
+          <button
+            type="button"
+            onClick={handleSyncAll}
+            title="Применить / Синхронизировать стили со всеми открытыми вкладками"
+            className="icon-btn p-1.5 text-gray-400 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin text-emerald-600' : ''}`} />
+          </button>
+
+          <Badge
+            variant={activeCount > 0 ? 'success' : 'default'}
+            size="sm"
+            className="flex-shrink-0"
+          >
+            {activeCount > 0 ? `Активно: ${activeCount}` : 'Все отключены'}
+          </Badge>
+        </div>
       </div>
 
       {/* ── List of Rules ── */}
@@ -175,13 +207,13 @@ export const SiteCssStyler: React.FC = () => {
                       aria-checked={rule.isEnabled}
                       onClick={() => toggleRule(rule.id)}
                       title={rule.isEnabled ? 'Отключить стиль' : 'Включить стиль'}
-                      className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none ${
+                      className={`relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
                         rule.isEnabled ? 'bg-emerald-500' : 'bg-gray-300'
                       }`}
                     >
                       <span
-                        className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
-                          rule.isEnabled ? 'translate-x-4.5' : 'translate-x-1'
+                        className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${
+                          rule.isEnabled ? 'translate-x-4' : 'translate-x-0'
                         }`}
                       />
                     </button>
