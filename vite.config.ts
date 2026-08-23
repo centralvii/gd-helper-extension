@@ -21,16 +21,17 @@ export default defineConfig({
       },
       output: {
         entryFileNames: (chunkInfo) => {
-          if (chunkInfo.name === 'background') {
-            return 'background.js';
-          }
-          if (chunkInfo.name === 'content') {
-            return 'content.js';
-          }
+          if (chunkInfo.name === 'background') return 'background.js';
+          if (chunkInfo.name === 'content') return 'content.js';
           return 'assets/[name]-[hash].js';
         },
         chunkFileNames: 'assets/[name]-[hash].js',
         assetFileNames: 'assets/[name]-[hash].[ext]',
+        // Prevent content.js from importing shared chunks (must be self-contained)
+        manualChunks: (id) => {
+          // Keep content script self-contained
+          if (id.includes('src/content/index')) return undefined;
+        },
       },
     },
   },

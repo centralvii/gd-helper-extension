@@ -44,35 +44,77 @@ export const Header: React.FC<HeaderProps> = ({
         }
     };
 
+    const navTabs: { id: ActiveTool; label?: string; icon: React.ReactNode; title: string }[] = [
+        {
+            id: 'packer',
+            label: 'Упаковка',
+            icon: <Icon28ArchiveOutline width={15} height={15} />,
+            title: 'Упаковка GUF файлов',
+        },
+        {
+            id: 'implementation',
+            label: 'Реализация',
+            icon: <Icon28ArticleOutline width={15} height={15} />,
+            title: 'Инструмент реализации',
+        },
+        {
+            id: 'extra',
+            // no label — only icon
+            icon: <Icon28FlashOutline width={15} height={15} />,
+            title: 'Экстра инструменты',
+        },
+    ];
+
     return (
         <>
             <header
-                className="sticky top-0 z-30"
+                className="sticky top-0 z-30 bg-white"
                 style={{
-                    background: '#ffffff',
                     borderBottom: '1px solid #e2e8e2',
-                    boxShadow: '0 1px 0 #e2e8e2, 0 2px 8px rgba(0,0,0,0.04)',
+                    boxShadow: '0 1px 0 #e2e8e2, 0 2px 6px rgba(0,0,0,0.04)',
                 }}
             >
-                <div className="relative flex items-center justify-between gap-2 px-3 py-2 min-h-[44px]">
+                {/* Single-row layout: [left-placeholder] [center nav] [right actions] */}
+                <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-1 px-2.5 py-1.5 min-h-[42px]">
 
-                    {/* ── Центрированное навигационное меню (StealthSurf / VKUI style) ── */}
-                    <div className="absolute left-1/2 -translate-x-1/2 flex items-center justify-center">
-                        <div
-                            className="flex items-center gap-0.5 rounded-xl p-0.5 shadow-sm"
-                            style={{ background: '#f0f4f0', border: '1px solid #e2e8e2' }}
-                        >
-                            {/* Упаковка */}
+                    {/* ── Left col: invisible placeholder that matches right actions width ── */}
+                    {/* We use the right column to size itself and this col mirrors it */}
+                    <div aria-hidden className="flex items-center justify-start">
+                        {/* Placeholder — same buttons as right, but invisible, to balance the grid */}
+                        <span className="h-[30px] opacity-0 pointer-events-none flex gap-1">
+                            <span className="w-7 h-7" />
+                            {activeTool === 'packer' && (
+                                <>
+                                    <span className="w-7 h-7 hidden sm:inline-block" />
+                                    <span className="w-7 h-7 hidden sm:inline-block" />
+                                    <span className="w-7 h-7 hidden sm:inline-block" />
+                                    <span className="w-px hidden sm:inline-block" />
+                                </>
+                            )}
+                            {activeTool === 'packer' && fileCount > 0 && (
+                                <span className="w-7 h-7" />
+                            )}
+                        </span>
+                    </div>
+
+                    {/* ── Center: Navigation tabs ── */}
+                    <div
+                        className="flex items-center gap-0.5 rounded-xl p-0.5 shadow-sm"
+                        style={{ background: '#f0f4f0', border: '1px solid #e2e8e2' }}
+                    >
+                        {navTabs.map((tab) => (
                             <button
+                                key={tab.id}
                                 type="button"
-                                onClick={() => onSelectTool('packer')}
-                                className={`header-tab ${activeTool === 'packer' ? 'header-tab--active' : ''}`}
+                                onClick={() => onSelectTool(tab.id)}
+                                title={tab.title}
+                                className={`header-tab ${activeTool === tab.id ? 'header-tab--active' : ''} ${!tab.label ? 'px-2' : ''}`}
                             >
-                                <Icon28ArchiveOutline width={15} height={15} />
-                                <span>Упаковка</span>
-                                {fileCount > 0 && (
+                                {tab.icon}
+                                {tab.label && <span className="hidden xs:inline">{tab.label}</span>}
+                                {tab.id === 'packer' && fileCount > 0 && (
                                     <span
-                                        className="rounded-full px-1.5 text-[9px] font-bold"
+                                        className="rounded-full px-1.5 text-[9px] font-bold leading-none py-0.5 flex-shrink-0"
                                         style={{
                                             background: activeTool === 'packer' ? '#22c55e' : '#d1fae5',
                                             color:      activeTool === 'packer' ? '#fff'    : '#16a34a',
@@ -82,31 +124,11 @@ export const Header: React.FC<HeaderProps> = ({
                                     </span>
                                 )}
                             </button>
-
-                            {/* Реализация */}
-                            <button
-                                type="button"
-                                onClick={() => onSelectTool('implementation')}
-                                className={`header-tab ${activeTool === 'implementation' ? 'header-tab--active' : ''}`}
-                            >
-                                <Icon28ArticleOutline width={15} height={15} />
-                                <span>Реализация</span>
-                            </button>
-
-                            {/* Экстра (без текста, с иконкой молнии) */}
-                            <button
-                                type="button"
-                                onClick={() => onSelectTool('extra')}
-                                title="Экстра инструменты"
-                                className={`header-tab ${activeTool === 'extra' ? 'header-tab--active' : ''} px-2`}
-                            >
-                                <Icon28FlashOutline width={15} height={15} />
-                            </button>
-                        </div>
+                        ))}
                     </div>
 
-                    {/* ── Правые кнопки действий ── */}
-                    <div className="ml-auto flex items-center gap-1 flex-shrink-0 z-10">
+                    {/* ── Right: Action buttons ── */}
+                    <div className="flex items-center justify-end gap-0.5 flex-shrink-0">
                         {activeTool === 'packer' && (
                             <>
                                 <button
@@ -140,7 +162,7 @@ export const Header: React.FC<HeaderProps> = ({
                                     )}
                                 </button>
 
-                                {/* Разделитель */}
+                                {/* Divider */}
                                 <div className="hidden sm:block w-px h-4 mx-0.5" style={{ background: '#e2e8e2' }} />
                             </>
                         )}

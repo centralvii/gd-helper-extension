@@ -1,10 +1,10 @@
 /**
- * GDHelper Content Script
- * Automatically injects enabled custom CSS rules on matched websites in real-time.
- * Listens to chrome.storage.onChanged for instant zero-latency updates.
+ * GDHelper Content Script v2
+ * Injects custom CSS rules into web pages.
+ * Runs at document_start and re-applies on DOMContentLoaded + load.
+ * Listens to chrome.storage.onChanged for real-time updates without page reload.
  */
 
-// Helper to check if current URL matches a rule pattern
 function urlMatchesPattern(url: string, pattern: string): boolean {
   if (!url || !pattern) return false;
   const p = pattern.trim().toLowerCase();
@@ -15,41 +15,41 @@ function urlMatchesPattern(url: string, pattern: string): boolean {
     const host = parsedUrl.hostname.toLowerCase();
     const fullUrl = url.toLowerCase();
 
-    // Ignore browser internal schemes
-    if (['chrome:', 'chrome-extension:', 'about:', 'edge:', 'devtools:', 'view-source:'].includes(parsedUrl.protocol)) {
+    // Ignore browser-internal pages
+    const internalSchemes = ['chrome:', 'chrome-extension:', 'about:', 'edge:', 'devtools:', 'view-source:', 'data:'];
+    if (internalSchemes.some(s => parsedUrl.protocol === s || parsedUrl.protocol.startsWith(s))) {
       return false;
     }
 
-    // Direct domain or substring match (e.g. "expo.greendatasoft.ru" or "greendatasoft")
+    // Plain domain or substring match: "expo.greendatasoft.ru" or "greendata"
     if (!p.includes('://') && !p.includes('*')) {
       return host === p || host.endsWith('.' + p) || fullUrl.includes(p);
     }
 
-    // Wildcard domain match (e.g. "*.greendatasoft.ru")
+    // Wildcard domain: "*.greendatasoft.ru"
     if (!p.includes('://') && p.startsWith('*.')) {
-      const baseDomain = p.slice(2);
-      return host === baseDomain || host.endsWith('.' + baseDomain);
+      const base = p.slice(2);
+      return host === base || host.endsWith('.' + base);
     }
 
-    // Convert Chrome match pattern e.g. "*://expo.greendatasoft.ru/*"
-    let cleanPattern = p;
-    // Normalize *:// to match http or https
-    cleanPattern = cleanPattern.replace(/^\*:\/\//, 'https?://');
-    // If ends with /*, match with or without path
-    if (cleanPattern.endsWith('/*')) {
-      cleanPattern = cleanPattern.slice(0, -2);
-      const regexStr = '^' + cleanPattern
+    // Full Chrome match pattern: "*://expo.greendatasoft.ru/*"
+    let clean = p.replace(/^\*:\/\//, '');  // strip *://
+    const isHttpPattern = !clean.startsWith('http');
+
+    let regexStr = '^https?:\\/\\/' + (isHttpPattern ? '' : '') +
+      clean
+        .replace(/^https?:\/\//, '')
         .replace(/[.+?^${}()|[\]\\]/g, '\\$&')
-        .replace(/\*/g, '.*') + '(?:\/.*)?$';
-      return new RegExp(regexStr, 'i').test(fullUrl);
+        .replace(/\*/g, '.*');
+
+    if (regexStr.endsWith('\\/\\*') || regexStr.endsWith('.*')) {
+      // Already has wildcard path
+      regexStr = regexStr.replace(/\\\.\*$/, '(?:\\/.*)?').replace(/\\\\/g, '/') + '$';
     }
 
-    const regexStr = '^' + cleanPattern
-      .replace(/[.+?^${}()|[\]\\]/g, '\\$&')
-      .replace(/\*/g, '.*') + '$';
     return new RegExp(regexStr, 'i').test(fullUrl);
   } catch {
-    return url.toLowerCase().includes(p);
+    return url.toLowerCase().includes(pattern.trim().toLowerCase());
   }
 }
 
@@ -61,86 +61,129 @@ interface SiteCssRule {
   isEnabled: boolean;
 }
 
-// Function to apply or remove a style element in the document
-function applyRuleToDom(rule: SiteCssRule, currentUrl: string) {
+/**
+ * Inject or remove a <style> tag for this rule.
+ * Always uses the existing element if present (idempotent).
+ */
+function applyRuleToDom(rule: SiteCssRule, currentUrl: string): void {
   const styleId = `gd-helper-css-${rule.id}`;
-  const isMatch = rule.isEnabled && urlMatchesPattern(currentUrl, rule.urlPattern);
+  const shouldApply = rule.isEnabled && !!(rule.css && rule.css.trim()) && urlMatchesPattern(currentUrl, rule.urlPattern);
 
-  if (isMatch && rule.css && rule.css.trim()) {
+  if (shouldApply) {
+    // Find or create the style element
     let styleEl = document.getElementById(styleId) as HTMLStyleElement | null;
     if (!styleEl) {
       styleEl = document.createElement('style');
       styleEl.id = styleId;
       styleEl.setAttribute('data-source', 'GDHelper');
-      styleEl.setAttribute('data-rule-name', rule.name || 'Custom CSS');
-      (document.head || document.documentElement || document.body).appendChild(styleEl);
+      styleEl.setAttribute('data-rule', rule.name || 'custom');
+      // Append to head if available, else documentElement
+      const target = document.head || document.documentElement;
+      if (target) {
+        target.appendChild(styleEl);
+      } else {
+        // documentElement may also be null at document_start — observe for it
+        return;
+      }
     }
-    styleEl.textContent = rule.css;
+    if (styleEl.textContent !== rule.css) {
+      styleEl.textContent = rule.css;
+    }
   } else {
     const existing = document.getElementById(styleId);
-    if (existing) {
-      existing.remove();
-    }
+    if (existing) existing.remove();
   }
 }
 
-// Sync all rules from storage
-async function syncAllRules() {
-  const currentUrl = window.location.href;
-  if (!currentUrl) return;
+let _rules: SiteCssRule[] = [];
 
+function applyAllRules(): void {
+  const currentUrl = window.location.href;
+  for (const rule of _rules) {
+    applyRuleToDom(rule, currentUrl);
+  }
+}
+
+async function loadAndApply(): Promise<void> {
   try {
     if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
       const data = await chrome.storage.local.get(['siteCssRules']);
-      const rules: SiteCssRule[] = data.siteCssRules || [];
-      for (const rule of rules) {
-        applyRuleToDom(rule, currentUrl);
-      }
+      _rules = data.siteCssRules || [];
+      applyAllRules();
     }
   } catch (err) {
-    console.warn('[GDHelper Content Script] Error syncing rules:', err);
+    // Silently fail on restricted pages
   }
 }
 
-// 1. Run immediately on load (document_start)
-syncAllRules();
+// ── 1. Run immediately (may be before <head> exists) ──
+loadAndApply();
 
-// 2. Also run on DOMContentLoaded and window load to make sure head/body are ready
+// ── 2. Re-apply once DOM is interactive ──
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => syncAllRules());
+  document.addEventListener('DOMContentLoaded', loadAndApply, { once: true });
+} else {
+  // Already interactive or complete
+  loadAndApply();
 }
-window.addEventListener('load', () => syncAllRules());
 
-// 3. Listen for real-time changes to chrome.storage.local
+// ── 3. Re-apply once fully loaded (images, etc.) ──
+window.addEventListener('load', loadAndApply, { once: true });
+
+// ── 4. Watch for dynamically added <head> (SPA / shadow DOM edge cases) ──
+if (typeof MutationObserver !== 'undefined') {
+  const headObserver = new MutationObserver(() => {
+    if (document.head && _rules.length > 0) {
+      applyAllRules();
+    }
+  });
+  headObserver.observe(document.documentElement || document, {
+    childList: true,
+    subtree: true,
+  });
+  // Disconnect once head is ready
+  const disconnectWhenReady = () => {
+    if (document.head) {
+      headObserver.disconnect();
+    }
+  };
+  document.addEventListener('DOMContentLoaded', disconnectWhenReady, { once: true });
+}
+
+// ── 5. Real-time: listen to chrome.storage.onChanged ──
 if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.onChanged) {
-  chrome.storage.onChanged.addListener((changes, areaName) => {
-    if (areaName === 'local' && changes.siteCssRules) {
-      const currentUrl = window.location.href;
-      const newRules: SiteCssRule[] = changes.siteCssRules.newValue || [];
-      const oldRules: SiteCssRule[] = changes.siteCssRules.oldValue || [];
+  chrome.storage.onChanged.addListener((changes, area) => {
+    if (area !== 'local' || !changes.siteCssRules) return;
 
-      // Remove deleted rules
-      for (const oldRule of oldRules) {
-        if (!newRules.some((r) => r.id === oldRule.id)) {
-          const el = document.getElementById(`gd-helper-css-${oldRule.id}`);
-          if (el) el.remove();
-        }
-      }
+    const currentUrl = window.location.href;
+    const newRules: SiteCssRule[] = changes.siteCssRules.newValue || [];
+    const oldRules: SiteCssRule[] = changes.siteCssRules.oldValue || [];
 
-      // Apply new/updated rules
-      for (const rule of newRules) {
-        applyRuleToDom(rule, currentUrl);
+    // Remove styles for deleted rules
+    for (const old of oldRules) {
+      if (!newRules.find(r => r.id === old.id)) {
+        const el = document.getElementById(`gd-helper-css-${old.id}`);
+        if (el) el.remove();
       }
+    }
+
+    _rules = newRules;
+
+    // Apply updated rules
+    for (const rule of newRules) {
+      applyRuleToDom(rule, currentUrl);
     }
   });
 }
 
-// 4. Listen for direct runtime messages
+// ── 6. Respond to background script messages ──
 if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.onMessage) {
   chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     if (message && (message.type === 'SYNC_ALL_SITE_CSS' || message.type === 'APPLY_SITE_CSS')) {
-      syncAllRules();
-      sendResponse({ status: 'ok', url: window.location.href });
+      loadAndApply().then(() => {
+        sendResponse({ status: 'ok', url: window.location.href });
+      });
+      return true; // keep channel open for async sendResponse
     }
   });
 }

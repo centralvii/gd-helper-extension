@@ -21,7 +21,7 @@ export const Button: React.FC<ButtonProps> = ({
   disabled,
   ...props
 }) => {
-  const base = 'inline-flex items-center justify-center font-semibold rounded-lg transition-all duration-150 focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed select-none active:scale-[0.97]';
+  const base = 'inline-flex items-center justify-center font-semibold rounded-lg transition-colors duration-150 focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed select-none will-change-transform active:scale-[0.97] active:transition-none';
 
   const variants = {
     primary:

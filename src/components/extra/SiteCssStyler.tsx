@@ -207,15 +207,9 @@ export const SiteCssStyler: React.FC = () => {
                       aria-checked={rule.isEnabled}
                       onClick={() => toggleRule(rule.id)}
                       title={rule.isEnabled ? 'Отключить стиль' : 'Включить стиль'}
-                      className={`relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                        rule.isEnabled ? 'bg-emerald-500' : 'bg-gray-300'
-                      }`}
+                      className="gd-toggle focus:outline-none"
                     >
-                      <span
-                        className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${
-                          rule.isEnabled ? 'translate-x-4' : 'translate-x-0'
-                        }`}
-                      />
+                      <span className="gd-toggle__thumb" />
                     </button>
                   </div>
 
