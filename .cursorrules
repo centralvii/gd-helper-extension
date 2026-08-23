@@ -1,0 +1,43 @@
+# GDHelper Extension — AI Agent Rules
+
+> Read `RULES.md` and `AGENT.md` in the project root for the full design system, component standards, and development guidelines before making any changes.
+
+## Quick Reference
+
+### Design: White + Green (GreenData theme)
+- Page background: `bg-[#f0f4f0]`
+- Cards: `bg-white border border-gray-200 rounded-xl shadow-sm`
+- Accent: `#22c55e` (emerald-500)
+- NEVER use dark backgrounds (`bg-slate-*`, `bg-gray-800+`, `bg-zinc-*`)
+- NEVER use `rounded-2xl` or `rounded-3xl` for cards — ONLY `rounded-xl`
+
+### Component Reuse (MANDATORY)
+- Text buttons → `<Button>` from `src/components/ui/Button.tsx`
+- Icon buttons → CSS class `.icon-btn` (+ `.icon-btn--danger`)
+- Badges → `<Badge>` from `src/components/ui/Badge.tsx`
+- Text inputs → `<Input>` from `src/components/ui/Input.tsx`
+- Modals → `<Modal>` from `src/components/ui/Modal.tsx`
+
+### Spacing & Layout
+- Gap between card sections: `space-y-3`
+- Card padding: `p-3`
+- Toolbar padding: `p-1.5`
+- Row items: `p-2.5 bg-gray-50/70 hover:bg-emerald-50/30 border border-gray-200 hover:border-emerald-300 rounded-xl`
+
+### Icons
+- Components: `lucide-react`
+- Navigation/Header: `@vkontakte/icons`
+- All icon buttons MUST animate on hover (`.icon-btn` handles this)
+
+### Types
+- All interfaces in `src/types/index.ts` — never duplicate
+- Use `React.FC<Props>`, no `any`
+
+### Language
+- UI text: Russian
+- Code identifiers: English
+- Commits: English (`type: description`)
+
+### Before commit
+- Run `npm run build` (must pass with no errors)
+- Windows PowerShell: use `;` not `&&` to chain commands
