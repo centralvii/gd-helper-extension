@@ -187,28 +187,32 @@ export const PackageSelector: React.FC<PackageSelectorProps> = ({
 
         {/* Package Actions Toolbar */}
         <div className="flex items-center gap-1">
-          {/* Auto-collect toggle */}
+          {/* Auto-collect toggle — icon-only lightning bolt */}
           <button
             onClick={onToggleAutoCollect}
             title={
               isAutoCollectEnabled
-                ? 'Автосбор ВКЛЮЧЕН: скачанные .guf файлы добавляются в активный пакет'
+                ? 'Автосбор ВКЛЮЧЕН: скачанные .guf файлы добавляются автоматически'
                 : 'Автосбор ВЫКЛЮЧЕН: нажмите для включения'
             }
-            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
+            className={[
+              'icon-btn',
               isAutoCollectEnabled
-                ? 'bg-emerald-50 text-emerald-700 border-emerald-200 shadow-sm'
-                : 'bg-gray-50 hover:bg-gray-100 text-gray-600 border-gray-200'
-            }`}
+                ? 'text-emerald-500 bg-emerald-50 hover:bg-emerald-100 hover:text-emerald-600'
+                : 'text-gray-400 hover:text-emerald-500 hover:bg-emerald-50',
+            ].join(' ')}
           >
-            {isAutoCollectEnabled && (
-              <span className="relative flex h-1.5 w-1.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
-              </span>
-            )}
-            <Zap className={`w-3.5 h-3.5 ${isAutoCollectEnabled ? 'text-emerald-600' : 'text-gray-400'}`} />
-            <span className="text-[11px]">AUTO</span>
+            <Zap
+              className={[
+                'w-4 h-4 transition-none',
+                isAutoCollectEnabled ? 'zap-pulse' : '',
+              ].join(' ')}
+              style={
+                isAutoCollectEnabled
+                  ? { filter: 'drop-shadow(0 0 4px rgba(34,197,94,0.7))' }
+                  : undefined
+              }
+            />
           </button>
 
           {/* Create new package */}
