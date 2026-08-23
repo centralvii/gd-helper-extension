@@ -371,6 +371,50 @@ export const AlgorithmIdGenerator: React.FC = () => {
                 )}
               </div>
 
+              {/* Alternative Variations */}
+              {parsed.variants && (
+                <div className="space-y-1.5 pt-2 border-t border-emerald-100">
+                  <div className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">
+                    Альтернативные варианты формата (клик для копирования):
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {parsed.variants.scopeFirstId && parsed.variants.scopeFirstId !== parsed.generatedId && (
+                      <button
+                        type="button"
+                        onClick={() => handleCopy(parsed.variants.scopeFirstId)}
+                        className="rounded-lg border border-gray-200 bg-gray-50 px-2 py-1 font-mono text-[11px] font-semibold text-gray-700 hover:border-emerald-400 hover:bg-emerald-50 hover:text-emerald-800 transition-colors flex items-center gap-1"
+                        title="Вариант с префиксом предметной области / юр. формы в начале"
+                      >
+                        <Copy className="w-3 h-3 text-emerald-600" />
+                        <span>{parsed.variants.scopeFirstId}</span>
+                      </button>
+                    )}
+                    {parsed.variants.compactId && parsed.variants.compactId !== parsed.generatedId && parsed.variants.compactId !== parsed.variants.scopeFirstId && (
+                      <button
+                        type="button"
+                        onClick={() => handleCopy(parsed.variants.compactId)}
+                        className="rounded-lg border border-gray-200 bg-gray-50 px-2 py-1 font-mono text-[11px] font-semibold text-gray-700 hover:border-emerald-400 hover:bg-emerald-50 hover:text-emerald-800 transition-colors flex items-center gap-1"
+                        title="Компактный вариант"
+                      >
+                        <Copy className="w-3 h-3 text-emerald-600" />
+                        <span>{parsed.variants.compactId}</span>
+                      </button>
+                    )}
+                    {parsed.variants.fullId && parsed.variants.fullId !== parsed.generatedId && parsed.variants.fullId !== parsed.variants.scopeFirstId && (
+                      <button
+                        type="button"
+                        onClick={() => handleCopy(parsed.variants.fullId)}
+                        className="rounded-lg border border-gray-200 bg-gray-50 px-2 py-1 font-mono text-[11px] font-semibold text-gray-700 hover:border-emerald-400 hover:bg-emerald-50 hover:text-emerald-800 transition-colors flex items-center gap-1"
+                        title="Развернутый вариант (полные английские слова)"
+                      >
+                        <Copy className="w-3 h-3 text-emerald-600" />
+                        <span>{parsed.variants.fullId}</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {/* Warnings if any */}
               {parsed.warnings.length > 0 && (
                 <div className="space-y-1 pt-1">
