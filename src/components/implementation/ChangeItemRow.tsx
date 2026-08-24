@@ -41,80 +41,85 @@ export const ChangeItemRow: React.FC<ChangeItemRowProps> = ({
   };
 
   return (
-    <div className="group relative flex items-start gap-2.5 p-2.5 bg-gray-50/70 hover:bg-emerald-50/30 border border-gray-200 hover:border-emerald-300 rounded-xl transition-all">
-      {/* Index indicator */}
-      <span className="flex-shrink-0 flex items-center justify-center w-5 h-5 rounded-full bg-gray-200 text-[10px] font-bold text-gray-700 mt-0.5 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
-        {index + 1}
-      </span>
+    <div className="group relative rounded-xl border border-gray-200 bg-gray-50/70 p-2.5 hover:border-emerald-300 hover:bg-emerald-50/20 transition-all space-y-2">
+      {/* Top Header: Index badge + Item label on left, Action buttons on right */}
+      <div className="flex items-center justify-between gap-1.5 border-b border-gray-200/60 pb-1.5">
+        <div className="flex items-center gap-1.5 min-w-0">
+          <span className="flex-shrink-0 flex items-center justify-center w-5 h-5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">
+            {index + 1}
+          </span>
+          <span className="text-[11px] font-semibold text-gray-500 truncate">
+            Пункт {index + 1}
+          </span>
+        </div>
 
-      {/* Content */}
-      <div className="flex-1 min-w-0 pr-1">
-        <p className="text-xs text-gray-900 leading-relaxed break-words font-medium">
-          {item.description}
-        </p>
+        {/* Action Toolbar */}
+        <div className="flex items-center gap-0.5 flex-shrink-0">
+          <button
+            onClick={onMoveUp}
+            disabled={index === 0}
+            title="Переместить выше"
+            className="icon-btn p-1 text-gray-400 hover:text-gray-700 hover:bg-gray-200 rounded disabled:opacity-20 disabled:hover:bg-transparent"
+          >
+            <ChevronUp className="w-3.5 h-3.5" />
+          </button>
 
-        {/* Attached Link */}
-        {item.linkUrl && (
-          <div className="mt-1.5 flex items-center gap-1">
-            <a
-              href={item.linkUrl}
-              target="_blank"
-              rel="noreferrer"
-              title={item.linkUrl}
-              className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-md text-[11px] font-semibold transition-colors max-w-full truncate"
-            >
-              <LinkIcon className="w-2.5 h-2.5 flex-shrink-0 text-emerald-600" />
-              <span className="truncate">{item.linkTitle || item.linkUrl}</span>
-              <ExternalLink className="w-2.5 h-2.5 flex-shrink-0 opacity-70 text-emerald-600" />
-            </a>
-          </div>
-        )}
+          <button
+            onClick={onMoveDown}
+            disabled={index === totalCount - 1}
+            title="Переместить ниже"
+            className="icon-btn p-1 text-gray-400 hover:text-gray-700 hover:bg-gray-200 rounded disabled:opacity-20 disabled:hover:bg-transparent"
+          >
+            <ChevronDown className="w-3.5 h-3.5" />
+          </button>
+
+          <button
+            onClick={handleCopy}
+            title="Копировать пункт"
+            className="icon-btn p-1 text-gray-400 hover:text-emerald-700 hover:bg-emerald-50 rounded transition-colors"
+          >
+            {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+          </button>
+
+          <button
+            onClick={() => onEdit(item)}
+            title="Редактировать"
+            className="icon-btn p-1 text-gray-400 hover:text-sky-700 hover:bg-sky-50 rounded transition-colors"
+          >
+            <Edit2 className="w-3.5 h-3.5" />
+          </button>
+
+          <button
+            onClick={() => onDelete(item.id)}
+            title="Удалить"
+            className="icon-btn icon-btn--danger p-1 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+          </button>
+        </div>
       </div>
 
-      {/* Action Toolbar */}
-      <div className="flex items-center gap-0.5 flex-shrink-0 opacity-80 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
-        <button
-          onClick={onMoveUp}
-          disabled={index === 0}
-          title="Переместить выше"
-          className="icon-btn p-1 text-gray-400 hover:text-gray-700 hover:bg-gray-200 rounded disabled:opacity-20 disabled:hover:bg-transparent"
-        >
-          <ChevronUp className="w-3.5 h-3.5" />
-        </button>
+      {/* Full width Description */}
+      <p className="text-xs text-gray-900 leading-relaxed break-words font-medium">
+        {item.description}
+      </p>
 
-        <button
-          onClick={onMoveDown}
-          disabled={index === totalCount - 1}
-          title="Переместить ниже"
-          className="icon-btn p-1 text-gray-400 hover:text-gray-700 hover:bg-gray-200 rounded disabled:opacity-20 disabled:hover:bg-transparent"
-        >
-          <ChevronDown className="w-3.5 h-3.5" />
-        </button>
-
-        <button
-          onClick={handleCopy}
-          title="Копировать пункт"
-          className="icon-btn p-1 text-gray-400 hover:text-emerald-700 hover:bg-emerald-50 rounded transition-colors"
-        >
-          {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
-        </button>
-
-        <button
-          onClick={() => onEdit(item)}
-          title="Редактировать"
-          className="icon-btn p-1 text-gray-400 hover:text-sky-700 hover:bg-sky-50 rounded transition-colors"
-        >
-          <Edit2 className="w-3.5 h-3.5" />
-        </button>
-
-        <button
-          onClick={() => onDelete(item.id)}
-          title="Удалить"
-          className="icon-btn icon-btn--danger p-1 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors"
-        >
-          <Trash2 className="w-3.5 h-3.5" />
-        </button>
-      </div>
+      {/* Attached Link (full width) */}
+      {item.linkUrl && (
+        <div className="pt-0.5">
+          <a
+            href={item.linkUrl}
+            target="_blank"
+            rel="noreferrer"
+            title={item.linkUrl}
+            className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-lg text-[11px] font-semibold transition-colors max-w-full truncate"
+          >
+            <LinkIcon className="w-3 h-3 flex-shrink-0 text-emerald-600" />
+            <span className="truncate">{item.linkTitle || item.linkUrl}</span>
+            <ExternalLink className="w-3 h-3 flex-shrink-0 opacity-70 text-emerald-600" />
+          </a>
+        </div>
+      )}
     </div>
   );
 };

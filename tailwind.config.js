@@ -8,6 +8,9 @@ export default {
   darkMode: 'class',
   theme: {
     extend: {
+      screens: {
+        'xs': '360px',
+      },
       colors: {
         gd: {
           // Backgrounds — светлые

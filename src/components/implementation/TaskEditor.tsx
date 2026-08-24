@@ -144,8 +144,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
               title="Добавить пункт и автоматически подставить ссылку на открытую вкладку"
               leftIcon={<Sparkles className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />}
             >
-              <span className="hidden xs:inline">С вкладки</span>
-              <span className="xs:hidden">Вкладка</span>
+              С вкладки
             </Button>
 
             <Button
