@@ -127,25 +127,25 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
       {/* Changes Section */}
       <div className="p-3 bg-white border border-gray-200 rounded-xl space-y-3 shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-100 pb-2.5">
-          <div className="flex items-center gap-2">
-            <ListOrdered className="w-4 h-4 text-emerald-600" />
-            <h3 className="font-bold text-xs text-gray-900">Внесенные изменения</h3>
-            <span className="px-1.5 py-0.5 rounded-md bg-emerald-50 text-emerald-700 text-[10px] font-bold border border-emerald-200">
+          <div className="flex items-center gap-2 min-w-0">
+            <ListOrdered className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+            <h3 className="font-bold text-xs text-gray-900 truncate">Внесённые изменения</h3>
+            <span className="px-1.5 py-0.5 rounded-md bg-emerald-50 text-emerald-700 text-[10px] font-bold border border-emerald-200 flex-shrink-0">
               {task.items.length}
             </span>
           </div>
 
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 flex-shrink-0">
             <Button
               variant="secondary"
               size="sm"
               onClick={handleOpenAddWithTab}
               disabled={isTabFetching}
               title="Добавить пункт и автоматически подставить ссылку на открытую вкладку"
-              leftIcon={<Sparkles className="w-3.5 h-3.5 text-emerald-600" />}
+              leftIcon={<Sparkles className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />}
             >
-              <span className="hidden sm:inline">С текущей вкладки</span>
-              <span className="sm:hidden">С вкладки</span>
+              <span className="hidden xs:inline">С вкладки</span>
+              <span className="xs:hidden">Вкладка</span>
             </Button>
 
             <Button
@@ -155,7 +155,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
                 setEditingItem(null);
                 setIsAddModalOpen(true);
               }}
-              leftIcon={<Plus className="w-3.5 h-3.5" />}
+              leftIcon={<Plus className="w-3.5 h-3.5 flex-shrink-0" />}
             >
               Добавить
             </Button>
@@ -164,15 +164,15 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
 
         {/* Change Items List */}
         {task.items.length === 0 ? (
-          <div className="py-8 px-4 text-center border-2 border-dashed border-gray-200 rounded-xl bg-gray-50/50">
-            <Info className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+          <div className="py-6 px-3 text-center border-2 border-dashed border-gray-200 rounded-xl bg-gray-50/50">
+            <Info className="w-7 h-7 text-gray-400 mx-auto mb-1.5" />
             <p className="text-xs font-semibold text-gray-800 mb-1">
               Список изменений пуст
             </p>
-            <p className="text-[11px] text-gray-500 mb-3 max-w-sm mx-auto">
+            <p className="text-[11px] text-gray-500 mb-3 max-w-xs mx-auto leading-relaxed">
               Зафиксируйте, что конкретно было изменено, и прикрепите ссылки на алгоритмы, экранные формы или модули.
             </p>
-            <div className="flex items-center justify-center gap-2">
+            <div className="flex flex-col xs:flex-row items-stretch xs:items-center justify-center gap-2 max-w-xs mx-auto">
               <Button
                 variant="emerald"
                 size="sm"
@@ -180,17 +180,20 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
                   setEditingItem(null);
                   setIsAddModalOpen(true);
                 }}
-                leftIcon={<Plus className="w-3.5 h-3.5" />}
+                leftIcon={<Plus className="w-3.5 h-3.5 flex-shrink-0" />}
+                className="flex-1 justify-center whitespace-nowrap"
               >
-                Добавить первое изменение
+                Добавить пункт
               </Button>
               <Button
                 variant="secondary"
                 size="sm"
                 onClick={handleOpenAddWithTab}
-                leftIcon={<Sparkles className="w-3.5 h-3.5 text-emerald-600" />}
+                disabled={isTabFetching}
+                leftIcon={<Sparkles className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />}
+                className="flex-1 justify-center whitespace-nowrap"
               >
-                Вставить ссылку вкладки
+                С открытой вкладки
               </Button>
             </div>
           </div>
@@ -221,18 +224,20 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
           variant="secondary"
           size="sm"
           onClick={() => setIsPreviewModalOpen(true)}
-          leftIcon={<Eye className="w-3.5 h-3.5 text-sky-600" />}
+          leftIcon={<Eye className="w-3.5 h-3.5 text-sky-600 flex-shrink-0" />}
+          className="flex-1 min-w-0 justify-center"
         >
-          Предпросмотр и экспорт
+          <span className="truncate">Экспорт / Просмотр</span>
         </Button>
 
         <Button
           variant="emerald"
           size="sm"
           onClick={handleQuickCopyMarkdown}
-          leftIcon={quickCopied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+          leftIcon={quickCopied ? <Check className="w-3.5 h-3.5 flex-shrink-0" /> : <Copy className="w-3.5 h-3.5 flex-shrink-0" />}
+          className="flex-1 min-w-0 justify-center"
         >
-          {quickCopied ? 'Скопировано в Markdown!' : 'Копировать Markdown'}
+          <span className="truncate">{quickCopied ? 'Скопировано!' : 'Копировать MD'}</span>
         </Button>
       </div>
 
