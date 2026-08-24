@@ -1,16 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Link as LinkIcon, Sparkles, Check, ExternalLink } from 'lucide-react';
+import { Plus, Link as LinkIcon, Sparkles, Check, ExternalLink, Layers, FolderPlus } from 'lucide-react';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { getActiveTabInfo, formatChangeItemMarkdown } from '../../utils/tabUtils';
-import { ImplementationChangeItem } from '../../types';
+import { ImplementationChangeItem, ImplementationSection } from '../../types';
 
 interface AddChangeItemModalProps {
   isOpen: boolean;
   onClose: () => void;
   onAdd: (item: Omit<ImplementationChangeItem, 'id'>) => void;
   initialItem?: ImplementationChangeItem | null;
+  sections?: ImplementationSection[];
+  defaultSectionId?: string;
+  onAddSection?: (name: string) => void;
 }
 
 export const AddChangeItemModal: React.FC<AddChangeItemModalProps> = ({
@@ -18,27 +21,40 @@ export const AddChangeItemModal: React.FC<AddChangeItemModalProps> = ({
   onClose,
   onAdd,
   initialItem,
+  sections = [],
+  defaultSectionId,
+  onAddSection,
 }) => {
   const [description, setDescription] = useState('');
+  const [sectionId, setSectionId] = useState<string>('');
   const [linkTitle, setLinkTitle] = useState('');
   const [linkUrl, setLinkUrl] = useState('');
   const [isLoadingTab, setIsLoadingTab] = useState(false);
   const [tabLoadedMessage, setTabLoadedMessage] = useState<string | null>(null);
+  const [detectedBadge, setDetectedBadge] = useState<{ sectionName: string; rawType?: string } | null>(null);
+
+  const [isCreatingNewSection, setIsCreatingNewSection] = useState(false);
+  const [newSectionName, setNewSectionName] = useState('');
 
   useEffect(() => {
     if (isOpen) {
       if (initialItem) {
         setDescription(initialItem.description);
+        setSectionId(initialItem.sectionId || '');
         setLinkTitle(initialItem.linkTitle || '');
         setLinkUrl(initialItem.linkUrl || '');
       } else {
         setDescription('');
+        setSectionId(defaultSectionId || (sections[0]?.id ?? ''));
         setLinkTitle('');
         setLinkUrl('');
       }
       setTabLoadedMessage(null);
+      setDetectedBadge(null);
+      setIsCreatingNewSection(false);
+      setNewSectionName('');
     }
-  }, [isOpen, initialItem]);
+  }, [isOpen, initialItem, defaultSectionId, sections]);
 
   const handleFetchActiveTab = async () => {
     setIsLoadingTab(true);
@@ -51,6 +67,27 @@ export const AddChangeItemModal: React.FC<AddChangeItemModalProps> = ({
         if (!linkTitle.trim()) {
           setLinkTitle(tabInfo.cleanTitle || tabInfo.title);
         }
+
+        // Auto-detect GreenData Section
+        if (tabInfo.detectedSectionName) {
+          setDetectedBadge({
+            sectionName: tabInfo.detectedSectionName,
+            rawType: tabInfo.detectedRawType,
+          });
+
+          // Match with existing section
+          const matched = sections.find(
+            (s) => s.name.toLowerCase() === tabInfo.detectedSectionName!.toLowerCase()
+          );
+
+          if (matched) {
+            setSectionId(matched.id);
+          } else if (onAddSection) {
+            // Auto create section if not exists
+            onAddSection(tabInfo.detectedSectionName);
+          }
+        }
+
         setTabLoadedMessage(`Получена вкладка: ${tabInfo.cleanTitle || tabInfo.title}`);
       } else {
         setTabLoadedMessage('Не удалось определить открытую вкладку');
@@ -64,11 +101,20 @@ export const AddChangeItemModal: React.FC<AddChangeItemModalProps> = ({
     }
   };
 
+  const handleCreateSectionSubmit = () => {
+    if (newSectionName.trim() && onAddSection) {
+      onAddSection(newSectionName.trim());
+      setNewSectionName('');
+      setIsCreatingNewSection(false);
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!description.trim()) return;
 
     onAdd({
+      sectionId: sectionId || undefined,
       description: description.trim(),
       linkTitle: linkTitle.trim() || undefined,
       linkUrl: linkUrl.trim() || undefined,
@@ -106,6 +152,68 @@ export const AddChangeItemModal: React.FC<AddChangeItemModalProps> = ({
       }
     >
       <form onSubmit={handleSubmit} className="space-y-3.5 text-xs">
+        {/* Section Picker */}
+        <div className="space-y-1.5 p-2.5 bg-gray-50 border border-gray-200 rounded-xl">
+          <div className="flex items-center justify-between">
+            <label className="font-bold text-gray-800 flex items-center gap-1.5">
+              <Layers className="w-3.5 h-3.5 text-emerald-600" />
+              <span>Раздел (категория)</span>
+            </label>
+            {detectedBadge && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 text-[10px] font-bold border border-emerald-300 animate-fade-in">
+                <Sparkles className="w-3 h-3 text-emerald-600" />
+                Авто-определено: {detectedBadge.sectionName}
+              </span>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2">
+            <select
+              value={sectionId}
+              onChange={(e) => {
+                if (e.target.value === '__create_new__') {
+                  setIsCreatingNewSection(true);
+                } else {
+                  setSectionId(e.target.value);
+                  setIsCreatingNewSection(false);
+                }
+              }}
+              className="flex-1 px-2.5 py-1.5 bg-white border border-gray-200 focus:border-emerald-500 rounded-lg text-gray-900 focus:outline-none text-xs"
+            >
+              <option value="">Без раздела</option>
+              {sections.map((sec) => (
+                <option key={sec.id} value={sec.id}>
+                  {sec.name}
+                </option>
+              ))}
+              <option value="__create_new__">+ Создать новый раздел...</option>
+            </select>
+          </div>
+
+          {/* Quick Create Section inline */}
+          {isCreatingNewSection && (
+            <div className="flex items-center gap-1.5 pt-1.5 animate-slide-down">
+              <Input
+                value={newSectionName}
+                onChange={(e) => setNewSectionName(e.target.value)}
+                placeholder="Название нового раздела (напр. Отчёты)"
+                className="flex-1"
+                autoFocus
+              />
+              <Button
+                type="button"
+                variant="emerald"
+                size="sm"
+                onClick={handleCreateSectionSubmit}
+                disabled={!newSectionName.trim()}
+                leftIcon={<FolderPlus className="w-3.5 h-3.5" />}
+              >
+                Создать
+              </Button>
+            </div>
+          )}
+        </div>
+
         {/* Description textarea */}
         <div>
           <div className="flex items-center justify-between mb-1">
@@ -117,7 +225,7 @@ export const AddChangeItemModal: React.FC<AddChangeItemModalProps> = ({
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="Например: Изменен алгоритм, добавили цикл по участникам проверки, проверяем статус согласования..."
+            placeholder="Например: Изменен алгоритм ЖЦ до сохранения НПП контракты, добавлена проверка типа ЗИ..."
             rows={3}
             autoFocus
             className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 text-xs resize-y"
@@ -135,8 +243,8 @@ export const AddChangeItemModal: React.FC<AddChangeItemModalProps> = ({
               type="button"
               onClick={handleFetchActiveTab}
               disabled={isLoadingTab}
-              title="Получить заголовок и адрес текущей открытой вкладки Chrome"
-              className="inline-flex items-center gap-1 px-2 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-lg text-[11px] font-semibold transition-colors flex-shrink-0"
+              title="Получить заголовок, тип объекта и адрес текущей открытой вкладки Chrome"
+              className="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-lg text-[11px] font-semibold transition-colors flex-shrink-0"
             >
               <Sparkles className="w-3 h-3 text-emerald-600 flex-shrink-0" />
               {isLoadingTab ? 'Считывание...' : 'С активной вкладки'}

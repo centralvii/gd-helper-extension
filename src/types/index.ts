@@ -86,8 +86,15 @@ export interface StoredAppState {
 
 export type ActiveTool = 'packer' | 'implementation' | 'extra';
 
+export interface ImplementationSection {
+  id: string;
+  name: string;
+  order: number;
+}
+
 export interface ImplementationChangeItem {
   id: string;
+  sectionId?: string; // ID of ImplementationSection, or undefined for unsectioned
   description: string;
   linkTitle?: string;
   linkUrl?: string;
@@ -98,6 +105,7 @@ export interface ImplementationTask {
   taskNumber: string;
   title: string;
   summary: string;
+  sections?: ImplementationSection[];
   items: ImplementationChangeItem[];
   createdAt: number;
   updatedAt: number;

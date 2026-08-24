@@ -12,10 +12,15 @@ export const ImplementationTool: React.FC = () => {
     deleteTask,
     duplicateTask,
     selectTask,
+    addSection,
+    updateSection,
+    deleteSection,
+    reorderSections,
     addChangeItem,
     updateChangeItem,
     deleteChangeItem,
     reorderChangeItems,
+    moveChangeItem,
   } = useImplementationTasks();
 
   return (
@@ -35,10 +40,15 @@ export const ImplementationTool: React.FC = () => {
         <TaskEditor
           task={activeTask}
           onUpdateTask={updateTask}
+          onAddSection={addSection}
+          onUpdateSection={updateSection}
+          onDeleteSection={deleteSection}
+          onReorderSections={reorderSections}
           onAddChangeItem={addChangeItem}
           onUpdateChangeItem={updateChangeItem}
           onDeleteChangeItem={deleteChangeItem}
           onReorderChangeItems={reorderChangeItems}
+          onMoveChangeItem={moveChangeItem}
         />
       )}
     </div>
