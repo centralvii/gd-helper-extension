@@ -190,15 +190,15 @@ export const AlgorithmIdGenerator: React.FC = () => {
       {/* ── Input Card ── */}
       <div className="rounded-xl border border-gray-200 bg-white p-3 shadow-sm space-y-3">
         <div className="flex items-center justify-between gap-2 border-b border-gray-100 pb-2">
-          <div className="flex items-center gap-2">
-            <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-200">
-              <Wand2 className="w-3.5 h-3.5" />
+          <div className="flex items-center gap-2 min-w-0 flex-1">
+            <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-200">
+              <Wand2 className="w-4 h-4 flex-shrink-0" />
             </div>
-            <div>
-              <div className="text-xs font-bold text-gray-900">
+            <div className="min-w-0 flex-1">
+              <div className="text-xs font-bold text-gray-900 truncate">
                 Название алгоритма на русском
               </div>
-              <div className="text-[10px] text-gray-500">
+              <div className="text-[10px] text-gray-500 truncate">
                 Автоматически преобразуется в стандартный ID по правилам GreenData
               </div>
             </div>
@@ -207,7 +207,7 @@ export const AlgorithmIdGenerator: React.FC = () => {
           {inputText && (
             <button
               onClick={() => handleSetInputText('')}
-              className="text-[11px] text-gray-400 hover:text-gray-600 transition-colors"
+              className="text-[11px] text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0"
             >
               Очистить
             </button>

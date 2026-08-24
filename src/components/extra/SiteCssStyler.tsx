@@ -121,15 +121,15 @@ export const SiteCssStyler: React.FC = () => {
 
       {/* ── Summary & Status Card ── */}
       <div className="rounded-xl border border-gray-200 bg-white p-3 shadow-sm flex items-center justify-between gap-2 flex-wrap">
-        <div className="flex items-center gap-2">
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-200">
-            <Layers className="w-4 h-4" />
+        <div className="flex items-center gap-2 min-w-0 flex-1">
+          <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-200">
+            <Layers className="w-4 h-4 flex-shrink-0" />
           </div>
-          <div>
-            <div className="text-xs font-bold text-gray-900">
+          <div className="min-w-0 flex-1">
+            <div className="text-xs font-bold text-gray-900 truncate">
               Пользовательские стили для сайтов
             </div>
-            <div className="text-[10px] text-gray-500">
+            <div className="text-[10px] text-gray-500 truncate">
               {syncToast ? (
                 <span className="font-semibold text-emerald-600 animate-fade-in">
                   ✓ Стили успешно синхронизированы с открытыми вкладками
