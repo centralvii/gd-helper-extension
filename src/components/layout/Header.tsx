@@ -9,6 +9,7 @@ import {
     Icon20ListBulletOutline,
     Icon20DocumentOutline,
 } from '@vkontakte/icons';
+import { Bot } from 'lucide-react';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 import { ActiveTool } from '../../types';
@@ -62,6 +63,12 @@ export const Header: React.FC<HeaderProps> = ({
             // no label — only icon
             icon: <Icon28FlashOutline width={15} height={15} />,
             title: 'Экстра инструменты',
+        },
+        {
+            id: 'ai',
+            // no label — only robot icon
+            icon: <Bot className="w-3.5 h-3.5" />,
+            title: 'ИИ Ассистент GreenData',
         },
     ];
 

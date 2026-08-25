@@ -84,7 +84,28 @@ export interface StoredAppState {
   updatedAt?: number;
 }
 
-export type ActiveTool = 'packer' | 'implementation' | 'extra';
+export type ActiveTool = 'packer' | 'implementation' | 'extra' | 'ai';
+
+export interface AiChatMessage {
+  id: string;
+  role: 'user' | 'assistant' | 'system';
+  content: string;
+  timestamp: number;
+  model?: string;
+  isStreaming?: boolean;
+  error?: boolean;
+  reasoningContent?: string;
+}
+
+export interface AiSettings {
+  baseUrl: string;
+  apiKey: string;
+  model: string;
+  systemPrompt: string;
+  temperature: number;
+  stream: boolean;
+  maxTokens?: number;
+}
 
 export interface ImplementationSection {
   id: string;
