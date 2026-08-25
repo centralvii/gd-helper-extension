@@ -4,6 +4,7 @@ import { AiChatMessage, AiSettings } from '../types';
 export const DEFAULT_AI_SETTINGS: AiSettings = {
   baseUrl: 'https://api.openai.com/v1',
   apiKey: '',
+  authType: 'bearer',
   model: 'gpt-4o-mini',
   systemPrompt: `Ты — профессиональный ИИ-ассистент и эксперт по платформе GreenData (GDHelper).
 Твоя задача — помогать разработчикам, аналитикам и инженерам GreenData:
@@ -16,6 +17,7 @@ export const DEFAULT_AI_SETTINGS: AiSettings = {
   temperature: 0.7,
   stream: true,
   maxTokens: 4096,
+  customHeadersJson: '',
 };
 
 const AI_SETTINGS_STORAGE_KEY = 'gd_ai_settings';
@@ -23,10 +25,19 @@ const AI_MESSAGES_STORAGE_KEY = 'gd_ai_chat_history';
 
 export const AI_PROVIDER_PRESETS = [
   {
+    name: 'GreenData (Сеть GD)',
+    baseUrl: 'http://ai.greendata.ru/v1',
+    defaultModel: 'deepseek-coder',
+    models: ['deepseek-coder', 'deepseek-chat', 'qwen2.5-coder', 'llama3.1'],
+    authType: 'none' as const,
+    placeholderKey: 'Оставьте пустым (или введите корпоративный токен)',
+  },
+  {
     name: 'OpenAI',
     baseUrl: 'https://api.openai.com/v1',
     defaultModel: 'gpt-4o-mini',
     models: ['gpt-4o-mini', 'gpt-4o', 'o3-mini', 'gpt-3.5-turbo'],
+    authType: 'bearer' as const,
     placeholderKey: 'sk-...',
   },
   {
@@ -34,6 +45,7 @@ export const AI_PROVIDER_PRESETS = [
     baseUrl: 'https://api.deepseek.com/v1',
     defaultModel: 'deepseek-chat',
     models: ['deepseek-chat', 'deepseek-reasoner', 'deepseek-coder'],
+    authType: 'bearer' as const,
     placeholderKey: 'sk-...',
   },
   {
@@ -46,6 +58,7 @@ export const AI_PROVIDER_PRESETS = [
       'deepseek/deepseek-r1',
       'meta-llama/llama-3.3-70b-instruct',
     ],
+    authType: 'bearer' as const,
     placeholderKey: 'sk-or-...',
   },
   {
@@ -53,23 +66,91 @@ export const AI_PROVIDER_PRESETS = [
     baseUrl: 'http://localhost:11434/v1',
     defaultModel: 'llama3.2',
     models: ['llama3.2', 'qwen2.5-coder', 'deepseek-r1:8b', 'mistral'],
-    placeholderKey: 'Не требуется (или ollama)',
+    authType: 'none' as const,
+    placeholderKey: 'Не требуется',
   },
   {
     name: 'LM Studio (Локально)',
     baseUrl: 'http://localhost:1234/v1',
     defaultModel: 'local-model',
     models: ['local-model'],
+    authType: 'none' as const,
     placeholderKey: 'Не требуется',
+  },
+  {
+    name: 'Azure OpenAI',
+    baseUrl: 'https://<your-resource>.openai.azure.com/openai/deployments/<deployment-name>',
+    defaultModel: 'gpt-4o',
+    models: ['gpt-4o', 'gpt-4o-mini'],
+    authType: 'api-key' as const,
+    placeholderKey: 'Azure API Key...',
   },
   {
     name: 'Groq',
     baseUrl: 'https://api.groq.com/openai/v1',
     defaultModel: 'llama-3.3-70b-versatile',
     models: ['llama-3.3-70b-versatile', 'llama-3.1-8b-instant', 'mixtral-8x7b-32768'],
+    authType: 'bearer' as const,
     placeholderKey: 'gsk_...',
   },
 ];
+
+/**
+ * Intelligent endpoint resolution that avoids duplicating `/chat/completions`
+ */
+export function resolveApiEndpoint(rawUrl: string): string {
+  const clean = (rawUrl || 'https://api.openai.com/v1').trim().replace(/\/+$/, '');
+  if (!clean) return 'https://api.openai.com/v1/chat/completions';
+
+  // If already contains chat/completions or custom path
+  if (clean.includes('/chat/completions')) {
+    return clean;
+  }
+
+  return `${clean}/chat/completions`;
+}
+
+/**
+ * Build request headers without sending forbidden or unrecognized headers to corporate gateways
+ */
+export function buildRequestHeaders(settings: AiSettings): Record<string, string> {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+
+  const key = settings.apiKey.trim();
+  const authType = settings.authType || (key ? 'bearer' : 'none');
+
+  if (key && authType !== 'none') {
+    if (authType === 'bearer') {
+      headers['Authorization'] = `Bearer ${key}`;
+    } else if (authType === 'api-key') {
+      headers['api-key'] = key;
+    } else if (authType === 'x-api-key') {
+      headers['X-API-Key'] = key;
+    }
+  }
+
+  // OpenRouter requires HTTP-Referer, but corporate proxies reject it. Only send for openrouter!
+  if (settings.baseUrl.includes('openrouter.ai')) {
+    headers['HTTP-Referer'] = 'https://greendata.ru/gdhelper';
+    headers['X-Title'] = 'GDHelper Extension';
+  }
+
+  // Custom User Headers
+  if (settings.customHeadersJson?.trim()) {
+    try {
+      const parsed = JSON.parse(settings.customHeadersJson);
+      if (typeof parsed === 'object' && parsed !== null) {
+        Object.assign(headers, parsed);
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  return headers;
+}
 
 export function useAiChat() {
   const [settings, setSettings] = useState<AiSettings>(() => {
@@ -183,17 +264,8 @@ export function useAiChat() {
       overrideSettings?: AiSettings
     ): Promise<{ ok: boolean; message: string; latencyMs: number }> => {
       const targetSettings = overrideSettings || settings;
-      const baseUrl = (targetSettings.baseUrl || 'https://api.openai.com/v1').replace(/\/+$/, '');
-      const endpoint = `${baseUrl}/chat/completions`;
-
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-      };
-      if (targetSettings.apiKey.trim()) {
-        headers['Authorization'] = `Bearer ${targetSettings.apiKey.trim()}`;
-      }
-      headers['HTTP-Referer'] = 'https://greendata.ru/gdhelper';
-      headers['X-Title'] = 'GDHelper Extension';
+      const endpoint = resolveApiEndpoint(targetSettings.baseUrl);
+      const headers = buildRequestHeaders(targetSettings);
 
       const startTime = Date.now();
       try {
@@ -202,7 +274,7 @@ export function useAiChat() {
           headers,
           body: JSON.stringify({
             model: targetSettings.model || 'gpt-4o-mini',
-            messages: [{ role: 'user', content: 'Hi' }],
+            messages: [{ role: 'user', content: 'Ping' }],
             max_tokens: 5,
             stream: false,
           }),
@@ -216,12 +288,29 @@ export function useAiChat() {
 
         let errDetail = `${res.status} ${res.statusText}`;
         try {
-          const errData = await res.json();
-          if (errData.error?.message) {
-            errDetail = errData.error.message;
+          const text = await res.text();
+          try {
+            const errJson = JSON.parse(text);
+            if (errJson.error?.message) {
+              errDetail = errJson.error.message;
+            } else if (errJson.message) {
+              errDetail = errJson.message;
+            }
+          } catch {
+            if (text && text.length < 300) {
+              errDetail = `${errDetail}: ${text}`;
+            }
           }
         } catch {
           // ignore
+        }
+
+        if (res.status === 403) {
+          return {
+            ok: false,
+            message: `Ошибка 403 (Доступ запрещен):\n${errDetail}\n\n💡 Совет для сети GreenData: Если сервер авторизует по IP/сети, выберите «Тип авторизации: Без заголовка (None)» и очистите поле API-ключа, либо укажите точный заголовок (api-key / Bearer).`,
+            latencyMs,
+          };
         }
 
         return { ok: false, message: `Ошибка сервера: ${errDetail}`, latencyMs };
@@ -229,7 +318,7 @@ export function useAiChat() {
         const latencyMs = Date.now() - startTime;
         return {
           ok: false,
-          message: `Ошибка соединения: ${err.message || 'Проверьте адрес и CORS'}`,
+          message: `Ошибка сети / CORS: ${err.message || 'Сервер недоступен по указанному адресу'}`,
           latencyMs,
         };
       }
@@ -274,17 +363,8 @@ export function useAiChat() {
       abortControllerRef.current = controller;
 
       try {
-        const baseUrl = (settings.baseUrl || 'https://api.openai.com/v1').replace(/\/+$/, '');
-        const endpoint = `${baseUrl}/chat/completions`;
-
-        const headers: Record<string, string> = {
-          'Content-Type': 'application/json',
-        };
-        if (settings.apiKey.trim()) {
-          headers['Authorization'] = `Bearer ${settings.apiKey.trim()}`;
-        }
-        headers['HTTP-Referer'] = 'https://greendata.ru/gdhelper';
-        headers['X-Title'] = 'GDHelper Extension';
+        const endpoint = resolveApiEndpoint(settings.baseUrl);
+        const headers = buildRequestHeaders(settings);
 
         // Prepare context messages (system prompt + last 12 messages)
         const contextHistory = messages.slice(-12).map((m) => ({
@@ -314,13 +394,27 @@ export function useAiChat() {
         if (!response.ok) {
           let errMsg = `Ошибка ${response.status}: ${response.statusText}`;
           try {
-            const errData = await response.json();
-            if (errData.error?.message) {
-              errMsg = errData.error.message;
+            const rawText = await response.text();
+            try {
+              const errData = JSON.parse(rawText);
+              if (errData.error?.message) {
+                errMsg = errData.error.message;
+              } else if (errData.message) {
+                errMsg = errData.message;
+              }
+            } catch {
+              if (rawText && rawText.length < 400) {
+                errMsg += ` (${rawText})`;
+              }
             }
           } catch {
             // ignore
           }
+
+          if (response.status === 403) {
+            errMsg = `Ошибка 403 (Доступ запрещен): ${errMsg}\n\n💡 Рекомендации для корпоративной сети GreenData:\n1. Если сервер работает без токена (по IP/VPN сети), откройте ⚙️ Настройки и выберите «Тип авторизации: Без заголовка (None)» и сотрите API-ключ.\n2. Если используется корпоративный прокси/шлюз, проверьте точный адрес эндпоинта (например, http://...:8000/v1).\n3. Если используется Azure OpenAI — выберите тип заголовка «api-key».`;
+          }
+
           throw new Error(errMsg);
         }
 
@@ -430,7 +524,7 @@ export function useAiChat() {
             msg.id === assistantMessageId
               ? {
                   ...msg,
-                  content: `❌ ${errText}\n\n💡 Проверьте правильность API ключа, адреса сервера или модели в настройках подключения.`,
+                  content: `❌ ${errText}`,
                   error: true,
                   isStreaming: false,
                 }
@@ -451,7 +545,6 @@ export function useAiChat() {
     if (messages.length === 0 || isLoading) return;
     const lastUserMsg = [...messages].reverse().find((m) => m.role === 'user');
     if (lastUserMsg) {
-      // Remove last assistant message if it was an error
       const trimmed = messages.filter((m, idx) => idx < messages.length - 1 || m.role === 'user');
       persistMessages(trimmed);
       sendMessage(lastUserMsg.content);

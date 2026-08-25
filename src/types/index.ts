@@ -97,15 +97,20 @@ export interface AiChatMessage {
   reasoningContent?: string;
 }
 
+export type AiAuthType = 'bearer' | 'api-key' | 'x-api-key' | 'none';
+
 export interface AiSettings {
   baseUrl: string;
   apiKey: string;
+  authType?: AiAuthType;
   model: string;
   systemPrompt: string;
   temperature: number;
   stream: boolean;
   maxTokens?: number;
+  customHeadersJson?: string;
 }
+
 
 export interface ImplementationSection {
   id: string;
