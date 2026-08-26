@@ -11,6 +11,8 @@ import {
   FolderPlus,
   ChevronUp,
   ChevronDown,
+  ChevronRight,
+  ChevronsUpDown,
   Edit2,
   Trash2,
   Layers,
@@ -86,6 +88,16 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
   // Delete Section Confirm Modal State
   const [sectionToDelete, setSectionToDelete] = useState<ImplementationSection | null>(null);
 
+  // Collapsed Sections Accordion State
+  const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({});
+
+  const toggleSectionCollapse = (secId: string) => {
+    setCollapsedSections((prev) => ({
+      ...prev,
+      [secId]: !prev[secId],
+    }));
+  };
+
   const linkedPackages = useMemo(() => {
     return packages.filter((p) => p.taskId === task.id);
   }, [task.id, packages]);
@@ -117,6 +129,26 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
 
     return { groupedItems: map, unsectionedItems: unsectioned };
   }, [task.items, sections]);
+
+  const allSectionsCollapsed = useMemo(() => {
+    if (sections.length === 0) return false;
+    return sections.every((s) => collapsedSections[s.id]);
+  }, [sections, collapsedSections]);
+
+  const toggleCollapseAll = () => {
+    if (allSectionsCollapsed) {
+      setCollapsedSections({});
+    } else {
+      const next: Record<string, boolean> = {};
+      sections.forEach((s) => {
+        next[s.id] = true;
+      });
+      if (unsectionedItems.length > 0) {
+        next['__unsectioned__'] = true;
+      }
+      setCollapsedSections(next);
+    }
+  };
 
   const handleEditItem = (item: ImplementationChangeItem) => {
     setEditingItem(item);
@@ -397,6 +429,18 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
           </div>
 
           <div className="flex items-center gap-1.5 flex-shrink-0">
+            {sections.length > 1 && (
+              <button
+                type="button"
+                onClick={toggleCollapseAll}
+                title={allSectionsCollapsed ? 'Развернуть все разделы' : 'Свернуть все разделы'}
+                className="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-xl text-[11px] font-bold transition-all shadow-2xs cursor-pointer"
+              >
+                <ChevronsUpDown className="w-3.5 h-3.5 text-slate-500" />
+                <span>{allSectionsCollapsed ? 'Развернуть все' : 'Свернуть все'}</span>
+              </button>
+            )}
+
             <button
               type="button"
               onClick={handleOpenCreateSection}
@@ -431,12 +475,12 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
 
         {/* Changes List / Sections */}
         {task.items.length === 0 && sections.length === 0 ? (
-          <div className="py-6 px-3 text-center border-2 border-dashed border-gray-200 rounded-xl bg-gray-50/50">
-            <Info className="w-7 h-7 text-gray-400 mx-auto mb-1.5" />
-            <p className="text-xs font-semibold text-gray-800 mb-1">
+          <div className="py-6 px-3 text-center border-2 border-dashed border-slate-200 rounded-2xl bg-slate-50/50">
+            <Info className="w-7 h-7 text-slate-400 mx-auto mb-1.5" />
+            <p className="text-xs font-bold text-slate-800 mb-1">
               Список изменений пуст
             </p>
-            <p className="text-[11px] text-gray-500 mb-3 max-w-xs mx-auto leading-relaxed">
+            <p className="text-[11px] text-slate-500 mb-3 max-w-xs mx-auto leading-relaxed">
               Зафиксируйте, что конкретно было изменено, и прикрепите ссылки на алгоритмы, экранные формы или модули.
             </p>
             <div className="flex flex-col xs:flex-row items-stretch xs:items-center justify-center gap-2 max-w-xs mx-auto">
@@ -462,35 +506,54 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
             </div>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-3">
             {/* Render each section */}
             {sections.map((sec, secIdx) => {
               const items = groupedItems.get(sec.id) || [];
+              const isCollapsed = !!collapsedSections[sec.id];
+
               return (
                 <div
                   key={sec.id}
-                  className="rounded-xl border border-gray-200/90 bg-white shadow-sm overflow-hidden transition-all"
+                  className="rounded-2xl border border-slate-200/90 bg-white shadow-xs overflow-hidden transition-all"
                 >
                   {/* Section Header */}
-                  <div className="flex items-center justify-between gap-1.5 px-3 py-2 bg-gradient-to-r from-gray-50 to-white border-b border-gray-200">
+                  <div
+                    className="flex items-center justify-between gap-1.5 px-3 py-2 bg-gradient-to-r from-slate-50/90 to-white border-b border-slate-200/80 cursor-pointer select-none transition-colors hover:bg-slate-100/70"
+                    onClick={() => toggleSectionCollapse(sec.id)}
+                  >
                     <div className="flex items-center gap-2 min-w-0">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleSectionCollapse(sec.id);
+                        }}
+                        className="text-slate-400 hover:text-emerald-700 transition-transform p-0.5 rounded cursor-pointer"
+                      >
+                        {isCollapsed ? (
+                          <ChevronRight className="w-3.5 h-3.5 text-slate-500" />
+                        ) : (
+                          <ChevronDown className="w-3.5 h-3.5 text-emerald-600" />
+                        )}
+                      </button>
                       <Layers className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
-                      <span className="font-bold text-xs text-gray-900 truncate">
+                      <span className="font-bold text-xs text-slate-900 truncate">
                         {sec.name}
                       </span>
-                      <span className="px-1.5 py-0.2 rounded bg-emerald-50 text-emerald-700 text-[10px] font-bold border border-emerald-200 flex-shrink-0">
+                      <span className="px-1.5 py-0.2 rounded-md bg-emerald-50 text-emerald-800 text-[10px] font-bold border border-emerald-200 flex-shrink-0 shadow-2xs">
                         {items.length}
                       </span>
                     </div>
 
                     {/* Section Controls */}
-                    <div className="flex items-center gap-0.5 flex-shrink-0">
+                    <div className="flex items-center gap-0.5 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
                       <button
                         type="button"
                         onClick={() => onReorderSections(task.id, secIdx, secIdx - 1)}
                         disabled={secIdx === 0}
                         title="Поднять раздел выше"
-                        className="icon-btn p-1 text-gray-400 hover:text-gray-700 hover:bg-gray-200 rounded disabled:opacity-20 disabled:hover:bg-transparent"
+                        className="icon-btn p-1 text-slate-400 hover:text-slate-700 hover:bg-slate-200 rounded disabled:opacity-20 disabled:hover:bg-transparent cursor-pointer"
                       >
                         <ChevronUp className="w-3.5 h-3.5" />
                       </button>
@@ -500,7 +563,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
                         onClick={() => onReorderSections(task.id, secIdx, secIdx + 1)}
                         disabled={secIdx === sections.length - 1}
                         title="Опустить раздел ниже"
-                        className="icon-btn p-1 text-gray-400 hover:text-gray-700 hover:bg-gray-200 rounded disabled:opacity-20 disabled:hover:bg-transparent"
+                        className="icon-btn p-1 text-slate-400 hover:text-slate-700 hover:bg-slate-200 rounded disabled:opacity-20 disabled:hover:bg-transparent cursor-pointer"
                       >
                         <ChevronDown className="w-3.5 h-3.5" />
                       </button>
@@ -509,7 +572,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
                         type="button"
                         onClick={() => handleOpenEditSection(sec)}
                         title="Переименовать раздел"
-                        className="icon-btn p-1 text-gray-400 hover:text-sky-600 hover:bg-sky-50 rounded"
+                        className="icon-btn p-1 text-slate-400 hover:text-sky-600 hover:bg-sky-50 rounded cursor-pointer"
                       >
                         <Edit2 className="w-3.5 h-3.5" />
                       </button>
@@ -518,7 +581,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
                         type="button"
                         onClick={() => setSectionToDelete(sec)}
                         title="Удалить раздел"
-                        className="icon-btn icon-btn--danger p-1 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded"
+                        className="icon-btn icon-btn--danger p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded cursor-pointer"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
@@ -527,72 +590,93 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
                         type="button"
                         onClick={() => handleOpenAddNew(sec.id)}
                         title={`Добавить пункт в раздел "${sec.name}"`}
-                        className="ml-1 inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-[10px] font-semibold border border-emerald-200 transition-colors"
+                        className="ml-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-900 text-[10.5px] font-bold border border-emerald-200/90 transition-all shadow-2xs cursor-pointer"
                       >
-                        <Plus className="w-3 h-3" />
+                        <Plus className="w-3 h-3 text-emerald-700" />
                         <span>Пункт</span>
                       </button>
                     </div>
                   </div>
 
-                  {/* Section Items */}
-                  <div className="p-2 space-y-1.5">
-                    {items.length === 0 ? (
-                      <div className="py-2.5 px-3 text-center text-gray-400 text-[11px] bg-gray-50/50 rounded-lg border border-dashed border-gray-200">
-                        В этом разделе пока нет изменений.{' '}
-                        <button
-                          type="button"
-                          onClick={() => handleOpenAddNew(sec.id)}
-                          className="text-emerald-600 hover:underline font-semibold"
-                        >
-                          + Добавить
-                        </button>
-                      </div>
-                    ) : (
-                      items.map((item, idx) => (
-                        <ChangeItemRow
-                          key={item.id}
-                          item={item}
-                          index={idx}
-                          totalCount={items.length}
-                          onEdit={handleEditItem}
-                          onDelete={(id) => onDeleteChangeItem(task.id, id)}
-                          onMoveUp={() => handleMoveUpItem(item)}
-                          onMoveDown={() => handleMoveDownItem(item)}
-                        />
-                      ))
-                    )}
-                  </div>
+                  {/* Section Items (when not collapsed) */}
+                  {!isCollapsed && (
+                    <div className="p-2 space-y-1.5 animate-slide-down">
+                      {items.length === 0 ? (
+                        <div className="py-2.5 px-3 text-center text-slate-400 text-[11px] bg-slate-50/50 rounded-xl border border-dashed border-slate-200">
+                          В этом разделе пока нет изменений.{' '}
+                          <button
+                            type="button"
+                            onClick={() => handleOpenAddNew(sec.id)}
+                            className="text-emerald-700 hover:underline font-bold cursor-pointer"
+                          >
+                            + Добавить
+                          </button>
+                        </div>
+                      ) : (
+                        items.map((item, idx) => (
+                          <ChangeItemRow
+                            key={item.id}
+                            item={item}
+                            index={idx}
+                            totalCount={items.length}
+                            onEdit={handleEditItem}
+                            onDelete={(id) => onDeleteChangeItem(task.id, id)}
+                            onMoveUp={() => handleMoveUpItem(item)}
+                            onMoveDown={() => handleMoveDownItem(item)}
+                          />
+                        ))
+                      )}
+                    </div>
+                  )}
                 </div>
               );
             })}
 
             {/* Unsectioned Items */}
             {unsectionedItems.length > 0 && (
-              <div className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
-                <div className="flex items-center justify-between gap-1.5 px-3 py-2 bg-gray-50 border-b border-gray-200">
+              <div className="rounded-2xl border border-slate-200 bg-white shadow-xs overflow-hidden">
+                <div
+                  className="flex items-center justify-between gap-1.5 px-3 py-2 bg-slate-50/90 border-b border-slate-200 cursor-pointer select-none"
+                  onClick={() => toggleSectionCollapse('__unsectioned__')}
+                >
                   <div className="flex items-center gap-2">
-                    <span className="font-bold text-xs text-gray-700">Прочее / Без раздела</span>
-                    <span className="px-1.5 py-0.2 rounded bg-gray-200 text-gray-700 text-[10px] font-bold">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleSectionCollapse('__unsectioned__');
+                      }}
+                      className="text-slate-400 hover:text-emerald-700 transition-transform p-0.5 rounded cursor-pointer"
+                    >
+                      {collapsedSections['__unsectioned__'] ? (
+                        <ChevronRight className="w-3.5 h-3.5 text-slate-500" />
+                      ) : (
+                        <ChevronDown className="w-3.5 h-3.5 text-emerald-600" />
+                      )}
+                    </button>
+                    <span className="font-bold text-xs text-slate-800">Прочее / Без раздела</span>
+                    <span className="px-1.5 py-0.2 rounded bg-slate-200 text-slate-700 text-[10px] font-bold">
                       {unsectionedItems.length}
                     </span>
                   </div>
                 </div>
 
-                <div className="p-2 space-y-1.5">
-                  {unsectionedItems.map((item, idx) => (
-                    <ChangeItemRow
-                      key={item.id}
-                      item={item}
-                      index={idx}
-                      totalCount={unsectionedItems.length}
-                      onEdit={handleEditItem}
-                      onDelete={(id) => onDeleteChangeItem(task.id, id)}
-                      onMoveUp={() => handleMoveUpItem(item)}
-                      onMoveDown={() => handleMoveDownItem(item)}
-                    />
-                  ))}
-                </div>
+                {!collapsedSections['__unsectioned__'] && (
+                  <div className="p-2 space-y-1.5 animate-slide-down">
+                    {unsectionedItems.map((item, idx) => (
+                      <ChangeItemRow
+                        key={item.id}
+                        item={item}
+                        index={idx}
+                        totalCount={unsectionedItems.length}
+                        onEdit={handleEditItem}
+                        onDelete={(id) => onDeleteChangeItem(task.id, id)}
+                        onMoveUp={() => handleMoveUpItem(item)}
+                        onMoveDown={() => handleMoveDownItem(item)}
+                      />
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </div>
