@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Trash2, Check, Sparkles } from 'lucide-react';
+import { Plus, Trash2, Check, Sparkles, Tag } from 'lucide-react';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
@@ -78,13 +78,15 @@ export const MassActionsModal: React.FC<MassActionsModalProps> = ({
       }
     >
       <div className="space-y-4 text-xs">
-        <p className="text-gray-600 text-[11px] leading-relaxed">
-          Значения тегов автоматически подставляются в шаблон имени файлов (например,{' '}
-          <code className="text-emerald-700 font-mono font-bold bg-emerald-50 px-1 py-0.2 rounded border border-emerald-200">{'{type}'}</code>,{' '}
-          <code className="text-emerald-700 font-mono font-bold bg-emerald-50 px-1 py-0.2 rounded border border-emerald-200">{'{module}'}</code>,{' '}
-          <code className="text-emerald-700 font-mono font-bold bg-emerald-50 px-1 py-0.2 rounded border border-emerald-200">{'{task}'}</code>
-          ) для всех файлов активного пакета.
-        </p>
+        <div className="rounded-xl border border-emerald-200/80 bg-emerald-50/50 p-2.5">
+          <p className="text-emerald-950 text-[11px] leading-relaxed">
+            Значения тегов автоматически подставляются в шаблон имени файлов (например,{' '}
+            <span className="font-mono font-bold text-emerald-800 bg-white px-1.5 py-0.5 rounded border border-emerald-300">{'{type}'}</span>,{' '}
+            <span className="font-mono font-bold text-emerald-800 bg-white px-1.5 py-0.5 rounded border border-emerald-300">{'{module}'}</span>,{' '}
+            <span className="font-mono font-bold text-emerald-800 bg-white px-1.5 py-0.5 rounded border border-emerald-300">{'{task}'}</span>
+            ) для всех файлов активного пакета.
+          </p>
+        </div>
 
         {/* List of current variables / tags */}
         <div className="space-y-2">
@@ -97,11 +99,12 @@ export const MassActionsModal: React.FC<MassActionsModalProps> = ({
             return (
               <div
                 key={v.key}
-                className="flex flex-col sm:flex-row sm:items-center gap-2 p-2.5 rounded-xl bg-gray-50/80 border border-gray-200 transition-colors"
+                className="flex flex-col sm:flex-row sm:items-center gap-2 p-2.5 rounded-xl bg-white border border-gray-200 shadow-2xs hover:border-emerald-300 transition-colors"
               >
                 {/* Left label & quick buttons */}
                 <div className="sm:w-36 flex-shrink-0 flex items-center justify-between sm:block">
                   <div className="flex items-center gap-1.5">
+                    <Tag className="w-3 h-3 text-emerald-600 flex-shrink-0" />
                     <span className="font-mono text-emerald-800 font-bold text-xs">
                       {`{${v.key}}`}
                     </span>
@@ -114,14 +117,14 @@ export const MassActionsModal: React.FC<MassActionsModalProps> = ({
 
                   {/* Fast presets for {type} */}
                   {isType && (
-                    <div className="flex items-center gap-1 mt-1">
+                    <div className="flex items-center gap-1 mt-1.5">
                       <button
                         type="button"
                         onClick={() => handleValueChange('type', 'ДО')}
-                        className={`px-1.5 py-0.5 rounded text-[9.5px] font-bold border transition-colors ${
+                        className={`px-2 py-0.5 rounded-md text-[10px] font-bold border transition-colors ${
                           currentVal === 'ДО'
-                            ? 'bg-amber-100 text-amber-900 border-amber-300'
-                            : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-100'
+                            ? 'bg-amber-100 text-amber-900 border-amber-400 shadow-2xs'
+                            : 'bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100'
                         }`}
                       >
                         ДО
@@ -129,10 +132,10 @@ export const MassActionsModal: React.FC<MassActionsModalProps> = ({
                       <button
                         type="button"
                         onClick={() => handleValueChange('type', 'ПОСЛЕ')}
-                        className={`px-1.5 py-0.5 rounded text-[9.5px] font-bold border transition-colors ${
+                        className={`px-2 py-0.5 rounded-md text-[10px] font-bold border transition-colors ${
                           currentVal === 'ПОСЛЕ'
-                            ? 'bg-emerald-100 text-emerald-900 border-emerald-300'
-                            : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-100'
+                            ? 'bg-emerald-100 text-emerald-900 border-emerald-400 shadow-2xs'
+                            : 'bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100'
                         }`}
                       >
                         ПОСЛЕ
@@ -146,9 +149,9 @@ export const MassActionsModal: React.FC<MassActionsModalProps> = ({
                       type="button"
                       onClick={() => handleValueChange('task', linkedTask.taskNumber)}
                       title={`Вставить номер связанной задачи ${linkedTask.taskNumber}`}
-                      className="mt-1 inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded text-[9.5px] font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200 hover:bg-emerald-200 transition-colors"
+                      className="mt-1.5 inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-emerald-100 text-emerald-800 border border-emerald-300 hover:bg-emerald-200 transition-colors shadow-2xs"
                     >
-                      <Sparkles className="w-2.5 h-2.5" />
+                      <Sparkles className="w-2.5 h-2.5 text-emerald-600" />
                       <span>+{linkedTask.taskNumber}</span>
                     </button>
                   )}
@@ -169,7 +172,7 @@ export const MassActionsModal: React.FC<MassActionsModalProps> = ({
                     }
                     value={currentVal}
                     onChange={(e) => handleValueChange(v.key, e.target.value)}
-                    className="w-full bg-white border border-gray-200 focus:border-emerald-500 rounded-lg px-2.5 py-1.5 text-xs text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-emerald-500 shadow-2xs font-medium"
+                    className="w-full bg-gray-50/60 focus:bg-white border border-gray-200 focus:border-emerald-500 rounded-lg px-2.5 py-1.5 text-xs text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-emerald-500 shadow-2xs font-medium transition-colors"
                   />
                 </div>
 

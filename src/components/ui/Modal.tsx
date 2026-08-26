@@ -71,7 +71,7 @@ export const Modal: React.FC<ModalProps> = ({
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-hidden pointer-events-auto">
       {/* Backdrop with Fade-In / Fade-Out */}
       <div
-        className={`fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] ${
+        className={`fixed inset-0 bg-slate-900/50 ${
           isClosing ? 'modal-backdrop-out' : 'modal-backdrop-in'
         }`}
         onClick={() => {

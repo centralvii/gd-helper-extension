@@ -358,20 +358,21 @@
     .animate-pulse-green { animation: pulse-green 1.5s ease-in-out infinite; }
 
     .modal-backdrop-in {
-        animation: backdropFadeIn 0.24s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        will-change: opacity;
+        animation: backdropFadeIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
     .modal-backdrop-out {
-        animation: backdropFadeOut 0.2s cubic-bezier(0.32, 0.72, 0, 1) forwards;
-        will-change: opacity;
+        animation: backdropFadeOut 0.18s cubic-bezier(0.32, 0.72, 0, 1) forwards;
     }
     .modal-content-in {
-        animation: modalSlideUpIn 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        will-change: transform, opacity;
+        animation: modalSlideUpIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-rendering: optimizeLegibility;
     }
     .modal-content-out {
-        animation: modalSlideDownOut 0.22s cubic-bezier(0.32, 0.72, 0, 1) forwards;
-        will-change: transform, opacity;
+        animation: modalSlideDownOut 0.2s cubic-bezier(0.32, 0.72, 0, 1) forwards;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
     }
 
     .zap-pulse {
