@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Link as LinkIcon, Sparkles, Check, ExternalLink, Layers, FolderPlus } from 'lucide-react';
+import { Plus, Link as LinkIcon, Sparkles, Check, ExternalLink, Layers, FolderPlus, ChevronDown, ChevronUp } from 'lucide-react';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
@@ -32,6 +32,7 @@ export const AddChangeItemModal: React.FC<AddChangeItemModalProps> = ({
   const [isLoadingTab, setIsLoadingTab] = useState(false);
   const [tabLoadedMessage, setTabLoadedMessage] = useState<string | null>(null);
   const [detectedBadge, setDetectedBadge] = useState<{ sectionName: string; rawType?: string; reason?: string } | null>(null);
+  const [isBadgeExpanded, setIsBadgeExpanded] = useState(false);
   const [unmatchedDetectedType, setUnmatchedDetectedType] = useState<string | null>(null);
 
   const [isCreatingNewSection, setIsCreatingNewSection] = useState(false);
@@ -202,19 +203,61 @@ export const AddChangeItemModal: React.FC<AddChangeItemModalProps> = ({
               <Layers className="w-3.5 h-3.5 text-emerald-600" />
               <span>Раздел (категория)</span>
             </label>
-            {detectedBadge && (
-              <span
-                title={detectedBadge.reason || undefined}
-                className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-emerald-100/90 text-emerald-950 text-[10.5px] font-bold border border-emerald-300/80 animate-fade-in shadow-2xs"
+
+            {detectedBadge && !isBadgeExpanded && (
+              <button
+                type="button"
+                onClick={() => setIsBadgeExpanded(true)}
+                title="Нажмите, чтобы развернуть подробности сопоставления"
+                className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg bg-emerald-100/90 hover:bg-emerald-200/90 text-emerald-950 text-[10.5px] font-bold border border-emerald-300/80 transition-all shadow-2xs max-w-[240px] cursor-pointer"
               >
                 <Sparkles className="w-3 h-3 text-emerald-700 flex-shrink-0" />
                 <span className="truncate">
                   {detectedBadge.rawType ? `${detectedBadge.rawType} ➔ ` : ''}
                   {detectedBadge.sectionName}
                 </span>
-              </span>
+                <ChevronDown className="w-3 h-3 text-emerald-700 flex-shrink-0 ml-0.5" />
+              </button>
             )}
           </div>
+
+          {/* Expanded Detected Badge Card */}
+          {detectedBadge && isBadgeExpanded && (
+            <div className="p-2.5 rounded-xl bg-emerald-100/90 border border-emerald-300/90 text-emerald-950 text-[11px] space-y-1 animate-slide-down shadow-2xs">
+              <div className="flex items-center justify-between gap-2 font-bold border-b border-emerald-200/80 pb-1">
+                <span className="flex items-center gap-1.5 text-emerald-900">
+                  <Sparkles className="w-3.5 h-3.5 text-emerald-700 flex-shrink-0" />
+                  Авто-определение раздела
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setIsBadgeExpanded(false)}
+                  className="text-[10px] text-emerald-800 hover:text-emerald-950 font-semibold flex items-center gap-0.5 cursor-pointer bg-white/70 hover:bg-white px-1.5 py-0.5 rounded-md border border-emerald-300/60 transition-colors"
+                >
+                  <span>Свернуть</span>
+                  <ChevronUp className="w-3 h-3" />
+                </button>
+              </div>
+
+              {detectedBadge.rawType && (
+                <div className="text-[10.5px] text-emerald-900 break-words leading-relaxed">
+                  <span className="font-semibold text-emerald-800">Объект на странице: </span>
+                  <span className="font-bold">{detectedBadge.rawType}</span>
+                </div>
+              )}
+
+              <div className="text-[10.5px] text-emerald-950 font-bold break-words leading-relaxed">
+                <span className="font-semibold text-emerald-800">Выбран раздел: </span>
+                «{detectedBadge.sectionName}»
+              </div>
+
+              {detectedBadge.reason && (
+                <div className="text-[10px] text-emerald-700 font-medium italic break-words pt-0.5">
+                  {detectedBadge.reason}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Quick Offer to Create Section if not present */}
           {unmatchedDetectedType && !sections.some((s) => s.id === sectionId && s.name.toLowerCase() === unmatchedDetectedType.toLowerCase()) && (
