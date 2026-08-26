@@ -5,7 +5,7 @@ export interface TabInfo {
   title: string;
   cleanTitle: string;
   detectedSectionName?: string; // e.g. 'Алгоритмы', 'Типы объекта', 'Визуалы', 'Бизнес-процессы'
-  detectedRawType?: string;     // e.g. 'Форма по умолчанию', 'Алгоритм', 'Тип объекта', 'Визуальное представление'
+  detectedRawType?: string;     // e.g. 'Форма по умолчанию для "Справочник..."', 'Алгоритм', 'Тип объекта'
   breadcrumb?: string;
   activeTabName?: string;
 }
@@ -37,8 +37,8 @@ export const SECTION_SEMANTIC_GROUPS = {
       'алгоритм', 'алгоритмы', 'algorithm', 'algorithms', 'algo', 'alg',
       'скрипт', 'скрипты', 'script', 'scripts', 'код', 'code',
       'вычисление', 'расчет', 'calc', 'calculation', 'рассчитать',
-      'валидация', 'valid', 'validation', 'проверка', 'проверки',
-      'фильтр', 'фильтрация', 'filter', 'filtering',
+      'валидация', 'valid', 'validation',
+      'фильтрация', 'filter', 'filtering',
       'обработчик', 'handler', 'событие', 'event',
       'до сохранения', 'после сохранения', 'before_save', 'after_save'
     ],
@@ -104,6 +104,23 @@ export function cleanTabTitle(rawTitle: string): string {
 }
 
 /**
+ * Wraps title or description in Russian quotes «...» if not already in quotes
+ */
+export function formatTitleInQuotes(title: string): string {
+  if (!title) return '';
+  const trimmed = title.trim();
+  if (!trimmed) return '';
+  if (
+    (trimmed.startsWith('«') && trimmed.endsWith('»')) ||
+    (trimmed.startsWith('"') && trimmed.endsWith('"')) ||
+    (trimmed.startsWith("'") && trimmed.endsWith("'"))
+  ) {
+    return trimmed;
+  }
+  return `«${trimmed}»`;
+}
+
+/**
  * Match raw detected type or title/URL string against standard GreenData categories
  */
 export function detectGreenDataSection(
@@ -120,6 +137,10 @@ export function detectGreenDataSection(
       if (group.keywords.some((kw) => hintLow.includes(kw) || kw.includes(hintLow))) {
         return { sectionName: group.canonical, rawType: domTypeHint };
       }
+    }
+    // If domTypeHint didn't match standard groups but starts with "Форма"
+    if (hintLow.includes('форм') || hintLow.includes('визуал')) {
+      return { sectionName: 'Визуалы', rawType: domTypeHint };
     }
   }
 
@@ -189,17 +210,16 @@ export function matchSectionForType(
       matchReasons.push(`тип содержит «${sec.name}»`);
     }
 
-    if (title && title.length >= 3 && sName.includes(title)) {
-      score += 70;
-      matchReasons.push(`раздел содержит «${input.title}»`);
-    } else if (title && title.length >= 3 && title.includes(sName)) {
-      score += 70;
-      matchReasons.push(`заголовок содержит «${sec.name}»`);
+    // Substring containment between clean section name (without parenthesis) and rawType
+    const sNameClean = sName.replace(/\s*\([^)]*\)/g, '').trim();
+    if (rawType && sNameClean.length >= 4 && (rawType.includes(sNameClean) || sNameClean.includes(rawType))) {
+      score += 95;
+      matchReasons.push(`совпадение с «${sec.name}»`);
     }
 
     // 3. Multi-token overlap (e.g. "Форма", "по", "умолчанию", "визуалы")
-    const sTokens = sName.split(/[\s/(),.\-_]+/).filter((t) => t.length >= 3);
-    const inputTokens = allInputText.split(/[\s/(),.\-_]+/).filter((t) => t.length >= 3);
+    const sTokens = sName.split(/[\s/(),.\-_"]+/).filter((t) => t.length >= 3);
+    const inputTokens = allInputText.split(/[\s/(),.\-_"]+/).filter((t) => t.length >= 3);
 
     for (const st of sTokens) {
       for (const it of inputTokens) {
@@ -278,44 +298,35 @@ export async function getActiveTabInfo(): Promise<TabInfo | null> {
                 let breadcrumbHint = '';
                 let activeTabHint = '';
 
-                // 1. Check visualSettingsControl / "Для <Тип>" or visual representation selectors
-                const vsControl = document.querySelector(
+                // 1. Direct inspection of GreenData visualSettingsControl / visual-settings-control
+                const vsElements = document.querySelectorAll(
                   '.visualSettingsControl, .visual-settings-control, [class*="visualSettings"], [class*="visual-settings"]'
                 );
-                if (vsControl) {
-                  // A. Look for choose-element-icon chevron or dropdown button
-                  const chooseBtn = vsControl.querySelector(
-                    '.choose-element-icon, [title="Выбрать элемент"], .fa-chevron-down, button'
+                for (const vsControl of Array.from(vsElements)) {
+                  // A. Find label span inside visual-settings-control
+                  const labelSpan = vsControl.querySelector(
+                    'span[class*="LJdGz"], span[class*="zhI7f"], div[class*="_12uCt"], span[id], [class*="visual-settings"] span'
                   );
-                  if (chooseBtn) {
-                    const parentContainer = chooseBtn.closest(
-                      '.flex-container, ._38Gr6L_e92MVpij2eqFSw5, .visual-settings-control, div'
-                    );
-                    if (parentContainer) {
-                      const labelEl = parentContainer.querySelector(
-                        'span[class*="LJdGz"], span[class*="zhI7f"], div[class*="_12uCt"], [class*="title"], span'
-                      );
-                      if (labelEl) {
-                        const clone = labelEl.cloneNode(true) as HTMLElement;
-                        clone
-                          .querySelectorAll(
-                            'span[class*="_2I0rRBp"], [class*="tooltip"], button, i, svg'
-                          )
-                          .forEach((e) => e.remove());
-                        const t = (clone.textContent || '').trim();
-                        if (
-                          t &&
-                          !t.includes('Выбрать') &&
-                          !t.includes('Редактировать') &&
-                          !t.includes('Дополнительные')
-                        ) {
-                          typeHint = t; // e.g. "Форма по умолчанию"
-                        }
-                      }
+                  if (labelSpan) {
+                    const clone = labelSpan.cloneNode(true) as HTMLElement;
+                    clone
+                      .querySelectorAll(
+                        'span[class*="_2I0rRBp"], [class*="tooltip"], button, i, svg'
+                      )
+                      .forEach((e) => e.remove());
+                    const t = (clone.textContent || '').trim();
+                    if (
+                      t &&
+                      !t.includes('Выбрать элемент') &&
+                      !t.includes('Редактировать визуальное') &&
+                      !t.includes('Дополнительные действия')
+                    ) {
+                      typeHint = t;
+                      break;
                     }
                   }
 
-                  // B. If still not found, check direct text in visual-settings-control
+                  // B. If not found in span, inspect text in vsControl
                   if (!typeHint) {
                     const clone = vsControl.cloneNode(true) as HTMLElement;
                     clone
@@ -328,6 +339,7 @@ export async function getActiveTabInfo(): Promise<TabInfo | null> {
                       const match = raw.match(/Для\s*["'«]([^"'»]+)["'»]/i);
                       if (match && match[1]) {
                         typeHint = match[1].trim();
+                        break;
                       } else {
                         const firstLine = raw.split(/[\n\r]+/)[0]?.trim();
                         if (
@@ -337,16 +349,17 @@ export async function getActiveTabInfo(): Promise<TabInfo | null> {
                           !firstLine.includes('Редактировать')
                         ) {
                           typeHint = firstLine;
+                          break;
                         }
                       }
                     }
                   }
                 }
 
-                // 2. Look for any active selected item or visual selector on page
+                // 2. Look for active selected item in GreenData selects
                 if (!typeHint) {
                   const activeSelects = document.querySelectorAll(
-                    '.ant-select-selection-item, .ant-select-selection-selected-value, [class*="selected-value"], [class*="selection-item"], [data-qa*="visual"], [data-qa*="form"], [data-qa*="type"]'
+                    '.ant-select-selection-item, .ant-select-selection-selected-value, [class*="selected-value"], [class*="selection-item"], [data-qa*="visual"], [data-qa*="form"]'
                   );
                   for (const s of Array.from(activeSelects)) {
                     const text = (s.textContent || '').trim();
@@ -481,23 +494,6 @@ export async function getActiveTabInfo(): Promise<TabInfo | null> {
   }
 
   return null;
-}
-
-/**
- * Wraps title or description in Russian quotes «...» if not already in quotes
- */
-export function formatTitleInQuotes(title: string): string {
-  if (!title) return '';
-  const trimmed = title.trim();
-  if (!trimmed) return '';
-  if (
-    (trimmed.startsWith('«') && trimmed.endsWith('»')) ||
-    (trimmed.startsWith('"') && trimmed.endsWith('"')) ||
-    (trimmed.startsWith("'") && trimmed.endsWith("'"))
-  ) {
-    return trimmed;
-  }
-  return `«${trimmed}»`;
 }
 
 /**
