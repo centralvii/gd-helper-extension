@@ -302,18 +302,16 @@ export function useAppState() {
 
   const renamePackage = useCallback((id: string, newName: string, taskId?: string) => {
     const clean = newName.trim();
-    if (!clean && taskId === undefined) return;
     setPackages((prev) =>
-      prev.map((p) =>
-        p.id === id
-          ? {
-              ...p,
-              name: clean || p.name,
-              taskId: taskId !== undefined ? (taskId || undefined) : p.taskId,
-              updatedAt: Date.now(),
-            }
-          : p
-      )
+      prev.map((p) => {
+        if (p.id !== id) return p;
+        return {
+          ...p,
+          name: clean || p.name,
+          taskId: taskId !== undefined ? (taskId.trim() ? taskId.trim() : undefined) : p.taskId,
+          updatedAt: Date.now(),
+        };
+      })
     );
   }, []);
 

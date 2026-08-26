@@ -84,8 +84,8 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
   const [sectionToDelete, setSectionToDelete] = useState<ImplementationSection | null>(null);
 
   const linkedPackages = useMemo(() => {
-    return packages.filter((p) => p.taskId === task.id || p.id === task.packageId);
-  }, [task.id, task.packageId, packages]);
+    return packages.filter((p) => p.taskId === task.id);
+  }, [task.id, packages]);
 
   const sections = useMemo(() => {
     const raw =

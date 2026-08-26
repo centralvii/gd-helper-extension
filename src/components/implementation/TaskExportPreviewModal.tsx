@@ -23,7 +23,7 @@ export const TaskExportPreviewModal: React.FC<TaskExportPreviewModalProps> = ({
 
   if (!task) return null;
 
-  const linkedPkgs = packages.filter((p) => p.taskId === task.id || p.id === task.packageId);
+  const linkedPkgs = packages.filter((p) => p.taskId === task.id);
   const markdownText = formatTaskToMarkdown({
     ...task,
     linkedPackages: linkedPkgs.map((p) => ({ name: p.name, files: p.files })),

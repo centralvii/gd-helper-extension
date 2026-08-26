@@ -71,7 +71,7 @@ export const PackageSelector: React.FC<PackageSelectorProps> = ({
   const handleConfirmRename = (e: React.FormEvent) => {
     e.preventDefault();
     if (packageToRename && renameInputValue.trim()) {
-      onRenamePackage(packageToRename.id, renameInputValue.trim(), renameTaskId || undefined);
+      onRenamePackage(packageToRename.id, renameInputValue.trim(), renameTaskId);
     }
     setPackageToRename(null);
   };
