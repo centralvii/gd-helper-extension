@@ -14,11 +14,15 @@ import {
   Edit2,
   Trash2,
   Layers,
+  Package,
+  ExternalLink,
+  FilePlus,
 } from 'lucide-react';
 import {
   ImplementationTask,
   ImplementationChangeItem,
   ImplementationSection,
+  BuildPackage,
 } from '../../types';
 import { Input } from '../ui/Input';
 import { Button } from '../ui/Button';
@@ -34,6 +38,8 @@ import {
 
 interface TaskEditorProps {
   task: ImplementationTask;
+  packages?: BuildPackage[];
+  onNavigateToPackage?: (pkgId: string) => void;
   onUpdateTask: (id: string, updates: Partial<Omit<ImplementationTask, 'id' | 'createdAt'>>) => void;
   onAddSection: (taskId: string, name: string) => void;
   onUpdateSection: (taskId: string, sectionId: string, updates: Partial<ImplementationSection>) => void;
@@ -48,6 +54,8 @@ interface TaskEditorProps {
 
 export const TaskEditor: React.FC<TaskEditorProps> = ({
   task,
+  packages = [],
+  onNavigateToPackage,
   onUpdateTask,
   onAddSection,
   onUpdateSection,
@@ -65,6 +73,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
   const [quickCopied, setQuickCopied] = useState(false);
   const [isTabFetching, setIsTabFetching] = useState(false);
+  const [importNotification, setImportNotification] = useState<string | null>(null);
 
   // Section Create/Edit Modal State
   const [isSectionModalOpen, setIsSectionModalOpen] = useState(false);
@@ -74,10 +83,16 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
   // Delete Section Confirm Modal State
   const [sectionToDelete, setSectionToDelete] = useState<ImplementationSection | null>(null);
 
+  const linkedPackage = useMemo(() => {
+    if (!task.packageId) return null;
+    return packages.find((p) => p.id === task.packageId) || null;
+  }, [task.packageId, packages]);
+
   const sections = useMemo(() => {
-    const raw = task.sections && task.sections.length > 0
-      ? task.sections
-      : DEFAULT_IMPLEMENTATION_SECTIONS;
+    const raw =
+      task.sections && task.sections.length > 0
+        ? task.sections
+        : DEFAULT_IMPLEMENTATION_SECTIONS;
     return [...raw].sort((a, b) => a.order - b.order);
   }, [task.sections]);
 
@@ -99,34 +114,49 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
     });
 
     return { groupedItems: map, unsectionedItems: unsectioned };
-  }, [sections, task.items]);
+  }, [task.items, sections]);
 
-  const handleOpenAddWithTab = async (presetSectionId?: string) => {
+  const handleEditItem = (item: ImplementationChangeItem) => {
+    setEditingItem(item);
+    setTargetSectionId(item.sectionId);
+    setIsAddModalOpen(true);
+  };
+
+  const handleMoveUpItem = (item: ImplementationChangeItem) => {
+    const idx = task.items.findIndex((i) => i.id === item.id);
+    if (idx > 0) {
+      onReorderChangeItems(task.id, idx, idx - 1);
+    }
+  };
+
+  const handleMoveDownItem = (item: ImplementationChangeItem) => {
+    const idx = task.items.findIndex((i) => i.id === item.id);
+    if (idx !== -1 && idx < task.items.length - 1) {
+      onReorderChangeItems(task.id, idx, idx + 1);
+    }
+  };
+
+  const handleOpenAddWithTab = async (sectionId?: string) => {
     setIsTabFetching(true);
     try {
       const tabInfo = await getActiveTabInfo();
-      let detectedSecId = presetSectionId;
-
-      if (tabInfo?.detectedSectionName && !presetSectionId) {
-        const matched = sections.find(
-          (s) => s.name.toLowerCase() === tabInfo.detectedSectionName!.toLowerCase()
-        );
-        if (matched) {
-          detectedSecId = matched.id;
-        } else {
-          // If section does not exist yet, add it
-          onAddSection(task.id, tabInfo.detectedSectionName);
-        }
-      }
-
-      setTargetSectionId(detectedSecId || sections[0]?.id);
-
       if (tabInfo) {
+        let secId = sectionId;
+        if (!secId && tabInfo.detectedSectionName) {
+          const matched = sections.find(
+            (s) =>
+              s.name.toLowerCase() === tabInfo.detectedSectionName?.toLowerCase() ||
+              s.name.toLowerCase().includes(tabInfo.detectedSectionName?.toLowerCase() || '')
+          );
+          if (matched) secId = matched.id;
+        }
+
+        setTargetSectionId(secId || sections[0]?.id);
         setEditingItem({
           id: '',
-          sectionId: detectedSecId || sections[0]?.id,
-          description: '',
-          linkTitle: tabInfo.cleanTitle || tabInfo.title,
+          sectionId: secId || sections[0]?.id,
+          description: tabInfo.cleanTitle,
+          linkTitle: tabInfo.cleanTitle,
           linkUrl: tabInfo.url,
         });
       } else {
@@ -158,6 +188,36 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
     setEditingItem(null);
   };
 
+  // Import files from linked package
+  const handleImportFilesFromPackage = () => {
+    if (!linkedPackage || linkedPackage.files.length === 0) return;
+
+    // Find algorithms section or first available section
+    const targetSec =
+      sections.find((s) => s.name.toLowerCase().includes('алгоритм')) || sections[0];
+    const targetSecId = targetSec ? targetSec.id : undefined;
+
+    let addedCount = 0;
+    linkedPackage.files.forEach((file) => {
+      const desc = file.newName || file.cleanName || file.originalName;
+      const alreadyExists = task.items.some((it) => it.description.trim() === desc.trim());
+      if (!alreadyExists) {
+        onAddChangeItem(task.id, {
+          description: desc,
+          sectionId: targetSecId,
+        });
+        addedCount++;
+      }
+    });
+
+    if (addedCount > 0) {
+      setImportNotification(
+        `Добавлено ${addedCount} файлов в раздел «${targetSec?.name || 'Изменения'}»`
+      );
+      setTimeout(() => setImportNotification(null), 3500);
+    }
+  };
+
   // Section Modal Handlers
   const handleOpenCreateSection = () => {
     setEditingSection(null);
@@ -187,7 +247,10 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
   };
 
   const handleQuickCopyMarkdown = () => {
-    const md = formatTaskToMarkdown(task);
+    const md = formatTaskToMarkdown({
+      ...task,
+      linkedPackage: linkedPackage ? { name: linkedPackage.name, files: linkedPackage.files } : undefined,
+    });
     navigator.clipboard.writeText(md);
     setQuickCopied(true);
     setTimeout(() => setQuickCopied(false), 2000);
@@ -219,6 +282,81 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
             />
           </div>
         </div>
+
+        {/* ── Linked Package Selector & Actions ── */}
+        <div className="p-2.5 bg-gradient-to-r from-emerald-50/70 via-teal-50/30 to-emerald-50/70 border border-emerald-200/80 rounded-xl space-y-2">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-1.5 min-w-0">
+              <Package className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+              <label className="text-[11px] font-bold text-emerald-950 truncate">
+                Связанный пакет сборки (.guf):
+              </label>
+            </div>
+
+            <div className="flex items-center gap-1.5 flex-1 sm:max-w-xs">
+              <select
+                value={task.packageId || ''}
+                onChange={(e) => onUpdateTask(task.id, { packageId: e.target.value || undefined })}
+                className="w-full px-2.5 py-1 bg-white border border-emerald-300 focus:border-emerald-500 rounded-lg text-xs text-gray-900 font-medium outline-none focus:ring-1 focus:ring-emerald-500 shadow-2xs transition-colors"
+              >
+                <option value="">— Не привязан к пакету —</option>
+                {packages.map((pkg) => (
+                  <option key={pkg.id} value={pkg.id}>
+                    📦 {pkg.name} ({pkg.files.length} {pkg.files.length === 1 ? 'файл' : 'файлов'})
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {linkedPackage && (
+            <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-emerald-200/60 text-[11px]">
+              <div className="flex items-center gap-1.5 text-emerald-900 min-w-0">
+                <span className="font-semibold">Привязан к:</span>
+                <span className="font-mono font-bold bg-white px-2 py-0.5 rounded-md border border-emerald-200 shadow-2xs truncate max-w-[150px]">
+                  {linkedPackage.name}
+                </span>
+                <span className="text-emerald-700 flex-shrink-0">
+                  ({linkedPackage.files.length} ф. в очереди)
+                </span>
+              </div>
+
+              <div className="flex items-center gap-1.5 flex-shrink-0">
+                {linkedPackage.files.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={handleImportFilesFromPackage}
+                    title="Добавить файлы из пакета в список изменений"
+                    className="inline-flex items-center gap-1 px-2 py-1 bg-white hover:bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-lg font-semibold text-[10.5px] transition-colors shadow-2xs"
+                  >
+                    <FilePlus className="w-3 h-3 text-emerald-600" />
+                    <span>Импорт {linkedPackage.files.length} файлов</span>
+                  </button>
+                )}
+
+                {onNavigateToPackage && (
+                  <button
+                    type="button"
+                    onClick={() => onNavigateToPackage(linkedPackage.id)}
+                    title="Открыть этот пакет во вкладке 'Упаковка'"
+                    className="inline-flex items-center gap-1 px-2 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-semibold text-[10.5px] transition-colors shadow-2xs"
+                  >
+                    <span>В упаковку</span>
+                    <ExternalLink className="w-3 h-3" />
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Import Toast Notification */}
+        {importNotification && (
+          <div className="p-2 bg-emerald-100 text-emerald-900 border border-emerald-300 rounded-xl text-xs flex items-center gap-2 animate-fade-in">
+            <Check className="w-4 h-4 text-emerald-700 flex-shrink-0" />
+            <span>{importNotification}</span>
+          </div>
+        )}
 
         {/* Task Summary / Description */}
         <div>
@@ -362,18 +500,9 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
 
                       <button
                         type="button"
-                        onClick={() => handleOpenAddNew(sec.id)}
-                        title={`Добавить пункт в раздел "${sec.name}"`}
-                        className="icon-btn p-1 text-gray-400 hover:text-emerald-700 hover:bg-emerald-50 rounded"
-                      >
-                        <Plus className="w-3.5 h-3.5" />
-                      </button>
-
-                      <button
-                        type="button"
                         onClick={() => handleOpenEditSection(sec)}
                         title="Переименовать раздел"
-                        className="icon-btn p-1 text-gray-400 hover:text-sky-700 hover:bg-sky-50 rounded"
+                        className="icon-btn p-1 text-gray-400 hover:text-sky-600 hover:bg-sky-50 rounded"
                       >
                         <Edit2 className="w-3.5 h-3.5" />
                       </button>
@@ -386,141 +515,108 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleOpenAddNew(sec.id)}
+                        title={`Добавить пункт в раздел "${sec.name}"`}
+                        className="ml-1 inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-[10px] font-semibold border border-emerald-200 transition-colors"
+                      >
+                        <Plus className="w-3 h-3" />
+                        <span>Пункт</span>
+                      </button>
                     </div>
                   </div>
 
-                  {/* Section Content */}
-                  <div className="p-2 space-y-2">
+                  {/* Section Items */}
+                  <div className="p-2 space-y-1.5">
                     {items.length === 0 ? (
-                      <div className="py-3 px-2 text-center border border-dashed border-gray-200 rounded-lg bg-gray-50/40 flex items-center justify-center gap-2">
-                        <span className="text-[11px] text-gray-400">
-                          В разделе пока нет пунктов
-                        </span>
+                      <div className="py-2.5 px-3 text-center text-gray-400 text-[11px] bg-gray-50/50 rounded-lg border border-dashed border-gray-200">
+                        В этом разделе пока нет изменений.{' '}
                         <button
                           type="button"
                           onClick={() => handleOpenAddNew(sec.id)}
-                          className="text-[11px] font-semibold text-emerald-600 hover:text-emerald-700 hover:underline"
+                          className="text-emerald-600 hover:underline font-semibold"
                         >
                           + Добавить
                         </button>
                       </div>
                     ) : (
-                      items.map((item, itemIdx) => {
-                        const globalIdx = task.items.findIndex((i) => i.id === item.id);
-                        return (
-                          <ChangeItemRow
-                            key={item.id}
-                            item={item}
-                            index={itemIdx}
-                            totalCount={items.length}
-                            onEdit={(target) => {
-                              setEditingItem(target);
-                              setIsAddModalOpen(true);
-                            }}
-                            onDelete={(id) => onDeleteChangeItem(task.id, id)}
-                            onMoveUp={() => {
-                              if (itemIdx > 0) {
-                                const prevItem = items[itemIdx - 1];
-                                const prevGlobalIdx = task.items.findIndex((i) => i.id === prevItem.id);
-                                if (globalIdx !== -1 && prevGlobalIdx !== -1) {
-                                  onReorderChangeItems(task.id, globalIdx, prevGlobalIdx);
-                                }
-                              }
-                            }}
-                            onMoveDown={() => {
-                              if (itemIdx < items.length - 1) {
-                                const nextItem = items[itemIdx + 1];
-                                const nextGlobalIdx = task.items.findIndex((i) => i.id === nextItem.id);
-                                if (globalIdx !== -1 && nextGlobalIdx !== -1) {
-                                  onReorderChangeItems(task.id, globalIdx, nextGlobalIdx);
-                                }
-                              }
-                            }}
-                          />
-                        );
-                      })
+                      items.map((item, idx) => (
+                        <ChangeItemRow
+                          key={item.id}
+                          item={item}
+                          index={idx}
+                          totalCount={items.length}
+                          onEdit={handleEditItem}
+                          onDelete={(id) => onDeleteChangeItem(task.id, id)}
+                          onMoveUp={() => handleMoveUpItem(item)}
+                          onMoveDown={() => handleMoveDownItem(item)}
+                        />
+                      ))
                     )}
                   </div>
                 </div>
               );
             })}
 
-            {/* Unsectioned items if any */}
+            {/* Unsectioned Items */}
             {unsectionedItems.length > 0 && (
-              <div className="rounded-xl border border-gray-200/90 bg-white shadow-sm overflow-hidden">
+              <div className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
                 <div className="flex items-center justify-between gap-1.5 px-3 py-2 bg-gray-50 border-b border-gray-200">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <span className="font-bold text-xs text-gray-600 truncate">
-                      Без раздела
-                    </span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-xs text-gray-700">Прочее / Без раздела</span>
                     <span className="px-1.5 py-0.2 rounded bg-gray-200 text-gray-700 text-[10px] font-bold">
                       {unsectionedItems.length}
                     </span>
                   </div>
                 </div>
-                <div className="p-2 space-y-2">
-                  {unsectionedItems.map((item, itemIdx) => {
-                    const globalIdx = task.items.findIndex((i) => i.id === item.id);
-                    return (
-                      <ChangeItemRow
-                        key={item.id}
-                        item={item}
-                        index={itemIdx}
-                        totalCount={unsectionedItems.length}
-                        onEdit={(target) => {
-                          setEditingItem(target);
-                          setIsAddModalOpen(true);
-                        }}
-                        onDelete={(id) => onDeleteChangeItem(task.id, id)}
-                        onMoveUp={() => {
-                          if (itemIdx > 0) {
-                            const prevItem = unsectionedItems[itemIdx - 1];
-                            const prevGlobalIdx = task.items.findIndex((i) => i.id === prevItem.id);
-                            if (globalIdx !== -1 && prevGlobalIdx !== -1) {
-                              onReorderChangeItems(task.id, globalIdx, prevGlobalIdx);
-                            }
-                          }
-                        }}
-                        onMoveDown={() => {
-                          if (itemIdx < unsectionedItems.length - 1) {
-                            const nextItem = unsectionedItems[itemIdx + 1];
-                            const nextGlobalIdx = task.items.findIndex((i) => i.id === nextItem.id);
-                            if (globalIdx !== -1 && nextGlobalIdx !== -1) {
-                              onReorderChangeItems(task.id, globalIdx, nextGlobalIdx);
-                            }
-                          }
-                        }}
-                      />
-                    );
-                  })}
+
+                <div className="p-2 space-y-1.5">
+                  {unsectionedItems.map((item, idx) => (
+                    <ChangeItemRow
+                      key={item.id}
+                      item={item}
+                      index={idx}
+                      totalCount={unsectionedItems.length}
+                      onEdit={handleEditItem}
+                      onDelete={(id) => onDeleteChangeItem(task.id, id)}
+                      onMoveUp={() => handleMoveUpItem(item)}
+                      onMoveDown={() => handleMoveDownItem(item)}
+                    />
+                  ))}
                 </div>
               </div>
             )}
           </div>
         )}
-      </div>
 
-      {/* Action Toolbar */}
-      <div className="flex items-center justify-between gap-2 p-1.5 bg-white border border-gray-200 rounded-xl shadow-sm">
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={() => setIsPreviewModalOpen(true)}
-          leftIcon={<Eye className="w-3.5 h-3.5 text-sky-600 flex-shrink-0" />}
-          className="flex-1 min-w-0 justify-center"
-        >
-          <span className="truncate">Экспорт / Просмотр</span>
-        </Button>
+        {/* Task Bottom Actions Bar */}
+        <div className="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-gray-100">
+          <div className="text-[11px] text-gray-500">
+            Всего: <strong className="text-gray-900">{task.items.length}</strong> изменений
+          </div>
 
-        <Button
-          variant="emerald"
-          size="sm"
-          onClick={handleQuickCopyMarkdown}
-          leftIcon={quickCopied ? <Check className="w-3.5 h-3.5 flex-shrink-0" /> : <Copy className="w-3.5 h-3.5 flex-shrink-0" />}
-          className="flex-1 min-w-0 justify-center"
-        >
-          <span className="truncate">{quickCopied ? 'Скопировано!' : 'Копировать MD'}</span>
-        </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={handleQuickCopyMarkdown}
+              leftIcon={quickCopied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+            >
+              {quickCopied ? 'Скопировано!' : 'Копировать всё'}
+            </Button>
+
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() => setIsPreviewModalOpen(true)}
+              leftIcon={<Eye className="w-3.5 h-3.5" />}
+            >
+              Экспорт / Просмотр
+            </Button>
+          </div>
+        </div>
       </div>
 
       {/* Add / Edit Change Item Modal */}
@@ -542,6 +638,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
         isOpen={isPreviewModalOpen}
         onClose={() => setIsPreviewModalOpen(false)}
         task={task}
+        packages={packages}
       />
 
       {/* Section Create / Edit Modal */}

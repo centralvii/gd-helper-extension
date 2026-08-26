@@ -10,18 +10,24 @@ interface TaskExportPreviewModalProps {
   isOpen: boolean;
   onClose: () => void;
   task: ImplementationTask | null;
+  packages?: { id: string; name: string; files: { newName?: string; originalName: string; order: number }[] }[];
 }
 
 export const TaskExportPreviewModal: React.FC<TaskExportPreviewModalProps> = ({
   isOpen,
   onClose,
   task,
+  packages = [],
 }) => {
   const [copiedFormat, setCopiedFormat] = useState<string | null>(null);
 
   if (!task) return null;
 
-  const markdownText = formatTaskToMarkdown(task);
+  const linkedPkg = task.packageId ? packages.find((p) => p.id === task.packageId) : undefined;
+  const markdownText = formatTaskToMarkdown({
+    ...task,
+    linkedPackage: linkedPkg ? { name: linkedPkg.name, files: linkedPkg.files } : undefined,
+  });
 
   const handleCopy = (format: string, text: string) => {
     navigator.clipboard.writeText(text);

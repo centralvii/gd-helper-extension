@@ -229,7 +229,13 @@ export const App: React.FC = () => {
                 ) : activeTool === 'extra' ? (
                     <ExtraContainer />
                 ) : activeTool === 'implementation' ? (
-                    <ImplementationTool />
+                    <ImplementationTool
+                        packages={packages}
+                        onNavigateToPackage={(pkgId: string) => {
+                            selectPackage(pkgId);
+                            handleSelectTool('packer');
+                        }}
+                    />
                 ) : (
                     <>
                         {/* Package Selector / Session Switcher */}

@@ -2,8 +2,17 @@ import React from 'react';
 import { useImplementationTasks } from '../../hooks/useImplementationTasks';
 import { TaskSelector } from './TaskSelector';
 import { TaskEditor } from './TaskEditor';
+import { BuildPackage } from '../../types';
 
-export const ImplementationTool: React.FC = () => {
+interface ImplementationToolProps {
+  packages?: BuildPackage[];
+  onNavigateToPackage?: (pkgId: string) => void;
+}
+
+export const ImplementationTool: React.FC<ImplementationToolProps> = ({
+  packages = [],
+  onNavigateToPackage,
+}) => {
   const {
     tasks,
     activeTask,
@@ -40,6 +49,8 @@ export const ImplementationTool: React.FC = () => {
       {activeTask && (
         <TaskEditor
           task={activeTask}
+          packages={packages}
+          onNavigateToPackage={onNavigateToPackage}
           onUpdateTask={updateTask}
           onAddSection={addSection}
           onUpdateSection={updateSection}

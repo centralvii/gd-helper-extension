@@ -131,6 +131,7 @@ export interface ImplementationTask {
   taskNumber: string;
   title: string;
   summary: string;
+  packageId?: string; // ID связанного пакета сборки .guf
   sections?: ImplementationSection[];
   items: ImplementationChangeItem[];
   createdAt: number;

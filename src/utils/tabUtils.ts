@@ -236,8 +236,10 @@ export function formatTaskToMarkdown(task: {
   taskNumber: string;
   title: string;
   summary: string;
+  packageId?: string;
   sections?: ImplementationSection[];
   items: ImplementationChangeItem[];
+  linkedPackage?: { name: string; files?: { newName?: string; originalName: string; order: number }[] };
 }): string {
   const lines: string[] = [];
 
@@ -245,6 +247,13 @@ export function formatTaskToMarkdown(task: {
   const headerParts = [task.taskNumber.trim(), task.title.trim()].filter(Boolean);
   if (headerParts.length > 0) {
     lines.push(`## ${headerParts.join(': ')}`);
+    lines.push('');
+  }
+
+  // Linked Package info
+  if (task.linkedPackage) {
+    const fileCount = task.linkedPackage.files?.length || 0;
+    lines.push(`**Пакет сборки .guf:** \`${task.linkedPackage.name}\` (${fileCount} ${fileCount === 1 ? 'файл' : 'файлов'})`);
     lines.push('');
   }
 
