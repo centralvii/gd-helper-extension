@@ -3,7 +3,7 @@ import { Plus, Link as LinkIcon, Sparkles, Check, ExternalLink, Layers, FolderPl
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
-import { getActiveTabInfo, formatChangeItemMarkdown } from '../../utils/tabUtils';
+import { getActiveTabInfo, formatChangeItemMarkdown, matchSectionForType } from '../../utils/tabUtils';
 import { ImplementationChangeItem, ImplementationSection } from '../../types';
 
 interface AddChangeItemModalProps {
@@ -31,7 +31,7 @@ export const AddChangeItemModal: React.FC<AddChangeItemModalProps> = ({
   const [linkUrl, setLinkUrl] = useState('');
   const [isLoadingTab, setIsLoadingTab] = useState(false);
   const [tabLoadedMessage, setTabLoadedMessage] = useState<string | null>(null);
-  const [detectedBadge, setDetectedBadge] = useState<{ sectionName: string; rawType?: string } | null>(null);
+  const [detectedBadge, setDetectedBadge] = useState<{ sectionName: string; rawType?: string; reason?: string } | null>(null);
 
   const [isCreatingNewSection, setIsCreatingNewSection] = useState(false);
   const [newSectionName, setNewSectionName] = useState('');
@@ -63,29 +63,39 @@ export const AddChangeItemModal: React.FC<AddChangeItemModalProps> = ({
       const tabInfo = await getActiveTabInfo();
       if (tabInfo) {
         setLinkUrl(tabInfo.url);
+        // If description is empty, prefill with clean tab title
+        if (!description.trim()) {
+          setDescription(tabInfo.cleanTitle || tabInfo.title);
+        }
         // If linkTitle is empty, fill it with clean tab title
         if (!linkTitle.trim()) {
           setLinkTitle(tabInfo.cleanTitle || tabInfo.title);
         }
 
-        // Auto-detect GreenData Section
-        if (tabInfo.detectedSectionName) {
+        // Intelligently match against user's created sections
+        const matched = matchSectionForType(
+          {
+            detectedRawType: tabInfo.detectedRawType,
+            detectedSectionName: tabInfo.detectedSectionName,
+            title: tabInfo.cleanTitle,
+            url: tabInfo.url,
+          },
+          sections
+        );
+
+        if (matched) {
+          setSectionId(matched.section.id);
+          setDetectedBadge({
+            sectionName: matched.section.name,
+            rawType: tabInfo.detectedRawType || tabInfo.detectedSectionName,
+            reason: matched.reason,
+          });
+        } else if (tabInfo.detectedSectionName) {
+          // If no section matched yet, fallback or optionally create canonical
           setDetectedBadge({
             sectionName: tabInfo.detectedSectionName,
             rawType: tabInfo.detectedRawType,
           });
-
-          // Match with existing section
-          const matched = sections.find(
-            (s) => s.name.toLowerCase() === tabInfo.detectedSectionName!.toLowerCase()
-          );
-
-          if (matched) {
-            setSectionId(matched.id);
-          } else if (onAddSection) {
-            // Auto create section if not exists
-            onAddSection(tabInfo.detectedSectionName);
-          }
         }
 
         setTabLoadedMessage(`Получена вкладка: ${tabInfo.cleanTitle || tabInfo.title}`);
@@ -160,9 +170,15 @@ export const AddChangeItemModal: React.FC<AddChangeItemModalProps> = ({
               <span>Раздел (категория)</span>
             </label>
             {detectedBadge && (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 text-[10px] font-bold border border-emerald-300 animate-fade-in">
-                <Sparkles className="w-3 h-3 text-emerald-600" />
-                Авто-определено: {detectedBadge.sectionName}
+              <span
+                title={detectedBadge.reason || undefined}
+                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-emerald-100/90 text-emerald-900 text-[10.5px] font-bold border border-emerald-300/80 animate-fade-in shadow-2xs"
+              >
+                <Sparkles className="w-3 h-3 text-emerald-700" />
+                <span>
+                  {detectedBadge.rawType ? `${detectedBadge.rawType} ➔ ` : ''}
+                  {detectedBadge.sectionName}
+                </span>
               </span>
             )}
           </div>

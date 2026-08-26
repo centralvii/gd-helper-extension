@@ -16,6 +16,73 @@ export const DEFAULT_IMPLEMENTATION_SECTIONS: ImplementationSection[] = [
 ];
 
 /**
+ * Semantic keyword dictionary for matching GreenData types to sections
+ */
+export const SECTION_SEMANTIC_GROUPS = {
+  algorithms: {
+    canonical: 'Алгоритмы',
+    keywords: [
+      'алгоритм', 'алгоритмы', 'algorithm', 'algorithms', 'algo', 'alg',
+      'скрипт', 'скрипты', 'script', 'scripts', 'код', 'code',
+      'вычисление', 'расчет', 'calc', 'calculation', 'рассчитать',
+      'валидация', 'valid', 'validation', 'проверка', 'проверки',
+      'фильтр', 'фильтрация', 'filter', 'filtering',
+      'обработчик', 'handler', 'жц', 'событие', 'event',
+      'до сохранения', 'после сохранения', 'before_save', 'after_save'
+    ],
+  },
+  objectTypes: {
+    canonical: 'Типы объекта',
+    keywords: [
+      'тип объекта', 'типы объекта', 'типы объектов', 'object type', 'object types',
+      'objecttype', 'object-type', 'object_type', 'struct', 'structure', 'структура', 'структуры',
+      'сущность', 'сущности', 'entity', 'entities', 'модель данных', 'data model',
+      'атрибут', 'атрибуты', 'поле', 'поля', 'свойства'
+    ],
+  },
+  visuals: {
+    canonical: 'Визуалы',
+    keywords: [
+      'визуал', 'визуалы', 'визуальное представление', 'визуальные представления',
+      'экранная форма', 'экранные формы', 'форма', 'формы',
+      'visual', 'visuals', 'view', 'views', 'form', 'forms', 'ui', 'интерфейс',
+      'карточка', 'карточки', 'виджет', 'виджеты', 'компонент', 'компоненты',
+      'разметка', 'layout'
+    ],
+  },
+  processes: {
+    canonical: 'Бизнес-процессы',
+    keywords: [
+      'бизнес-процесс', 'бизнес процесс', 'бизнес-процессы', 'бизнес процессы',
+      'процесс', 'процессы', 'process', 'processes', 'workflow', 'workflows',
+      'бп', 'bp', 'маршрут', 'маршруты', 'статус', 'статусы', 'жизненный цикл'
+    ],
+  },
+  reports: {
+    canonical: 'Печатные формы',
+    keywords: [
+      'печатная форма', 'печатные формы', 'print form', 'printform', 'печать',
+      'отчет', 'отчеты', 'report', 'reports', 'документ', 'документы',
+      'шаблон документа', 'excel', 'word', 'pdf'
+    ],
+  },
+  tables: {
+    canonical: 'Справочники и таблицы',
+    keywords: [
+      'таблица', 'таблицы', 'table', 'tables', 'справочник', 'справочники',
+      'dictionary', 'dictionaries', 'dict', 'реестр', 'реестры', 'список', 'списки', 'grid'
+    ],
+  },
+  integrations: {
+    canonical: 'Интеграции',
+    keywords: [
+      'интеграция', 'интеграции', 'integration', 'integrations',
+      'api', 'rest', 'soap', 'сервис', 'веб-сервис', 'внешняя система'
+    ],
+  },
+};
+
+/**
  * Clean up tab title by removing common website suffix/prefixes
  */
 export function cleanTabTitle(rawTitle: string): string {
@@ -35,7 +102,7 @@ export function cleanTabTitle(rawTitle: string): string {
 }
 
 /**
- * Match raw detected type or title/URL string against standard section names
+ * Match raw detected type or title/URL string against standard GreenData categories
  */
 export function detectGreenDataSection(
   title: string,
@@ -44,81 +111,132 @@ export function detectGreenDataSection(
 ): { sectionName: string; rawType?: string } | null {
   const combined = `${domTypeHint || ''} ${title} ${url}`.toLowerCase();
 
-  // 1. Direct DOM hint matching (e.g. from GreenData visualSettingsControl "Для 'Алгоритм'")
+  // Check DOM Type Hint first
   if (domTypeHint) {
     const hintLow = domTypeHint.toLowerCase();
-    if (hintLow.includes('алгоритм') || hintLow.includes('algorithm')) {
-      return { sectionName: 'Алгоритмы', rawType: domTypeHint };
-    }
-    if (hintLow.includes('тип объекта') || hintLow.includes('типы объекта') || hintLow.includes('object-type') || hintLow.includes('objecttype')) {
-      return { sectionName: 'Типы объекта', rawType: domTypeHint };
-    }
-    if (hintLow.includes('визуал') || hintLow.includes('экранн') || hintLow.includes('форма') || hintLow.includes('представлен')) {
-      return { sectionName: 'Визуалы', rawType: domTypeHint };
-    }
-    if (hintLow.includes('бизнес-процесс') || hintLow.includes('бизнес процесс') || hintLow.includes('процесс') || hintLow.includes('workflow')) {
-      return { sectionName: 'Бизнес-процессы', rawType: domTypeHint };
-    }
-    if (hintLow.includes('печатн') || hintLow.includes('отчет') || hintLow.includes('report')) {
-      return { sectionName: 'Печатные формы', rawType: domTypeHint };
+    for (const group of Object.values(SECTION_SEMANTIC_GROUPS)) {
+      if (group.keywords.some((kw) => hintLow.includes(kw))) {
+        return { sectionName: group.canonical, rawType: domTypeHint };
+      }
     }
   }
 
-  // 2. Heuristics from Title & URL
-  if (
-    combined.includes('алгоритм') ||
-    combined.includes('algorithm') ||
-    combined.includes('/algorithm/') ||
-    combined.includes('_alg') ||
-    combined.includes('событие до сохранения') ||
-    combined.includes('событие после сохранения')
-  ) {
-    return { sectionName: 'Алгоритмы', rawType: 'Алгоритм' };
-  }
-
-  if (
-    combined.includes('тип объекта') ||
-    combined.includes('типы объектов') ||
-    combined.includes('/object-type/') ||
-    combined.includes('/objecttype/') ||
-    combined.includes('/entity/')
-  ) {
-    return { sectionName: 'Типы объекта', rawType: 'Тип объекта' };
-  }
-
-  if (
-    combined.includes('визуальное представление') ||
-    combined.includes('экранная форма') ||
-    combined.includes('экранные формы') ||
-    combined.includes('/visual/') ||
-    combined.includes('/form/') ||
-    combined.includes('/view/') ||
-    combined.includes('виджет')
-  ) {
-    return { sectionName: 'Визуалы', rawType: 'Визуальное представление' };
-  }
-
-  if (
-    combined.includes('бизнес-процесс') ||
-    combined.includes('бизнес процесс') ||
-    combined.includes('бизнес-процессы') ||
-    combined.includes('/process/') ||
-    combined.includes('/workflow/') ||
-    combined.includes('/bp/')
-  ) {
-    return { sectionName: 'Бизнес-процессы', rawType: 'Бизнес-процесс' };
-  }
-
-  if (
-    combined.includes('печатная форма') ||
-    combined.includes('печатные формы') ||
-    combined.includes('отчет') ||
-    combined.includes('/report/')
-  ) {
-    return { sectionName: 'Печатные формы', rawType: 'Печатная форма' };
+  // Check Title & URL heuristics
+  for (const group of Object.values(SECTION_SEMANTIC_GROUPS)) {
+    if (group.keywords.some((kw) => combined.includes(kw))) {
+      return { sectionName: group.canonical, rawType: group.keywords[0] };
+    }
   }
 
   return null;
+}
+
+/**
+ * Intelligently matches a detected GreenData type, tab info, or file name
+ * against the user's actual created sections in the current task.
+ */
+export function matchSectionForType(
+  input: {
+    detectedRawType?: string;
+    detectedSectionName?: string;
+    title?: string;
+    url?: string;
+    fileName?: string;
+  },
+  sections: ImplementationSection[]
+): { section: ImplementationSection; reason: string } | null {
+  if (!sections || sections.length === 0) return null;
+
+  const rawType = (input.detectedRawType || '').toLowerCase().trim();
+  const secName = (input.detectedSectionName || '').toLowerCase().trim();
+  const title = (input.title || '').toLowerCase().trim();
+  const fileName = (input.fileName || '').toLowerCase().trim();
+  const url = (input.url || '').toLowerCase().trim();
+
+  const combinedSearch = `${rawType} ${secName} ${fileName} ${title} ${url}`.toLowerCase();
+
+  // 1. Direct match: Exact section name in rawType or sectionName
+  for (const sec of sections) {
+    const sName = sec.name.toLowerCase().trim();
+    if (
+      sName === secName ||
+      sName === rawType ||
+      (rawType && sName.includes(rawType)) ||
+      (rawType && rawType.includes(sName)) ||
+      (secName && sName.includes(secName))
+    ) {
+      return { section: sec, reason: `Прямое совпадение с «${sec.name}»` };
+    }
+  }
+
+  // 2. Semantic Group Match:
+  // Determine which semantic group the input belongs to
+  let matchedGroupKey: keyof typeof SECTION_SEMANTIC_GROUPS | null = null;
+
+  for (const [key, group] of Object.entries(SECTION_SEMANTIC_GROUPS)) {
+    const hasKeyword = group.keywords.some((kw) => {
+      // Check if keyword is in rawType, fileName, secName or title
+      if (rawType && rawType.includes(kw)) return true;
+      if (secName && secName.includes(kw)) return true;
+      if (fileName) {
+        // e.g. 000001_algo_... or _ALG.guf
+        const fileTokens = fileName.split(/[_.\s-]+/);
+        if (fileTokens.includes(kw) || fileName.includes(`_${kw}_`) || fileName.includes(`_${kw}.`)) {
+          return true;
+        }
+      }
+      return combinedSearch.includes(kw);
+    });
+
+    if (hasKeyword) {
+      matchedGroupKey = key as keyof typeof SECTION_SEMANTIC_GROUPS;
+      break;
+    }
+  }
+
+  // If a group was identified, find which created section matches any keyword of that group
+  if (matchedGroupKey) {
+    const group = SECTION_SEMANTIC_GROUPS[matchedGroupKey];
+
+    // Check each created section for any group keyword
+    for (const sec of sections) {
+      const sLow = sec.name.toLowerCase();
+      if (group.keywords.some((kw) => sLow.includes(kw))) {
+        return {
+          section: sec,
+          reason: `Определен тип: «${input.detectedRawType || group.canonical}» → Раздел «${sec.name}»`,
+        };
+      }
+    }
+  }
+
+  // 3. Fallback: Word stem matching across existing sections
+  for (const sec of sections) {
+    const sLow = sec.name.toLowerCase();
+    const secTokens = sLow.split(/[\s/.,\-_]+/).filter((t) => t.length >= 3);
+    for (const tok of secTokens) {
+      if (combinedSearch.includes(tok)) {
+        return {
+          section: sec,
+          reason: `Совпадение по ключевому слову «${tok}» → Раздел «${sec.name}»`,
+        };
+      }
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Automatically determines the appropriate section for a package file
+ */
+export function detectFileSection(
+  file: { newName?: string; cleanName?: string; originalName: string },
+  sections: ImplementationSection[]
+): ImplementationSection | null {
+  const name = file.newName || file.cleanName || file.originalName;
+  const matchResult = matchSectionForType({ fileName: name, title: name }, sections);
+  return matchResult ? matchResult.section : null;
 }
 
 /**
@@ -148,23 +266,46 @@ export async function getActiveTabInfo(): Promise<TabInfo | null> {
                 );
                 for (const el of Array.from(vsElements)) {
                   const text = el.textContent || '';
-                  const match = text.match(/Для\s*["«]([^"»]+)["»]/i);
+                  const match = text.match(/Для\s*["'«]([^"'»]+)["'»]/i);
                   if (match && match[1]) {
                     return match[1].trim();
                   }
+                  // Check direct text like "Тип: Алгоритм"
+                  const matchType = text.match(/Тип[:\s]+(["'«]?)([^"'»\n]+)\1/i);
+                  if (matchType && matchType[2]) {
+                    return matchType[2].trim();
+                  }
                 }
 
-                // 2. Look for modal / breadcrumb / page header
+                // 2. Check type badges / entity indicators
+                const badges = document.querySelectorAll(
+                  '.object-type-badge, .gd-type-badge, [class*="type-badge"], [class*="typeBadge"], [class*="objectType"], [class*="object-type"], [data-type], [data-object-type]'
+                );
+                for (const b of Array.from(badges)) {
+                  const val = b.getAttribute('data-type') || b.getAttribute('data-object-type') || b.textContent || '';
+                  if (val.trim()) return val.trim();
+                }
+
+                // 3. Look for active tab or modal header
+                const activeTabs = document.querySelectorAll('.ant-tabs-tab-active, .tab-header.active, .active-tab');
+                for (const at of Array.from(activeTabs)) {
+                  const text = (at.textContent || '').trim();
+                  if (text && (text.includes('Алгоритм') || text.includes('Форма') || text.includes('Визуал') || text.includes('Процесс') || text.includes('Тип'))) {
+                    return text;
+                  }
+                }
+
+                // 4. Look for modal / breadcrumb / page header
                 const breadcrumbs = document.querySelectorAll(
-                  '.breadcrumb, .breadcrumbs, .ant-breadcrumb, [class*="breadcrumb"], .page-header, .header-title'
+                  '.breadcrumb, .breadcrumbs, .ant-breadcrumb, [class*="breadcrumb"], .page-header, .header-title, .ant-page-header-heading-title'
                 );
                 for (const b of Array.from(breadcrumbs)) {
                   const text = (b.textContent || '').trim();
                   if (text) return text;
                 }
 
-                // 3. Fallback: check document title or specific heading tags
-                const h1 = document.querySelector('h1, h2, .title');
+                // 5. Fallback: check document title or specific heading tags
+                const h1 = document.querySelector('h1, h2, .title, .form-title');
                 if (h1 && h1.textContent) {
                   return h1.textContent.trim();
                 }
@@ -176,7 +317,7 @@ export async function getActiveTabInfo(): Promise<TabInfo | null> {
             if (results && results[0] && results[0].result) {
               domTypeHint = results[0].result as string;
             }
-          } catch (scriptErr) {
+          } catch {
             // Scripting may be restricted on some domains, fallback to title/url regex
           }
         }
@@ -188,7 +329,7 @@ export async function getActiveTabInfo(): Promise<TabInfo | null> {
           title: rawTitle,
           cleanTitle: clean,
           detectedSectionName: detected?.sectionName,
-          detectedRawType: detected?.rawType,
+          detectedRawType: detected?.rawType || domTypeHint,
         };
       }
     }
@@ -279,7 +420,7 @@ export function formatTaskToMarkdown(task: {
     const sectionMap = new Map<string, ImplementationChangeItem[]>();
     const unsectioned: ImplementationChangeItem[] = [];
 
-    // Group items by sectionId or match by detectedSection
+    // Group items by sectionId
     task.items.forEach((item) => {
       if (item.sectionId) {
         const list = sectionMap.get(item.sectionId) || [];

@@ -34,6 +34,8 @@ import {
   getActiveTabInfo,
   formatTaskToMarkdown,
   DEFAULT_IMPLEMENTATION_SECTIONS,
+  matchSectionForType,
+  detectFileSection,
 } from '../../utils/tabUtils';
 
 interface TaskEditorProps {
@@ -141,13 +143,21 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
       const tabInfo = await getActiveTabInfo();
       if (tabInfo) {
         let secId = sectionId;
-        if (!secId && tabInfo.detectedSectionName) {
-          const matched = sections.find(
-            (s) =>
-              s.name.toLowerCase() === tabInfo.detectedSectionName?.toLowerCase() ||
-              s.name.toLowerCase().includes(tabInfo.detectedSectionName?.toLowerCase() || '')
+
+        // Auto-match against user's created sections
+        if (!secId) {
+          const matched = matchSectionForType(
+            {
+              detectedRawType: tabInfo.detectedRawType,
+              detectedSectionName: tabInfo.detectedSectionName,
+              title: tabInfo.cleanTitle,
+              url: tabInfo.url,
+            },
+            sections
           );
-          if (matched) secId = matched.id;
+          if (matched) {
+            secId = matched.section.id;
+          }
         }
 
         setTargetSectionId(secId || sections[0]?.id);
@@ -187,34 +197,40 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
     setEditingItem(null);
   };
 
-  // Import files from all linked packages
+  // Import files from all linked packages with automatic section assignment
   const handleImportFilesFromPackages = () => {
     if (linkedPackages.length === 0) return;
 
-    const targetSec =
-      sections.find((s) => s.name.toLowerCase().includes('алгоритм')) || sections[0];
-    const targetSecId = targetSec ? targetSec.id : undefined;
-
     let addedCount = 0;
+    const sectionCounts: Record<string, number> = {};
+
     linkedPackages.forEach((pkg) => {
       pkg.files.forEach((file) => {
         const desc = file.newName || file.cleanName || file.originalName;
         const alreadyExists = task.items.some((it) => it.description.trim() === desc.trim());
         if (!alreadyExists) {
+          // Automatically detect the best section for this specific file
+          const matchedSection = detectFileSection(file, sections) || sections[0];
+          const assignedSecId = matchedSection ? matchedSection.id : undefined;
+          const assignedSecName = matchedSection ? matchedSection.name : 'Прочее';
+
           onAddChangeItem(task.id, {
             description: desc,
-            sectionId: targetSecId,
+            sectionId: assignedSecId,
           });
+
           addedCount++;
+          sectionCounts[assignedSecName] = (sectionCounts[assignedSecName] || 0) + 1;
         }
       });
     });
 
     if (addedCount > 0) {
-      setImportNotification(
-        `Добавлено ${addedCount} файлов из пакетов в раздел «${targetSec?.name || 'Изменения'}»`
-      );
-      setTimeout(() => setImportNotification(null), 3500);
+      const breakdown = Object.entries(sectionCounts)
+        .map(([name, count]) => `${count} в «${name}»`)
+        .join(', ');
+      setImportNotification(`Импортировано ${addedCount} файлов (${breakdown})`);
+      setTimeout(() => setImportNotification(null), 4500);
     }
   };
 
