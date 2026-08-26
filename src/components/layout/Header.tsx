@@ -6,7 +6,6 @@ import {
     Trash2,
     Maximize2,
     Bookmark,
-    SlidersHorizontal,
     FileEdit,
     Bot,
 } from 'lucide-react';
@@ -20,7 +19,7 @@ interface HeaderProps {
     hasReadme: boolean;
     onSelectTool: (tool: ActiveTool) => void;
     onOpenPresets: () => void;
-    onOpenMassActions: () => void;
+    onOpenMassActions?: () => void;
     onOpenReadme: () => void;
     onClearFiles: () => void;
 }
@@ -31,7 +30,6 @@ export const Header: React.FC<HeaderProps> = ({
     hasReadme,
     onSelectTool,
     onOpenPresets,
-    onOpenMassActions,
     onOpenReadme,
     onClearFiles,
 }) => {
@@ -60,13 +58,11 @@ export const Header: React.FC<HeaderProps> = ({
         },
         {
             id: 'extra',
-            // no label — only icon
             icon: <Zap className="w-3.5 h-3.5" />,
             title: 'Экстра инструменты',
         },
         {
             id: 'ai',
-            // no label — only robot icon
             icon: <Bot className="w-3.5 h-3.5" />,
             title: 'ИИ Ассистент GreenData',
         },
@@ -81,30 +77,10 @@ export const Header: React.FC<HeaderProps> = ({
                     boxShadow: '0 1px 0 #e2e8e2, 0 2px 6px rgba(0,0,0,0.04)',
                 }}
             >
-                {/* Single-row layout: [left-placeholder] [center nav] [right actions] */}
-                <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-1 px-2.5 py-1.5 min-h-[42px]">
-
-                    {/* ── Left col: invisible placeholder that matches right actions width ── */}
-                    <div aria-hidden className="flex items-center justify-start">
-                        <span className="h-[30px] opacity-0 pointer-events-none flex gap-0.5">
-                            <span className="w-7 h-7" />
-                            {activeTool === 'packer' && (
-                                <>
-                                    <span className="w-7 h-7" />
-                                    <span className="w-7 h-7" />
-                                    <span className="w-7 h-7" />
-                                    <span className="w-px" />
-                                </>
-                            )}
-                            {activeTool === 'packer' && fileCount > 0 && (
-                                <span className="w-7 h-7" />
-                            )}
-                        </span>
-                    </div>
-
-                    {/* ── Center: Navigation tabs ── */}
+                <div className="flex items-center justify-between gap-2 px-2.5 py-1.5 min-h-[44px]">
+                    {/* ── Left: Navigation tabs ── */}
                     <div
-                        className="flex items-center gap-0.5 rounded-xl p-0.5 shadow-sm"
+                        className="flex items-center gap-0.5 rounded-xl p-0.5 shadow-xs flex-shrink-0"
                         style={{ background: '#f0f4f0', border: '1px solid #e2e8e2' }}
                     >
                         {navTabs.map((tab) => (
@@ -133,7 +109,7 @@ export const Header: React.FC<HeaderProps> = ({
                     </div>
 
                     {/* ── Right: Action buttons ── */}
-                    <div className="flex items-center justify-end gap-0.5 flex-shrink-0">
+                    <div className="flex items-center justify-end gap-1 flex-shrink-0">
                         {activeTool === 'packer' && (
                             <>
                                 <button
@@ -142,15 +118,6 @@ export const Header: React.FC<HeaderProps> = ({
                                     className="icon-btn"
                                 >
                                     <Bookmark className="w-4 h-4" />
-                                </button>
-
-                                <button
-                                    onClick={onOpenMassActions}
-                                    title="Значения тегов / переменных"
-                                    disabled={fileCount === 0}
-                                    className="icon-btn disabled:opacity-30 disabled:cursor-not-allowed"
-                                >
-                                    <SlidersHorizontal className="w-4 h-4" />
                                 </button>
 
                                 <button
