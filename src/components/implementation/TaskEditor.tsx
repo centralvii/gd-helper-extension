@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Plus,
   Sparkles,
@@ -88,11 +88,63 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
   // Delete Section Confirm Modal State
   const [sectionToDelete, setSectionToDelete] = useState<ImplementationSection | null>(null);
 
-  // Collapsed Sections Accordion State
-  const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({});
+  const getStorageKey = (taskId: string) => `gd_collapsed_sections_${taskId}`;
+
+  // Collapsed Sections Accordion State (persisted & default collapsed)
+  const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>(() => {
+    try {
+      const saved = localStorage.getItem(getStorageKey(task.id));
+      if (saved) {
+        return JSON.parse(saved);
+      }
+    } catch {
+      // ignore
+    }
+    // Default: all sections collapsed so it doesn't take too much space
+    const initial: Record<string, boolean> = { '__unsectioned__': true };
+    const raw = task.sections && task.sections.length > 0 ? task.sections : DEFAULT_IMPLEMENTATION_SECTIONS;
+    raw.forEach((s) => {
+      initial[s.id] = true;
+    });
+    return initial;
+  });
+
+  // Sync / Reload when task.id changes
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(getStorageKey(task.id));
+      if (saved) {
+        setCollapsedSections(JSON.parse(saved));
+        return;
+      }
+    } catch {
+      // ignore
+    }
+    const initial: Record<string, boolean> = { '__unsectioned__': true };
+    const raw = task.sections && task.sections.length > 0 ? task.sections : DEFAULT_IMPLEMENTATION_SECTIONS;
+    raw.forEach((s) => {
+      initial[s.id] = true;
+    });
+    setCollapsedSections(initial);
+  }, [task.id]);
+
+  const updateCollapsedSections = (updater: (prev: Record<string, boolean>) => Record<string, boolean>) => {
+    setCollapsedSections((prev) => {
+      const next = updater(prev);
+      try {
+        localStorage.setItem(getStorageKey(task.id), JSON.stringify(next));
+        if (typeof chrome !== 'undefined' && chrome.storage?.local) {
+          chrome.storage.local.set({ [getStorageKey(task.id)]: next });
+        }
+      } catch {
+        // ignore
+      }
+      return next;
+    });
+  };
 
   const toggleSectionCollapse = (secId: string) => {
-    setCollapsedSections((prev) => ({
+    updateCollapsedSections((prev) => ({
       ...prev,
       [secId]: !prev[secId],
     }));
@@ -137,7 +189,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
 
   const toggleCollapseAll = () => {
     if (allSectionsCollapsed) {
-      setCollapsedSections({});
+      updateCollapsedSections(() => ({}));
     } else {
       const next: Record<string, boolean> = {};
       sections.forEach((s) => {
@@ -146,7 +198,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
       if (unsectionedItems.length > 0) {
         next['__unsectioned__'] = true;
       }
-      setCollapsedSections(next);
+      updateCollapsedSections(() => next);
     }
   };
 
@@ -222,13 +274,20 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
   };
 
   const handleSaveItem = (itemData: Omit<ImplementationChangeItem, 'id'>) => {
+    const assignedSec = itemData.sectionId || targetSectionId;
     if (editingItem && editingItem.id) {
       onUpdateChangeItem(task.id, editingItem.id, itemData);
     } else {
       onAddChangeItem(task.id, {
         ...itemData,
-        sectionId: itemData.sectionId || targetSectionId,
+        sectionId: assignedSec,
       });
+    }
+    if (assignedSec) {
+      updateCollapsedSections((prev) => ({
+        ...prev,
+        [assignedSec]: false,
+      }));
     }
     setEditingItem(null);
   };
