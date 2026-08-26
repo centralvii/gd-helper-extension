@@ -311,11 +311,68 @@
     100% { transform: scale(1);    filter: drop-shadow(0 0 3px rgba(34,197,94,0.6)); }
 }
 
+@keyframes modalSlideUpIn {
+    0% {
+        opacity: 0.2;
+        transform: translateY(100%);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes modalSlideDownOut {
+    0% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    100% {
+        opacity: 0.2;
+        transform: translateY(100%);
+    }
+}
+
+@keyframes backdropFadeIn {
+    0% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+@keyframes backdropFadeOut {
+    0% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+    }
+}
+
 @layer utilities {
     .animate-fade-in     { animation: fadeIn 0.18s ease-out forwards; }
     .animate-slide-up    { animation: slideUp 0.22s ease-out forwards; }
     .animate-slide-down  { animation: slideDown 0.2s ease-out forwards; }
     .animate-pulse-green { animation: pulse-green 1.5s ease-in-out infinite; }
+
+    .modal-backdrop-in {
+        animation: backdropFadeIn 0.24s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        will-change: opacity;
+    }
+    .modal-backdrop-out {
+        animation: backdropFadeOut 0.2s cubic-bezier(0.32, 0.72, 0, 1) forwards;
+        will-change: opacity;
+    }
+    .modal-content-in {
+        animation: modalSlideUpIn 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        will-change: transform, opacity;
+    }
+    .modal-content-out {
+        animation: modalSlideDownOut 0.22s cubic-bezier(0.32, 0.72, 0, 1) forwards;
+        will-change: transform, opacity;
+    }
 
     .zap-pulse {
         animation: zapPulse 1.4s ease-in-out infinite;
