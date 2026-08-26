@@ -115,34 +115,6 @@ export const MassActionsModal: React.FC<MassActionsModalProps> = ({
                     )}
                   </div>
 
-                  {/* Fast presets for {type} */}
-                  {isType && (
-                    <div className="flex items-center gap-1 mt-1.5">
-                      <button
-                        type="button"
-                        onClick={() => handleValueChange('type', 'ДО')}
-                        className={`px-2 py-0.5 rounded-md text-[10px] font-bold border transition-colors ${
-                          currentVal === 'ДО'
-                            ? 'bg-amber-100 text-amber-900 border-amber-400 shadow-2xs'
-                            : 'bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100'
-                        }`}
-                      >
-                        ДО
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleValueChange('type', 'ПОСЛЕ')}
-                        className={`px-2 py-0.5 rounded-md text-[10px] font-bold border transition-colors ${
-                          currentVal === 'ПОСЛЕ'
-                            ? 'bg-emerald-100 text-emerald-900 border-emerald-400 shadow-2xs'
-                            : 'bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100'
-                        }`}
-                      >
-                        ПОСЛЕ
-                      </button>
-                    </div>
-                  )}
-
                   {/* Fast prefill for {task} */}
                   {isTask && linkedTask && currentVal !== linkedTask.taskNumber && (
                     <button
@@ -163,7 +135,7 @@ export const MassActionsModal: React.FC<MassActionsModalProps> = ({
                     type="text"
                     placeholder={
                       isType
-                        ? 'ДО или ПОСЛЕ'
+                        ? 'Например: algo, form, struct...'
                         : isTask
                         ? 'Например: FINAPP-5638'
                         : isModule

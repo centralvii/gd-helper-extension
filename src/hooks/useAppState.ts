@@ -25,7 +25,7 @@ const PRIMARY_TEMPLATE_KEY = 'gd-helper-primary-template';
 const ACTIVE_PACKAGE_KEY = 'gd-helper-active-package-id';
 
 const DEFAULT_VARIABLES: VariableDefinition[] = [
-  { key: 'type', label: 'Тип (ДО/ПОСЛЕ)' },
+  { key: 'type', label: 'Тип' },
   { key: 'module', label: 'Модуль' },
   { key: 'task', label: 'Задача' },
 ];

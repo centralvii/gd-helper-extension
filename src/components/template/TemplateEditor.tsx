@@ -24,7 +24,7 @@ interface TemplateEditorProps {
 const BUILT_IN_TAGS = [
   { tag: '{indexPad6}', desc: '000001 (номер 6 знаков)' },
   { tag: '{cleanName}', desc: 'Очищенное имя' },
-  { tag: '{type}', desc: 'Тип (ДО/ПОСЛЕ)' },
+  { tag: '{type}', desc: 'Тип (algo, form, etc.)' },
   { tag: '{module}', desc: 'Модуль' },
   { tag: '{task}', desc: 'Задача (GD-...)' },
   { tag: '{date}', desc: 'YYYY-MM-DD' },
