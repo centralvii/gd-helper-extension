@@ -62,6 +62,33 @@ const DEFAULT_PRESETS: TemplatePreset[] = [
   },
 ];
 
+export function getFormattedArchiveName(
+  pkg: BuildPackage,
+  linkedTask?: { taskNumber: string } | null,
+  overrideCount?: number
+): string {
+  const now = new Date();
+  const day = String(now.getDate()).padStart(2, '0');
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const year = now.getFullYear();
+  const formattedDate = `${day}.${month}.${year}`;
+
+  if (linkedTask && linkedTask.taskNumber && linkedTask.taskNumber.trim()) {
+    const taskNum = linkedTask.taskNumber.trim();
+    const count = overrideCount !== undefined ? overrideCount : (pkg.downloadCount || 0);
+    if (count === 0) {
+      return `${taskNum}_${formattedDate}.zip`;
+    }
+    return `${taskNum}-${count}_${formattedDate}.zip`;
+  }
+
+  if (pkg.archiveName && pkg.archiveName !== 'renamed_files.zip') {
+    return pkg.archiveName;
+  }
+
+  return `${pkg.name}_${formattedDate}.zip`;
+}
+
 const createDefaultPackage = (name: string = 'Пакет 1', tpl: string = DEFAULT_TEMPLATE): BuildPackage => ({
   id: crypto.randomUUID(),
   name,
@@ -71,6 +98,7 @@ const createDefaultPackage = (name: string = 'Пакет 1', tpl: string = DEFAU
   archiveName: 'renamed_files.zip',
   readmeContent: '',
   variableValues: {},
+  downloadCount: 0,
   createdAt: Date.now(),
   updatedAt: Date.now(),
 });
@@ -150,6 +178,7 @@ export function useAppState() {
                 id: pkgMeta.id,
                 name: pkgMeta.name || 'Пакет',
                 taskId: pkgMeta.taskId,
+                downloadCount: pkgMeta.downloadCount || 0,
                 files: calculatedFiles,
                 template: tpl,
                 startNumber: pkgMeta.startNumber || 1,
@@ -330,6 +359,7 @@ export function useAppState() {
         id: crypto.randomUUID(),
         name: `${source.name} (копия)`,
         files: duplicatedFiles,
+        downloadCount: 0,
         createdAt: Date.now(),
         updatedAt: Date.now(),
       };
@@ -700,20 +730,40 @@ export function useAppState() {
     [updateActivePackage]
   );
 
-  const exportZip = useCallback(async () => {
-    if (validation.hasErrors || files.length === 0) {
-      return;
-    }
-    setIsExporting(true);
-    try {
-      await generateZip(files, template, readmeContent, archiveName, variableValues);
-    } catch (err) {
-      console.error('Failed to generate ZIP:', err);
-      throw err;
-    } finally {
-      setIsExporting(false);
-    }
-  }, [validation.hasErrors, files, template, readmeContent, archiveName, variableValues]);
+  const exportZip = useCallback(
+    async (linkedTask?: { taskNumber: string } | null, customArchiveName?: string) => {
+      if (validation.hasErrors || files.length === 0) {
+        return;
+      }
+      setIsExporting(true);
+      try {
+        const finalArchiveName =
+          customArchiveName ||
+          getFormattedArchiveName(activePackage, linkedTask);
+
+        await generateZip(files, template, readmeContent, finalArchiveName, variableValues);
+
+        updateActivePackage((pkg) => ({
+          ...pkg,
+          downloadCount: (pkg.downloadCount || 0) + 1,
+        }));
+      } catch (err) {
+        console.error('Failed to generate ZIP:', err);
+        throw err;
+      } finally {
+        setIsExporting(false);
+      }
+    },
+    [
+      validation.hasErrors,
+      files,
+      template,
+      readmeContent,
+      variableValues,
+      activePackage,
+      updateActivePackage,
+    ]
+  );
 
   return {
     packages,

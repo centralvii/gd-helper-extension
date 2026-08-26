@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { UploadCloud, Zap, Check, X } from 'lucide-react';
-import { useAppState } from '../hooks/useAppState';
+import { useAppState, getFormattedArchiveName } from '../hooks/useAppState';
 import { useGlobalFileDrop } from '../hooks/useGlobalFileDrop';
 import { useAutoCollector } from '../hooks/useAutoCollector';
 import { useImplementationTasks } from '../hooks/useImplementationTasks';
@@ -33,7 +33,6 @@ export const App: React.FC = () => {
         template,
         primaryTemplate,
         startNumber,
-        archiveName,
         readmeContent,
         variables,
         variableValues,
@@ -304,10 +303,21 @@ export const App: React.FC = () => {
                 <Footer
                     fileCount={files.length}
                     validation={validation}
-                    archiveName={archiveName}
+                    archiveName={getFormattedArchiveName(
+                        activePackage,
+                        activePackage.taskId
+                            ? implTasks.tasks.find((t) => t.id === activePackage.taskId)
+                            : null
+                    )}
                     isExporting={isExporting}
                     onSetArchiveName={setArchiveName}
-                    onExportZip={exportZip}
+                    onExportZip={() =>
+                        exportZip(
+                            activePackage.taskId
+                                ? implTasks.tasks.find((t) => t.id === activePackage.taskId)
+                                : null
+                        )
+                    }
                     onOpenValidation={() => setIsValidationOpen(true)}
                 />
             )}

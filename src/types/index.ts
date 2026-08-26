@@ -48,6 +48,7 @@ export interface BuildPackage {
   id: string;
   name: string;
   taskId?: string; // ID связанной задачи реализации (1 задача -> N пакетов)
+  downloadCount?: number; // Количество скачиваний архива этого пакета
   files: FileRow[];
   template: string;
   startNumber: number;
@@ -62,6 +63,7 @@ export interface StoredPackageMeta {
   id: string;
   name: string;
   taskId?: string;
+  downloadCount?: number;
   filesMeta: Array<Omit<FileRow, 'file'>>;
   template: string;
   startNumber: number;
