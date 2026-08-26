@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { Plus, Trash2, Copy, ChevronDown, Check, FileCode } from 'lucide-react';
+import { Plus, Trash2, Copy, ChevronDown, Check, FileCode, Edit2 } from 'lucide-react';
 import { ImplementationTask } from '../../types';
 import { Button } from '../ui/Button';
 import { Modal } from '../ui/Modal';
-import { Badge } from '../ui/Badge';
+import { Input } from '../ui/Input';
 
 interface TaskSelectorProps {
   tasks: ImplementationTask[];
@@ -12,6 +12,7 @@ interface TaskSelectorProps {
   onCreateTask: () => void;
   onDuplicateTask: (id: string) => void;
   onDeleteTask: (id: string) => void;
+  onUpdateTask?: (id: string, updates: Partial<Omit<ImplementationTask, 'id' | 'createdAt'>>) => void;
 }
 
 export const TaskSelector: React.FC<TaskSelectorProps> = ({
@@ -21,45 +22,77 @@ export const TaskSelector: React.FC<TaskSelectorProps> = ({
   onCreateTask,
   onDuplicateTask,
   onDeleteTask,
+  onUpdateTask,
 }) => {
   const [isOpenList, setIsOpenList] = useState(false);
   const [taskToDelete, setTaskToDelete] = useState<ImplementationTask | null>(null);
+  const [taskToRename, setTaskToRename] = useState<ImplementationTask | null>(null);
+  const [renameTaskNumber, setRenameTaskNumber] = useState('');
+  const [renameTitle, setRenameTitle] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+
+  const handleOpenRename = (t: ImplementationTask) => {
+    setTaskToRename(t);
+    setRenameTaskNumber(t.taskNumber);
+    setRenameTitle(t.title);
+  };
+
+  const handleConfirmRename = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (taskToRename) {
+      const taskNumber = renameTaskNumber.trim() || 'GD-000';
+      const title = renameTitle.trim() || 'Без названия';
+      if (onUpdateTask) {
+        onUpdateTask(taskToRename.id, { taskNumber, title });
+      } else {
+        taskToRename.taskNumber = taskNumber;
+        taskToRename.title = title;
+        taskToRename.updatedAt = Date.now();
+      }
+    }
+    setTaskToRename(null);
+  };
 
   const filteredTasks = tasks.filter((t) => {
     const query = searchQuery.toLowerCase();
     return (
       t.taskNumber.toLowerCase().includes(query) ||
       t.title.toLowerCase().includes(query) ||
-      t.summary.toLowerCase().includes(query)
+      (t.summary && t.summary.toLowerCase().includes(query))
     );
   });
 
   return (
     <>
-      <div className="flex items-center justify-between gap-2 p-1.5 bg-white border border-gray-200 rounded-xl shadow-sm">
+      <div className="flex items-center justify-between gap-1.5 p-1.5 bg-white border border-gray-200 rounded-xl shadow-xs">
         {/* Active Task Trigger / Dropdown */}
         <div className="relative flex-1 min-w-0">
           <button
+            type="button"
             onClick={() => setIsOpenList(!isOpenList)}
-            className="w-full flex items-center justify-between gap-2 px-3 py-1.5 bg-gray-50 hover:bg-gray-100 text-left border border-gray-200 rounded-lg transition-colors group"
+            className="w-full flex items-center justify-between gap-2 px-2.5 py-1.5 bg-gray-50 hover:bg-gray-100/80 text-left border border-gray-200/90 rounded-lg transition-colors group"
           >
             <div className="flex items-center gap-2 min-w-0">
               <FileCode className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-              <div className="truncate">
-                <span className="font-bold text-xs text-emerald-700 mr-1.5">
+              <div className="flex items-center gap-1.5 min-w-0">
+                <span className="text-[11px] font-bold text-gray-500 flex-shrink-0">
                   {activeTask?.taskNumber || 'Задача'}:
                 </span>
-                <span className="text-xs text-gray-900 font-medium truncate">
+                <span className="text-xs text-gray-900 font-semibold truncate">
                   {activeTask?.title || 'Без названия'}
                 </span>
               </div>
             </div>
+
             <div className="flex items-center gap-1.5 flex-shrink-0">
-              <Badge variant="default" size="sm">
+              <span className="px-1.5 py-0.5 rounded-md bg-white border border-gray-200 text-[10px] font-medium text-gray-600">
                 {activeTask?.items.length || 0} изм.
-              </Badge>
-              <ChevronDown className="w-3.5 h-3.5 text-gray-500 group-hover:text-gray-900 transition-transform" />
+              </span>
+              <ChevronDown
+                className={`w-3.5 h-3.5 text-gray-400 group-hover:text-gray-700 transition-transform ${
+                  isOpenList ? 'rotate-180' : ''
+                }`}
+              />
             </div>
           </button>
 
@@ -70,77 +103,117 @@ export const TaskSelector: React.FC<TaskSelectorProps> = ({
                 className="fixed inset-0 z-40"
                 onClick={() => setIsOpenList(false)}
               />
-              <div className="absolute top-full left-0 right-0 mt-1 z-50 bg-white border border-gray-200 rounded-2xl shadow-xl overflow-hidden animate-fade-in max-h-72 flex flex-col">
-                {/* Search */}
+              <div className="absolute top-full left-0 right-0 mt-1.5 z-50 bg-white border border-gray-200 rounded-2xl shadow-xl overflow-hidden animate-fade-in flex flex-col min-w-[260px]">
+                {/* Search if more than 2 tasks */}
                 {tasks.length > 2 && (
-                  <div className="p-2 border-b border-gray-100 bg-gray-50">
+                  <div className="p-2 border-b border-gray-100 bg-gray-50/70">
                     <input
                       type="text"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      placeholder="Поиск задачи..."
-                      className="w-full px-2.5 py-1 bg-white border border-gray-200 rounded-md text-xs text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-emerald-500"
+                      placeholder="Поиск по номеру или названию..."
+                      className="w-full px-2.5 py-1 bg-white border border-gray-200 rounded-lg text-xs text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-emerald-500"
+                      autoFocus
                     />
                   </div>
                 )}
 
+                {/* Header title */}
+                <div className="px-3 pt-2 pb-1 text-[10px] font-bold uppercase tracking-wider text-gray-400 flex items-center justify-between">
+                  <span>Задачи реализации ({tasks.length})</span>
+                </div>
+
                 {/* List */}
-                <div className="overflow-y-auto flex-1 p-1.5 space-y-0.5">
+                <div className="overflow-y-auto max-h-56 p-1.5 space-y-1">
                   {filteredTasks.map((t) => {
                     const isActive = t.id === activeTask?.id;
                     return (
                       <div
                         key={t.id}
-                        className={`group/item flex items-center justify-between gap-1.5 px-2.5 py-1.5 rounded-lg text-xs transition-colors cursor-pointer ${
+                        onClick={() => {
+                          onSelectTask(t.id);
+                          setIsOpenList(false);
+                        }}
+                        className={`group/row flex items-center justify-between gap-2 px-2.5 py-2 rounded-xl text-xs transition-all cursor-pointer ${
                           isActive
-                            ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
-                            : 'hover:bg-gray-50 text-gray-800'
+                            ? 'bg-emerald-50/70 text-emerald-950 font-semibold border border-emerald-200/80 shadow-2xs'
+                            : 'hover:bg-gray-50 text-gray-800 border border-transparent'
                         }`}
                       >
-                        <button
-                          onClick={() => {
-                            onSelectTask(t.id);
-                            setIsOpenList(false);
-                          }}
-                          className="flex-1 text-left truncate min-w-0 flex items-center gap-1.5"
+                        {/* Left: Indicator & Title */}
+                        <div className="flex items-center gap-2 min-w-0 flex-1">
+                          <div
+                            className={`w-2 h-2 rounded-full flex-shrink-0 ${
+                              isActive ? 'bg-emerald-500 ring-2 ring-emerald-200' : 'bg-gray-300'
+                            }`}
+                          />
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-1.5">
+                              <span className="font-bold text-emerald-800 text-[11px]">
+                                {t.taskNumber}
+                              </span>
+                              <span className="truncate text-xs text-gray-900 font-medium">
+                                {t.title}
+                              </span>
+                            </div>
+                            <span className="block text-[10px] text-gray-400 font-normal">
+                              {t.items.length} {t.items.length === 1 ? 'изменение' : 'изменений'}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Right: Actions */}
+                        <div
+                          className="flex items-center gap-0.5 flex-shrink-0"
+                          onClick={(e) => e.stopPropagation()}
                         >
-                          <span className="font-bold text-emerald-700 flex-shrink-0">
-                            {t.taskNumber}
-                          </span>
-                          <span className="truncate font-medium">{t.title}</span>
-                        </button>
-                        <div className="flex items-center gap-1 flex-shrink-0">
-                          <span className="text-[10px] text-gray-400">
-                            {t.items.length} изм.
-                          </span>
-                          {isActive && <Check className="w-3.5 h-3.5 text-emerald-600" />}
+                          {isActive && (
+                            <Check className="w-4 h-4 text-emerald-600 mr-1 flex-shrink-0" />
+                          )}
+
                           <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setTaskToDelete(t);
+                            type="button"
+                            onClick={() => {
+                              handleOpenRename(t);
+                              setIsOpenList(false);
                             }}
-                            title="Удалить задачу"
-                            className="icon-btn icon-btn--danger p-1 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors opacity-0 group-hover/item:opacity-100"
+                            title="Редактировать номер/название"
+                            className="icon-btn p-1 text-gray-400 hover:text-sky-600 hover:bg-sky-50 rounded-lg transition-colors"
                           >
-                            <Trash2 className="w-3.5 h-3.5" />
+                            <Edit2 className="w-3.5 h-3.5" />
                           </button>
+
+                          {tasks.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setTaskToDelete(t);
+                                setIsOpenList(false);
+                              }}
+                              title="Удалить задачу"
+                              className="icon-btn icon-btn--danger p-1 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
                         </div>
                       </div>
                     );
                   })}
                 </div>
 
-                {/* Footer of dropdown */}
-                <div className="p-1.5 border-t border-gray-100 bg-gray-50/70">
+                {/* Footer: Create Task Button */}
+                <div className="p-2 border-t border-gray-100 bg-gray-50/60">
                   <button
+                    type="button"
                     onClick={() => {
                       onCreateTask();
                       setIsOpenList(false);
                     }}
-                    className="w-full flex items-center justify-center gap-1.5 py-1 text-xs text-emerald-700 hover:text-emerald-800 hover:bg-emerald-50 rounded-lg transition-colors font-semibold"
+                    className="w-full flex items-center justify-center gap-1.5 py-1.5 px-2.5 text-xs text-emerald-700 hover:text-emerald-800 bg-white hover:bg-emerald-50 border border-emerald-200/80 rounded-xl transition-all font-semibold shadow-2xs"
                   >
-                    <Plus className="w-3.5 h-3.5" />
-                    <span>Создать новую задачу</span>
+                    <Plus className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>+ Создать новую задачу</span>
                   </button>
                 </div>
               </div>
@@ -148,20 +221,22 @@ export const TaskSelector: React.FC<TaskSelectorProps> = ({
           )}
         </div>
 
-        {/* Task Actions */}
-        <div className="flex items-center gap-1">
+        {/* Task Actions Toolbar */}
+        <div className="flex items-center gap-0.5 flex-shrink-0">
           <Button
             variant="ghost"
             size="sm"
             onClick={onCreateTask}
             title="Создать новую задачу"
             leftIcon={<Plus className="w-3.5 h-3.5 text-emerald-600" />}
+            className="hidden sm:inline-flex"
           >
-            <span className="hidden sm:inline">Создать</span>
+            Создать
           </Button>
 
           {activeTask && (
             <button
+              type="button"
               onClick={() => onDuplicateTask(activeTask.id)}
               title="Дублировать задачу"
               className="icon-btn p-1.5 text-gray-500 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors"
@@ -170,8 +245,9 @@ export const TaskSelector: React.FC<TaskSelectorProps> = ({
             </button>
           )}
 
-          {activeTask && (
+          {activeTask && tasks.length > 1 && (
             <button
+              type="button"
               onClick={() => setTaskToDelete(activeTask)}
               title="Удалить задачу"
               className="icon-btn icon-btn--danger p-1.5 text-gray-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
@@ -186,7 +262,7 @@ export const TaskSelector: React.FC<TaskSelectorProps> = ({
       <Modal
         isOpen={Boolean(taskToDelete)}
         onClose={() => setTaskToDelete(null)}
-        title="Удалить задачу?"
+        title="Удалить задачу реализации?"
         maxWidth="sm"
         footer={
           <>
@@ -215,9 +291,59 @@ export const TaskSelector: React.FC<TaskSelectorProps> = ({
       >
         <p className="text-xs text-gray-700">
           Вы уверены, что хотите удалить задачу{' '}
-          <strong className="text-gray-900">{taskToDelete?.taskNumber}</strong> (
+          <strong className="text-gray-900">"{taskToDelete?.taskNumber}"</strong> (
           {taskToDelete?.title}) и все записанные в ней изменения ({taskToDelete?.items.length} шт.)?
         </p>
+      </Modal>
+
+      {/* Rename Modal */}
+      <Modal
+        isOpen={Boolean(taskToRename)}
+        onClose={() => setTaskToRename(null)}
+        title="Редактировать параметры задачи"
+        maxWidth="sm"
+        footer={
+          <>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => setTaskToRename(null)}
+            >
+              Отмена
+            </Button>
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={handleConfirmRename}
+            >
+              Сохранить
+            </Button>
+          </>
+        }
+      >
+        <form onSubmit={handleConfirmRename} className="space-y-3">
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">
+              Номер задачи (Jira / Task ID):
+            </label>
+            <Input
+              value={renameTaskNumber}
+              onChange={(e) => setRenameTaskNumber(e.target.value)}
+              placeholder="GD-1234"
+              autoFocus
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">
+              Название задачи:
+            </label>
+            <Input
+              value={renameTitle}
+              onChange={(e) => setRenameTitle(e.target.value)}
+              placeholder="Доработка модуля согласования"
+            />
+          </div>
+        </form>
       </Modal>
     </>
   );

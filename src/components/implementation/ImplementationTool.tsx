@@ -33,6 +33,7 @@ export const ImplementationTool: React.FC = () => {
         onCreateTask={() => createTask()}
         onDuplicateTask={duplicateTask}
         onDeleteTask={deleteTask}
+        onUpdateTask={updateTask}
       />
 
       {/* Main Task Editor */}
