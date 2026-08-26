@@ -1,4 +1,4 @@
-import React, { useRef, useMemo } from 'react';
+import React, { useRef } from 'react';
 import {
   Sparkles,
   Hash,
@@ -6,24 +6,19 @@ import {
   Eye,
   Star,
   Wand2,
-  Sliders,
 } from 'lucide-react';
-import { VariableDefinition, FileRow, ImplementationTask } from '../../types';
+import { VariableDefinition, FileRow } from '../../types';
 
 interface TemplateEditorProps {
   template: string;
   primaryTemplate: string;
   startNumber: number;
   variables: VariableDefinition[];
-  variableValues?: Record<string, string>;
   firstFile?: FileRow;
-  linkedTask?: ImplementationTask | null;
   onSetTemplate: (template: string) => void;
   onSetPrimaryTemplate: (template: string) => void;
   onSetStartNumber: (num: number) => void;
   onResetTemplate: () => void;
-  onUpdateVariableValue?: (key: string, value: string) => void;
-  onOpenMassActions?: () => void;
 }
 
 const BUILT_IN_TAGS = [
@@ -38,46 +33,19 @@ const BUILT_IN_TAGS = [
   { tag: '{originalName}', desc: 'Исходное имя' },
 ];
 
-const FIXED_SYSTEM_TAGS = new Set([
-  'index',
-  'indexPad6',
-  'originalName',
-  'extension',
-  'date',
-  'time',
-  'cleanName',
-]);
-
 export const TemplateEditor: React.FC<TemplateEditorProps> = ({
   template,
   primaryTemplate,
   startNumber,
   variables,
-  variableValues = {},
   firstFile,
-  linkedTask,
   onSetTemplate,
   onSetPrimaryTemplate,
   onSetStartNumber,
   onResetTemplate,
-  onUpdateVariableValue,
-  onOpenMassActions,
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const isPrimary = template.trim() === primaryTemplate.trim();
-
-  // Find all variable/custom tags present in the current template
-  const usedVarKeys = useMemo(() => {
-    const matches = template.match(/\{([a-zA-Z0-9_-]+)\}/g) || [];
-    const keys: string[] = [];
-    matches.forEach((m) => {
-      const key = m.slice(1, -1);
-      if (!FIXED_SYSTEM_TAGS.has(key) && !keys.includes(key)) {
-        keys.push(key);
-      }
-    });
-    return keys;
-  }, [template]);
 
   const insertTag = (tag: string) => {
     if (!inputRef.current) {
@@ -205,96 +173,6 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
               ))}
           </div>
         </div>
-
-        {/* ── Dynamic Tag Values for Active Template ── */}
-        {usedVarKeys.length > 0 && onUpdateVariableValue && (
-          <div className="rounded-xl border border-emerald-200/80 bg-gradient-to-r from-emerald-50/40 via-teal-50/20 to-emerald-50/40 p-2.5 space-y-2">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5 text-[11px] font-bold text-emerald-950">
-                <Sliders className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
-                <span>Значения тегов для файлов:</span>
-              </div>
-              {onOpenMassActions && (
-                <button
-                  type="button"
-                  onClick={onOpenMassActions}
-                  className="text-[10px] text-emerald-700 hover:text-emerald-800 hover:underline font-semibold"
-                >
-                  Все переменные...
-                </button>
-              )}
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-              {usedVarKeys.map((key) => {
-                const val = variableValues[key] || '';
-                const isType = key === 'type';
-                const isTask = key === 'task';
-                const isModule = key === 'module';
-
-                return (
-                  <div key={key} className="space-y-1">
-                    <div className="flex items-center justify-between text-[10px]">
-                      <span className="font-mono font-bold text-emerald-800">{`{${key}}`}</span>
-                      {isType && (
-                        <div className="flex items-center gap-1">
-                          <button
-                            type="button"
-                            onClick={() => onUpdateVariableValue('type', 'ДО')}
-                            className={`px-1.5 py-0.2 rounded text-[9.5px] font-bold border transition-colors ${
-                              val === 'ДО'
-                                ? 'bg-amber-100 text-amber-900 border-amber-300'
-                                : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-100'
-                            }`}
-                          >
-                            ДО
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => onUpdateVariableValue('type', 'ПОСЛЕ')}
-                            className={`px-1.5 py-0.2 rounded text-[9.5px] font-bold border transition-colors ${
-                              val === 'ПОСЛЕ'
-                                ? 'bg-emerald-100 text-emerald-900 border-emerald-300'
-                                : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-100'
-                            }`}
-                          >
-                            ПОСЛЕ
-                          </button>
-                        </div>
-                      )}
-                      {isTask && linkedTask && val !== linkedTask.taskNumber && (
-                        <button
-                          type="button"
-                          onClick={() => onUpdateVariableValue('task', linkedTask.taskNumber)}
-                          title={`Подставить код привязанной задачи: ${linkedTask.taskNumber}`}
-                          className="px-1.5 py-0.2 rounded text-[9.5px] font-semibold bg-emerald-100 hover:bg-emerald-200 text-emerald-800 border border-emerald-300 transition-colors"
-                        >
-                          +{linkedTask.taskNumber}
-                        </button>
-                      )}
-                    </div>
-
-                    <input
-                      type="text"
-                      value={val}
-                      onChange={(e) => onUpdateVariableValue(key, e.target.value)}
-                      placeholder={
-                        isType
-                          ? 'ДО / ПОСЛЕ'
-                          : isTask
-                          ? 'TASK-123'
-                          : isModule
-                          ? 'Напр. Core'
-                          : `Значение {${key}}`
-                      }
-                      className="w-full px-2.5 py-1 bg-white border border-emerald-200 focus:border-emerald-500 rounded-lg text-xs text-gray-900 placeholder:text-gray-400 outline-none focus:ring-1 focus:ring-emerald-500 transition-colors shadow-2xs font-medium"
-                    />
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
 
         {/* Live Preview of 1st File */}
         {firstFile && (

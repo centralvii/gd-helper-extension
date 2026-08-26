@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Plus, Trash2, Check } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Plus, Trash2, Check, Sparkles } from 'lucide-react';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
@@ -10,6 +10,7 @@ interface MassActionsModalProps {
   onClose: () => void;
   variables: VariableDefinition[];
   variableValues: Record<string, string>;
+  linkedTask?: { taskNumber: string } | null;
   onApplyMassVariables: (values: Record<string, string>) => void;
   onAddVariable: (key: string, label?: string) => void;
   onRemoveVariable: (key: string) => void;
@@ -20,6 +21,7 @@ export const MassActionsModal: React.FC<MassActionsModalProps> = ({
   onClose,
   variables,
   variableValues,
+  linkedTask,
   onApplyMassVariables,
   onAddVariable,
   onRemoveVariable,
@@ -28,6 +30,13 @@ export const MassActionsModal: React.FC<MassActionsModalProps> = ({
   const [newVarKey, setNewVarKey] = useState('');
   const [newVarLabel, setNewVarLabel] = useState('');
 
+  // Sync values when modal is opened
+  useEffect(() => {
+    if (isOpen) {
+      setFormValues(variableValues);
+    }
+  }, [isOpen, variableValues]);
+
   const handleValueChange = (key: string, value: string) => {
     setFormValues((prev) => ({ ...prev, [key]: value }));
   };
@@ -35,7 +44,8 @@ export const MassActionsModal: React.FC<MassActionsModalProps> = ({
   const handleAddNewVariable = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newVarKey.trim()) return;
-    onAddVariable(newVarKey, newVarLabel || newVarKey);
+    const cleanKey = newVarKey.trim().replace(/[^a-zA-Z0-9_]/g, '');
+    onAddVariable(cleanKey, newVarLabel.trim() || cleanKey);
     setNewVarKey('');
     setNewVarLabel('');
   };
@@ -49,7 +59,7 @@ export const MassActionsModal: React.FC<MassActionsModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Массовые значения переменных"
+      title="Массовые действия и значения тегов"
       maxWidth="md"
       footer={
         <>
@@ -62,59 +72,132 @@ export const MassActionsModal: React.FC<MassActionsModalProps> = ({
             leftIcon={<Check className="w-3.5 h-3.5" />}
             onClick={handleSaveAndApply}
           >
-            Применить ко всем
+            Применить ко всем файлам
           </Button>
         </>
       }
     >
-      <div className="space-y-4">
-        <p className="text-gray-600 text-xs">
-          Значения переменных подставляются в шаблон вместо соответствующих тегов (например, <code className="text-emerald-700 font-mono font-bold">{'{module}'}</code>) для всех файлов.
+      <div className="space-y-4 text-xs">
+        <p className="text-gray-600 text-[11px] leading-relaxed">
+          Значения тегов автоматически подставляются в шаблон имени файлов (например,{' '}
+          <code className="text-emerald-700 font-mono font-bold bg-emerald-50 px-1 py-0.2 rounded border border-emerald-200">{'{type}'}</code>,{' '}
+          <code className="text-emerald-700 font-mono font-bold bg-emerald-50 px-1 py-0.2 rounded border border-emerald-200">{'{module}'}</code>,{' '}
+          <code className="text-emerald-700 font-mono font-bold bg-emerald-50 px-1 py-0.2 rounded border border-emerald-200">{'{task}'}</code>
+          ) для всех файлов активного пакета.
         </p>
 
-        {/* List of current variables */}
-        <div className="space-y-2.5">
-          {variables.map((v) => (
-            <div
-              key={v.key}
-              className="flex items-center gap-2 p-2 rounded-xl bg-gray-50 border border-gray-200"
-            >
-              <div className="w-28 flex-shrink-0">
-                <span className="font-mono text-emerald-700 font-bold text-xs">{`{${v.key}}`}</span>
-                {v.label && v.label !== v.key && (
-                  <span className="text-[10px] text-gray-500 block truncate">{v.label}</span>
+        {/* List of current variables / tags */}
+        <div className="space-y-2">
+          {variables.map((v) => {
+            const currentVal = formValues[v.key] ?? variableValues[v.key] ?? '';
+            const isType = v.key === 'type';
+            const isTask = v.key === 'task';
+            const isModule = v.key === 'module';
+
+            return (
+              <div
+                key={v.key}
+                className="flex flex-col sm:flex-row sm:items-center gap-2 p-2.5 rounded-xl bg-gray-50/80 border border-gray-200 transition-colors"
+              >
+                {/* Left label & quick buttons */}
+                <div className="sm:w-36 flex-shrink-0 flex items-center justify-between sm:block">
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-mono text-emerald-800 font-bold text-xs">
+                      {`{${v.key}}`}
+                    </span>
+                    {v.label && v.label !== v.key && (
+                      <span className="text-[10px] text-gray-500 truncate block">
+                        ({v.label})
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Fast presets for {type} */}
+                  {isType && (
+                    <div className="flex items-center gap-1 mt-1">
+                      <button
+                        type="button"
+                        onClick={() => handleValueChange('type', 'ДО')}
+                        className={`px-1.5 py-0.5 rounded text-[9.5px] font-bold border transition-colors ${
+                          currentVal === 'ДО'
+                            ? 'bg-amber-100 text-amber-900 border-amber-300'
+                            : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-100'
+                        }`}
+                      >
+                        ДО
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleValueChange('type', 'ПОСЛЕ')}
+                        className={`px-1.5 py-0.5 rounded text-[9.5px] font-bold border transition-colors ${
+                          currentVal === 'ПОСЛЕ'
+                            ? 'bg-emerald-100 text-emerald-900 border-emerald-300'
+                            : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-100'
+                        }`}
+                      >
+                        ПОСЛЕ
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Fast prefill for {task} */}
+                  {isTask && linkedTask && currentVal !== linkedTask.taskNumber && (
+                    <button
+                      type="button"
+                      onClick={() => handleValueChange('task', linkedTask.taskNumber)}
+                      title={`Вставить номер связанной задачи ${linkedTask.taskNumber}`}
+                      className="mt-1 inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded text-[9.5px] font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200 hover:bg-emerald-200 transition-colors"
+                    >
+                      <Sparkles className="w-2.5 h-2.5" />
+                      <span>+{linkedTask.taskNumber}</span>
+                    </button>
+                  )}
+                </div>
+
+                {/* Input field */}
+                <div className="flex-1">
+                  <input
+                    type="text"
+                    placeholder={
+                      isType
+                        ? 'ДО или ПОСЛЕ'
+                        : isTask
+                        ? 'Например: FINAPP-5638'
+                        : isModule
+                        ? 'Например: Core, Auth, Billing'
+                        : `Значение для {${v.key}}`
+                    }
+                    value={currentVal}
+                    onChange={(e) => handleValueChange(v.key, e.target.value)}
+                    className="w-full bg-white border border-gray-200 focus:border-emerald-500 rounded-lg px-2.5 py-1.5 text-xs text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-emerald-500 shadow-2xs font-medium"
+                  />
+                </div>
+
+                {/* Delete custom variable (keep default system tags) */}
+                {!['type', 'module', 'task'].includes(v.key) && (
+                  <button
+                    type="button"
+                    onClick={() => onRemoveVariable(v.key)}
+                    title="Удалить переменную"
+                    className="icon-btn icon-btn--danger p-1.5 rounded-lg text-gray-400 hover:text-rose-600 hover:bg-rose-50 flex-shrink-0 self-end sm:self-center"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
                 )}
               </div>
-              <div className="flex-1">
-                <input
-                  type="text"
-                  placeholder={`Значение для {${v.key}}`}
-                  value={formValues[v.key] ?? variableValues[v.key] ?? ''}
-                  onChange={(e) => handleValueChange(v.key, e.target.value)}
-                  className="w-full bg-white border border-gray-200 rounded-lg px-2.5 py-1 text-xs text-gray-900 placeholder:text-gray-400 focus:border-emerald-500 focus:outline-none"
-                />
-              </div>
-              <button
-                type="button"
-                onClick={() => onRemoveVariable(v.key)}
-                title="Удалить переменную"
-                className="icon-btn icon-btn--danger p-1 rounded-lg text-gray-400 hover:text-rose-600 hover:bg-rose-50"
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         {/* Add New Variable Form */}
         <form
           onSubmit={handleAddNewVariable}
-          className="pt-3 border-t border-gray-100 flex items-end gap-2"
+          className="pt-3 border-t border-gray-100 flex flex-col sm:flex-row items-stretch sm:items-end gap-2"
         >
           <div className="flex-1">
             <Input
-              label="Новая переменная (тег)"
-              placeholder="например, author"
+              label="Добавить новый тег (переменную)"
+              placeholder="например: author, release, sprint"
               value={newVarKey}
               onChange={(e) => setNewVarKey(e.target.value.replace(/[^a-zA-Z0-9_]/g, ''))}
             />
@@ -125,8 +208,9 @@ export const MassActionsModal: React.FC<MassActionsModalProps> = ({
             size="sm"
             disabled={!newVarKey.trim()}
             leftIcon={<Plus className="w-3.5 h-3.5 text-emerald-600" />}
+            className="self-end"
           >
-            Добавить
+            Добавить тег
           </Button>
         </form>
       </div>

@@ -10,6 +10,7 @@ import {
   Zap,
   FileCode,
   ExternalLink,
+  SlidersHorizontal,
 } from 'lucide-react';
 import { BuildPackage, ImplementationTask } from '../../types';
 import { Button } from '../ui/Button';
@@ -28,6 +29,7 @@ interface PackageSelectorProps {
   onNavigateToTask?: (taskId: string) => void;
   isAutoCollectEnabled: boolean;
   onToggleAutoCollect: () => void;
+  onOpenMassActions?: () => void;
 }
 
 export const PackageSelector: React.FC<PackageSelectorProps> = ({
@@ -42,6 +44,7 @@ export const PackageSelector: React.FC<PackageSelectorProps> = ({
   onNavigateToTask,
   isAutoCollectEnabled,
   onToggleAutoCollect,
+  onOpenMassActions,
 }) => {
   const [isOpenList, setIsOpenList] = useState(false);
   const [packageToDelete, setPackageToDelete] = useState<BuildPackage | null>(null);
@@ -307,6 +310,18 @@ export const PackageSelector: React.FC<PackageSelectorProps> = ({
               }
             />
           </button>
+
+          {/* Mass Actions / Tag Values button */}
+          {onOpenMassActions && (
+            <button
+              type="button"
+              onClick={onOpenMassActions}
+              title="Массовые действия и заполнение тегов (переменных) для файлов"
+              className="icon-btn p-1.5 text-gray-500 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors"
+            >
+              <SlidersHorizontal className="w-4 h-4 text-emerald-600" />
+            </button>
+          )}
 
           {/* Quick Create Package */}
           <Button

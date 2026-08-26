@@ -257,6 +257,7 @@ export const App: React.FC = () => {
                             }}
                             isAutoCollectEnabled={isAutoCollectEnabled}
                             onToggleAutoCollect={toggleAutoCollect}
+                            onOpenMassActions={() => setIsMassActionsOpen(true)}
                         />
 
                         {files.length === 0 ? (
@@ -272,15 +273,11 @@ export const App: React.FC = () => {
                                     primaryTemplate={primaryTemplate}
                                     startNumber={startNumber}
                                     variables={variables}
-                                    variableValues={variableValues}
                                     firstFile={files[0]}
-                                    linkedTask={activePackage.taskId ? implTasks.tasks.find((t) => t.id === activePackage.taskId) : null}
                                     onSetTemplate={setTemplate}
                                     onSetPrimaryTemplate={setPrimaryTemplate}
                                     onSetStartNumber={setStartNumber}
                                     onResetTemplate={resetTemplate}
-                                    onUpdateVariableValue={(key, val) => applyMassVariables({ [key]: val })}
-                                    onOpenMassActions={() => setIsMassActionsOpen(true)}
                                 />
 
                                 {/* File Table */}
@@ -328,6 +325,11 @@ export const App: React.FC = () => {
                 onClose={() => setIsMassActionsOpen(false)}
                 variables={variables}
                 variableValues={variableValues}
+                linkedTask={
+                    activePackage.taskId
+                        ? implTasks.tasks.find((t) => t.id === activePackage.taskId)
+                        : null
+                }
                 onApplyMassVariables={applyMassVariables}
                 onAddVariable={addVariable}
                 onRemoveVariable={removeVariable}
