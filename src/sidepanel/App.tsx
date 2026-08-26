@@ -150,7 +150,12 @@ export const App: React.FC = () => {
     }
 
     return (
-        <div className="flex flex-col min-h-screen relative" style={{ background: '#f0f4f0', color: '#111827' }}>
+        <div
+            className={`flex flex-col relative ${
+                activeTool === 'ai' ? 'h-screen overflow-hidden' : 'min-h-screen'
+            }`}
+            style={{ background: '#f0f4f0', color: '#111827' }}
+        >
             {/* Global Drag Overlay */}
             {isDraggingOver && (
                 <div
@@ -212,7 +217,13 @@ export const App: React.FC = () => {
             />
 
             {/* Main Content Area */}
-            <main className="flex-1 p-3 space-y-3 pb-6">
+            <main
+                className={
+                    activeTool === 'ai'
+                        ? 'flex-1 overflow-hidden flex flex-col min-h-0 p-1.5 sm:p-2.5'
+                        : 'flex-1 p-3 space-y-3 pb-6'
+                }
+            >
                 {activeTool === 'ai' ? (
                     <AiChatContainer />
                 ) : activeTool === 'extra' ? (
