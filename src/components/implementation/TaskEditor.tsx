@@ -43,7 +43,7 @@ interface TaskEditorProps {
   packages?: BuildPackage[];
   onNavigateToPackage?: (pkgId: string) => void;
   onUpdateTask: (id: string, updates: Partial<Omit<ImplementationTask, 'id' | 'createdAt'>>) => void;
-  onAddSection: (taskId: string, name: string) => void;
+  onAddSection: (taskId: string, name: string) => ImplementationSection | null | void;
   onUpdateSection: (taskId: string, sectionId: string, updates: Partial<ImplementationSection>) => void;
   onDeleteSection: (taskId: string, sectionId: string) => void;
   onReorderSections: (taskId: string, fromIndex: number, toIndex: number) => void;

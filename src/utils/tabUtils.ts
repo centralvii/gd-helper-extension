@@ -279,25 +279,67 @@ export async function getActiveTabInfo(): Promise<TabInfo | null> {
                 let activeTabHint = '';
 
                 // 1. Check visualSettingsControl / "Для <Тип>" or visual representation selectors
-                const vsElements = document.querySelectorAll(
-                  '.visualSettingsControl, .visual-settings-control, [class*="visual-settings"], [class*="visualSettings"], .visual-settings, [data-qa*="visual-settings"]'
+                const vsControl = document.querySelector(
+                  '.visualSettingsControl, .visual-settings-control, [class*="visualSettings"], [class*="visual-settings"]'
                 );
-                for (const el of Array.from(vsElements)) {
-                  const text = el.textContent || '';
-                  const match = text.match(/Для\s*["'«]([^"'»]+)["'»]/i);
-                  if (match && match[1]) {
-                    typeHint = match[1].trim();
-                    break;
+                if (vsControl) {
+                  // A. Look for choose-element-icon chevron or dropdown button
+                  const chooseBtn = vsControl.querySelector(
+                    '.choose-element-icon, [title="Выбрать элемент"], .fa-chevron-down, button'
+                  );
+                  if (chooseBtn) {
+                    const parentContainer = chooseBtn.closest(
+                      '.flex-container, ._38Gr6L_e92MVpij2eqFSw5, .visual-settings-control, div'
+                    );
+                    if (parentContainer) {
+                      const labelEl = parentContainer.querySelector(
+                        'span[class*="LJdGz"], span[class*="zhI7f"], div[class*="_12uCt"], [class*="title"], span'
+                      );
+                      if (labelEl) {
+                        const clone = labelEl.cloneNode(true) as HTMLElement;
+                        clone
+                          .querySelectorAll(
+                            'span[class*="_2I0rRBp"], [class*="tooltip"], button, i, svg'
+                          )
+                          .forEach((e) => e.remove());
+                        const t = (clone.textContent || '').trim();
+                        if (
+                          t &&
+                          !t.includes('Выбрать') &&
+                          !t.includes('Редактировать') &&
+                          !t.includes('Дополнительные')
+                        ) {
+                          typeHint = t; // e.g. "Форма по умолчанию"
+                        }
+                      }
+                    }
                   }
-                  const matchType = text.match(/Тип[:\s]+(["'«]?)([^"'»\n]+)\1/i);
-                  if (matchType && matchType[2]) {
-                    typeHint = matchType[2].trim();
-                    break;
-                  }
-                  const selItem = el.querySelector('.ant-select-selection-item, .ant-select-selection-selected-value, [class*="selection-item"]');
-                  if (selItem && selItem.textContent && selItem.textContent.trim()) {
-                    typeHint = selItem.textContent.trim();
-                    break;
+
+                  // B. If still not found, check direct text in visual-settings-control
+                  if (!typeHint) {
+                    const clone = vsControl.cloneNode(true) as HTMLElement;
+                    clone
+                      .querySelectorAll(
+                        'button, .btn, span[class*="_2I0rRBp"], [class*="tooltip"], i, svg'
+                      )
+                      .forEach((e) => e.remove());
+                    const raw = (clone.textContent || '').trim();
+                    if (raw) {
+                      const match = raw.match(/Для\s*["'«]([^"'»]+)["'»]/i);
+                      if (match && match[1]) {
+                        typeHint = match[1].trim();
+                      } else {
+                        const firstLine = raw.split(/[\n\r]+/)[0]?.trim();
+                        if (
+                          firstLine &&
+                          firstLine.length > 1 &&
+                          firstLine.length < 80 &&
+                          !firstLine.includes('Редактировать')
+                        ) {
+                          typeHint = firstLine;
+                        }
+                      }
+                    }
                   }
                 }
 

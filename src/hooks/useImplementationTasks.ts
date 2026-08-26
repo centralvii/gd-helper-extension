@@ -184,19 +184,21 @@ export function useImplementationTasks() {
 
   // ── Sections Management ───────────────────────────────────────────────────
 
-  const addSection = useCallback((taskId: string, name: string) => {
+  const addSection = useCallback((taskId: string, name: string): ImplementationSection | null => {
     const trimmed = name.trim();
-    if (!trimmed) return;
+    if (!trimmed) return null;
+
+    const newSec: ImplementationSection = {
+      id: `sec-${crypto.randomUUID().slice(0, 8)}`,
+      name: trimmed,
+      order: 999,
+    };
 
     setTasks((prev) =>
       prev.map((t) => {
         if (t.id !== taskId) return t;
         const currentSections = t.sections || DEFAULT_IMPLEMENTATION_SECTIONS;
-        const newSec: ImplementationSection = {
-          id: `sec-${crypto.randomUUID().slice(0, 8)}`,
-          name: trimmed,
-          order: currentSections.length,
-        };
+        newSec.order = currentSections.length;
         return {
           ...t,
           sections: [...currentSections, newSec],
@@ -204,6 +206,7 @@ export function useImplementationTasks() {
         };
       })
     );
+    return newSec;
   }, []);
 
   const updateSection = useCallback(
