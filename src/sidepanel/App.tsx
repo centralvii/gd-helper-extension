@@ -210,12 +210,7 @@ export const App: React.FC = () => {
             <Header
                 activeTool={activeTool}
                 fileCount={files.length}
-                hasReadme={Boolean(readmeContent && readmeContent.trim().length > 0)}
                 onSelectTool={handleSelectTool}
-                onOpenPresets={() => setIsPresetsOpen(true)}
-                onOpenMassActions={() => setIsMassActionsOpen(true)}
-                onOpenReadme={() => setIsReadmeOpen(true)}
-                onClearFiles={clearFiles}
             />
 
             {/* Main Content Area */}
@@ -258,6 +253,10 @@ export const App: React.FC = () => {
                             isAutoCollectEnabled={isAutoCollectEnabled}
                             onToggleAutoCollect={toggleAutoCollect}
                             onOpenMassActions={() => setIsMassActionsOpen(true)}
+                            onOpenPresets={() => setIsPresetsOpen(true)}
+                            onOpenReadme={() => setIsReadmeOpen(true)}
+                            hasReadme={Boolean(readmeContent && readmeContent.trim().length > 0)}
+                            onClearFiles={clearFiles}
                         />
 
                         {files.length === 0 ? (

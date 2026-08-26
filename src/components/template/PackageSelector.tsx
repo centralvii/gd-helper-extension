@@ -11,6 +11,8 @@ import {
   FileCode,
   ExternalLink,
   SlidersHorizontal,
+  Bookmark,
+  FileEdit,
 } from 'lucide-react';
 import { BuildPackage, ImplementationTask } from '../../types';
 import { Button } from '../ui/Button';
@@ -30,6 +32,10 @@ interface PackageSelectorProps {
   isAutoCollectEnabled: boolean;
   onToggleAutoCollect: () => void;
   onOpenMassActions?: () => void;
+  onOpenPresets?: () => void;
+  onOpenReadme?: () => void;
+  hasReadme?: boolean;
+  onClearFiles?: () => void;
 }
 
 export const PackageSelector: React.FC<PackageSelectorProps> = ({
@@ -45,9 +51,14 @@ export const PackageSelector: React.FC<PackageSelectorProps> = ({
   isAutoCollectEnabled,
   onToggleAutoCollect,
   onOpenMassActions,
+  onOpenPresets,
+  onOpenReadme,
+  hasReadme = false,
+  onClearFiles,
 }) => {
   const [isOpenList, setIsOpenList] = useState(false);
   const [packageToDelete, setPackageToDelete] = useState<BuildPackage | null>(null);
+  const [isClearConfirmOpen, setIsClearConfirmOpen] = useState(false);
 
   // Edit / Rename Modal State
   const [packageToRename, setPackageToRename] = useState<BuildPackage | null>(null);
@@ -323,17 +334,50 @@ export const PackageSelector: React.FC<PackageSelectorProps> = ({
             </button>
           )}
 
-          {/* Quick Create Package */}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleOpenCreateModal}
-            title="Создать новый пакет"
-            leftIcon={<Plus className="w-3.5 h-3.5 text-emerald-600" />}
-            className="hidden sm:inline-flex"
-          >
-            Создать
-          </Button>
+          {/* Presets button */}
+          {onOpenPresets && (
+            <button
+              type="button"
+              onClick={onOpenPresets}
+              title="Пресеты шаблонов"
+              className="icon-btn p-1.5 text-gray-500 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors"
+            >
+              <Bookmark className="w-4 h-4 text-emerald-600" />
+            </button>
+          )}
+
+          {/* README Editor button */}
+          {onOpenReadme && (
+            <button
+              type="button"
+              onClick={onOpenReadme}
+              title="Редактор README.txt"
+              className="icon-btn relative p-1.5 text-gray-500 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors"
+            >
+              <FileEdit className="w-4 h-4 text-emerald-600" />
+              {hasReadme && (
+                <span
+                  className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full"
+                  style={{ background: '#22c55e', boxShadow: '0 0 4px rgba(34,197,94,0.7)' }}
+                />
+              )}
+            </button>
+          )}
+
+          {/* Clear Files in active package button */}
+          {onClearFiles && activePackage.files.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setIsClearConfirmOpen(true)}
+              title="Очистить файлы в активном пакете"
+              className="icon-btn icon-btn--danger p-1.5 text-gray-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          )}
+
+          {/* Divider */}
+          <div className="w-px h-4 bg-gray-200 mx-0.5" />
 
           {/* Rename active package */}
           <button
@@ -404,6 +448,42 @@ export const PackageSelector: React.FC<PackageSelectorProps> = ({
           Вы уверены, что хотите удалить пакет сборки{' '}
           <strong className="text-gray-900">"{packageToDelete?.name}"</strong> (
           {packageToDelete?.files.length} файлов в очереди)?
+        </p>
+      </Modal>
+
+      {/* Clear Files Confirmation Modal */}
+      <Modal
+        isOpen={isClearConfirmOpen}
+        onClose={() => setIsClearConfirmOpen(false)}
+        title="Очистить список файлов пакета?"
+        maxWidth="sm"
+        footer={
+          <>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => setIsClearConfirmOpen(false)}
+            >
+              Отмена
+            </Button>
+            <Button
+              variant="danger"
+              size="sm"
+              leftIcon={<Trash2 className="w-3.5 h-3.5" />}
+              onClick={() => {
+                if (onClearFiles) {
+                  onClearFiles();
+                }
+                setIsClearConfirmOpen(false);
+              }}
+            >
+              Очистить
+            </Button>
+          </>
+        }
+      >
+        <p className="text-xs text-gray-600">
+          Вы уверены, что хотите удалить все загруженные файлы ({activePackage.files.length} шт.) из пакета "{activePackage.name}"?
         </p>
       </Modal>
 
