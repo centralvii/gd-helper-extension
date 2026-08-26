@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
 import {
-    Icon28ArchiveOutline,
-    Icon28ArticleOutline,
-    Icon28FlashOutline,
-    Icon28DeleteOutline,
-    Icon28FullscreenOutline,
-    Icon20BookmarkOutline,
-    Icon20ListBulletOutline,
-    Icon20DocumentOutline,
-} from '@vkontakte/icons';
-import { Bot } from 'lucide-react';
+    Archive,
+    FileText,
+    Zap,
+    Trash2,
+    Maximize2,
+    Bookmark,
+    SlidersHorizontal,
+    FileEdit,
+    Bot,
+} from 'lucide-react';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 import { ActiveTool } from '../../types';
@@ -49,19 +49,19 @@ export const Header: React.FC<HeaderProps> = ({
         {
             id: 'packer',
             label: 'Упаковка',
-            icon: <Icon28ArchiveOutline width={15} height={15} />,
+            icon: <Archive className="w-3.5 h-3.5" />,
             title: 'Упаковка GUF файлов',
         },
         {
             id: 'implementation',
             label: 'Реализация',
-            icon: <Icon28ArticleOutline width={15} height={15} />,
+            icon: <FileText className="w-3.5 h-3.5" />,
             title: 'Инструмент реализации',
         },
         {
             id: 'extra',
             // no label — only icon
-            icon: <Icon28FlashOutline width={15} height={15} />,
+            icon: <Zap className="w-3.5 h-3.5" />,
             title: 'Экстра инструменты',
         },
         {
@@ -85,9 +85,7 @@ export const Header: React.FC<HeaderProps> = ({
                 <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-1 px-2.5 py-1.5 min-h-[42px]">
 
                     {/* ── Left col: invisible placeholder that matches right actions width ── */}
-                    {/* We use the right column to size itself and this col mirrors it */}
                     <div aria-hidden className="flex items-center justify-start">
-                        {/* Placeholder — same buttons as right, but invisible, to balance the grid */}
                         <span className="h-[30px] opacity-0 pointer-events-none flex gap-0.5">
                             <span className="w-7 h-7" />
                             {activeTool === 'packer' && (
@@ -143,7 +141,7 @@ export const Header: React.FC<HeaderProps> = ({
                                     title="Пресеты шаблонов"
                                     className="icon-btn"
                                 >
-                                    <Icon20BookmarkOutline width={17} height={17} />
+                                    <Bookmark className="w-4 h-4" />
                                 </button>
 
                                 <button
@@ -152,7 +150,7 @@ export const Header: React.FC<HeaderProps> = ({
                                     disabled={fileCount === 0}
                                     className="icon-btn disabled:opacity-30 disabled:cursor-not-allowed"
                                 >
-                                    <Icon20ListBulletOutline width={17} height={17} />
+                                    <SlidersHorizontal className="w-4 h-4" />
                                 </button>
 
                                 <button
@@ -160,7 +158,7 @@ export const Header: React.FC<HeaderProps> = ({
                                     title="Редактор README.txt"
                                     className="icon-btn relative"
                                 >
-                                    <Icon20DocumentOutline width={17} height={17} />
+                                    <FileEdit className="w-4 h-4" />
                                     {hasReadme && (
                                         <span
                                             className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full"
@@ -179,7 +177,7 @@ export const Header: React.FC<HeaderProps> = ({
                             title="Открыть во весь экран"
                             className="icon-btn"
                         >
-                            <Icon28FullscreenOutline width={17} height={17} />
+                            <Maximize2 className="w-4 h-4" />
                         </button>
 
                         {activeTool === 'packer' && fileCount > 0 && (
@@ -188,7 +186,7 @@ export const Header: React.FC<HeaderProps> = ({
                                 title="Очистить все файлы"
                                 className="icon-btn icon-btn--danger"
                             >
-                                <Icon28DeleteOutline width={17} height={17} />
+                                <Trash2 className="w-4 h-4" />
                             </button>
                         )}
                     </div>
@@ -208,7 +206,7 @@ export const Header: React.FC<HeaderProps> = ({
                         <Button
                             variant="danger"
                             size="sm"
-                            leftIcon={<Icon28DeleteOutline width={14} height={14} />}
+                            leftIcon={<Trash2 className="w-3.5 h-3.5" />}
                             onClick={() => {
                                 onClearFiles();
                                 setIsClearConfirmOpen(false);

@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import {
-    Icon24ArchiveOutline,
-    Icon20DownloadOutline,
-    Icon16WarningTriangleOutline,
-    Icon16CheckCircleOutline,
-    Icon24PenOutline,
-} from '@vkontakte/icons';
+    Archive,
+    Download,
+    AlertTriangle,
+    CheckCircle2,
+    PenLine,
+} from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
@@ -67,9 +67,9 @@ export const Footer: React.FC<FooterProps> = ({
                 className="flex items-center gap-2 mb-2 px-3 py-2 rounded-lg"
                 style={{ background: '#f0f4f0', border: '1px solid #e2e8e2' }}
             >
-                {/* Иконка архива с bounce-анимацией */}
-                <span className="icon-btn p-0" style={{ color: '#22c55e', pointerEvents: 'none' }}>
-                    <Icon24ArchiveOutline width={15} height={15} />
+                {/* Иконка архива */}
+                <span className="icon-btn p-0 text-emerald-600 pointer-events-none">
+                    <Archive className="w-4 h-4" />
                 </span>
 
                 {isEditingName ? (
@@ -95,9 +95,9 @@ export const Footer: React.FC<FooterProps> = ({
                         <span className="text-xs font-semibold truncate" style={{ color: '#111827' }}>
                             {archiveName}
                         </span>
-                        {/* Pen icon с pop-анимацией */}
-                        <span className="icon-btn p-0 opacity-0 group-hover:opacity-100">
-                            <Icon24PenOutline width={13} height={13} />
+                        {/* Pen icon */}
+                        <span className="icon-btn p-0 opacity-0 group-hover:opacity-100 text-gray-500">
+                            <PenLine className="w-3.5 h-3.5" />
                         </span>
                     </button>
                 )}
@@ -111,13 +111,13 @@ export const Footer: React.FC<FooterProps> = ({
                     {validation.hasErrors ? (
                         <button onClick={onOpenValidation} className="hover:opacity-80 transition-opacity">
                             <Badge variant="danger" size="sm" className="cursor-pointer gap-1">
-                                <Icon16WarningTriangleOutline width={10} height={10} />
+                                <AlertTriangle className="w-3 h-3" />
                                 {validation.errors.length} ошибок
                             </Badge>
                         </button>
                     ) : (
                         <Badge variant="success" size="sm" className="gap-1">
-                            <Icon16CheckCircleOutline width={10} height={10} />
+                            <CheckCircle2 className="w-3 h-3" />
                             Готово
                         </Badge>
                     )}
@@ -132,7 +132,7 @@ export const Footer: React.FC<FooterProps> = ({
                 isLoading={isExporting}
                 disabled={validation.hasErrors || fileCount === 0}
                 onClick={handleExport}
-                leftIcon={<Icon20DownloadOutline width={16} height={16} />}
+                leftIcon={<Download className="w-4 h-4" />}
             >
                 {isExporting ? 'Создание архива...' : `Экспорт ZIP (${fileCount} файлов)`}
             </Button>

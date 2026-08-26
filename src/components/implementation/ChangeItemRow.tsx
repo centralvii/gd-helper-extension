@@ -22,7 +22,7 @@ interface ChangeItemRowProps {
   onMoveDown: () => void;
 }
 
-export const ChangeItemRow: React.FC<ChangeItemRowProps> = ({
+export const ChangeItemRow: React.FC<ChangeItemRowProps> = React.memo(({
   item,
   index,
   totalCount,
@@ -122,4 +122,4 @@ export const ChangeItemRow: React.FC<ChangeItemRowProps> = ({
       )}
     </div>
   );
-};
+});

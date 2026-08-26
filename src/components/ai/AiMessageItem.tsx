@@ -18,7 +18,7 @@ interface AiMessageItemProps {
   onRetry?: () => void;
 }
 
-export const AiMessageItem: React.FC<AiMessageItemProps> = ({ message, onRetry }) => {
+export const AiMessageItem: React.FC<AiMessageItemProps> = React.memo(({ message, onRetry }) => {
   const isUser = message.role === 'user';
   const [copiedMsg, setCopiedMsg] = useState(false);
   const [copiedCodeIdx, setCopiedCodeIdx] = useState<number | null>(null);
@@ -382,4 +382,4 @@ export const AiMessageItem: React.FC<AiMessageItemProps> = ({ message, onRetry }
       </div>
     </div>
   );
-};
+});

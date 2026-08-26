@@ -14,7 +14,9 @@ import {
 import { validateFiles } from '../core/validation';
 import { extractZip, gufFilesToRows, generateZip } from '../core/zipHandler';
 import {
-  saveAppStateToDB,
+  saveMetadataToDB,
+  saveBlobsToDB,
+  deleteBlobsFromDB,
   loadAppStateFromDB,
 } from '../utils/indexedDB';
 
@@ -271,14 +273,13 @@ export function useAppState() {
     }
 
     const timer = setTimeout(() => {
-      const blobsMap = new Map<string, Blob | File>();
-
       const packagesMeta = packages.map((pkg) => {
-        pkg.files.forEach((f) => blobsMap.set(f.id, f.file));
         const filesMeta = pkg.files.map(({ file: _, ...meta }) => meta);
         return {
           id: pkg.id,
           name: pkg.name,
+          taskId: pkg.taskId,
+          downloadCount: pkg.downloadCount,
           filesMeta,
           template: pkg.template,
           startNumber: pkg.startNumber,
@@ -298,7 +299,7 @@ export function useAppState() {
         updatedAt: Date.now(),
       };
 
-      saveAppStateToDB(state, blobsMap);
+      saveMetadataToDB(state);
     }, 300);
 
     return () => clearTimeout(timer);
@@ -364,6 +365,8 @@ export function useAppState() {
         updatedAt: Date.now(),
       };
 
+      saveBlobsToDB(duplicatedFiles.map((f) => ({ id: f.id, blob: f.file })));
+
       const idx = prev.findIndex((p) => p.id === id);
       const updated = [...prev];
       updated.splice(idx + 1, 0, newPkg);
@@ -375,6 +378,10 @@ export function useAppState() {
   const deletePackage = useCallback(
     (id: string) => {
       setPackages((prev) => {
+        const target = prev.find((p) => p.id === id);
+        if (target && target.files.length > 0) {
+          deleteBlobsFromDB(target.files.map((f) => f.id));
+        }
         const filtered = prev.filter((p) => p.id !== id);
         if (filtered.length === 0) {
           const fresh = createDefaultPackage('Пакет 1', primaryTemplate);
@@ -521,6 +528,7 @@ export function useAppState() {
       setIsLoading(true);
       try {
         const result = await extractZip(file, file.name);
+        saveBlobsToDB(result.files.map((f) => ({ id: f.id, blob: f.file })));
         updateActivePackage((pkg) => {
           const calculated = recalculateAllNames(result.files, pkg.template, pkg.startNumber, pkg.variableValues);
           return {
@@ -543,6 +551,7 @@ export function useAppState() {
     (gufFiles: File[]) => {
       updateActivePackage((pkg) => {
         const newRows = gufFilesToRows(gufFiles, pkg.startNumber);
+        saveBlobsToDB(newRows.map((f) => ({ id: f.id, blob: f.file })));
         const calculated = recalculateAllNames(newRows, pkg.template, pkg.startNumber, pkg.variableValues);
         return {
           ...pkg,
@@ -561,6 +570,7 @@ export function useAppState() {
 
       updateActivePackage((pkg) => {
         const newRows = gufFilesToRows(validFiles, pkg.startNumber + pkg.files.length);
+        saveBlobsToDB(newRows.map((f) => ({ id: f.id, blob: f.file })));
         const combined = [...pkg.files, ...newRows];
         const calculated = recalculateAllNames(combined, pkg.template, pkg.startNumber, pkg.variableValues);
         return {
@@ -636,6 +646,7 @@ export function useAppState() {
 
   const removeFile = useCallback(
     (id: string) => {
+      deleteBlobsFromDB([id]);
       updateActivePackage((pkg) => {
         const filtered = pkg.files.filter((f) => f.id !== id);
         return {
@@ -649,6 +660,7 @@ export function useAppState() {
 
   const removeFiles = useCallback(
     (ids: string[]) => {
+      deleteBlobsFromDB(ids);
       const idSet = new Set(ids);
       updateActivePackage((pkg) => {
         const filtered = pkg.files.filter((f) => !idSet.has(f.id));
@@ -662,13 +674,16 @@ export function useAppState() {
   );
 
   const clearFiles = useCallback(async () => {
-    updateActivePackage((pkg) => ({
-      ...pkg,
-      files: [],
-      readmeContent: '',
-      variableValues: {},
-      archiveName: 'renamed_files.zip',
-    }));
+    updateActivePackage((pkg) => {
+      deleteBlobsFromDB(pkg.files.map((f) => f.id));
+      return {
+        ...pkg,
+        files: [],
+        readmeContent: '',
+        variableValues: {},
+        archiveName: 'renamed_files.zip',
+      };
+    });
   }, [updateActivePackage]);
 
   const savePreset = useCallback(

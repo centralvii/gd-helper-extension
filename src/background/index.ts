@@ -153,87 +153,82 @@ export function urlMatchesPattern(url: string, pattern: string): boolean {
   }
 }
 
+interface SiteCssRule {
+  id: string;
+  name: string;
+  urlPattern: string;
+  css: string;
+  isEnabled: boolean;
+}
+
+let cachedRules: SiteCssRule[] = [];
+
+// Initialize rules cache
+chrome.storage.local.get(['siteCssRules'], (data) => {
+  cachedRules = data.siteCssRules || [];
+});
+
+// Keep rules cache in sync
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area === 'local' && changes.siteCssRules) {
+    cachedRules = changes.siteCssRules.newValue || [];
+  }
+});
+
 async function syncCssForTab(tabId: number, url: string) {
-  if (!url || typeof chrome === 'undefined' || !chrome.scripting) return;
+  if (!url || (!url.startsWith('http://') && !url.startsWith('https://'))) return;
+  if (!cachedRules || cachedRules.length === 0) return;
+  if (typeof chrome === 'undefined' || !chrome.scripting) return;
+
+  const activeMatchingRules = cachedRules.filter(
+    (r) => r.isEnabled && !!r.css && r.css.trim() && urlMatchesPattern(url, r.urlPattern)
+  );
+
+  if (activeMatchingRules.length === 0) return;
 
   try {
-    const data = await chrome.storage.local.get(['siteCssRules']);
-    const rules: Array<{ id: string; name: string; urlPattern: string; css: string; isEnabled: boolean }> = data.siteCssRules || [];
-
-    for (const rule of rules) {
-      if (!rule.css || !rule.css.trim()) continue;
-
-      const isMatch = rule.isEnabled && urlMatchesPattern(url, rule.urlPattern);
+    for (const rule of activeMatchingRules) {
       const styleId = `gd-css-${rule.id}`;
-
-      if (isMatch) {
-        try {
-          await chrome.scripting.insertCSS({
-            target: { tabId, allFrames: true },
-            css: rule.css,
-            origin: 'USER',
-          });
-        } catch { /* restricted frame */ }
-
-        try {
-          await chrome.scripting.executeScript({
-            target: { tabId, allFrames: true },
-            func: (sId: string, cssText: string, ruleName: string) => {
-              try {
-                let el = document.getElementById(sId) as HTMLStyleElement | null;
-                if (!el) {
-                  el = document.createElement('style');
-                  el.id = sId;
-                  el.setAttribute('data-source', 'GDHelper');
-                  el.setAttribute('data-rule-name', ruleName);
-                  (document.head || document.documentElement).appendChild(el);
-                }
+      try {
+        await chrome.scripting.executeScript({
+          target: { tabId, allFrames: false },
+          func: (sId: string, cssText: string, ruleName: string) => {
+            try {
+              let el = document.getElementById(sId) as HTMLStyleElement | null;
+              if (!el) {
+                el = document.createElement('style');
+                el.id = sId;
+                el.setAttribute('data-source', 'GDHelper');
+                el.setAttribute('data-rule-name', ruleName);
+                (document.head || document.documentElement).appendChild(el);
+              }
+              if (el.textContent !== cssText) {
                 el.textContent = cssText;
-              } catch { /* ignore */ }
-            },
-            args: [styleId, rule.css, rule.name || 'Custom CSS'],
-          });
-        } catch { /* restricted */ }
-      } else {
-        try {
-          await chrome.scripting.removeCSS({
-            target: { tabId, allFrames: true },
-            css: rule.css,
-            origin: 'USER',
-          });
-        } catch { /* ignore */ }
-
-        try {
-          await chrome.scripting.executeScript({
-            target: { tabId, allFrames: true },
-            func: (sId: string) => {
-              const el = document.getElementById(sId);
-              if (el) el.remove();
-            },
-            args: [styleId],
-          });
-        } catch { /* ignore */ }
-      }
+              }
+            } catch { /* ignore */ }
+          },
+          args: [styleId, rule.css, rule.name || 'Custom CSS'],
+        });
+      } catch { /* restricted */ }
     }
   } catch (err) {
     console.warn('Error syncing CSS for tab:', err);
   }
 }
 
+// Only sync when a webpage has finished loading
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-  const currentUrl = tab.url || tab.pendingUrl;
-  if ((changeInfo.status === 'complete' || changeInfo.status === 'loading') && currentUrl) {
-    syncCssForTab(tabId, currentUrl);
+  if (changeInfo.status === 'complete' && tab.url && (tab.url.startsWith('http://') || tab.url.startsWith('https://'))) {
+    syncCssForTab(tabId, tab.url);
   }
 });
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (message && (message.type === 'SYNC_ALL_SITE_CSS' || message.type === 'APPLY_SITE_CSS')) {
-    chrome.tabs.query({}, (tabs) => {
+    chrome.tabs.query({ url: ['http://*/*', 'https://*/*'] }, (tabs) => {
       for (const tab of tabs) {
-        const url = tab.url || tab.pendingUrl;
-        if (tab.id && url) {
-          syncCssForTab(tab.id, url);
+        if (tab.id && tab.url) {
+          syncCssForTab(tab.id, tab.url);
         }
       }
       sendResponse({ status: 'ok' });

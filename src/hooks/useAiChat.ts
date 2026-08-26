@@ -426,6 +426,27 @@ export function useAiChat() {
           let accumulatedReasoning = '';
           let buffer = '';
 
+          let lastRenderTime = 0;
+
+          const flushLiveUpdate = (force = false) => {
+            const now = Date.now();
+            if (force || now - lastRenderTime >= 40) {
+              lastRenderTime = now;
+              setMessages((prev) =>
+                prev.map((msg) =>
+                  msg.id === assistantMessageId
+                    ? {
+                        ...msg,
+                        content: accumulatedContent,
+                        reasoningContent: accumulatedReasoning || undefined,
+                        isStreaming: true,
+                      }
+                    : msg
+                )
+              );
+            }
+          };
+
           while (true) {
             const { done, value } = await reader.read();
             if (done) break;
@@ -458,19 +479,7 @@ export function useAiChat() {
                       accumulatedContent += delta.text;
                     }
 
-                    // Update assistant message live
-                    setMessages((prev) =>
-                      prev.map((msg) =>
-                        msg.id === assistantMessageId
-                          ? {
-                              ...msg,
-                              content: accumulatedContent,
-                              reasoningContent: accumulatedReasoning || undefined,
-                              isStreaming: true,
-                            }
-                          : msg
-                      )
-                    );
+                    flushLiveUpdate(false);
                   }
                 } catch {
                   // ignore json chunk parse error
@@ -478,6 +487,8 @@ export function useAiChat() {
               }
             }
           }
+
+          flushLiveUpdate(true);
 
           // Complete message
           const finalMessages = updatedMessages.map((msg) =>

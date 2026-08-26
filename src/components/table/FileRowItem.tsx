@@ -20,7 +20,7 @@ interface FileRowItemProps {
     onDelete: (id: string) => void;
 }
 
-export const FileRowItem: React.FC<FileRowItemProps> = ({
+export const FileRowItem: React.FC<FileRowItemProps> = React.memo(({
     file,
     hasError,
     isDuplicate,
@@ -140,4 +140,4 @@ export const FileRowItem: React.FC<FileRowItemProps> = ({
             </div>
         </div>
     );
-};
+});

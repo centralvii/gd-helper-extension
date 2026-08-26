@@ -130,24 +130,19 @@ if (document.readyState === 'loading') {
 // ── 3. Re-apply once fully loaded (images, etc.) ──
 window.addEventListener('load', loadAndApply, { once: true });
 
-// ── 4. Watch for dynamically added <head> (SPA / shadow DOM edge cases) ──
-if (typeof MutationObserver !== 'undefined') {
+// ── 4. If <head> does not exist yet at document_start, wait for it with a shallow observer ──
+if (typeof MutationObserver !== 'undefined' && !document.head) {
   const headObserver = new MutationObserver(() => {
-    if (document.head && _rules.length > 0) {
-      applyAllRules();
-    }
-  });
-  headObserver.observe(document.documentElement || document, {
-    childList: true,
-    subtree: true,
-  });
-  // Disconnect once head is ready
-  const disconnectWhenReady = () => {
     if (document.head) {
       headObserver.disconnect();
+      if (_rules.length > 0) {
+        applyAllRules();
+      }
     }
-  };
-  document.addEventListener('DOMContentLoaded', disconnectWhenReady, { once: true });
+  });
+  if (document.documentElement) {
+    headObserver.observe(document.documentElement, { childList: true });
+  }
 }
 
 // ── 5. Real-time: listen to chrome.storage.onChanged ──
