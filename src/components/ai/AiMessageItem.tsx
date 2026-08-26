@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import {
-  Bot,
+  Sparkles,
   User,
   Copy,
   Check,
@@ -36,17 +36,17 @@ export const AiMessageItem: React.FC<AiMessageItemProps> = React.memo(({ message
     setTimeout(() => setCopiedCodeIdx(null), 2000);
   };
 
-  // Helper to parse content into text, tables, and code blocks
+  // Helper to parse content into text, code blocks, and markdown
   const renderFormattedContent = (content: string) => {
     if (!content) {
       if (message.isStreaming) {
         return (
-          <div className="flex items-center gap-2 py-1.5 text-xs text-gray-500">
-            <span className="relative flex h-2.5 w-2.5">
+          <div className="flex items-center gap-2 py-2 text-xs text-gray-500">
+            <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
             </span>
-            <span className="font-medium animate-pulse">Генерация ответа...</span>
+            <span className="font-medium animate-pulse text-emerald-800 text-[11.5px]">Печатает ответ...</span>
           </div>
         );
       }
@@ -58,7 +58,7 @@ export const AiMessageItem: React.FC<AiMessageItemProps> = React.memo(({ message
     let codeBlockCounter = 0;
 
     return (
-      <div className="space-y-2.5 text-[12.5px] leading-relaxed break-words text-gray-800">
+      <div className="space-y-3 text-[13px] leading-[1.68] break-words text-gray-900 selection:bg-emerald-100 selection:text-emerald-950 font-normal">
         {parts.map((part, index) => {
           if (part.startsWith('```') && part.endsWith('```')) {
             const currentIdx = codeBlockCounter++;
@@ -69,26 +69,26 @@ export const AiMessageItem: React.FC<AiMessageItemProps> = React.memo(({ message
             return (
               <div
                 key={index}
-                className="my-3 rounded-2xl overflow-hidden border border-gray-800/80 bg-[#0e131b] text-gray-100 shadow-lg font-mono text-[11px]"
+                className="my-3 rounded-xl overflow-hidden border border-gray-800 bg-[#12161f] text-gray-100 shadow-md font-mono text-[11.5px]"
               >
-                {/* Modern macOS-style Header */}
-                <div className="flex items-center justify-between px-3.5 py-2 bg-[#161d28] border-b border-gray-800/70 select-none">
+                {/* Modern macOS / Claude-style Code Header */}
+                <div className="flex items-center justify-between px-3.5 py-2 bg-[#1a202c] border-b border-gray-800/80 select-none">
                   <div className="flex items-center gap-2">
                     <div className="flex items-center gap-1.5">
-                      <div className="w-2.5 h-2.5 rounded-full bg-[#ff5f56]/80" />
-                      <div className="w-2.5 h-2.5 rounded-full bg-[#ffbd2e]/80" />
-                      <div className="w-2.5 h-2.5 rounded-full bg-[#27c93f]/80" />
+                      <div className="w-2.5 h-2.5 rounded-full bg-[#ff5f56]/90" />
+                      <div className="w-2.5 h-2.5 rounded-full bg-[#ffbd2e]/90" />
+                      <div className="w-2.5 h-2.5 rounded-full bg-[#27c93f]/90" />
                     </div>
-                    <span className="text-[10px] text-gray-400 font-mono font-semibold ml-1.5 flex items-center gap-1">
+                    <span className="text-[10.5px] text-gray-400 font-mono font-semibold ml-1.5 flex items-center gap-1">
                       <Terminal className="w-3 h-3 text-emerald-400" />
-                      <span className="text-emerald-400/90 lowercase">{language}</span>
+                      <span className="text-emerald-400 lowercase">{language}</span>
                     </span>
                   </div>
 
                   <button
                     type="button"
                     onClick={() => handleCopyCode(code, currentIdx)}
-                    className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-gray-800/60 hover:bg-gray-700/80 text-gray-300 hover:text-white transition-all text-[10px] font-sans font-medium"
+                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-gray-800/80 hover:bg-gray-700 text-gray-300 hover:text-white transition-all text-[10.5px] font-sans font-medium"
                   >
                     {copiedCodeIdx === currentIdx ? (
                       <>
@@ -105,14 +105,14 @@ export const AiMessageItem: React.FC<AiMessageItemProps> = React.memo(({ message
                 </div>
 
                 {/* Code body */}
-                <pre className="p-3.5 overflow-x-auto select-all leading-relaxed text-gray-200 bg-[#0e131b]">
+                <pre className="p-3.5 overflow-x-auto select-all leading-relaxed text-[#e2e8f0] bg-[#12161f]">
                   <code>{code}</code>
                 </pre>
               </div>
             );
           }
 
-          // Format regular text (tables, headers, bold, lists, blockquotes)
+          // Format regular text (headers, blockquotes, lists, tables)
           const textLines = part.split('\n');
           return (
             <div key={index} className="space-y-1.5">
@@ -124,7 +124,7 @@ export const AiMessageItem: React.FC<AiMessageItemProps> = React.memo(({ message
                   return (
                     <h4
                       key={lIdx}
-                      className="font-bold text-gray-900 text-[13px] mt-3 mb-1 flex items-center gap-1.5 text-emerald-900"
+                      className="font-bold text-gray-900 text-[13.5px] mt-3 mb-1 flex items-center gap-1.5 text-emerald-950"
                     >
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                       {renderInlineFormatting(trimmed.slice(4))}
@@ -135,7 +135,7 @@ export const AiMessageItem: React.FC<AiMessageItemProps> = React.memo(({ message
                   return (
                     <h3
                       key={lIdx}
-                      className="font-bold text-gray-900 text-sm mt-3.5 mb-1.5 pb-1 border-b border-gray-100"
+                      className="font-bold text-gray-900 text-[14.5px] mt-3.5 mb-1.5 pb-1 border-b border-gray-100"
                     >
                       {renderInlineFormatting(trimmed.slice(3))}
                     </h3>
@@ -152,39 +152,39 @@ export const AiMessageItem: React.FC<AiMessageItemProps> = React.memo(({ message
                   );
                 }
 
-                // Blockquote: > text
+                // Blockquote
                 if (trimmed.startsWith('> ')) {
                   return (
                     <div
                       key={lIdx}
-                      className="pl-3 py-1 my-1 border-l-2 border-emerald-500 bg-emerald-50/40 rounded-r-lg text-gray-700 italic text-xs"
+                      className="pl-3 py-1 my-1 border-l-2 border-emerald-500 bg-emerald-50/50 rounded-r-lg text-gray-700 italic text-xs leading-relaxed"
                     >
                       {renderInlineFormatting(trimmed.slice(2))}
                     </div>
                   );
                 }
 
-                // Bullet items: - or *
+                // Bullet points
                 if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
                   return (
                     <div key={lIdx} className="flex items-start gap-2 ml-1">
-                      <span className="text-emerald-500 font-bold text-xs mt-0.5">•</span>
-                      <span className="flex-1 text-gray-800 leading-normal">
+                      <span className="text-emerald-600 font-bold text-xs mt-1">•</span>
+                      <span className="flex-1 text-gray-800 leading-relaxed">
                         {renderInlineFormatting(trimmed.slice(2))}
                       </span>
                     </div>
                   );
                 }
 
-                // Numbered list: 1. 2. etc
+                // Numbered list
                 const numMatch = trimmed.match(/^(\d+)\.\s+(.*)/);
                 if (numMatch) {
                   return (
                     <div key={lIdx} className="flex items-start gap-2 ml-1">
-                      <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-emerald-100 text-emerald-800 font-bold text-[10px] flex-shrink-0 mt-0.5">
+                      <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-emerald-100 text-emerald-800 font-bold text-[10px] flex-shrink-0 mt-1">
                         {numMatch[1]}
                       </span>
-                      <span className="flex-1 text-gray-800 leading-normal">
+                      <span className="flex-1 text-gray-800 leading-relaxed">
                         {renderInlineFormatting(numMatch[2])}
                       </span>
                     </div>
@@ -193,7 +193,7 @@ export const AiMessageItem: React.FC<AiMessageItemProps> = React.memo(({ message
 
                 // Empty line
                 if (!trimmed) {
-                  return <div key={lIdx} className="h-1" />;
+                  return <div key={lIdx} className="h-1.5" />;
                 }
 
                 // Normal line
@@ -219,7 +219,7 @@ export const AiMessageItem: React.FC<AiMessageItemProps> = React.memo(({ message
         return (
           <code
             key={idx}
-            className="px-1.5 py-0.5 mx-0.5 rounded-md bg-emerald-50 text-emerald-800 font-mono text-[11px] border border-emerald-200/80 font-semibold shadow-2xs"
+            className="px-1.5 py-0.5 mx-0.5 rounded-md bg-emerald-50 text-emerald-900 font-mono text-[11px] border border-emerald-200/90 font-semibold shadow-2xs"
           >
             {cp.slice(1, -1)}
           </code>
@@ -242,96 +242,100 @@ export const AiMessageItem: React.FC<AiMessageItemProps> = React.memo(({ message
 
   return (
     <div
-      className={`flex items-start gap-3 ${
-        isUser ? 'flex-row-reverse' : 'flex-row'
+      className={`flex items-start gap-2.5 sm:gap-3.5 ${
+        isUser ? 'justify-end' : 'justify-start'
       } group animate-fade-in`}
     >
-      {/* Modern Avatar */}
+      {/* Assistant Avatar (Claude Anthropic Style Sparkle) */}
+      {!isUser && (
+        <div className="w-7 h-7 rounded-xl bg-gradient-to-tr from-emerald-600 via-teal-600 to-emerald-500 text-white flex items-center justify-center flex-shrink-0 shadow-xs mt-0.5">
+          {message.error ? (
+            <AlertCircle className="w-4 h-4 text-white" />
+          ) : (
+            <Sparkles className="w-4 h-4 text-white" />
+          )}
+        </div>
+      )}
+
+      {/* Message Content Container */}
       <div
-        className={`w-8 h-8 rounded-2xl flex items-center justify-center flex-shrink-0 text-xs transition-transform group-hover:scale-105 ${
-          isUser
-            ? 'bg-gradient-to-tr from-gray-800 via-gray-900 to-slate-800 text-white shadow-md shadow-gray-900/10'
-            : message.error
-            ? 'bg-gradient-to-tr from-rose-500 to-rose-600 text-white shadow-md shadow-rose-500/20'
-            : 'bg-gradient-to-tr from-emerald-600 via-teal-600 to-emerald-500 text-white shadow-md shadow-emerald-500/20'
+        className={`max-w-[88%] sm:max-w-[84%] min-w-[120px] ${
+          isUser ? 'items-end' : 'items-start flex-1'
         }`}
       >
         {isUser ? (
-          <User className="w-4 h-4" />
-        ) : message.error ? (
-          <AlertCircle className="w-4 h-4" />
-        ) : (
-          <Bot className="w-4 h-4" />
-        )}
-      </div>
-
-      {/* Message Card Container */}
-      <div
-        className={`max-w-[88%] sm:max-w-[82%] min-w-[140px] space-y-1.5 ${
-          isUser ? 'items-end' : 'items-start'
-        }`}
-      >
-        <div
-          className={`relative rounded-2xl p-4 transition-shadow ${
-            isUser
-              ? 'bg-gradient-to-tr from-emerald-600 to-teal-600 text-white rounded-tr-xs shadow-md shadow-emerald-600/10'
-              : message.error
-              ? 'bg-rose-50/90 border border-rose-200 rounded-tl-xs shadow-sm'
-              : 'bg-white border border-gray-200/90 rounded-tl-xs shadow-[0_2px_12px_rgba(0,0,0,0.03)]'
-          }`}
-        >
-          {/* Reasoning / Thinking Block (DeepSeek R1 style) */}
-          {!isUser && message.reasoningContent && (
-            <div className="mb-3 rounded-xl bg-gradient-to-r from-purple-50/70 to-indigo-50/70 border border-purple-200/70 overflow-hidden text-[11px] transition-all">
-              <button
-                type="button"
-                onClick={() => setIsThinkingOpen(!isThinkingOpen)}
-                className="w-full flex items-center justify-between px-3 py-2 text-purple-900 hover:text-purple-950 font-medium transition-colors"
-              >
-                <div className="flex items-center gap-1.5">
-                  <Brain className="w-3.5 h-3.5 text-purple-600 animate-pulse" />
-                  <span className="font-semibold text-purple-950">Размышления модели</span>
-                  <span className="text-[10px] text-purple-600 bg-purple-100/80 px-1.5 py-0.2 rounded-full font-mono">
-                    {message.reasoningContent.length} симв.
-                  </span>
-                </div>
-                {isThinkingOpen ? (
-                  <ChevronUp className="w-3.5 h-3.5 text-purple-600" />
-                ) : (
-                  <ChevronDown className="w-3.5 h-3.5 text-purple-600" />
-                )}
-              </button>
-              {isThinkingOpen && (
-                <div className="p-3 text-purple-950/80 leading-relaxed font-mono whitespace-pre-wrap border-t border-purple-200/60 text-[10.5px] bg-white/80 max-h-60 overflow-y-auto">
-                  {message.reasoningContent}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Message Body */}
-          {isUser ? (
-            <div className="text-[12.5px] leading-relaxed whitespace-pre-wrap select-text font-normal text-white">
+          /* User Message: Clean Claude warm pill card */
+          <div className="relative rounded-2xl px-4 py-3 bg-[#f5f4ef] text-gray-900 border border-[#e8e6df] shadow-2xs hover:border-gray-300 transition-colors">
+            <div className="text-[13px] leading-relaxed whitespace-pre-wrap select-text font-medium text-gray-900">
               {message.content}
             </div>
-          ) : (
-            renderFormattedContent(message.content)
-          )}
+            {/* User Copy action on hover */}
+            <div className="flex items-center justify-end pt-1 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              <button
+                type="button"
+                onClick={handleCopyMessage}
+                title="Скопировать"
+                className="text-gray-400 hover:text-gray-700 text-[10px] inline-flex items-center gap-1"
+              >
+                {copiedMsg ? (
+                  <Check className="w-3 h-3 text-emerald-600" />
+                ) : (
+                  <Copy className="w-3 h-3" />
+                )}
+              </button>
+            </div>
+          </div>
+        ) : (
+          /* Assistant Message: Claude spacious uncluttered flow */
+          <div className="space-y-2 py-0.5">
+            {/* Reasoning / Thinking Process Block (Claude 3.7 / DeepSeek R1 Style) */}
+            {message.reasoningContent && (
+              <div className="rounded-xl bg-[#faf8f4] border border-[#ebe6dc] overflow-hidden text-[11.5px] transition-all">
+                <button
+                  type="button"
+                  onClick={() => setIsThinkingOpen(!isThinkingOpen)}
+                  className="w-full flex items-center justify-between px-3.5 py-2 text-[#786c5e] hover:text-[#52493e] font-medium transition-colors"
+                >
+                  <div className="flex items-center gap-2">
+                    <Brain className="w-3.5 h-3.5 text-amber-600 animate-pulse" />
+                    <span className="font-semibold text-gray-800">Ход размышлений (Thinking)</span>
+                    <span className="text-[10px] text-gray-500 bg-gray-200/60 px-1.5 py-0.2 rounded-full font-mono">
+                      {message.reasoningContent.length} симв.
+                    </span>
+                  </div>
+                  {isThinkingOpen ? (
+                    <ChevronUp className="w-3.5 h-3.5 text-gray-500" />
+                  ) : (
+                    <ChevronDown className="w-3.5 h-3.5 text-gray-500" />
+                  )}
+                </button>
+                {isThinkingOpen && (
+                  <div className="p-3 text-gray-700 leading-relaxed font-mono whitespace-pre-wrap border-t border-[#ebe6dc] text-[11px] bg-white/70 max-h-60 overflow-y-auto">
+                    {message.reasoningContent}
+                  </div>
+                )}
+              </div>
+            )}
 
-          {/* Streaming blinking cursor */}
-          {message.isStreaming && message.content && (
-            <span className="inline-block w-1.5 h-3.5 ml-1 bg-emerald-600 animate-pulse align-middle rounded-xs" />
-          )}
+            {/* Error Message Box */}
+            {message.error ? (
+              <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs">
+                <p className="font-semibold">Произошла ошибка при ответе модели.</p>
+                <p className="text-[11px] text-rose-600 mt-1">{message.content}</p>
+              </div>
+            ) : (
+              renderFormattedContent(message.content)
+            )}
 
-          {/* Footer Action Bar */}
-          <div
-            className={`flex items-center gap-2 pt-2 mt-2 border-t ${
-              isUser ? 'border-emerald-400/30 text-emerald-100' : 'border-gray-100 text-gray-400'
-            } text-[10px] justify-between select-none`}
-          >
-            <div className="flex items-center gap-1.5">
-              {!isUser && message.model && (
-                <span className="px-1.5 py-0.5 rounded-md bg-gray-100 text-gray-600 font-mono text-[9px] font-medium border border-gray-200">
+            {/* Streaming Cursor */}
+            {message.isStreaming && message.content && (
+              <span className="inline-block w-1.5 h-3.5 ml-1 bg-emerald-600 animate-pulse align-middle rounded-xs" />
+            )}
+
+            {/* Claude-style Message Bottom Action Bar */}
+            <div className="flex items-center gap-2 pt-1 text-[10.5px] text-gray-400 select-none">
+              {message.model && (
+                <span className="px-1.5 py-0.5 rounded-md bg-gray-100 text-gray-600 font-mono text-[9px] font-medium border border-gray-200/80">
                   {message.model}
                 </span>
               )}
@@ -341,45 +345,48 @@ export const AiMessageItem: React.FC<AiMessageItemProps> = React.memo(({ message
                   minute: '2-digit',
                 })}
               </span>
-            </div>
 
-            <div className="flex items-center gap-1">
-              {message.error && onRetry && (
-                <button
-                  type="button"
-                  onClick={onRetry}
-                  className="inline-flex items-center gap-1 text-rose-700 hover:text-rose-800 font-semibold px-2 py-0.5 rounded-md bg-rose-100/80 border border-rose-200 transition-colors"
-                >
-                  <RotateCcw className="w-3 h-3" />
-                  <span>Повторить</span>
-                </button>
-              )}
+              <div className="flex items-center gap-1 ml-auto opacity-80 group-hover:opacity-100 transition-opacity">
+                {message.error && onRetry && (
+                  <button
+                    type="button"
+                    onClick={onRetry}
+                    className="inline-flex items-center gap-1 text-rose-700 hover:text-rose-800 font-semibold px-2 py-0.5 rounded-md bg-rose-100/80 border border-rose-200 transition-colors"
+                  >
+                    <RotateCcw className="w-3 h-3" />
+                    <span>Повторить</span>
+                  </button>
+                )}
 
-              {message.content && (
-                <button
-                  type="button"
-                  onClick={handleCopyMessage}
-                  title="Скопировать сообщение целиком"
-                  className={`p-1.5 rounded-lg transition-colors inline-flex items-center gap-1 ${
-                    isUser
-                      ? 'hover:bg-emerald-700/80 hover:text-white'
-                      : 'hover:bg-gray-100 hover:text-gray-700'
-                  }`}
-                >
-                  {copiedMsg ? (
-                    <>
-                      <Check className="w-3 h-3 text-emerald-400" />
-                      <span className="text-[10px] text-emerald-500 font-semibold">Скопировано</span>
-                    </>
-                  ) : (
-                    <Copy className="w-3 h-3" />
-                  )}
-                </button>
-              )}
+                {message.content && !message.error && (
+                  <button
+                    type="button"
+                    onClick={handleCopyMessage}
+                    title="Скопировать весь ответ"
+                    className="p-1 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors inline-flex items-center gap-1"
+                  >
+                    {copiedMsg ? (
+                      <>
+                        <Check className="w-3 h-3 text-emerald-600" />
+                        <span className="text-[10px] text-emerald-600 font-semibold">Скопировано</span>
+                      </>
+                    ) : (
+                      <Copy className="w-3 h-3" />
+                    )}
+                  </button>
+                )}
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
+
+      {/* User Avatar */}
+      {isUser && (
+        <div className="w-7 h-7 rounded-xl bg-gradient-to-tr from-gray-700 to-gray-900 text-white flex items-center justify-center flex-shrink-0 shadow-xs mt-0.5">
+          <User className="w-4 h-4 text-white" />
+        </div>
+      )}
     </div>
   );
 });
