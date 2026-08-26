@@ -484,6 +484,23 @@ export async function getActiveTabInfo(): Promise<TabInfo | null> {
 }
 
 /**
+ * Wraps title or description in Russian quotes «...» if not already in quotes
+ */
+export function formatTitleInQuotes(title: string): string {
+  if (!title) return '';
+  const trimmed = title.trim();
+  if (!trimmed) return '';
+  if (
+    (trimmed.startsWith('«') && trimmed.endsWith('»')) ||
+    (trimmed.startsWith('"') && trimmed.endsWith('"')) ||
+    (trimmed.startsWith("'") && trimmed.endsWith("'"))
+  ) {
+    return trimmed;
+  }
+  return `«${trimmed}»`;
+}
+
+/**
  * Formats a change description and optional link into Markdown / text
  */
 export function formatChangeItemMarkdown(description: string, linkTitle?: string, linkUrl?: string): string {

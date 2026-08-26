@@ -36,6 +36,7 @@ import {
   DEFAULT_IMPLEMENTATION_SECTIONS,
   matchSectionForType,
   detectFileSection,
+  formatTitleInQuotes,
 } from '../../utils/tabUtils';
 
 interface TaskEditorProps {
@@ -163,11 +164,12 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
         }
 
         setTargetSectionId(secId || sections[0]?.id);
+        const rawName = tabInfo.cleanTitle || tabInfo.title;
         setEditingItem({
           id: '',
           sectionId: secId || sections[0]?.id,
-          description: tabInfo.cleanTitle,
-          linkTitle: tabInfo.cleanTitle,
+          description: formatTitleInQuotes(rawName),
+          linkTitle: rawName,
           linkUrl: tabInfo.url,
         });
       } else {

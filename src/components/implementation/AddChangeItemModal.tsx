@@ -3,7 +3,7 @@ import { Plus, Link as LinkIcon, Sparkles, Check, ExternalLink, Layers, FolderPl
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
-import { getActiveTabInfo, matchSectionForType } from '../../utils/tabUtils';
+import { getActiveTabInfo, matchSectionForType, formatTitleInQuotes } from '../../utils/tabUtils';
 import { ImplementationChangeItem, ImplementationSection } from '../../types';
 
 interface AddChangeItemModalProps {
@@ -76,13 +76,14 @@ export const AddChangeItemModal: React.FC<AddChangeItemModalProps> = ({
       const tabInfo = await getActiveTabInfo();
       if (tabInfo) {
         setLinkUrl(tabInfo.url);
-        // If description is empty, prefill with clean tab title
+        const rawName = tabInfo.cleanTitle || tabInfo.title;
+        // If description is empty, prefill with clean tab title in quotes
         if (!description.trim()) {
-          setDescription(tabInfo.cleanTitle || tabInfo.title);
+          setDescription(formatTitleInQuotes(rawName));
         }
         // If linkTitle is empty, fill it with clean tab title
         if (!linkTitle.trim()) {
-          setLinkTitle(tabInfo.cleanTitle || tabInfo.title);
+          setLinkTitle(rawName);
         }
 
         // Intelligently match against user's created sections
