@@ -18,23 +18,23 @@ export const Modal: React.FC<ModalProps> = ({
   footer,
   maxWidth = 'md',
 }) => {
-  const [isRendered, setIsRendered] = useState(isOpen);
+  const [mounted, setMounted] = useState(isOpen);
   const [isClosing, setIsClosing] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (isOpen) {
-      setIsRendered(true);
+      setMounted(true);
       setIsClosing(false);
-    } else if (isRendered && !isClosing) {
+    } else {
       setIsClosing(true);
       const timer = setTimeout(() => {
-        setIsRendered(false);
+        setMounted(false);
         setIsClosing(false);
       }, 220);
       return () => clearTimeout(timer);
     }
-  }, [isOpen, isRendered, isClosing]);
+  }, [isOpen]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -46,9 +46,9 @@ export const Modal: React.FC<ModalProps> = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, isClosing, onClose]);
 
-  // Lock body scroll when modal is active
+  // Lock body scroll only while modal is open
   useEffect(() => {
-    if (isRendered) {
+    if (isOpen) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = '';
@@ -56,9 +56,9 @@ export const Modal: React.FC<ModalProps> = ({
     return () => {
       document.body.style.overflow = '';
     };
-  }, [isRendered]);
+  }, [isOpen]);
 
-  if (!isRendered) return null;
+  if (!mounted) return null;
 
   const maxWidthClasses = {
     sm: 'max-w-sm',
