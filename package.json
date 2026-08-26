@@ -2,7 +2,7 @@
   "name": "gd-helper-extension",
   "private": true,
   "version": "1.0.0",
-  "description": "GDHelper: Chrome Side Panel Extension for GreenData GUF updates packaging",
+  "description": "GD Helper: Chrome Side Panel Extension for GreenData platform",
   "type": "module",
   "scripts": {
     "dev": "vite",

@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "GDHelper - GUF Packer",
+  "name": "GD Helper",
   "version": "1.0.0",
-  "description": "Инструмент подготовки, переименования по шаблонам и упаковки .guf файлов обновлений GreenData",
+  "description": "Многофункциональное расширение для платформы GreenData: упаковка обновлений, генератор алгоритмов, инструмент реализации, CSS-стилизация и ИИ-ассистент",
   "permissions": [
     "sidePanel",
     "storage",
@@ -14,7 +14,7 @@
     "<all_urls>"
   ],
   "action": {
-    "default_title": "Открыть GDHelper",
+    "default_title": "Открыть GD Helper",
     "default_icon": {
       "16": "icons/icon16.png",
       "48": "icons/icon48.png",
