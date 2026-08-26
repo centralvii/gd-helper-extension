@@ -273,11 +273,15 @@ export const App: React.FC = () => {
                                     primaryTemplate={primaryTemplate}
                                     startNumber={startNumber}
                                     variables={variables}
+                                    variableValues={variableValues}
                                     firstFile={files[0]}
+                                    linkedTask={activePackage.taskId ? implTasks.tasks.find((t) => t.id === activePackage.taskId) : null}
                                     onSetTemplate={setTemplate}
                                     onSetPrimaryTemplate={setPrimaryTemplate}
                                     onSetStartNumber={setStartNumber}
                                     onResetTemplate={resetTemplate}
+                                    onUpdateVariableValue={(key, val) => applyMassVariables({ [key]: val })}
+                                    onOpenMassActions={() => setIsMassActionsOpen(true)}
                                 />
 
                                 {/* File Table */}

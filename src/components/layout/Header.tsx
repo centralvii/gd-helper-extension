@@ -88,14 +88,14 @@ export const Header: React.FC<HeaderProps> = ({
                     {/* We use the right column to size itself and this col mirrors it */}
                     <div aria-hidden className="flex items-center justify-start">
                         {/* Placeholder — same buttons as right, but invisible, to balance the grid */}
-                        <span className="h-[30px] opacity-0 pointer-events-none flex gap-1">
+                        <span className="h-[30px] opacity-0 pointer-events-none flex gap-0.5">
                             <span className="w-7 h-7" />
                             {activeTool === 'packer' && (
                                 <>
-                                    <span className="w-7 h-7 hidden sm:inline-block" />
-                                    <span className="w-7 h-7 hidden sm:inline-block" />
-                                    <span className="w-7 h-7 hidden sm:inline-block" />
-                                    <span className="w-px hidden sm:inline-block" />
+                                    <span className="w-7 h-7" />
+                                    <span className="w-7 h-7" />
+                                    <span className="w-7 h-7" />
+                                    <span className="w-px" />
                                 </>
                             )}
                             {activeTool === 'packer' && fileCount > 0 && (
@@ -141,16 +141,16 @@ export const Header: React.FC<HeaderProps> = ({
                                 <button
                                     onClick={onOpenPresets}
                                     title="Пресеты шаблонов"
-                                    className="icon-btn hidden sm:inline-flex"
+                                    className="icon-btn"
                                 >
                                     <Icon20BookmarkOutline width={17} height={17} />
                                 </button>
 
                                 <button
                                     onClick={onOpenMassActions}
-                                    title="Массовые действия"
+                                    title="Значения тегов / переменных"
                                     disabled={fileCount === 0}
-                                    className="icon-btn hidden sm:inline-flex disabled:opacity-30 disabled:cursor-not-allowed"
+                                    className="icon-btn disabled:opacity-30 disabled:cursor-not-allowed"
                                 >
                                     <Icon20ListBulletOutline width={17} height={17} />
                                 </button>
@@ -158,7 +158,7 @@ export const Header: React.FC<HeaderProps> = ({
                                 <button
                                     onClick={onOpenReadme}
                                     title="Редактор README.txt"
-                                    className="icon-btn relative hidden sm:inline-flex"
+                                    className="icon-btn relative"
                                 >
                                     <Icon20DocumentOutline width={17} height={17} />
                                     {hasReadme && (
@@ -170,7 +170,7 @@ export const Header: React.FC<HeaderProps> = ({
                                 </button>
 
                                 {/* Divider */}
-                                <div className="hidden sm:block w-px h-4 mx-0.5" style={{ background: '#e2e8e2' }} />
+                                <div className="w-px h-4 mx-0.5" style={{ background: '#e2e8e2' }} />
                             </>
                         )}
 
