@@ -43,14 +43,23 @@ export const AddChangeItemModal: React.FC<AddChangeItemModalProps> = ({
         setSectionId(initialItem.sectionId || '');
         setLinkTitle(initialItem.linkTitle || '');
         setLinkUrl(initialItem.linkUrl || '');
+        if (initialItem.sectionId) {
+          const foundSec = sections.find((s) => s.id === initialItem.sectionId);
+          if (foundSec) {
+            setDetectedBadge({
+              sectionName: foundSec.name,
+              rawType: initialItem.description,
+            });
+          }
+        }
       } else {
         setDescription('');
         setSectionId(defaultSectionId || (sections[0]?.id ?? ''));
         setLinkTitle('');
         setLinkUrl('');
+        setDetectedBadge(null);
       }
       setTabLoadedMessage(null);
-      setDetectedBadge(null);
       setIsCreatingNewSection(false);
       setNewSectionName('');
     }
@@ -79,6 +88,8 @@ export const AddChangeItemModal: React.FC<AddChangeItemModalProps> = ({
             detectedSectionName: tabInfo.detectedSectionName,
             title: tabInfo.cleanTitle,
             url: tabInfo.url,
+            breadcrumb: tabInfo.breadcrumb,
+            activeTab: tabInfo.activeTabName,
           },
           sections
         );

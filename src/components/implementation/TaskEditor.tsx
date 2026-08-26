@@ -152,6 +152,8 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
               detectedSectionName: tabInfo.detectedSectionName,
               title: tabInfo.cleanTitle,
               url: tabInfo.url,
+              breadcrumb: tabInfo.breadcrumb,
+              activeTab: tabInfo.activeTabName,
             },
             sections
           );

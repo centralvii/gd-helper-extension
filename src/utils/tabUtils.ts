@@ -5,7 +5,9 @@ export interface TabInfo {
   title: string;
   cleanTitle: string;
   detectedSectionName?: string; // e.g. 'Алгоритмы', 'Типы объекта', 'Визуалы', 'Бизнес-процессы'
-  detectedRawType?: string;     // e.g. 'Алгоритм', 'Тип объекта', 'Визуальное представление'
+  detectedRawType?: string;     // e.g. 'Форма по умолчанию', 'Алгоритм', 'Тип объекта', 'Визуальное представление'
+  breadcrumb?: string;
+  activeTabName?: string;
 }
 
 export const DEFAULT_IMPLEMENTATION_SECTIONS: ImplementationSection[] = [
@@ -19,6 +21,16 @@ export const DEFAULT_IMPLEMENTATION_SECTIONS: ImplementationSection[] = [
  * Semantic keyword dictionary for matching GreenData types to sections
  */
 export const SECTION_SEMANTIC_GROUPS = {
+  visuals: {
+    canonical: 'Визуалы',
+    keywords: [
+      'форма по умолчанию', 'форма', 'формы', 'экранная форма', 'экранные формы',
+      'визуал', 'визуалы', 'визуальное представление', 'визуальные представления',
+      'visual', 'visuals', 'view', 'views', 'form', 'forms', 'ui', 'интерфейс',
+      'карточка', 'карточки', 'виджет', 'виджеты', 'компонент', 'компоненты',
+      'разметка', 'layout'
+    ],
+  },
   algorithms: {
     canonical: 'Алгоритмы',
     keywords: [
@@ -27,7 +39,7 @@ export const SECTION_SEMANTIC_GROUPS = {
       'вычисление', 'расчет', 'calc', 'calculation', 'рассчитать',
       'валидация', 'valid', 'validation', 'проверка', 'проверки',
       'фильтр', 'фильтрация', 'filter', 'filtering',
-      'обработчик', 'handler', 'жц', 'событие', 'event',
+      'обработчик', 'handler', 'событие', 'event',
       'до сохранения', 'после сохранения', 'before_save', 'after_save'
     ],
   },
@@ -38,16 +50,6 @@ export const SECTION_SEMANTIC_GROUPS = {
       'objecttype', 'object-type', 'object_type', 'struct', 'structure', 'структура', 'структуры',
       'сущность', 'сущности', 'entity', 'entities', 'модель данных', 'data model',
       'атрибут', 'атрибуты', 'поле', 'поля', 'свойства'
-    ],
-  },
-  visuals: {
-    canonical: 'Визуалы',
-    keywords: [
-      'визуал', 'визуалы', 'визуальное представление', 'визуальные представления',
-      'экранная форма', 'экранные формы', 'форма', 'формы',
-      'visual', 'visuals', 'view', 'views', 'form', 'forms', 'ui', 'интерфейс',
-      'карточка', 'карточки', 'виджет', 'виджеты', 'компонент', 'компоненты',
-      'разметка', 'layout'
     ],
   },
   processes: {
@@ -113,9 +115,9 @@ export function detectGreenDataSection(
 
   // Check DOM Type Hint first
   if (domTypeHint) {
-    const hintLow = domTypeHint.toLowerCase();
+    const hintLow = domTypeHint.toLowerCase().trim();
     for (const group of Object.values(SECTION_SEMANTIC_GROUPS)) {
-      if (group.keywords.some((kw) => hintLow.includes(kw))) {
+      if (group.keywords.some((kw) => hintLow.includes(kw) || kw.includes(hintLow))) {
         return { sectionName: group.canonical, rawType: domTypeHint };
       }
     }
@@ -123,8 +125,8 @@ export function detectGreenDataSection(
 
   // Check Title & URL heuristics
   for (const group of Object.values(SECTION_SEMANTIC_GROUPS)) {
-    if (group.keywords.some((kw) => combined.includes(kw))) {
-      return { sectionName: group.canonical, rawType: group.keywords[0] };
+    if (group.keywords.some((kw) => kw.length >= 4 && combined.includes(kw))) {
+      return { sectionName: group.canonical, rawType: domTypeHint || group.canonical };
     }
   }
 
@@ -132,7 +134,7 @@ export function detectGreenDataSection(
 }
 
 /**
- * Intelligently matches a detected GreenData type, tab info, or file name
+ * Intelligently scores and matches a detected GreenData type, tab info, or file name
  * against the user's actual created sections in the current task.
  */
 export function matchSectionForType(
@@ -142,86 +144,95 @@ export function matchSectionForType(
     title?: string;
     url?: string;
     fileName?: string;
+    breadcrumb?: string;
+    activeTab?: string;
   },
   sections: ImplementationSection[]
 ): { section: ImplementationSection; reason: string } | null {
   if (!sections || sections.length === 0) return null;
 
+  let bestSection: ImplementationSection | null = null;
+  let bestScore = 0;
+  let bestReason = '';
+
   const rawType = (input.detectedRawType || '').toLowerCase().trim();
   const secName = (input.detectedSectionName || '').toLowerCase().trim();
   const title = (input.title || '').toLowerCase().trim();
   const fileName = (input.fileName || '').toLowerCase().trim();
-  const url = (input.url || '').toLowerCase().trim();
+  const breadcrumb = (input.breadcrumb || '').toLowerCase().trim();
+  const activeTab = (input.activeTab || '').toLowerCase().trim();
 
-  const combinedSearch = `${rawType} ${secName} ${fileName} ${title} ${url}`.toLowerCase();
+  // Primary search targets
+  const allInputText = `${rawType} ${secName} ${title} ${fileName} ${breadcrumb} ${activeTab}`.toLowerCase();
 
-  // 1. Direct match: Exact section name in rawType or sectionName
   for (const sec of sections) {
     const sName = sec.name.toLowerCase().trim();
-    if (
-      sName === secName ||
-      sName === rawType ||
-      (rawType && sName.includes(rawType)) ||
-      (rawType && rawType.includes(sName)) ||
-      (secName && sName.includes(secName))
-    ) {
-      return { section: sec, reason: `Прямое совпадение с «${sec.name}»` };
+    let score = 0;
+    const matchReasons: string[] = [];
+
+    // 1. Exact match with section name
+    if (rawType && (sName === rawType || sName.replace(/\s*\([^)]*\)/g, '').trim() === rawType)) {
+      score += 150;
+      matchReasons.push(`точное совпадение с «${input.detectedRawType}»`);
+    } else if (secName && (sName === secName || sName.replace(/\s*\([^)]*\)/g, '').trim() === secName)) {
+      score += 120;
+      matchReasons.push(`совпадение с категорией «${input.detectedSectionName}»`);
     }
-  }
 
-  // 2. Semantic Group Match:
-  // Determine which semantic group the input belongs to
-  let matchedGroupKey: keyof typeof SECTION_SEMANTIC_GROUPS | null = null;
+    // 2. Substring containment
+    // e.g. section "Форма по умолчанию (визуалы)" contains "Форма по умолчанию"
+    if (rawType && rawType.length >= 3 && sName.includes(rawType)) {
+      score += 110;
+      matchReasons.push(`раздел содержит «${input.detectedRawType}»`);
+    } else if (rawType && rawType.length >= 3 && rawType.includes(sName)) {
+      score += 90;
+      matchReasons.push(`тип содержит «${sec.name}»`);
+    }
 
-  for (const [key, group] of Object.entries(SECTION_SEMANTIC_GROUPS)) {
-    const hasKeyword = group.keywords.some((kw) => {
-      // Check if keyword is in rawType, fileName, secName or title
-      if (rawType && rawType.includes(kw)) return true;
-      if (secName && secName.includes(kw)) return true;
-      if (fileName) {
-        // e.g. 000001_algo_... or _ALG.guf
-        const fileTokens = fileName.split(/[_.\s-]+/);
-        if (fileTokens.includes(kw) || fileName.includes(`_${kw}_`) || fileName.includes(`_${kw}.`)) {
-          return true;
+    if (title && title.length >= 3 && sName.includes(title)) {
+      score += 70;
+      matchReasons.push(`раздел содержит «${input.title}»`);
+    } else if (title && title.length >= 3 && title.includes(sName)) {
+      score += 70;
+      matchReasons.push(`заголовок содержит «${sec.name}»`);
+    }
+
+    // 3. Multi-token overlap (e.g. "Форма", "по", "умолчанию", "визуалы")
+    const sTokens = sName.split(/[\s/(),.\-_]+/).filter((t) => t.length >= 3);
+    const inputTokens = allInputText.split(/[\s/(),.\-_]+/).filter((t) => t.length >= 3);
+
+    for (const st of sTokens) {
+      for (const it of inputTokens) {
+        if (st === it) {
+          score += 40;
+          matchReasons.push(`совпадение слова «${st}»`);
+        } else if (st.startsWith(it) || it.startsWith(st)) {
+          score += 25;
+          matchReasons.push(`совпадение корня «${st}»`);
         }
       }
-      return combinedSearch.includes(kw);
-    });
+    }
 
-    if (hasKeyword) {
-      matchedGroupKey = key as keyof typeof SECTION_SEMANTIC_GROUPS;
-      break;
+    // 4. Semantic group matching
+    for (const group of Object.values(SECTION_SEMANTIC_GROUPS)) {
+      const inputHasGroup = group.keywords.some((kw) => kw.length >= 3 && allInputText.includes(kw));
+      const sectionHasGroup = group.keywords.some((kw) => kw.length >= 3 && sName.includes(kw));
+
+      if (inputHasGroup && sectionHasGroup) {
+        score += 65;
+        matchReasons.push(`семантическая группа «${group.canonical}»`);
+      }
+    }
+
+    if (score > bestScore) {
+      bestScore = score;
+      bestSection = sec;
+      bestReason = matchReasons[0] || `Совпадение с разделом «${sec.name}»`;
     }
   }
 
-  // If a group was identified, find which created section matches any keyword of that group
-  if (matchedGroupKey) {
-    const group = SECTION_SEMANTIC_GROUPS[matchedGroupKey];
-
-    // Check each created section for any group keyword
-    for (const sec of sections) {
-      const sLow = sec.name.toLowerCase();
-      if (group.keywords.some((kw) => sLow.includes(kw))) {
-        return {
-          section: sec,
-          reason: `Определен тип: «${input.detectedRawType || group.canonical}» → Раздел «${sec.name}»`,
-        };
-      }
-    }
-  }
-
-  // 3. Fallback: Word stem matching across existing sections
-  for (const sec of sections) {
-    const sLow = sec.name.toLowerCase();
-    const secTokens = sLow.split(/[\s/.,\-_]+/).filter((t) => t.length >= 3);
-    for (const tok of secTokens) {
-      if (combinedSearch.includes(tok)) {
-        return {
-          section: sec,
-          reason: `Совпадение по ключевому слову «${tok}» → Раздел «${sec.name}»`,
-        };
-      }
-    }
+  if (bestSection && bestScore >= 20) {
+    return { section: bestSection, reason: bestReason };
   }
 
   return null;
@@ -240,7 +251,7 @@ export function detectFileSection(
 }
 
 /**
- * Retrieves the currently active browser tab in Chrome and inspects GreenData DOM
+ * Retrieves the currently active browser tab in Chrome and thoroughly inspects GreenData DOM
  */
 export async function getActiveTabInfo(): Promise<TabInfo | null> {
   try {
@@ -249,73 +260,147 @@ export async function getActiveTabInfo(): Promise<TabInfo | null> {
       const activeTab = tabs[0] || (await chrome.tabs.query({ active: true, currentWindow: true }))[0];
 
       if (activeTab && activeTab.url && activeTab.id) {
-        const rawTitle = activeTab.title || activeTab.url;
-        const clean = cleanTabTitle(rawTitle);
+        let rawTitle = activeTab.title || activeTab.url;
+        let clean = cleanTabTitle(rawTitle);
 
         let domTypeHint: string | undefined;
+        let domBreadcrumb: string | undefined;
+        let domActiveTab: string | undefined;
 
-        // Try inspecting GreenData DOM if chrome.scripting is available
+        // Inspect GreenData DOM if chrome.scripting is available
         if (chrome.scripting && !activeTab.url.startsWith('chrome://') && !activeTab.url.startsWith('edge://')) {
           try {
             const results = await chrome.scripting.executeScript({
               target: { tabId: activeTab.id },
               func: () => {
-                // 1. Look for GreenData visualSettingsControl / "Для <Тип>"
+                let typeHint = '';
+                let titleHint = '';
+                let breadcrumbHint = '';
+                let activeTabHint = '';
+
+                // 1. Check visualSettingsControl / "Для <Тип>" or visual representation selectors
                 const vsElements = document.querySelectorAll(
-                  '.visualSettingsControl, .visual-settings-control, [class*="visual-settings"], [class*="visualSettings"]'
+                  '.visualSettingsControl, .visual-settings-control, [class*="visual-settings"], [class*="visualSettings"], .visual-settings, [data-qa*="visual-settings"]'
                 );
                 for (const el of Array.from(vsElements)) {
                   const text = el.textContent || '';
                   const match = text.match(/Для\s*["'«]([^"'»]+)["'»]/i);
                   if (match && match[1]) {
-                    return match[1].trim();
+                    typeHint = match[1].trim();
+                    break;
                   }
-                  // Check direct text like "Тип: Алгоритм"
                   const matchType = text.match(/Тип[:\s]+(["'«]?)([^"'»\n]+)\1/i);
                   if (matchType && matchType[2]) {
-                    return matchType[2].trim();
+                    typeHint = matchType[2].trim();
+                    break;
+                  }
+                  const selItem = el.querySelector('.ant-select-selection-item, .ant-select-selection-selected-value, [class*="selection-item"]');
+                  if (selItem && selItem.textContent && selItem.textContent.trim()) {
+                    typeHint = selItem.textContent.trim();
+                    break;
                   }
                 }
 
-                // 2. Check type badges / entity indicators
+                // 2. Look for any active selected item or visual selector on page
+                if (!typeHint) {
+                  const activeSelects = document.querySelectorAll(
+                    '.ant-select-selection-item, .ant-select-selection-selected-value, [class*="selected-value"], [class*="selection-item"], [data-qa*="visual"], [data-qa*="form"], [data-qa*="type"]'
+                  );
+                  for (const s of Array.from(activeSelects)) {
+                    const text = (s.textContent || '').trim();
+                    if (
+                      text &&
+                      (text.includes('Форма') ||
+                        text.includes('форма') ||
+                        text.includes('Визуал') ||
+                        text.includes('Алгоритм') ||
+                        text.includes('Процесс') ||
+                        text.includes('Отчет') ||
+                        text.includes('Справочник'))
+                    ) {
+                      typeHint = text;
+                      break;
+                    }
+                  }
+                }
+
+                // 3. Badges and entity indicators
                 const badges = document.querySelectorAll(
                   '.object-type-badge, .gd-type-badge, [class*="type-badge"], [class*="typeBadge"], [class*="objectType"], [class*="object-type"], [data-type], [data-object-type]'
                 );
                 for (const b of Array.from(badges)) {
                   const val = b.getAttribute('data-type') || b.getAttribute('data-object-type') || b.textContent || '';
-                  if (val.trim()) return val.trim();
-                }
-
-                // 3. Look for active tab or modal header
-                const activeTabs = document.querySelectorAll('.ant-tabs-tab-active, .tab-header.active, .active-tab');
-                for (const at of Array.from(activeTabs)) {
-                  const text = (at.textContent || '').trim();
-                  if (text && (text.includes('Алгоритм') || text.includes('Форма') || text.includes('Визуал') || text.includes('Процесс') || text.includes('Тип'))) {
-                    return text;
+                  if (val.trim()) {
+                    typeHint = typeHint || val.trim();
+                    break;
                   }
                 }
 
-                // 4. Look for modal / breadcrumb / page header
+                // 4. Breadcrumbs
                 const breadcrumbs = document.querySelectorAll(
-                  '.breadcrumb, .breadcrumbs, .ant-breadcrumb, [class*="breadcrumb"], .page-header, .header-title, .ant-page-header-heading-title'
+                  '.ant-breadcrumb, .breadcrumb, .breadcrumbs, [class*="breadcrumb"], .page-header, .header-title'
                 );
                 for (const b of Array.from(breadcrumbs)) {
                   const text = (b.textContent || '').trim();
-                  if (text) return text;
+                  if (text) {
+                    breadcrumbHint = text;
+                    break;
+                  }
                 }
 
-                // 5. Fallback: check document title or specific heading tags
-                const h1 = document.querySelector('h1, h2, .title, .form-title');
+                // 5. Active tabs
+                const activeTabs = document.querySelectorAll(
+                  '.ant-tabs-tab-active, .tab-header.active, .active-tab, [role="tab"][aria-selected="true"]'
+                );
+                for (const at of Array.from(activeTabs)) {
+                  const text = (at.textContent || '').trim();
+                  if (text) {
+                    activeTabHint = text;
+                    break;
+                  }
+                }
+
+                // 6. Header / title element in page
+                const h1 = document.querySelector(
+                  'h1, h2, .title, .form-title, .page-header-title, [class*="page-title"], [class*="pageTitle"], [class*="card-title"], [class*="cardTitle"]'
+                );
                 if (h1 && h1.textContent) {
-                  return h1.textContent.trim();
+                  titleHint = h1.textContent.trim();
                 }
 
-                return null;
+                // 7. Input fields for Name / Title
+                if (!titleHint) {
+                  const nameInput = document.querySelector(
+                    'input[name="name"], input[name="title"], input[placeholder*="название"], input[placeholder*="Наименование"], input[placeholder*="Имя"]'
+                  );
+                  if (nameInput && (nameInput as HTMLInputElement).value) {
+                    titleHint = (nameInput as HTMLInputElement).value.trim();
+                  }
+                }
+
+                return {
+                  typeHint: typeHint || null,
+                  titleHint: titleHint || null,
+                  breadcrumbHint: breadcrumbHint || null,
+                  activeTabHint: activeTabHint || null,
+                };
               },
             });
 
             if (results && results[0] && results[0].result) {
-              domTypeHint = results[0].result as string;
+              const res = results[0].result as {
+                typeHint: string | null;
+                titleHint: string | null;
+                breadcrumbHint: string | null;
+                activeTabHint: string | null;
+              };
+              if (res.typeHint) domTypeHint = res.typeHint;
+              if (res.breadcrumbHint) domBreadcrumb = res.breadcrumbHint;
+              if (res.activeTabHint) domActiveTab = res.activeTabHint;
+              if (res.titleHint && (!clean || clean.toLowerCase().includes('greendata') || clean === 'Главная')) {
+                clean = res.titleHint;
+                rawTitle = res.titleHint;
+              }
             }
           } catch {
             // Scripting may be restricted on some domains, fallback to title/url regex
@@ -329,7 +414,9 @@ export async function getActiveTabInfo(): Promise<TabInfo | null> {
           title: rawTitle,
           cleanTitle: clean,
           detectedSectionName: detected?.sectionName,
-          detectedRawType: detected?.rawType || domTypeHint,
+          detectedRawType: domTypeHint || detected?.rawType,
+          breadcrumb: domBreadcrumb,
+          activeTabName: domActiveTab,
         };
       }
     }
