@@ -4,7 +4,7 @@ import {
     FileArchive,
     FileCode,
     Plus,
-    ArrowUpRight,
+    Sparkles,
 } from 'lucide-react';
 import { Button } from '../ui/Button';
 
@@ -70,7 +70,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
     }
 
     return (
-        <div className="relative overflow-hidden rounded-xl border-2 border-dashed border-emerald-500/30 bg-white p-6 shadow-sm hover:border-emerald-500/50 hover:shadow-md transition-all">
+        <div className="relative overflow-hidden rounded-2xl border-2 border-dashed border-emerald-300/80 bg-white p-7 shadow-xs hover:border-emerald-500 hover:shadow-md transition-all group">
             <div className="relative flex flex-col items-center justify-center text-center">
                 <input
                     ref={zipInputRef}
@@ -88,17 +88,16 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
                     onChange={handleGufChange}
                 />
 
-                <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-emerald-200 bg-emerald-50 text-emerald-600 shadow-sm transition-transform hover:scale-105">
+                <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-500 text-white shadow-md shadow-emerald-500/25 transition-transform group-hover:scale-105">
                     <UploadCloud className="h-8 w-8" />
                 </div>
 
-                <div className="mb-2 space-y-1">
-                    <h4 className="text-base font-bold text-gray-900">
-                        Перетащите файлы сюда
+                <div className="mb-2 space-y-1.5">
+                    <h4 className="text-base font-bold text-slate-900 tracking-tight">
+                        Перетащите файлы пакета сюда
                     </h4>
-                    <p className="max-w-md text-xs leading-relaxed text-gray-500">
-                        Поддерживается ZIP-архив или несколько отдельных файлов
-                        .guf для пакетной обработки.
+                    <p className="max-w-md text-xs leading-relaxed text-slate-500">
+                        Поддерживается ZIP-архив или отдельные файлы <code className="text-emerald-700 font-mono font-bold bg-emerald-50 px-1 py-0.5 rounded border border-emerald-200">.guf</code> для пакетного переименования.
                     </p>
                 </div>
 
@@ -125,9 +124,9 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
                     </Button>
                 </div>
 
-                <div className="mt-4 inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-emerald-700">
-                    <ArrowUpRight className="h-3 w-3 text-emerald-600" />
-                    Импорт пакета
+                <div className="mt-5 inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-[10.5px] font-bold uppercase tracking-wider text-emerald-800 shadow-2xs">
+                    <Sparkles className="h-3 w-3 text-emerald-600" />
+                    Быстрый импорт
                 </div>
             </div>
         </div>

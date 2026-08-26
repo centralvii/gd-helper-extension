@@ -75,15 +75,16 @@ export const FileTable: React.FC<FileTableProps> = ({
 
     return (
         <div className="space-y-3">
-            <div className="flex items-center justify-between gap-2 p-1.5 bg-white border border-gray-200 rounded-xl shadow-sm">
+            {/* Toolbar with Search and Add files button */}
+            <div className="flex items-center justify-between gap-2 p-1.5 bg-white border border-slate-200/90 rounded-2xl shadow-xs">
                 <div className="relative flex-1">
-                    <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" />
+                    <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
                     <input
                         type="text"
-                        placeholder="Поиск по файлам..."
+                        placeholder="Поиск по файлам пакета..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full rounded-lg border border-gray-200 bg-gray-50/50 py-1.5 pl-9 pr-3 text-xs text-gray-900 placeholder:text-gray-400 outline-none transition-colors focus:border-emerald-500 focus:bg-white"
+                        className="w-full rounded-xl border border-slate-200 bg-slate-50/70 py-1.5 pl-9 pr-3 text-xs text-slate-900 placeholder:text-slate-400 outline-none transition-all focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-500/10 shadow-2xs"
                     />
                 </div>
 
@@ -96,9 +97,8 @@ export const FileTable: React.FC<FileTableProps> = ({
             </div>
 
             {isFiltered && (
-                <div className="rounded-xl border border-amber-300 bg-amber-50 px-2.5 py-1.5 text-[11px] text-amber-800">
-                    Показано {filteredFiles.length} из {files.length} файлов.
-                    Перетаскивание отключено во время поиска.
+                <div className="rounded-xl border border-amber-300 bg-amber-50 px-3 py-1.5 text-[11px] font-medium text-amber-900 shadow-2xs animate-fade-in">
+                    Показано {filteredFiles.length} из {files.length} файлов. Перетаскивание отключено во время поиска.
                 </div>
             )}
 

@@ -259,10 +259,10 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
   return (
     <div className="space-y-3">
       {/* Task Metadata Card */}
-      <div className="p-3 bg-white border border-gray-200 rounded-xl space-y-3 shadow-sm">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+      <div className="p-4 bg-white border border-slate-200/90 rounded-2xl space-y-3.5 shadow-xs">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div className="sm:col-span-1">
-            <label className="block text-[11px] font-semibold text-gray-700 mb-1">
+            <label className="block text-[11px] font-bold text-slate-700 mb-1">
               Номер / Код задачи
             </label>
             <Input
@@ -272,7 +272,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
             />
           </div>
           <div className="sm:col-span-2">
-            <label className="block text-[11px] font-semibold text-gray-700 mb-1">
+            <label className="block text-[11px] font-bold text-slate-700 mb-1">
               Название задачи
             </label>
             <Input
@@ -284,15 +284,15 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
         </div>
 
         {/* ── Linked Packages Compact Row (1 Task -> N Packages) ── */}
-        <div className="flex flex-wrap items-center justify-between gap-1.5 px-2.5 py-1.5 bg-emerald-50/50 border border-emerald-200/70 rounded-xl text-xs">
+        <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-2 bg-emerald-50/60 border border-emerald-200/80 rounded-xl text-xs shadow-2xs">
           <div className="flex flex-wrap items-center gap-1.5 min-w-0">
-            <span className="font-semibold text-emerald-950 text-[11px] flex items-center gap-1 flex-shrink-0">
+            <span className="font-bold text-emerald-950 text-[11px] flex items-center gap-1.5 flex-shrink-0">
               <Package className="w-3.5 h-3.5 text-emerald-600" />
               <span>Пакеты сборки:</span>
             </span>
 
             {linkedPackages.length === 0 ? (
-              <span className="text-[10.5px] text-gray-400">Нет привязанных пакетов</span>
+              <span className="text-[10.5px] text-slate-400">Нет привязанных пакетов</span>
             ) : (
               linkedPackages.map((pkg) => (
                 <button
@@ -300,23 +300,23 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
                   type="button"
                   onClick={() => onNavigateToPackage && onNavigateToPackage(pkg.id)}
                   title={`Открыть пакет "${pkg.name}" во вкладке Упаковка`}
-                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-white border border-emerald-200 text-emerald-800 font-medium text-[10.5px] hover:bg-emerald-100/70 transition-colors shadow-2xs group"
+                  className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-white border border-emerald-200 text-emerald-900 font-bold text-[10.5px] hover:bg-emerald-100/70 transition-all shadow-2xs group cursor-pointer"
                 >
-                  <span className="font-mono font-bold text-emerald-700">{pkg.name}</span>
-                  <span className="text-gray-400 text-[10px]">({pkg.files.length} ф.)</span>
-                  <ExternalLink className="w-2.5 h-2.5 opacity-60 group-hover:opacity-100" />
+                  <span className="font-mono text-emerald-800">{pkg.name}</span>
+                  <span className="text-slate-400 text-[10px]">({pkg.files.length} ф.)</span>
+                  <ExternalLink className="w-2.5 h-2.5 opacity-60 group-hover:opacity-100 text-emerald-600" />
                 </button>
               ))
             )}
           </div>
 
-          <div className="flex items-center gap-1 flex-shrink-0">
+          <div className="flex items-center gap-1.5 flex-shrink-0">
             {linkedPackages.some((p) => p.files.length > 0) && (
               <button
                 type="button"
                 onClick={handleImportFilesFromPackages}
                 title="Добавить файлы из всех привязанных пакетов в список изменений"
-                className="inline-flex items-center gap-1 px-2 py-0.5 bg-white hover:bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-lg font-semibold text-[10px] transition-colors shadow-2xs"
+                className="inline-flex items-center gap-1 px-2.5 py-1 bg-white hover:bg-emerald-100 text-emerald-900 border border-emerald-300 rounded-xl font-bold text-[10.5px] transition-all shadow-2xs cursor-pointer"
               >
                 <FilePlus className="w-3 h-3 text-emerald-600" />
                 <span>Импорт файлов</span>
@@ -328,7 +328,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
                 type="button"
                 onClick={() => onNavigateToPackage('')}
                 title="Перейти в упаковку для управления пакетами"
-                className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-semibold text-[10px] transition-colors shadow-2xs"
+                className="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-[10.5px] transition-all shadow-2xs cursor-pointer"
               >
                 <Plus className="w-3 h-3" />
                 <span>В упаковку</span>
@@ -339,7 +339,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
 
         {/* Import Toast Notification */}
         {importNotification && (
-          <div className="p-2 bg-emerald-100 text-emerald-900 border border-emerald-300 rounded-xl text-xs flex items-center gap-2 animate-fade-in">
+          <div className="p-2.5 bg-emerald-100 text-emerald-950 border border-emerald-300 rounded-xl text-xs flex items-center gap-2 animate-fade-in shadow-2xs font-semibold">
             <Check className="w-4 h-4 text-emerald-700 flex-shrink-0" />
             <span>{importNotification}</span>
           </div>
@@ -348,30 +348,30 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
         {/* Task Summary / Description */}
         <div>
           <div className="flex items-center justify-between mb-1">
-            <label className="flex items-center gap-1.5 text-[11px] font-semibold text-gray-700">
+            <label className="flex items-center gap-1.5 text-[11px] font-bold text-slate-700">
               <FileText className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
               <span>Общее описание реализации / Заметка</span>
             </label>
-            <span className="text-[10px] text-gray-400">Краткая суть и детали</span>
+            <span className="text-[10px] text-slate-400">Краткая суть и детали</span>
           </div>
           <textarea
             value={task.summary}
             onChange={(e) => onUpdateTask(task.id, { summary: e.target.value })}
             placeholder="Опишите общую суть решения, архитектурные особенности или примечания для тестировщиков..."
             rows={3}
-            className="w-full px-3 py-2 bg-white border border-gray-200 focus:border-emerald-500 rounded-lg text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-emerald-500 text-xs resize-y transition-colors"
+            className="w-full px-3 py-2 bg-white border border-slate-200 focus:border-emerald-500 rounded-xl text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/10 text-xs resize-y transition-all shadow-2xs"
           />
         </div>
       </div>
 
       {/* Changes Section Container */}
-      <div className="p-3 bg-white border border-gray-200 rounded-xl space-y-3 shadow-sm">
+      <div className="p-4 bg-white border border-slate-200/90 rounded-2xl space-y-3.5 shadow-xs">
         {/* Main Toolbar */}
-        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-100 pb-2.5">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
           <div className="flex items-center gap-2 min-w-0">
             <ListOrdered className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-            <h3 className="font-bold text-xs text-gray-900 truncate">Внесённые изменения</h3>
-            <span className="px-1.5 py-0.5 rounded-md bg-emerald-50 text-emerald-700 text-[10px] font-bold border border-emerald-200 flex-shrink-0">
+            <h3 className="font-bold text-xs text-slate-900 tracking-tight truncate">Внесённые изменения</h3>
+            <span className="px-2 py-0.5 rounded-lg bg-emerald-50 text-emerald-800 text-[10.5px] font-bold border border-emerald-200 flex-shrink-0 shadow-2xs">
               {task.items.length}
             </span>
           </div>
@@ -381,7 +381,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
               type="button"
               onClick={handleOpenCreateSection}
               title="Создать новый раздел (категорию)"
-              className="inline-flex items-center gap-1 px-2 py-1 bg-gray-50 hover:bg-gray-100 text-gray-700 border border-gray-200 rounded-lg text-[11px] font-semibold transition-colors"
+              className="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-xl text-[11px] font-bold transition-all shadow-2xs cursor-pointer"
             >
               <FolderPlus className="w-3.5 h-3.5 text-emerald-600" />
               <span>+ Раздел</span>

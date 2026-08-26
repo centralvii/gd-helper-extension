@@ -96,20 +96,20 @@ export const SiteCssStyler: React.FC = () => {
   return (
     <div className="space-y-3">
       {/* ── Toolbar: Search & Create Button ── */}
-      <div className="flex items-center justify-between gap-2 p-1.5 bg-white border border-gray-200 rounded-xl shadow-sm">
+      <div className="flex items-center justify-between gap-2 p-1.5 bg-white border border-slate-200/90 rounded-2xl shadow-xs">
         <div className="relative flex-1">
-          <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" />
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
             placeholder="Поиск по стилям и сайтам..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full rounded-lg border border-gray-200 bg-gray-50/50 py-1.5 pl-8 pr-3 text-xs text-gray-900 placeholder:text-gray-400 outline-none transition-colors focus:border-emerald-500 focus:bg-white"
+            className="w-full rounded-xl border border-slate-200 bg-slate-50/70 py-1.5 pl-9 pr-3 text-xs text-slate-900 placeholder:text-slate-400 outline-none transition-all focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-500/10 shadow-2xs"
           />
         </div>
 
         <Button
-          variant="primary"
+          variant="emerald"
           size="sm"
           leftIcon={<Plus className="w-3.5 h-3.5" />}
           onClick={handleOpenCreate}
@@ -120,18 +120,18 @@ export const SiteCssStyler: React.FC = () => {
       </div>
 
       {/* ── Summary & Status Card ── */}
-      <div className="rounded-xl border border-gray-200 bg-white p-3 shadow-sm flex items-center justify-between gap-2 flex-wrap">
-        <div className="flex items-center gap-2 min-w-0 flex-1">
-          <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-200">
+      <div className="rounded-2xl border border-slate-200/90 bg-white p-3.5 shadow-xs flex items-center justify-between gap-2 flex-wrap">
+        <div className="flex items-center gap-2.5 min-w-0 flex-1">
+          <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700 shadow-2xs font-bold">
             <Layers className="w-4 h-4 flex-shrink-0" />
           </div>
           <div className="min-w-0 flex-1">
-            <div className="text-xs font-bold text-gray-900 truncate">
+            <div className="text-xs font-bold text-slate-900 tracking-tight truncate">
               Пользовательские стили для сайтов
             </div>
-            <div className="text-[10px] text-gray-500 truncate">
+            <div className="text-[10.5px] text-slate-500 truncate">
               {syncToast ? (
-                <span className="font-semibold text-emerald-600 animate-fade-in">
+                <span className="font-bold text-emerald-600 animate-fade-in">
                   ✓ Стили успешно синхронизированы с открытыми вкладками
                 </span>
               ) : (
@@ -146,15 +146,16 @@ export const SiteCssStyler: React.FC = () => {
             type="button"
             onClick={handleSyncAll}
             title="Применить / Синхронизировать стили со всеми открытыми вкладками"
-            className="icon-btn p-1.5 text-gray-400 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg"
+            className="icon-btn p-1.5 text-slate-400 hover:text-emerald-700 hover:bg-emerald-50 rounded-xl cursor-pointer"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin text-emerald-600' : ''}`} />
           </button>
 
           <Badge
             variant={activeCount > 0 ? 'success' : 'default'}
-            size="sm"
-            className="flex-shrink-0"
+            size="xs"
+            dot
+            className="flex-shrink-0 shadow-2xs"
           >
             {activeCount > 0 ? `Активно: ${activeCount}` : 'Все отключены'}
           </Badge>

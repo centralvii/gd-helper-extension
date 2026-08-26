@@ -53,23 +53,14 @@ export const Header: React.FC<HeaderProps> = ({
     ];
 
     return (
-        <header
-            className="sticky top-0 z-30 bg-white"
-            style={{
-                borderBottom: '1px solid #e2e8e2',
-                boxShadow: '0 1px 0 #e2e8e2, 0 2px 6px rgba(0,0,0,0.04)',
-            }}
-        >
-            <div className="grid grid-cols-[36px_1fr_36px] items-center px-3 py-1.5 min-h-[44px]">
+        <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
+            <div className="grid grid-cols-[36px_1fr_36px] items-center px-2.5 py-1.5 min-h-[44px]">
                 {/* Left empty spacer for symmetry */}
                 <div />
 
                 {/* ── Center: Navigation tabs ── */}
                 <div className="flex items-center justify-center">
-                    <div
-                        className="flex items-center gap-0.5 rounded-xl p-0.5 shadow-xs"
-                        style={{ background: '#f0f4f0', border: '1px solid #e2e8e2' }}
-                    >
+                    <div className="flex items-center gap-0.5 rounded-xl p-0.5 bg-slate-100/90 border border-slate-200/80 shadow-2xs">
                         {navTabs.map((tab) => (
                             <button
                                 key={tab.id}
@@ -82,10 +73,11 @@ export const Header: React.FC<HeaderProps> = ({
                                 {tab.label && <span className="hidden xs:inline">{tab.label}</span>}
                                 {tab.id === 'packer' && fileCount > 0 && (
                                     <span
-                                        className="rounded-full px-1.5 text-[9px] font-bold leading-none py-0.5 flex-shrink-0"
+                                        className="rounded-full px-1.5 text-[9px] font-bold leading-none py-0.5 flex-shrink-0 transition-all shadow-2xs"
                                         style={{
-                                            background: activeTool === 'packer' ? '#22c55e' : '#d1fae5',
-                                            color:      activeTool === 'packer' ? '#fff'    : '#16a34a',
+                                            background: activeTool === 'packer' ? '#059669' : '#dcfce7',
+                                            color:      activeTool === 'packer' ? '#ffffff' : '#047857',
+                                            boxShadow:  activeTool === 'packer' ? '0 0 6px rgba(5,150,105,0.4)' : undefined,
                                         }}
                                     >
                                         {fileCount}
@@ -101,7 +93,7 @@ export const Header: React.FC<HeaderProps> = ({
                     <button
                         onClick={handleOpenFullscreen}
                         title="Открыть во весь экран"
-                        className="icon-btn"
+                        className="icon-btn hover:text-slate-900"
                     >
                         <Maximize2 className="w-4 h-4" />
                     </button>

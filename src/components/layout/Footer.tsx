@@ -37,7 +37,12 @@ export const Footer: React.FC<FooterProps> = ({
         if (validation.hasErrors || fileCount === 0 || isExporting) return;
         try {
             await onExportZip();
-            confetti({ particleCount: 80, spread: 60, origin: { y: 0.9 }, colors: ['#22c55e', '#16a34a', '#86efac'] });
+            confetti({
+                particleCount: 90,
+                spread: 70,
+                origin: { y: 0.9 },
+                colors: ['#059669', '#10b981', '#34d399', '#6ee7b7'],
+            });
         } catch (err) {
             console.error('Export failed:', err);
         }
@@ -54,23 +59,13 @@ export const Footer: React.FC<FooterProps> = ({
     if (fileCount === 0) return null;
 
     return (
-        <footer
-            className="sticky bottom-0 z-30 p-2.5"
-            style={{
-                background: '#ffffff',
-                borderTop: '1px solid #e2e8e2',
-                boxShadow: '0 -2px 12px rgba(0,0,0,0.06)',
-            }}
-        >
-            {/* Имя архива + статус */}
-            <div
-                className="flex items-center gap-2 mb-2 px-3 py-2 rounded-lg"
-                style={{ background: '#f0f4f0', border: '1px solid #e2e8e2' }}
-            >
-                {/* Иконка архива */}
-                <span className="icon-btn p-0 text-emerald-600 pointer-events-none">
-                    <Archive className="w-4 h-4" />
-                </span>
+        <footer className="sticky bottom-0 z-30 p-3 bg-white/95 backdrop-blur-md border-t border-slate-200/90 shadow-[0_-4px_16px_rgba(0,0,0,0.04)]">
+            {/* Archive name + validation status bar */}
+            <div className="flex items-center gap-2 mb-2.5 px-3 py-2 rounded-xl bg-slate-50/90 border border-slate-200/80 shadow-2xs">
+                {/* Archive icon */}
+                <div className="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center flex-shrink-0 shadow-2xs font-bold">
+                    <Archive className="w-3.5 h-3.5" />
+                </div>
 
                 {isEditingName ? (
                     <input
@@ -83,58 +78,57 @@ export const Footer: React.FC<FooterProps> = ({
                             if (e.key === 'Escape') setIsEditingName(false);
                         }}
                         autoFocus
-                        className="flex-1 bg-transparent text-xs outline-none font-medium"
-                        style={{ color: '#111827' }}
+                        className="flex-1 bg-white border border-emerald-400 rounded-lg px-2 py-0.5 text-xs outline-none font-bold text-slate-900 shadow-2xs"
                     />
                 ) : (
                     <button
                         onClick={() => { setTempName(archiveName); setIsEditingName(true); }}
-                        className="group flex flex-1 items-center gap-1.5 text-left truncate"
+                        className="group flex flex-1 items-center gap-1.5 text-left truncate cursor-pointer"
                         title="Нажмите для изменения имени архива"
                     >
-                        <span className="text-xs font-semibold truncate" style={{ color: '#111827' }}>
+                        <span className="text-xs font-bold truncate text-slate-900 group-hover:text-emerald-700 transition-colors">
                             {archiveName}
                         </span>
-                        {/* Pen icon */}
-                        <span className="icon-btn p-0 opacity-0 group-hover:opacity-100 text-gray-500">
-                            <PenLine className="w-3.5 h-3.5" />
-                        </span>
+                        <PenLine className="w-3 h-3 text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
                     </button>
                 )}
 
-                <span className="text-[10px] font-medium" style={{ color: '#6b7280' }}>
-                    {fileCount} файлов
+                <span className="text-[10.5px] font-semibold text-slate-500 hidden xs:inline">
+                    {fileCount} {fileCount === 1 ? 'файл' : 'файлов'}
                 </span>
 
-                {/* Статус */}
+                {/* Validation Status Badge */}
                 <div className="ml-auto flex-shrink-0">
                     {validation.hasErrors ? (
-                        <button onClick={onOpenValidation} className="hover:opacity-80 transition-opacity">
-                            <Badge variant="danger" size="sm" className="cursor-pointer gap-1">
-                                <AlertTriangle className="w-3 h-3" />
-                                {validation.errors.length} ошибок
+                        <button
+                            onClick={onOpenValidation}
+                            className="hover:opacity-80 transition-opacity cursor-pointer"
+                        >
+                            <Badge variant="danger" size="xs" dot className="gap-1 shadow-2xs">
+                                <AlertTriangle className="w-2.5 h-2.5" />
+                                {validation.errors.length} {validation.errors.length === 1 ? 'ошибка' : 'ошибок'}
                             </Badge>
                         </button>
                     ) : (
-                        <Badge variant="success" size="sm" className="gap-1">
-                            <CheckCircle2 className="w-3 h-3" />
-                            Готово
+                        <Badge variant="success" size="xs" dot className="gap-1 shadow-2xs">
+                            <CheckCircle2 className="w-2.5 h-2.5 text-emerald-600" />
+                            Готово к экспорту
                         </Badge>
                     )}
                 </div>
             </div>
 
-            {/* Кнопка экспорта */}
+            {/* Export ZIP Button */}
             <Button
                 variant="emerald"
                 size="md"
-                className="w-full font-bold"
+                className="w-full font-bold shadow-md shadow-emerald-600/20"
                 isLoading={isExporting}
                 disabled={validation.hasErrors || fileCount === 0}
                 onClick={handleExport}
                 leftIcon={<Download className="w-4 h-4" />}
             >
-                {isExporting ? 'Создание архива...' : `Экспорт ZIP (${fileCount} файлов)`}
+                {isExporting ? 'Создание архива...' : `Экспорт ZIP (${fileCount} ${fileCount === 1 ? 'файл' : 'файлов'})`}
             </Button>
         </footer>
     );

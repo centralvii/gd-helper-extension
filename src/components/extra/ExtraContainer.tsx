@@ -27,17 +27,8 @@ export const ExtraContainer: React.FC = () => {
 
   return (
     <div className="space-y-3">
-      {/* ── Sub-tool Switcher ── */}
-      {/*
-        Key design fix: BOTH buttons always have the same border (1.5px).
-        Active  → border-emerald-300, bg-emerald-50, text-emerald-800
-        Inactive → border-transparent, bg-transparent, text-gray-500
-        This prevents any layout jump when switching tabs.
-      */}
-      <div
-        className="flex items-stretch gap-1 p-1 rounded-xl"
-        style={{ background: '#f0f4f0', border: '1px solid #e2e8e2' }}
-      >
+      {/* ── Sub-tool Switcher (Segmented Control) ── */}
+      <div className="flex items-stretch gap-1 p-1 rounded-2xl bg-slate-100/90 border border-slate-200/80 shadow-2xs">
         {SUB_TOOLS.map((tool) => {
           const isActive = activeSubTool === tool.id;
           return (
@@ -46,22 +37,20 @@ export const ExtraContainer: React.FC = () => {
               type="button"
               onClick={() => handleSetSubTool(tool.id)}
               className={[
-                'flex flex-1 items-center justify-center gap-1.5',
-                'rounded-lg px-2 py-2',
-                'text-xs font-semibold',
-                'border',          // always 1px border — no layout shift
-                'transition-colors duration-150',
-                'min-w-0',         // allow text to shrink
+                'flex flex-1 items-center justify-center gap-2',
+                'rounded-xl px-3 py-2',
+                'text-xs font-bold',
+                'border',
+                'transition-all duration-150 cursor-pointer',
+                'min-w-0',
                 isActive
-                  ? 'bg-white border-emerald-300 text-emerald-800 shadow-sm'
-                  : 'bg-transparent border-transparent text-gray-500 hover:text-gray-800 hover:bg-white/60',
+                  ? 'bg-white border-emerald-300 text-emerald-900 shadow-xs'
+                  : 'bg-transparent border-transparent text-slate-500 hover:text-slate-900 hover:bg-white/60',
               ].join(' ')}
             >
-              {/* Icon always visible */}
-              <span className={`flex-shrink-0 ${isActive ? 'text-emerald-600' : 'text-gray-400'}`}>
+              <span className={`flex-shrink-0 ${isActive ? 'text-emerald-600' : 'text-slate-400'}`}>
                 {tool.icon}
               </span>
-              {/* Label — truncates gracefully on very narrow panels */}
               <span className="truncate leading-tight text-center">{tool.label}</span>
             </button>
           );

@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Trash2, Check, Sparkles, Tag } from 'lucide-react';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
-import { Input } from '../ui/Input';
 import { VariableDefinition } from '../../types';
 
 interface MassActionsModalProps {
@@ -78,12 +77,12 @@ export const MassActionsModal: React.FC<MassActionsModalProps> = ({
       }
     >
       <div className="space-y-4 text-xs">
-        <div className="rounded-xl border border-emerald-200/80 bg-emerald-50/50 p-2.5">
-          <p className="text-emerald-950 text-[11px] leading-relaxed">
+        <div className="rounded-2xl border border-emerald-200/90 bg-emerald-50/60 p-3 shadow-2xs">
+          <p className="text-emerald-950 text-[11px] leading-relaxed font-medium">
             Значения тегов автоматически подставляются в шаблон имени файлов (например,{' '}
-            <span className="font-mono font-bold text-emerald-800 bg-white px-1.5 py-0.5 rounded border border-emerald-300">{'{type}'}</span>,{' '}
-            <span className="font-mono font-bold text-emerald-800 bg-white px-1.5 py-0.5 rounded border border-emerald-300">{'{module}'}</span>,{' '}
-            <span className="font-mono font-bold text-emerald-800 bg-white px-1.5 py-0.5 rounded border border-emerald-300">{'{task}'}</span>
+            <span className="font-mono font-bold text-emerald-900 bg-white px-1.5 py-0.5 rounded border border-emerald-300">{'{type}'}</span>,{' '}
+            <span className="font-mono font-bold text-emerald-900 bg-white px-1.5 py-0.5 rounded border border-emerald-300">{'{module}'}</span>,{' '}
+            <span className="font-mono font-bold text-emerald-900 bg-white px-1.5 py-0.5 rounded border border-emerald-300">{'{task}'}</span>
             ) для всех файлов активного пакета.
           </p>
         </div>
@@ -99,17 +98,17 @@ export const MassActionsModal: React.FC<MassActionsModalProps> = ({
             return (
               <div
                 key={v.key}
-                className="flex flex-col sm:flex-row sm:items-center gap-2 p-2.5 rounded-xl bg-white border border-gray-200 shadow-2xs hover:border-emerald-300 transition-colors"
+                className="flex flex-col sm:flex-row sm:items-center gap-2.5 p-3 rounded-2xl bg-white border border-slate-200/90 shadow-2xs hover:border-emerald-300 transition-all"
               >
                 {/* Left label & quick buttons */}
                 <div className="sm:w-36 flex-shrink-0 flex items-center justify-between sm:block">
                   <div className="flex items-center gap-1.5">
-                    <Tag className="w-3 h-3 text-emerald-600 flex-shrink-0" />
+                    <Tag className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
                     <span className="font-mono text-emerald-800 font-bold text-xs">
                       {`{${v.key}}`}
                     </span>
                     {v.label && v.label !== v.key && (
-                      <span className="text-[10px] text-gray-500 truncate block">
+                      <span className="text-[10px] text-slate-500 truncate block">
                         ({v.label})
                       </span>
                     )}
@@ -121,9 +120,9 @@ export const MassActionsModal: React.FC<MassActionsModalProps> = ({
                       type="button"
                       onClick={() => handleValueChange('task', linkedTask.taskNumber)}
                       title={`Вставить номер связанной задачи ${linkedTask.taskNumber}`}
-                      className="mt-1.5 inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-emerald-100 text-emerald-800 border border-emerald-300 hover:bg-emerald-200 transition-colors shadow-2xs"
+                      className="mt-1.5 inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold bg-emerald-100/90 text-emerald-900 border border-emerald-300/80 hover:bg-emerald-200 transition-all shadow-2xs cursor-pointer"
                     >
-                      <Sparkles className="w-2.5 h-2.5 text-emerald-600" />
+                      <Sparkles className="w-2.5 h-2.5 text-emerald-700" />
                       <span>+{linkedTask.taskNumber}</span>
                     </button>
                   )}
@@ -139,22 +138,22 @@ export const MassActionsModal: React.FC<MassActionsModalProps> = ({
                         : isTask
                         ? 'Например: FINAPP-5638'
                         : isModule
-                        ? 'Например: Core, Auth, Billing'
-                        : `Значение для {${v.key}}`
+                        ? 'Например: CORE, FIN, CRM'
+                        : `Значение для {${v.key}}...`
                     }
                     value={currentVal}
                     onChange={(e) => handleValueChange(v.key, e.target.value)}
-                    className="w-full bg-gray-50/60 focus:bg-white border border-gray-200 focus:border-emerald-500 rounded-lg px-2.5 py-1.5 text-xs text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-emerald-500 shadow-2xs font-medium transition-colors"
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-1.5 text-xs text-slate-900 placeholder:text-slate-400 outline-none transition-all focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-500/10 shadow-2xs"
                   />
                 </div>
 
-                {/* Delete custom variable (keep default system tags) */}
+                {/* Delete custom variable button */}
                 {!['type', 'module', 'task'].includes(v.key) && (
                   <button
                     type="button"
                     onClick={() => onRemoveVariable(v.key)}
-                    title="Удалить переменную"
-                    className="icon-btn icon-btn--danger p-1.5 rounded-lg text-gray-400 hover:text-rose-600 hover:bg-rose-50 flex-shrink-0 self-end sm:self-center"
+                    title={`Удалить тег {${v.key}}`}
+                    className="icon-btn icon-btn--danger p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl flex-shrink-0 cursor-pointer"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
@@ -164,30 +163,39 @@ export const MassActionsModal: React.FC<MassActionsModalProps> = ({
           })}
         </div>
 
-        {/* Add New Variable Form */}
-        <form
-          onSubmit={handleAddNewVariable}
-          className="pt-3 border-t border-gray-100 flex flex-col sm:flex-row items-stretch sm:items-end gap-2"
-        >
-          <div className="flex-1">
-            <Input
-              label="Добавить новый тег (переменную)"
-              placeholder="например: author, release, sprint"
-              value={newVarKey}
-              onChange={(e) => setNewVarKey(e.target.value.replace(/[^a-zA-Z0-9_]/g, ''))}
-            />
-          </div>
-          <Button
-            type="submit"
-            variant="secondary"
-            size="sm"
-            disabled={!newVarKey.trim()}
-            leftIcon={<Plus className="w-3.5 h-3.5 text-emerald-600" />}
-            className="self-end"
-          >
-            Добавить тег
-          </Button>
-        </form>
+        {/* Add custom tag section */}
+        <div className="p-3.5 rounded-2xl bg-slate-50/90 border border-slate-200/90 space-y-2.5 shadow-2xs">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">
+            + Добавить свой тег (переменную):
+          </span>
+          <form onSubmit={handleAddNewVariable} className="flex gap-2">
+            <div className="flex-1 grid grid-cols-2 gap-2">
+              <input
+                type="text"
+                placeholder="Имя тега (напр. version)"
+                value={newVarKey}
+                onChange={(e) => setNewVarKey(e.target.value)}
+                className="rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-900 outline-none focus:border-emerald-500 shadow-2xs"
+              />
+              <input
+                type="text"
+                placeholder="Описание (необязательно)"
+                value={newVarLabel}
+                onChange={(e) => setNewVarLabel(e.target.value)}
+                className="rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-900 outline-none focus:border-emerald-500 shadow-2xs"
+              />
+            </div>
+            <Button
+              type="submit"
+              variant="secondary"
+              size="sm"
+              disabled={!newVarKey.trim()}
+              leftIcon={<Plus className="w-3.5 h-3.5 text-emerald-600" />}
+            >
+              Добавить
+            </Button>
+          </form>
+        </div>
       </div>
     </Modal>
   );
