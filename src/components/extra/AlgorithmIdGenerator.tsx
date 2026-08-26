@@ -21,6 +21,7 @@ import { AlgorithmHistoryItem, AlgorithmType } from '../../types';
 import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
+import { Select } from '../ui/Select';
 import confetti from 'canvas-confetti';
 
 const EXAMPLES = [
@@ -330,20 +331,19 @@ export const AlgorithmIdGenerator: React.FC = () => {
         {/* Postfix and Settings Row */}
         <div className="pt-2 border-t border-gray-100 flex items-center justify-between gap-2 flex-wrap text-xs">
           <div className="flex items-center gap-2">
-            <label className="text-[11px] font-semibold text-gray-600">
+            <label className="text-[11px] font-semibold text-gray-600 flex-shrink-0">
               Постфикс:
             </label>
-            <select
+            <Select
+              size="sm"
               value={postfix}
-              onChange={(e) => handleSetPostfix(e.target.value)}
-              className="rounded-lg border border-gray-200 bg-gray-50 px-2 py-1 text-[11px] font-medium text-gray-800 outline-none focus:border-emerald-500"
-            >
-              {POSTFIX_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
+              onChange={(val) => handleSetPostfix(val)}
+              options={POSTFIX_OPTIONS.map((opt) => ({
+                value: opt.value,
+                label: opt.label,
+              }))}
+              className="min-w-[180px]"
+            />
           </div>
 
           <div className="flex items-center gap-2">

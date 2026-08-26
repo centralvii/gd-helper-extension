@@ -17,6 +17,7 @@ import {
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
+import { Select } from '../ui/Select';
 import { AiSettings, AiAuthType } from '../../types';
 import { AI_PROVIDER_PRESETS, DEFAULT_AI_SETTINGS } from '../../hooks/useAiChat';
 
@@ -203,16 +204,16 @@ export const AiSettingsModal: React.FC<AiSettingsModalProps> = ({
                 <Shield className="w-3.5 h-3.5 text-emerald-600" />
                 <span>Тип авторизации</span>
               </label>
-              <select
+              <Select
                 value={authType}
-                onChange={(e) => setAuthType(e.target.value as AiAuthType)}
-                className="w-full px-2.5 py-1.5 bg-white border border-gray-200 focus:border-emerald-500 rounded-lg text-gray-900 focus:outline-none text-xs"
-              >
-                <option value="bearer">Bearer токен (Authorization: Bearer)</option>
-                <option value="api-key">api-key (Azure OpenAI / шлюзы)</option>
-                <option value="x-api-key">X-API-Key (Заголовок X-API-Key)</option>
-                <option value="none">Без заголовка (None — по IP / VPN)</option>
-              </select>
+                onChange={(val) => setAuthType(val as AiAuthType)}
+                options={[
+                  { value: 'bearer', label: 'Bearer токен (Authorization: Bearer)' },
+                  { value: 'api-key', label: 'api-key (Azure OpenAI / шлюзы)' },
+                  { value: 'x-api-key', label: 'X-API-Key (Заголовок X-API-Key)' },
+                  { value: 'none', label: 'Без заголовка (None — по IP / VPN)' },
+                ]}
+              />
             </div>
 
             <div>

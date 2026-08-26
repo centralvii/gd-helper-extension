@@ -18,6 +18,7 @@ import { BuildPackage, ImplementationTask } from '../../types';
 import { Button } from '../ui/Button';
 import { Modal } from '../ui/Modal';
 import { Input } from '../ui/Input';
+import { Select } from '../ui/Select';
 
 interface PackageSelectorProps {
   packages: BuildPackage[];
@@ -534,18 +535,18 @@ export const PackageSelector: React.FC<PackageSelectorProps> = ({
               <FileCode className="w-3.5 h-3.5 text-emerald-600" />
               <span>Привязать к задаче реализации (опционально):</span>
             </label>
-            <select
+            <Select
               value={createPackageTaskId}
-              onChange={(e) => setCreatePackageTaskId(e.target.value)}
-              className="w-full px-2.5 py-1.5 bg-white border border-gray-200 focus:border-emerald-500 rounded-lg text-xs text-gray-900 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-            >
-              <option value="">— Без привязки к задаче —</option>
-              {tasks.map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.taskNumber}: {t.title}
-                </option>
-              ))}
-            </select>
+              onChange={(val) => setCreatePackageTaskId(val)}
+              options={[
+                { value: '', label: '— Без привязки к задаче —' },
+                ...tasks.map((t) => ({
+                  value: t.id,
+                  label: `${t.taskNumber}: ${t.title}`,
+                })),
+              ]}
+              placeholder="— Без привязки к задаче —"
+            />
             <span className="text-[10px] text-gray-400 mt-1 block">
               💡 К одной задаче реализации можно привязать несколько разных пакетов обновлений
             </span>
@@ -597,18 +598,18 @@ export const PackageSelector: React.FC<PackageSelectorProps> = ({
               <FileCode className="w-3.5 h-3.5 text-emerald-600" />
               <span>Привязанная задача реализации:</span>
             </label>
-            <select
+            <Select
               value={renameTaskId}
-              onChange={(e) => setRenameTaskId(e.target.value)}
-              className="w-full px-2.5 py-1.5 bg-white border border-gray-200 focus:border-emerald-500 rounded-lg text-xs text-gray-900 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-            >
-              <option value="">— Без привязки к задаче —</option>
-              {tasks.map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.taskNumber}: {t.title}
-                </option>
-              ))}
-            </select>
+              onChange={(val) => setRenameTaskId(val)}
+              options={[
+                { value: '', label: '— Без привязки к задаче —' },
+                ...tasks.map((t) => ({
+                  value: t.id,
+                  label: `${t.taskNumber}: ${t.title}`,
+                })),
+              ]}
+              placeholder="— Без привязки к задаче —"
+            />
             {renameTaskId && onNavigateToTask && (
               <button
                 type="button"

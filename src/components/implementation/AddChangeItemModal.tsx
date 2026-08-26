@@ -3,6 +3,7 @@ import { Plus, Link as LinkIcon, Sparkles, Check, ExternalLink, Layers, FolderPl
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
+import { Select } from '../ui/Select';
 import { getActiveTabInfo, matchSectionForType, formatTitleInQuotes } from '../../utils/tabUtils';
 import { ImplementationChangeItem, ImplementationSection } from '../../types';
 
@@ -284,10 +285,9 @@ export const AddChangeItemModal: React.FC<AddChangeItemModalProps> = ({
           )}
 
           <div className="flex items-center gap-2">
-            <select
+            <Select
               value={sectionId}
-              onChange={(e) => {
-                const val = e.target.value;
+              onChange={(val) => {
                 if (val === '__create_new__') {
                   setIsCreatingNewSection(true);
                 } else if (val.startsWith('__create_detected__:')) {
@@ -298,21 +298,30 @@ export const AddChangeItemModal: React.FC<AddChangeItemModalProps> = ({
                   setIsCreatingNewSection(false);
                 }
               }}
-              className="flex-1 px-3 py-1.5 bg-white border border-slate-200 focus:border-emerald-500 rounded-xl text-slate-900 focus:outline-none text-xs shadow-2xs"
-            >
-              <option value="">Без раздела</option>
-              {sections.map((sec) => (
-                <option key={sec.id} value={sec.id}>
-                  {sec.name}
-                </option>
-              ))}
-              {unmatchedDetectedType && !sections.some((s) => s.name.toLowerCase() === unmatchedDetectedType.toLowerCase()) && (
-                <option value={`__create_detected__:${unmatchedDetectedType}`}>
-                  + Создать раздел «{unmatchedDetectedType}»
-                </option>
-              )}
-              <option value="__create_new__">+ Создать свой раздел...</option>
-            </select>
+              options={[
+                { value: '', label: 'Без раздела' },
+                ...sections.map((sec) => ({
+                  value: sec.id,
+                  label: sec.name,
+                })),
+                ...(unmatchedDetectedType && !sections.some((s) => s.name.toLowerCase() === unmatchedDetectedType.toLowerCase())
+                  ? [
+                      {
+                        value: `__create_detected__:${unmatchedDetectedType}`,
+                        label: `+ Создать раздел «${unmatchedDetectedType}»`,
+                        isAction: true,
+                      },
+                    ]
+                  : []),
+                {
+                  value: '__create_new__',
+                  label: '+ Создать свой раздел...',
+                  isAction: true,
+                },
+              ]}
+              className="flex-1"
+              placeholder="Выберите раздел..."
+            />
           </div>
 
           {/* Quick Create Section inline */}
