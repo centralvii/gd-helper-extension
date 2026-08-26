@@ -8,8 +8,10 @@ import {
   ChevronDown,
   Check,
   Zap,
+  FileCode,
+  ExternalLink,
 } from 'lucide-react';
-import { BuildPackage } from '../../types';
+import { BuildPackage, ImplementationTask } from '../../types';
 import { Button } from '../ui/Button';
 import { Modal } from '../ui/Modal';
 import { Input } from '../ui/Input';
@@ -17,11 +19,13 @@ import { Input } from '../ui/Input';
 interface PackageSelectorProps {
   packages: BuildPackage[];
   activePackage: BuildPackage;
+  tasks?: ImplementationTask[];
   onSelectPackage: (id: string) => void;
-  onCreatePackage: (name?: string) => void;
+  onCreatePackage: (name?: string, taskId?: string) => void;
   onDuplicatePackage: (id: string) => void;
-  onRenamePackage: (id: string, name: string) => void;
+  onRenamePackage: (id: string, name: string, taskId?: string) => void;
   onDeletePackage: (id: string) => void;
+  onNavigateToTask?: (taskId: string) => void;
   isAutoCollectEnabled: boolean;
   onToggleAutoCollect: () => void;
 }
@@ -29,36 +33,71 @@ interface PackageSelectorProps {
 export const PackageSelector: React.FC<PackageSelectorProps> = ({
   packages,
   activePackage,
+  tasks = [],
   onSelectPackage,
   onCreatePackage,
   onDuplicatePackage,
   onRenamePackage,
   onDeletePackage,
+  onNavigateToTask,
   isAutoCollectEnabled,
   onToggleAutoCollect,
 }) => {
   const [isOpenList, setIsOpenList] = useState(false);
   const [packageToDelete, setPackageToDelete] = useState<BuildPackage | null>(null);
+
+  // Edit / Rename Modal State
   const [packageToRename, setPackageToRename] = useState<BuildPackage | null>(null);
   const [renameInputValue, setRenameInputValue] = useState('');
+  const [renameTaskId, setRenameTaskId] = useState('');
+
+  // Create Package Modal State
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [createPackageName, setCreatePackageName] = useState('');
+  const [createPackageTaskId, setCreatePackageTaskId] = useState('');
+
   const [searchQuery, setSearchQuery] = useState('');
+
+  const activeLinkedTask = activePackage.taskId
+    ? tasks.find((t) => t.id === activePackage.taskId)
+    : null;
 
   const handleOpenRename = (pkg: BuildPackage) => {
     setPackageToRename(pkg);
     setRenameInputValue(pkg.name);
+    setRenameTaskId(pkg.taskId || '');
   };
 
   const handleConfirmRename = (e: React.FormEvent) => {
     e.preventDefault();
     if (packageToRename && renameInputValue.trim()) {
-      onRenamePackage(packageToRename.id, renameInputValue.trim());
+      onRenamePackage(packageToRename.id, renameInputValue.trim(), renameTaskId || undefined);
     }
     setPackageToRename(null);
   };
 
+  const handleOpenCreateModal = () => {
+    setCreatePackageName(`Пакет ${packages.length + 1}`);
+    setCreatePackageTaskId('');
+    setIsCreateModalOpen(true);
+    setIsOpenList(false);
+  };
+
+  const handleConfirmCreate = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (createPackageName.trim()) {
+      onCreatePackage(createPackageName.trim(), createPackageTaskId || undefined);
+    }
+    setIsCreateModalOpen(false);
+  };
+
   const filteredPackages = packages.filter((pkg) => {
     const query = searchQuery.toLowerCase();
-    return pkg.name.toLowerCase().includes(query);
+    const taskMatch = tasks.find((t) => t.id === pkg.taskId);
+    return (
+      pkg.name.toLowerCase().includes(query) ||
+      (taskMatch && (taskMatch.taskNumber.toLowerCase().includes(query) || taskMatch.title.toLowerCase().includes(query)))
+    );
   });
 
   return (
@@ -80,6 +119,23 @@ export const PackageSelector: React.FC<PackageSelectorProps> = ({
                 <span className="text-xs text-gray-900 font-semibold truncate">
                   {activePackage.name}
                 </span>
+
+                {/* Linked task badge */}
+                {activeLinkedTask && (
+                  <span
+                    onClick={(e) => {
+                      if (onNavigateToTask) {
+                        e.stopPropagation();
+                        onNavigateToTask(activeLinkedTask.id);
+                      }
+                    }}
+                    title={`Привязан к задаче "${activeLinkedTask.taskNumber}: ${activeLinkedTask.title}". Нажмите для перехода.`}
+                    className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded bg-emerald-100/70 hover:bg-emerald-200 text-emerald-800 text-[10px] font-bold border border-emerald-300 transition-colors flex-shrink-0"
+                  >
+                    <FileCode className="w-2.5 h-2.5 text-emerald-700" />
+                    <span>{activeLinkedTask.taskNumber}</span>
+                  </span>
+                )}
               </div>
             </div>
 
@@ -102,15 +158,15 @@ export const PackageSelector: React.FC<PackageSelectorProps> = ({
                 className="fixed inset-0 z-40"
                 onClick={() => setIsOpenList(false)}
               />
-              <div className="absolute top-full left-0 right-0 mt-1.5 z-50 bg-white border border-gray-200 rounded-2xl shadow-xl overflow-hidden animate-fade-in flex flex-col min-w-[260px]">
-                {/* Search if more than 3 packages */}
-                {packages.length > 3 && (
+              <div className="absolute top-full left-0 right-0 mt-1.5 z-50 bg-white border border-gray-200 rounded-2xl shadow-xl overflow-hidden animate-fade-in flex flex-col min-w-[280px]">
+                {/* Search if more than 2 packages */}
+                {packages.length > 2 && (
                   <div className="p-2 border-b border-gray-100 bg-gray-50/70">
                     <input
                       type="text"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      placeholder="Поиск по названию пакета..."
+                      placeholder="Поиск по названию или задаче..."
                       className="w-full px-2.5 py-1 bg-white border border-gray-200 rounded-lg text-xs text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-emerald-500"
                       autoFocus
                     />
@@ -126,6 +182,7 @@ export const PackageSelector: React.FC<PackageSelectorProps> = ({
                 <div className="overflow-y-auto max-h-56 p-1.5 space-y-1">
                   {filteredPackages.map((pkg) => {
                     const isActive = pkg.id === activePackage.id;
+                    const linkedTask = pkg.taskId ? tasks.find((t) => t.id === pkg.taskId) : null;
                     return (
                       <div
                         key={pkg.id}
@@ -147,11 +204,19 @@ export const PackageSelector: React.FC<PackageSelectorProps> = ({
                             }`}
                           />
                           <div className="min-w-0 flex-1">
-                            <span className="block truncate text-xs">
-                              {pkg.name}
-                            </span>
+                            <div className="flex items-center gap-1.5">
+                              <span className="block truncate text-xs font-semibold">
+                                {pkg.name}
+                              </span>
+                              {linkedTask && (
+                                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded bg-gray-100 text-gray-600 text-[9.5px] font-mono border border-gray-200 flex-shrink-0">
+                                  {linkedTask.taskNumber}
+                                </span>
+                              )}
+                            </div>
                             <span className="block text-[10px] text-gray-400 font-normal">
                               {pkg.files.length} {pkg.files.length === 1 ? 'файл' : 'файлов'}
+                              {linkedTask ? ` • ${linkedTask.title}` : ''}
                             </span>
                           </div>
                         </div>
@@ -171,7 +236,7 @@ export const PackageSelector: React.FC<PackageSelectorProps> = ({
                               handleOpenRename(pkg);
                               setIsOpenList(false);
                             }}
-                            title="Переименовать пакет"
+                            title="Редактировать параметры пакета"
                             className="icon-btn p-1 text-gray-400 hover:text-sky-600 hover:bg-sky-50 rounded-lg transition-colors"
                           >
                             <Edit2 className="w-3.5 h-3.5" />
@@ -200,10 +265,7 @@ export const PackageSelector: React.FC<PackageSelectorProps> = ({
                 <div className="p-2 border-t border-gray-100 bg-gray-50/60">
                   <button
                     type="button"
-                    onClick={() => {
-                      onCreatePackage();
-                      setIsOpenList(false);
-                    }}
+                    onClick={handleOpenCreateModal}
                     className="w-full flex items-center justify-center gap-1.5 py-1.5 px-2.5 text-xs text-emerald-700 hover:text-emerald-800 bg-white hover:bg-emerald-50 border border-emerald-200/80 rounded-xl transition-all font-semibold shadow-2xs"
                   >
                     <Plus className="w-3.5 h-3.5 text-emerald-600" />
@@ -250,7 +312,7 @@ export const PackageSelector: React.FC<PackageSelectorProps> = ({
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => onCreatePackage()}
+            onClick={handleOpenCreateModal}
             title="Создать новый пакет"
             leftIcon={<Plus className="w-3.5 h-3.5 text-emerald-600" />}
             className="hidden sm:inline-flex"
@@ -262,7 +324,7 @@ export const PackageSelector: React.FC<PackageSelectorProps> = ({
           <button
             type="button"
             onClick={() => handleOpenRename(activePackage)}
-            title="Переименовать пакет"
+            title="Редактировать / привязать пакет"
             className="icon-btn p-1.5 text-gray-500 hover:text-sky-700 hover:bg-sky-50 rounded-lg transition-colors"
           >
             <Edit2 className="w-3.5 h-3.5" />
@@ -330,11 +392,75 @@ export const PackageSelector: React.FC<PackageSelectorProps> = ({
         </p>
       </Modal>
 
-      {/* Rename Modal */}
+      {/* Create Package Modal */}
+      <Modal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        title="Создать новый пакет сборки"
+        maxWidth="sm"
+        footer={
+          <>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => setIsCreateModalOpen(false)}
+            >
+              Отмена
+            </Button>
+            <Button
+              variant="emerald"
+              size="sm"
+              disabled={!createPackageName.trim()}
+              onClick={handleConfirmCreate}
+              leftIcon={<Plus className="w-3.5 h-3.5" />}
+            >
+              Создать
+            </Button>
+          </>
+        }
+      >
+        <form onSubmit={handleConfirmCreate} className="space-y-3">
+          <div>
+            <label className="block text-xs font-semibold text-gray-700 mb-1">
+              Название пакета: <span className="text-rose-500">*</span>
+            </label>
+            <Input
+              value={createPackageName}
+              onChange={(e) => setCreatePackageName(e.target.value)}
+              placeholder="Например: Релиз 2.4 - Модуль Заявки"
+              autoFocus
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-gray-700 mb-1 flex items-center gap-1.5">
+              <FileCode className="w-3.5 h-3.5 text-emerald-600" />
+              <span>Привязать к задаче реализации (опционально):</span>
+            </label>
+            <select
+              value={createPackageTaskId}
+              onChange={(e) => setCreatePackageTaskId(e.target.value)}
+              className="w-full px-2.5 py-1.5 bg-white border border-gray-200 focus:border-emerald-500 rounded-lg text-xs text-gray-900 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+            >
+              <option value="">— Без привязки к задаче —</option>
+              {tasks.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.taskNumber}: {t.title}
+                </option>
+              ))}
+            </select>
+            <span className="text-[10px] text-gray-400 mt-1 block">
+              💡 К одной задаче реализации можно привязать несколько разных пакетов обновлений
+            </span>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Edit / Rename Package Modal */}
       <Modal
         isOpen={Boolean(packageToRename)}
         onClose={() => setPackageToRename(null)}
-        title="Переименовать пакет сборки"
+        title="Параметры пакета сборки"
         maxWidth="sm"
         footer={
           <>
@@ -357,15 +483,49 @@ export const PackageSelector: React.FC<PackageSelectorProps> = ({
         }
       >
         <form onSubmit={handleConfirmRename} className="space-y-3">
-          <label className="block text-xs font-medium text-gray-700">
-            Название пакета сборки:
-          </label>
-          <Input
-            value={renameInputValue}
-            onChange={(e) => setRenameInputValue(e.target.value)}
-            placeholder="Например: Релиз 2.4 - Модуль Заявки"
-            autoFocus
-          />
+          <div>
+            <label className="block text-xs font-semibold text-gray-700 mb-1">
+              Название пакета сборки:
+            </label>
+            <Input
+              value={renameInputValue}
+              onChange={(e) => setRenameInputValue(e.target.value)}
+              placeholder="Например: Релиз 2.4 - Модуль Заявки"
+              autoFocus
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-gray-700 mb-1 flex items-center gap-1.5">
+              <FileCode className="w-3.5 h-3.5 text-emerald-600" />
+              <span>Привязанная задача реализации:</span>
+            </label>
+            <select
+              value={renameTaskId}
+              onChange={(e) => setRenameTaskId(e.target.value)}
+              className="w-full px-2.5 py-1.5 bg-white border border-gray-200 focus:border-emerald-500 rounded-lg text-xs text-gray-900 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+            >
+              <option value="">— Без привязки к задаче —</option>
+              {tasks.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.taskNumber}: {t.title}
+                </option>
+              ))}
+            </select>
+            {renameTaskId && onNavigateToTask && (
+              <button
+                type="button"
+                onClick={() => {
+                  setPackageToRename(null);
+                  onNavigateToTask(renameTaskId);
+                }}
+                className="mt-1.5 inline-flex items-center gap-1 text-[11px] text-emerald-700 hover:text-emerald-800 hover:underline font-semibold"
+              >
+                <span>Перейти к задаче реализации</span>
+                <ExternalLink className="w-3 h-3" />
+              </button>
+            )}
+          </div>
         </form>
       </Modal>
     </>

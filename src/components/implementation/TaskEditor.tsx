@@ -83,10 +83,9 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
   // Delete Section Confirm Modal State
   const [sectionToDelete, setSectionToDelete] = useState<ImplementationSection | null>(null);
 
-  const linkedPackage = useMemo(() => {
-    if (!task.packageId) return null;
-    return packages.find((p) => p.id === task.packageId) || null;
-  }, [task.packageId, packages]);
+  const linkedPackages = useMemo(() => {
+    return packages.filter((p) => p.taskId === task.id || p.id === task.packageId);
+  }, [task.id, task.packageId, packages]);
 
   const sections = useMemo(() => {
     const raw =
@@ -188,31 +187,32 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
     setEditingItem(null);
   };
 
-  // Import files from linked package
-  const handleImportFilesFromPackage = () => {
-    if (!linkedPackage || linkedPackage.files.length === 0) return;
+  // Import files from all linked packages
+  const handleImportFilesFromPackages = () => {
+    if (linkedPackages.length === 0) return;
 
-    // Find algorithms section or first available section
     const targetSec =
       sections.find((s) => s.name.toLowerCase().includes('алгоритм')) || sections[0];
     const targetSecId = targetSec ? targetSec.id : undefined;
 
     let addedCount = 0;
-    linkedPackage.files.forEach((file) => {
-      const desc = file.newName || file.cleanName || file.originalName;
-      const alreadyExists = task.items.some((it) => it.description.trim() === desc.trim());
-      if (!alreadyExists) {
-        onAddChangeItem(task.id, {
-          description: desc,
-          sectionId: targetSecId,
-        });
-        addedCount++;
-      }
+    linkedPackages.forEach((pkg) => {
+      pkg.files.forEach((file) => {
+        const desc = file.newName || file.cleanName || file.originalName;
+        const alreadyExists = task.items.some((it) => it.description.trim() === desc.trim());
+        if (!alreadyExists) {
+          onAddChangeItem(task.id, {
+            description: desc,
+            sectionId: targetSecId,
+          });
+          addedCount++;
+        }
+      });
     });
 
     if (addedCount > 0) {
       setImportNotification(
-        `Добавлено ${addedCount} файлов в раздел «${targetSec?.name || 'Изменения'}»`
+        `Добавлено ${addedCount} файлов из пакетов в раздел «${targetSec?.name || 'Изменения'}»`
       );
       setTimeout(() => setImportNotification(null), 3500);
     }
@@ -249,7 +249,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
   const handleQuickCopyMarkdown = () => {
     const md = formatTaskToMarkdown({
       ...task,
-      linkedPackage: linkedPackage ? { name: linkedPackage.name, files: linkedPackage.files } : undefined,
+      linkedPackages: linkedPackages.map((p) => ({ name: p.name, files: p.files })),
     });
     navigator.clipboard.writeText(md);
     setQuickCopied(true);
@@ -283,71 +283,58 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
           </div>
         </div>
 
-        {/* ── Linked Package Selector & Actions ── */}
-        <div className="p-2.5 bg-gradient-to-r from-emerald-50/70 via-teal-50/30 to-emerald-50/70 border border-emerald-200/80 rounded-xl space-y-2">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <div className="flex items-center gap-1.5 min-w-0">
-              <Package className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-              <label className="text-[11px] font-bold text-emerald-950 truncate">
-                Связанный пакет сборки (.guf):
-              </label>
-            </div>
+        {/* ── Linked Packages Compact Row (1 Task -> N Packages) ── */}
+        <div className="flex flex-wrap items-center justify-between gap-1.5 px-2.5 py-1.5 bg-emerald-50/50 border border-emerald-200/70 rounded-xl text-xs">
+          <div className="flex flex-wrap items-center gap-1.5 min-w-0">
+            <span className="font-semibold text-emerald-950 text-[11px] flex items-center gap-1 flex-shrink-0">
+              <Package className="w-3.5 h-3.5 text-emerald-600" />
+              <span>Пакеты сборки:</span>
+            </span>
 
-            <div className="flex items-center gap-1.5 flex-1 sm:max-w-xs">
-              <select
-                value={task.packageId || ''}
-                onChange={(e) => onUpdateTask(task.id, { packageId: e.target.value || undefined })}
-                className="w-full px-2.5 py-1 bg-white border border-emerald-300 focus:border-emerald-500 rounded-lg text-xs text-gray-900 font-medium outline-none focus:ring-1 focus:ring-emerald-500 shadow-2xs transition-colors"
-              >
-                <option value="">— Не привязан к пакету —</option>
-                {packages.map((pkg) => (
-                  <option key={pkg.id} value={pkg.id}>
-                    📦 {pkg.name} ({pkg.files.length} {pkg.files.length === 1 ? 'файл' : 'файлов'})
-                  </option>
-                ))}
-              </select>
-            </div>
+            {linkedPackages.length === 0 ? (
+              <span className="text-[10.5px] text-gray-400">Нет привязанных пакетов</span>
+            ) : (
+              linkedPackages.map((pkg) => (
+                <button
+                  key={pkg.id}
+                  type="button"
+                  onClick={() => onNavigateToPackage && onNavigateToPackage(pkg.id)}
+                  title={`Открыть пакет "${pkg.name}" во вкладке Упаковка`}
+                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-white border border-emerald-200 text-emerald-800 font-medium text-[10.5px] hover:bg-emerald-100/70 transition-colors shadow-2xs group"
+                >
+                  <span className="font-mono font-bold text-emerald-700">{pkg.name}</span>
+                  <span className="text-gray-400 text-[10px]">({pkg.files.length} ф.)</span>
+                  <ExternalLink className="w-2.5 h-2.5 opacity-60 group-hover:opacity-100" />
+                </button>
+              ))
+            )}
           </div>
 
-          {linkedPackage && (
-            <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-emerald-200/60 text-[11px]">
-              <div className="flex items-center gap-1.5 text-emerald-900 min-w-0">
-                <span className="font-semibold">Привязан к:</span>
-                <span className="font-mono font-bold bg-white px-2 py-0.5 rounded-md border border-emerald-200 shadow-2xs truncate max-w-[150px]">
-                  {linkedPackage.name}
-                </span>
-                <span className="text-emerald-700 flex-shrink-0">
-                  ({linkedPackage.files.length} ф. в очереди)
-                </span>
-              </div>
+          <div className="flex items-center gap-1 flex-shrink-0">
+            {linkedPackages.some((p) => p.files.length > 0) && (
+              <button
+                type="button"
+                onClick={handleImportFilesFromPackages}
+                title="Добавить файлы из всех привязанных пакетов в список изменений"
+                className="inline-flex items-center gap-1 px-2 py-0.5 bg-white hover:bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-lg font-semibold text-[10px] transition-colors shadow-2xs"
+              >
+                <FilePlus className="w-3 h-3 text-emerald-600" />
+                <span>Импорт файлов</span>
+              </button>
+            )}
 
-              <div className="flex items-center gap-1.5 flex-shrink-0">
-                {linkedPackage.files.length > 0 && (
-                  <button
-                    type="button"
-                    onClick={handleImportFilesFromPackage}
-                    title="Добавить файлы из пакета в список изменений"
-                    className="inline-flex items-center gap-1 px-2 py-1 bg-white hover:bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-lg font-semibold text-[10.5px] transition-colors shadow-2xs"
-                  >
-                    <FilePlus className="w-3 h-3 text-emerald-600" />
-                    <span>Импорт {linkedPackage.files.length} файлов</span>
-                  </button>
-                )}
-
-                {onNavigateToPackage && (
-                  <button
-                    type="button"
-                    onClick={() => onNavigateToPackage(linkedPackage.id)}
-                    title="Открыть этот пакет во вкладке 'Упаковка'"
-                    className="inline-flex items-center gap-1 px-2 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-semibold text-[10.5px] transition-colors shadow-2xs"
-                  >
-                    <span>В упаковку</span>
-                    <ExternalLink className="w-3 h-3" />
-                  </button>
-                )}
-              </div>
-            </div>
-          )}
+            {onNavigateToPackage && (
+              <button
+                type="button"
+                onClick={() => onNavigateToPackage('')}
+                title="Перейти в упаковку для управления пакетами"
+                className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-semibold text-[10px] transition-colors shadow-2xs"
+              >
+                <Plus className="w-3 h-3" />
+                <span>В упаковку</span>
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Import Toast Notification */}

@@ -240,6 +240,7 @@ export function formatTaskToMarkdown(task: {
   sections?: ImplementationSection[];
   items: ImplementationChangeItem[];
   linkedPackage?: { name: string; files?: { newName?: string; originalName: string; order: number }[] };
+  linkedPackages?: { name: string; files?: { newName?: string; originalName: string; order: number }[] }[];
 }): string {
   const lines: string[] = [];
 
@@ -250,10 +251,14 @@ export function formatTaskToMarkdown(task: {
     lines.push('');
   }
 
-  // Linked Package info
-  if (task.linkedPackage) {
-    const fileCount = task.linkedPackage.files?.length || 0;
-    lines.push(`**Пакет сборки .guf:** \`${task.linkedPackage.name}\` (${fileCount} ${fileCount === 1 ? 'файл' : 'файлов'})`);
+  // Linked Packages info (1 task -> N packages)
+  const allLinked = task.linkedPackages || (task.linkedPackage ? [task.linkedPackage] : []);
+  if (allLinked.length > 0) {
+    lines.push('### Пакеты обновления .guf');
+    allLinked.forEach((pkg) => {
+      const count = pkg.files?.length || 0;
+      lines.push(`- **Пакет:** \`${pkg.name}\` (${count} ${count === 1 ? 'файл' : 'файлов'})`);
+    });
     lines.push('');
   }
 

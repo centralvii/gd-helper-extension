@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Check, Download, FileText, Code } from 'lucide-react';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
-import { ImplementationTask } from '../../types';
+import { ImplementationTask, BuildPackage } from '../../types';
 import { formatTaskToMarkdown } from '../../utils/tabUtils';
 import saveAs from 'file-saver';
 
@@ -10,7 +10,7 @@ interface TaskExportPreviewModalProps {
   isOpen: boolean;
   onClose: () => void;
   task: ImplementationTask | null;
-  packages?: { id: string; name: string; files: { newName?: string; originalName: string; order: number }[] }[];
+  packages?: BuildPackage[];
 }
 
 export const TaskExportPreviewModal: React.FC<TaskExportPreviewModalProps> = ({
@@ -23,10 +23,10 @@ export const TaskExportPreviewModal: React.FC<TaskExportPreviewModalProps> = ({
 
   if (!task) return null;
 
-  const linkedPkg = task.packageId ? packages.find((p) => p.id === task.packageId) : undefined;
+  const linkedPkgs = packages.filter((p) => p.taskId === task.id || p.id === task.packageId);
   const markdownText = formatTaskToMarkdown({
     ...task,
-    linkedPackage: linkedPkg ? { name: linkedPkg.name, files: linkedPkg.files } : undefined,
+    linkedPackages: linkedPkgs.map((p) => ({ name: p.name, files: p.files })),
   });
 
   const handleCopy = (format: string, text: string) => {

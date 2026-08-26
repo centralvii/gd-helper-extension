@@ -6,13 +6,16 @@ import { BuildPackage } from '../../types';
 
 interface ImplementationToolProps {
   packages?: BuildPackage[];
+  tasksState?: ReturnType<typeof useImplementationTasks>;
   onNavigateToPackage?: (pkgId: string) => void;
 }
 
 export const ImplementationTool: React.FC<ImplementationToolProps> = ({
   packages = [],
+  tasksState,
   onNavigateToPackage,
 }) => {
+  const localTasks = useImplementationTasks();
   const {
     tasks,
     activeTask,
@@ -30,7 +33,7 @@ export const ImplementationTool: React.FC<ImplementationToolProps> = ({
     deleteChangeItem,
     reorderChangeItems,
     moveChangeItem,
-  } = useImplementationTasks();
+  } = tasksState || localTasks;
 
   return (
     <div className="space-y-3">

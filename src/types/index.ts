@@ -47,6 +47,7 @@ export interface ValidationSummary {
 export interface BuildPackage {
   id: string;
   name: string;
+  taskId?: string; // ID связанной задачи реализации (1 задача -> N пакетов)
   files: FileRow[];
   template: string;
   startNumber: number;
@@ -60,6 +61,7 @@ export interface BuildPackage {
 export interface StoredPackageMeta {
   id: string;
   name: string;
+  taskId?: string;
   filesMeta: Array<Omit<FileRow, 'file'>>;
   template: string;
   startNumber: number;

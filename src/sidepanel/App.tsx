@@ -3,6 +3,7 @@ import { UploadCloud, Zap, Check, X } from 'lucide-react';
 import { useAppState } from '../hooks/useAppState';
 import { useGlobalFileDrop } from '../hooks/useGlobalFileDrop';
 import { useAutoCollector } from '../hooks/useAutoCollector';
+import { useImplementationTasks } from '../hooks/useImplementationTasks';
 import { Header } from '../components/layout/Header';
 import { Footer } from '../components/layout/Footer';
 import { ImplementationTool } from '../components/implementation/ImplementationTool';
@@ -64,6 +65,8 @@ export const App: React.FC = () => {
         loadPreset,
         exportZip,
     } = useAppState();
+
+    const implTasks = useImplementationTasks();
 
     // Active Tool state
     const [activeTool, setActiveTool] = useState<ActiveTool>(() => {
@@ -231,8 +234,9 @@ export const App: React.FC = () => {
                 ) : activeTool === 'implementation' ? (
                     <ImplementationTool
                         packages={packages}
+                        tasksState={implTasks}
                         onNavigateToPackage={(pkgId: string) => {
-                            selectPackage(pkgId);
+                            if (pkgId) selectPackage(pkgId);
                             handleSelectTool('packer');
                         }}
                     />
@@ -242,11 +246,16 @@ export const App: React.FC = () => {
                         <PackageSelector
                             packages={packages}
                             activePackage={activePackage}
+                            tasks={implTasks.tasks}
                             onSelectPackage={selectPackage}
                             onCreatePackage={createPackage}
                             onDuplicatePackage={duplicatePackage}
                             onRenamePackage={renamePackage}
                             onDeletePackage={deletePackage}
+                            onNavigateToTask={(taskId) => {
+                                implTasks.selectTask(taskId);
+                                handleSelectTool('implementation');
+                            }}
                             isAutoCollectEnabled={isAutoCollectEnabled}
                             onToggleAutoCollect={toggleAutoCollect}
                         />

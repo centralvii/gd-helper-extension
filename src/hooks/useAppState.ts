@@ -149,6 +149,7 @@ export function useAppState() {
               return {
                 id: pkgMeta.id,
                 name: pkgMeta.name || 'Пакет',
+                taskId: pkgMeta.taskId,
                 files: calculatedFiles,
                 template: tpl,
                 startNumber: pkgMeta.startNumber || 1,
@@ -281,9 +282,13 @@ export function useAppState() {
 
   // Package Management Actions
   const createPackage = useCallback(
-    (name?: string) => {
+    (name?: string, taskId?: string) => {
       const pkgName = name?.trim() || `Пакет ${packages.length + 1}`;
-      const newPkg = createDefaultPackage(pkgName, primaryTemplate);
+      const base = createDefaultPackage(pkgName, primaryTemplate);
+      const newPkg: BuildPackage = {
+        ...base,
+        taskId: taskId || undefined,
+      };
       setPackages((prev) => [...prev, newPkg]);
       setActivePackageId(newPkg.id);
       return newPkg.id;
@@ -295,11 +300,20 @@ export function useAppState() {
     setActivePackageId(id);
   }, []);
 
-  const renamePackage = useCallback((id: string, newName: string) => {
+  const renamePackage = useCallback((id: string, newName: string, taskId?: string) => {
     const clean = newName.trim();
-    if (!clean) return;
+    if (!clean && taskId === undefined) return;
     setPackages((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, name: clean, updatedAt: Date.now() } : p))
+      prev.map((p) =>
+        p.id === id
+          ? {
+              ...p,
+              name: clean || p.name,
+              taskId: taskId !== undefined ? (taskId || undefined) : p.taskId,
+              updatedAt: Date.now(),
+            }
+          : p
+      )
     );
   }, []);
 
