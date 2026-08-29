@@ -119,10 +119,12 @@
     .header-tab {
         display: inline-flex;
         align-items: center;
+        justify-content: center;
         gap: 5px;
-        padding: 5px 8.5px;
+        height: 28px;
+        padding: 0 10px;
         border-radius: 9px;
-        font-size: 11.5px;
+        font-size: 12px;
         font-weight: 600;
         color: #475569;
         background: transparent;
@@ -131,7 +133,11 @@
         white-space: nowrap;
         will-change: transform;
         transition: color 0.14s ease, background-color 0.14s ease, border-color 0.14s ease, transform 0.12s ease;
-        line-height: 1.25;
+        line-height: 1;
+    }
+    .header-tab--icon-only {
+        width: 28px;
+        padding: 0;
     }
     .header-tab > svg {
         flex-shrink: 0;
