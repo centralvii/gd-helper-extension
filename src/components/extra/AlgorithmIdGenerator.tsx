@@ -6,7 +6,6 @@ import {
   History,
   Trash2,
   BookOpen,
-  Sparkles,
   ChevronDown,
   ChevronUp,
   AlertCircle,
@@ -23,39 +22,6 @@ import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { Select } from '../ui/Select';
 import confetti from 'canvas-confetti';
-
-const EXAMPLES = [
-  {
-    label: 'Расчет VaR',
-    text: 'Лимиты. Рассчитать VaR по портфелю',
-    desc: 'Блок + Расчет параметров',
-  },
-  {
-    label: 'Экспертиза КИБ',
-    text: 'КИБ. ЗПР. Создать экземпляр экспертизы рисков',
-    desc: 'Многоуровневый блок + Карточка объекта',
-  },
-  {
-    label: 'Проверка НПП (юл)',
-    text: 'Алгоритм определения объектов проверки для проверки НПП (юл)',
-    desc: 'Определение объектов + Юрлицо',
-  },
-  {
-    label: 'Стирание заключений',
-    text: 'ФИН. ЗИ. Проверка НПП (юл). Стирание заключений переставших соответствовать требованиям',
-    desc: 'Комплексный блок + Стирание заключений',
-  },
-  {
-    label: 'ЖЦ до сохранения',
-    text: 'Изменен алгоритм ЖЦ до сохранения НПП контракты, добавлена проверка типа ЗИ',
-    desc: 'Жизненный цикл + Событие до сохранения + Контракты',
-  },
-  {
-    label: 'Фильтрация счетов',
-    text: 'Фильтрация расчетных счетов по валюте, на основании договора',
-    desc: 'Условие фильтрации элементов',
-  },
-];
 
 const POSTFIX_OPTIONS = [
   { value: '_ALG', label: '_ALG (Стандартный)' },
@@ -309,28 +275,6 @@ export const AlgorithmIdGenerator: React.FC = () => {
             rows={3}
             className="w-full rounded-xl border border-slate-200 bg-slate-50/70 p-3 text-xs font-medium text-slate-900 placeholder:text-slate-400 outline-none transition-all focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-500/10 shadow-2xs"
           />
-        </div>
-
-        {/* Quick Example Chips */}
-        <div className="space-y-1.5">
-          <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
-            <Sparkles className="w-3 h-3 text-amber-500" />
-            Готовые примеры по правилам GreenData:
-          </div>
-
-          <div className="flex flex-wrap gap-1.5">
-            {EXAMPLES.map((ex) => (
-              <button
-                key={ex.label}
-                type="button"
-                onClick={() => handleSetInputText(ex.text)}
-                title={`${ex.desc}: "${ex.text}"`}
-                className="rounded-lg border border-slate-200 bg-slate-50/80 hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-900 px-2.5 py-1 text-[11px] font-medium text-slate-700 transition-all active:scale-95 shadow-2xs cursor-pointer"
-              >
-                {ex.label}
-              </button>
-            ))}
-          </div>
         </div>
 
         {/* Postfix and Settings Row */}
