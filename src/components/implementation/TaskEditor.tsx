@@ -592,11 +592,15 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
               return (
                 <div
                   key={sec.id}
-                  className="rounded-2xl border border-slate-200/90 bg-white shadow-xs overflow-hidden transition-all"
+                  className={`rounded-2xl border border-slate-200/90 bg-white shadow-xs transition-all relative ${
+                    openSectionMenuId === sec.id ? 'z-30' : 'z-0'
+                  }`}
                 >
                   {/* Section Header */}
                   <div
-                    className="flex items-center justify-between gap-1.5 px-3 py-2 bg-gradient-to-r from-slate-50/90 to-white border-b border-slate-200/80 cursor-pointer select-none transition-colors hover:bg-slate-100/70"
+                    className={`flex items-center justify-between gap-1.5 px-3 py-2 bg-gradient-to-r from-slate-50/90 to-white cursor-pointer select-none transition-colors hover:bg-slate-100/70 ${
+                      isCollapsed ? 'rounded-2xl' : 'rounded-t-2xl border-b border-slate-200/80'
+                    }`}
                     onClick={() => toggleSectionCollapse(sec.id)}
                   >
                     <div className="flex items-center gap-1.5 min-w-0 flex-1 mr-1">
