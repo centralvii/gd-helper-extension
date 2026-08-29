@@ -123,7 +123,7 @@ export const PackageSelector: React.FC<PackageSelectorProps> = ({
           <button
             type="button"
             onClick={() => setIsOpenList(!isOpenList)}
-            className="w-full flex items-center justify-between gap-2 px-3 py-2 bg-slate-50/90 hover:bg-slate-100/90 text-left border border-slate-200/90 rounded-xl transition-all group shadow-2xs cursor-pointer min-w-0"
+            className="w-full flex items-center justify-between gap-1.5 px-3 py-2 bg-slate-50/90 hover:bg-slate-100/90 text-left border border-slate-200/90 rounded-xl transition-all group shadow-2xs cursor-pointer min-w-0 overflow-hidden"
           >
             <div className="flex items-center gap-2 min-w-0 flex-1 mr-1">
               <div className="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center flex-shrink-0 font-bold shadow-2xs">
@@ -133,7 +133,7 @@ export const PackageSelector: React.FC<PackageSelectorProps> = ({
                 <span className="text-[11px] font-bold text-slate-600 whitespace-nowrap flex-shrink-0">
                   Пакет:
                 </span>
-                <span className="text-xs text-slate-900 font-bold truncate min-w-0">
+                <span className="text-xs text-slate-900 font-bold truncate min-w-0 flex-1">
                   {activePackage.name}
                 </span>
 
@@ -156,7 +156,7 @@ export const PackageSelector: React.FC<PackageSelectorProps> = ({
               </div>
             </div>
 
-            <div className="flex items-center gap-1.5 flex-shrink-0">
+            <div className="flex items-center gap-1 flex-shrink-0">
               <ChevronDown
                 className={`w-3.5 h-3.5 text-slate-400 group-hover:text-slate-700 transition-transform flex-shrink-0 ${
                   isOpenList ? 'rotate-180' : ''
@@ -220,20 +220,18 @@ export const PackageSelector: React.FC<PackageSelectorProps> = ({
                         />
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-1.5 min-w-0">
-                            <span className="font-bold text-emerald-800 text-[11px] whitespace-nowrap flex-shrink-0">
+                            <span className="font-bold text-emerald-900 text-xs truncate min-w-0 flex-1">
                               {pkg.name}
                             </span>
                             {linkedTask && (
-                              <>
-                                <span className="text-slate-400 text-[10px] flex-shrink-0">•</span>
-                                <span className="truncate text-xs text-gray-900 font-medium min-w-0">
-                                  {linkedTask.taskNumber}: {linkedTask.title}
-                                </span>
-                              </>
+                              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800 text-[9.5px] font-mono border border-emerald-200 flex-shrink-0 whitespace-nowrap">
+                                {linkedTask.taskNumber}
+                              </span>
                             )}
                           </div>
-                          <span className="block text-[10px] text-gray-400 font-normal">
+                          <span className="block text-[10px] text-gray-400 font-normal truncate">
                             {pkg.files.length} {pkg.files.length === 1 ? 'файл' : 'файлов'}
+                            {linkedTask ? ` • ${linkedTask.title}` : ''}
                           </span>
                         </div>
                       </div>
