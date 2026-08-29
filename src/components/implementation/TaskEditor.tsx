@@ -564,6 +564,28 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
 
                     {/* Section Controls */}
                     <div className="relative flex items-center gap-1 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+                      {/* Responsive Reorder Arrows: Visible on wider screens */}
+                      <div className="hidden xs:inline-flex items-center gap-0.5">
+                        <button
+                          type="button"
+                          onClick={() => onReorderSections(task.id, secIdx, secIdx - 1)}
+                          disabled={secIdx === 0}
+                          title="Переместить раздел выше"
+                          className="icon-btn p-1 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg disabled:opacity-20 disabled:hover:bg-transparent cursor-pointer"
+                        >
+                          <ChevronUp className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => onReorderSections(task.id, secIdx, secIdx + 1)}
+                          disabled={secIdx === sections.length - 1}
+                          title="Переместить раздел ниже"
+                          className="icon-btn p-1 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg disabled:opacity-20 disabled:hover:bg-transparent cursor-pointer"
+                        >
+                          <ChevronDown className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+
                       <button
                         type="button"
                         onClick={() => handleOpenAddNew(sec.id)}
@@ -601,32 +623,38 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
                             className="absolute right-0 top-full mt-1.5 z-50 bg-white border border-slate-200/90 rounded-2xl shadow-xl p-1.5 min-w-[175px] space-y-0.5 animate-fade-in text-xs"
                             onClick={(e) => e.stopPropagation()}
                           >
-                            <button
-                              type="button"
-                              onClick={() => {
-                                onReorderSections(task.id, secIdx, secIdx - 1);
-                                setOpenSectionMenuId(null);
-                              }}
-                              disabled={secIdx === 0}
-                              className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-slate-700 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer transition-colors text-[11px] font-medium"
-                            >
-                              <ChevronUp className="w-3.5 h-3.5 text-slate-500" />
-                              <span>Поднять выше</span>
-                            </button>
+                            {/* Up / Down visible in menu only on narrow screens */}
+                            <div className="xs:hidden space-y-0.5">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  onReorderSections(task.id, secIdx, secIdx - 1);
+                                  setOpenSectionMenuId(null);
+                                }}
+                                disabled={secIdx === 0}
+                                className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-slate-700 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer transition-colors text-[11px] font-medium"
+                              >
+                                <ChevronUp className="w-3.5 h-3.5 text-slate-500" />
+                                <span>Поднять выше</span>
+                              </button>
 
-                            <button
-                              type="button"
-                              onClick={() => {
-                                onReorderSections(task.id, secIdx, secIdx + 1);
-                                setOpenSectionMenuId(null);
-                              }}
-                              disabled={secIdx === sections.length - 1}
-                              className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-slate-700 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer transition-colors text-[11px] font-medium"
-                            >
-                              <ChevronDown className="w-3.5 h-3.5 text-slate-500" />
-                              <span>Опустить ниже</span>
-                            </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  onReorderSections(task.id, secIdx, secIdx + 1);
+                                  setOpenSectionMenuId(null);
+                                }}
+                                disabled={secIdx === sections.length - 1}
+                                className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-slate-700 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer transition-colors text-[11px] font-medium"
+                              >
+                                <ChevronDown className="w-3.5 h-3.5 text-slate-500" />
+                                <span>Опустить ниже</span>
+                              </button>
 
+                              <div className="h-px bg-slate-100 my-0.5" />
+                            </div>
+
+                            {/* Rename & Delete: ALWAYS in 3-dots menu */}
                             <button
                               type="button"
                               onClick={() => {
@@ -649,7 +677,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
                               }}
                               className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-rose-600 hover:bg-rose-50 hover:text-rose-700 cursor-pointer transition-colors text-[11px] font-medium"
                             >
-                              <Trash2 className="w-3.5 h-3.5 text-rose-500" />
+                              <Trash2 className="w-3.5 h-3.5 text-rose-600" />
                               <span>Удалить раздел</span>
                             </button>
                           </div>
