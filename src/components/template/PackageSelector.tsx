@@ -151,16 +151,11 @@ export const PackageSelector: React.FC<PackageSelectorProps> = ({
               )}
             </div>
 
-            <div className="flex items-center gap-1 flex-shrink-0 ml-1">
-              <span className="px-1.5 py-0.2 rounded-md bg-white border border-slate-200 text-[10px] font-bold text-slate-600 shadow-2xs whitespace-nowrap">
-                {activePackage.files.length} {activePackage.files.length === 1 ? 'файл' : 'файлов'}
-              </span>
-              <ChevronDown
-                className={`w-3.5 h-3.5 text-slate-400 group-hover:text-slate-700 transition-transform ${
-                  isOpenList ? 'rotate-180' : ''
-                }`}
-              />
-            </div>
+            <ChevronDown
+              className={`w-3.5 h-3.5 text-slate-400 group-hover:text-slate-700 transition-transform flex-shrink-0 ml-1 ${
+                isOpenList ? 'rotate-180' : ''
+              }`}
+            />
           </button>
 
           {/* Package Dropdown Menu */}
