@@ -125,6 +125,7 @@ export const AlgorithmIdGenerator: React.FC = () => {
   };
 
   const [copied, setCopied] = useState(false);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
   const [showRulesGuide, setShowRulesGuide] = useState(false);
   const [history, setHistory] = useState<AlgorithmHistoryItem[]>([]);
 
@@ -196,7 +197,11 @@ export const AlgorithmIdGenerator: React.FC = () => {
 
     navigator.clipboard.writeText(textToCopy);
     setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    setCopiedId(textToCopy);
+    setTimeout(() => {
+      setCopied(false);
+      setCopiedId(null);
+    }, 2000);
 
     // Save to history
     saveToHistory({
@@ -572,21 +577,27 @@ export const AlgorithmIdGenerator: React.FC = () => {
 
               {/* Alternative Variations */}
               {parsed.variants && (
-                <div className="space-y-1.5 pt-2 border-t border-emerald-100">
+                <div className="space-y-1.5 pt-2 border-t border-emerald-100 min-w-0">
                   <div className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">
                     Альтернативные варианты (клик для копирования):
                   </div>
-                  <div className="flex flex-wrap gap-1.5">
+                  <div className="space-y-1.5 min-w-0">
                     {parsed.variants.scopeFirstId &&
                       parsed.variants.scopeFirstId !== parsed.generatedId && (
                         <button
                           type="button"
-                          onClick={() => handleCopy(parsed.variants.scopeFirstId)}
-                          className="rounded-lg border border-gray-200 bg-gray-50 px-2 py-1 font-mono text-[11px] font-semibold text-gray-700 hover:border-emerald-400 hover:bg-emerald-50 hover:text-emerald-800 transition-colors flex items-center gap-1"
+                          onClick={() => handleCopy(parsed.variants?.scopeFirstId)}
+                          className="w-full rounded-xl border border-gray-200 bg-gray-50 hover:bg-emerald-50 hover:border-emerald-300 px-2.5 py-1.5 font-mono text-[11px] font-semibold text-gray-800 hover:text-emerald-950 transition-all flex items-center justify-between gap-2 group cursor-pointer text-left min-w-0 shadow-2xs"
                           title="Вариант с префиксом предметной области в начале"
                         >
-                          <Copy className="w-3 h-3 text-emerald-600" />
-                          <span>{parsed.variants.scopeFirstId}</span>
+                          <span className="break-all select-all flex-1 min-w-0 leading-tight">
+                            {parsed.variants.scopeFirstId}
+                          </span>
+                          {copiedId === parsed.variants.scopeFirstId ? (
+                            <Check className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
+                          ) : (
+                            <Copy className="w-3.5 h-3.5 text-gray-400 group-hover:text-emerald-600 flex-shrink-0" />
+                          )}
                         </button>
                       )}
                     {parsed.variants.compactId &&
@@ -594,12 +605,18 @@ export const AlgorithmIdGenerator: React.FC = () => {
                       parsed.variants.compactId !== parsed.variants.scopeFirstId && (
                         <button
                           type="button"
-                          onClick={() => handleCopy(parsed.variants.compactId)}
-                          className="rounded-lg border border-gray-200 bg-gray-50 px-2 py-1 font-mono text-[11px] font-semibold text-gray-700 hover:border-emerald-400 hover:bg-emerald-50 hover:text-emerald-800 transition-colors flex items-center gap-1"
+                          onClick={() => handleCopy(parsed.variants?.compactId)}
+                          className="w-full rounded-xl border border-gray-200 bg-gray-50 hover:bg-emerald-50 hover:border-emerald-300 px-2.5 py-1.5 font-mono text-[11px] font-semibold text-gray-800 hover:text-emerald-950 transition-all flex items-center justify-between gap-2 group cursor-pointer text-left min-w-0 shadow-2xs"
                           title="Компактный вариант"
                         >
-                          <Copy className="w-3 h-3 text-emerald-600" />
-                          <span>{parsed.variants.compactId}</span>
+                          <span className="break-all select-all flex-1 min-w-0 leading-tight">
+                            {parsed.variants.compactId}
+                          </span>
+                          {copiedId === parsed.variants.compactId ? (
+                            <Check className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
+                          ) : (
+                            <Copy className="w-3.5 h-3.5 text-gray-400 group-hover:text-emerald-600 flex-shrink-0" />
+                          )}
                         </button>
                       )}
                   </div>
