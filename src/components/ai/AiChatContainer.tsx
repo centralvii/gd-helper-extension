@@ -15,6 +15,9 @@ import {
   Plus,
   Settings2,
   Bot,
+  X,
+  Bug,
+  Workflow,
 } from 'lucide-react';
 import { useAiChat } from '../../hooks/useAiChat';
 import { AiMessageItem } from './AiMessageItem';
@@ -23,34 +26,117 @@ import { Button } from '../ui/Button';
 import { Modal } from '../ui/Modal';
 import { getActiveTabInfo, TabInfo } from '../../utils/tabUtils';
 
-const PROMPT_SUGGESTIONS = [
+interface CategoryScenario {
+  id: string;
+  name: string;
+  icon: React.ReactNode;
+  cards: {
+    title: string;
+    desc: string;
+    prompt: string;
+    icon: React.ReactNode;
+    badge: string;
+  }[];
+}
+
+const CATEGORIES: CategoryScenario[] = [
   {
-    title: 'Алгоритм валидации',
-    desc: 'Скрипт проверки обязательных полей карточки',
-    prompt: 'Напиши пример скрипта алгоритма для валидации обязательных полей карточки GreenData с выводом ошибок.',
-    icon: <Code2 className="w-4 h-4 text-emerald-600" />,
-    badge: 'Скрипты',
+    id: 'all',
+    name: 'Все сценарии',
+    icon: <Sparkles className="w-3.5 h-3.5 text-amber-500" />,
+    cards: [
+      {
+        title: 'Алгоритм валидации',
+        desc: 'Скрипт проверки обязательных полей карточки с ошибками',
+        prompt: 'Напиши пример скрипта алгоритма для валидации обязательных полей карточки GreenData с выводом ошибок пользователю.',
+        icon: <Code2 className="w-4 h-4 text-emerald-600" />,
+        badge: 'Скрипты',
+      },
+      {
+        title: 'Стандарты именования ID',
+        desc: 'Генерация кода идентификатора по регламенту GD',
+        prompt: 'Как правильно составить идентификатор алгоритма GreenData для задачи: "Проверка полномочий согласующего лица при изменении статуса договора"?',
+        icon: <Zap className="w-4 h-4 text-amber-500" />,
+        badge: 'Регламент',
+      },
+      {
+        title: 'SQL выборка в GD',
+        desc: 'Оптимизированный SQL-запрос для выборки данных в GreenData',
+        prompt: 'Помоги составить эффективный SQL-запрос для выборки активных договоров со связанными контрагентами и суммами больше 1 000 000 руб.',
+        icon: <Layers className="w-4 h-4 text-sky-600" />,
+        badge: 'SQL / БД',
+      },
+      {
+        title: 'Структура пакета .guf',
+        desc: 'Правила упаковки и файл README.txt',
+        prompt: 'Объясни правила формирования структуры пакетов обновлений .guf и составления файла README.txt в GreenData.',
+        icon: <FileCode className="w-4 h-4 text-purple-600" />,
+        badge: 'Упаковка',
+      },
+    ],
   },
   {
-    title: 'Стандарты именования ID',
-    desc: 'Генерация кода по регламенту GD',
-    prompt: 'Как правильно составить идентификатор алгоритма GreenData для задачи: "Проверка полномочий согласующего лица при изменении статуса договора"?',
-    icon: <Zap className="w-4 h-4 text-amber-500" />,
-    badge: 'Регламент',
+    id: 'scripts',
+    name: 'Алгоритмы & JS',
+    icon: <Code2 className="w-3.5 h-3.5 text-emerald-600" />,
+    cards: [
+      {
+        title: 'Оптимизация формулы',
+        desc: 'Поиск узких мест и ускорение вычислений',
+        prompt: 'Оптимизируй следующий алгоритм GreenData для быстродействия и найди потенциальные ошибки:\n```javascript\n\n```',
+        icon: <Zap className="w-4 h-4 text-amber-500" />,
+        badge: 'Оптимизация',
+      },
+      {
+        title: 'Парсинг JSON и HTTP',
+        desc: 'Обработка внешних REST API ответов в GD',
+        prompt: 'Напиши пример скрипта алгоритма GreenData для разбора входящего JSON-ответа от внешнего сервиса и заполнения полей объекта.',
+        icon: <Code2 className="w-4 h-4 text-emerald-600" />,
+        badge: 'REST API',
+      },
+    ],
   },
   {
-    title: 'SQL выборка в GD',
-    desc: 'Оптимизированный SQL-запрос для выборки данных',
-    prompt: 'Помоги составить эффективный SQL-запрос для выборки активных договоров со связанными контрагентами и суммами больше 1 000 000 руб.',
-    icon: <Layers className="w-4 h-4 text-sky-600" />,
-    badge: 'SQL / БД',
+    id: 'sql',
+    name: 'SQL & База данных',
+    icon: <Layers className="w-3.5 h-3.5 text-sky-600" />,
+    cards: [
+      {
+        title: 'Сложный JOIN и агрегаты',
+        desc: 'Группировка с фильтрацией по статусам',
+        prompt: 'Составь SQL-запрос с объединением таблиц и группировкой для формирования отчёта по исполнителям и среднему времени обработки задач.',
+        icon: <Layers className="w-4 h-4 text-sky-600" />,
+        badge: 'Агрегаты',
+      },
+      {
+        title: 'Поиск дубликатов в БД',
+        desc: 'Выявление повторяющихся записей по ключам',
+        prompt: 'Напиши SQL-запрос для поиска дублирующихся карточек контрагентов по ИНН и КПП в базе GreenData.',
+        icon: <Bug className="w-4 h-4 text-rose-500" />,
+        badge: 'Анализ',
+      },
+    ],
   },
   {
-    title: 'Структура пакета .guf',
-    desc: 'Правила упаковки и файл README.txt',
-    prompt: 'Объясни правила формирования структуры пакетов обновлений .guf и составления файла README.txt в GreenData.',
-    icon: <FileCode className="w-4 h-4 text-purple-600" />,
-    badge: 'Упаковка',
+    id: 'bp',
+    name: 'Бизнес-процессы',
+    icon: <Workflow className="w-3.5 h-3.5 text-indigo-600" />,
+    cards: [
+      {
+        title: 'Маршрут согласования',
+        desc: 'Логика параллельных и последовательных этапов',
+        prompt: 'Опиши архитектуру и логику развилок бизнес-процесса многоуровневого согласования заявок на оплату с контролем сроков.',
+        icon: <Workflow className="w-4 h-4 text-indigo-600" />,
+        badge: 'BPMN',
+      },
+      {
+        title: 'Описание для теста',
+        desc: 'Техническая памятка тестировщику по задаче',
+        prompt: 'Помоги составить краткое техническое описание доработок и чек-лист сценариев проверки для передачи задачи в тестирование.',
+        icon: <Check className="w-4 h-4 text-emerald-600" />,
+        badge: 'Тестирование',
+      },
+    ],
   },
 ];
 
@@ -93,6 +179,8 @@ export const AiChatContainer: React.FC = () => {
   } = useAiChat();
 
   const [inputVal, setInputVal] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [attachedContext, setAttachedContext] = useState<string | null>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isClearModalOpen, setIsClearModalOpen] = useState(false);
   const [showScrollBottom, setShowScrollBottom] = useState(false);
@@ -144,9 +232,16 @@ export const AiChatContainer: React.FC = () => {
   }, [inputVal]);
 
   const handleSend = () => {
-    if (!inputVal.trim() || isLoading) return;
-    sendMessage(inputVal);
+    if ((!inputVal.trim() && !attachedContext) || isLoading) return;
+    
+    let finalPrompt = inputVal.trim();
+    if (attachedContext) {
+      finalPrompt = `${attachedContext}\n\n${finalPrompt}`;
+    }
+
+    sendMessage(finalPrompt);
     setInputVal('');
+    setAttachedContext(null);
     setShowQuickMenu(false);
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
@@ -160,14 +255,14 @@ export const AiChatContainer: React.FC = () => {
     }
   };
 
-  const handleInjectTabContext = async () => {
+  const handleAttachActiveTabContext = async () => {
     setIsFetchingTab(true);
     try {
       const tab = await getActiveTabInfo();
       if (tab) {
         setActiveTabInfo(tab);
-        const contextText = `[Контекст страницы: ${tab.cleanTitle || tab.title} | ${tab.detectedSectionName || 'GreenData'} | ${tab.url}]\n`;
-        setInputVal((prev) => `${contextText}${prev}`);
+        const contextString = `[Контекст страницы: ${tab.cleanTitle || tab.title} | ${tab.detectedSectionName || 'GreenData'} | ${tab.url}]`;
+        setAttachedContext(contextString);
         textareaRef.current?.focus();
       }
     } catch {
@@ -195,9 +290,11 @@ export const AiChatContainer: React.FC = () => {
       settings.baseUrl.includes('127.0.0.1')
   );
 
+  const activeCategoryCards = CATEGORIES.find((c) => c.id === selectedCategory)?.cards || CATEGORIES[0].cards;
+
   return (
-    <div className="flex flex-col h-full w-full min-h-0 flex-1 bg-white border border-slate-200/90 rounded-2xl shadow-xs overflow-hidden animate-fade-in relative font-sans">
-      {/* ── Modern Frosted Header ── */}
+    <div className="flex flex-col h-full w-full min-h-0 flex-1 bg-[#fcfcfd] border border-slate-200/90 rounded-2xl shadow-xs overflow-hidden animate-fade-in relative font-sans">
+      {/* ── Modern ChatGPT / Grok Minimal Top Bar ── */}
       <div className="flex items-center justify-between px-3.5 py-2.5 bg-white/95 backdrop-blur-md border-b border-slate-200/80 flex-shrink-0 z-20">
         <div className="flex items-center gap-2.5 min-w-0">
           <div className="relative flex-shrink-0">
@@ -217,7 +314,7 @@ export const AiChatContainer: React.FC = () => {
               GreenData AI
             </span>
 
-            {/* Custom Model Badge -> Click to Open Settings Modal */}
+            {/* Custom Model Pill Button */}
             <button
               type="button"
               onClick={() => setIsSettingsOpen(true)}
@@ -247,7 +344,7 @@ export const AiChatContainer: React.FC = () => {
               <button
                 type="button"
                 onClick={handleCopyEntireChat}
-                title="Скопировать всю историю чата"
+                title="Скопировать весь диалог"
                 className="p-1.5 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
               >
                 {copiedAll ? (
@@ -262,7 +359,7 @@ export const AiChatContainer: React.FC = () => {
           <button
             type="button"
             onClick={() => setIsSettingsOpen(true)}
-            title="Настройки ИИ провайдера"
+            title="Настройки ИИ подключения"
             className="p-1.5 text-slate-500 hover:text-emerald-700 hover:bg-emerald-50 rounded-xl transition-colors cursor-pointer"
           >
             <Settings2 className="w-4 h-4" />
@@ -277,33 +374,33 @@ export const AiChatContainer: React.FC = () => {
         className="flex-1 p-3.5 sm:p-4 overflow-y-auto overscroll-contain space-y-4 bg-slate-50/40 min-h-0 select-text scrollbar-thin"
       >
         {messages.length === 0 ? (
-          <div className="py-5 px-1 text-center max-w-md mx-auto space-y-4.5 animate-fade-in">
-            {/* Hero Header */}
-            <div className="space-y-3">
+          <div className="py-4 px-1 text-center max-w-md mx-auto space-y-4 animate-fade-in">
+            {/* ChatGPT / Grok Animated Hero */}
+            <div className="space-y-2.5">
               <div className="relative inline-block">
-                <div className="w-13 h-13 rounded-2xl bg-gradient-to-tr from-emerald-600 via-teal-600 to-emerald-400 text-white flex items-center justify-center mx-auto shadow-lg shadow-emerald-500/20">
-                  <Bot className="w-7 h-7" />
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-emerald-600 via-teal-600 to-emerald-400 text-white flex items-center justify-center mx-auto shadow-lg shadow-emerald-500/20">
+                  <Bot className="w-6 h-6" />
                 </div>
-                <span className="absolute -bottom-1 -right-1 p-1 rounded-full bg-white shadow-xs">
+                <span className="absolute -bottom-1 -right-1 p-0.5 rounded-full bg-white shadow-xs">
                   <Sparkles className="w-3.5 h-3.5 text-amber-500" />
                 </span>
               </div>
 
-              <div className="space-y-1.5">
-                <h3 className="text-base font-bold text-slate-900 tracking-tight">
-                  GreenData AI Ассистент
+              <div className="space-y-1">
+                <h3 className="text-base font-extrabold text-slate-900 tracking-tight">
+                  Чем могу помочь сегодня?
                 </h3>
                 <p className="text-xs text-slate-500 leading-relaxed max-w-xs mx-auto">
-                  Составление алгоритмов, оптимизация SQL-запросов, проверка логики, упаковка .guf и отладка.
+                  Составление алгоритмов GreenData, оптимизация SQL, отладка ошибок и пакеты .guf.
                 </p>
               </div>
 
-              {/* Active Tab Detection Context Card */}
+              {/* Active Tab Detection Banner (Grok Web Context Style) */}
               {activeTabInfo && (
                 <div className="pt-1">
                   <button
                     type="button"
-                    onClick={handleInjectTabContext}
+                    onClick={handleAttachActiveTabContext}
                     className="w-full inline-flex items-center justify-between gap-2 p-2.5 rounded-2xl bg-white border border-emerald-200/90 hover:border-emerald-400 hover:bg-emerald-50/40 text-left transition-all shadow-2xs hover:shadow-xs group cursor-pointer"
                   >
                     <div className="flex items-center gap-2.5 min-w-0">
@@ -315,7 +412,7 @@ export const AiChatContainer: React.FC = () => {
                           {activeTabInfo.cleanTitle || activeTabInfo.title}
                         </span>
                         <span className="text-[10px] text-slate-400 block truncate">
-                          {activeTabInfo.detectedSectionName || 'Вкладка GreenData'} • Добавить контекст в диалог
+                          {activeTabInfo.detectedSectionName || 'Вкладка GreenData'} • Прикрепить контекст страницы
                         </span>
                       </div>
                     </div>
@@ -325,13 +422,29 @@ export const AiChatContainer: React.FC = () => {
               )}
             </div>
 
-            {/* Prompt Starter Cards Grid */}
+            {/* Grok-style Category Filter Chips */}
             <div className="space-y-2 pt-1 text-left">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block px-1">
-                Быстрые сценарии:
-              </span>
+              <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1">
+                {CATEGORIES.map((cat) => (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() => setSelectedCategory(cat.id)}
+                    className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-[11px] font-bold transition-all flex-shrink-0 cursor-pointer shadow-2xs ${
+                      selectedCategory === cat.id
+                        ? 'bg-slate-900 text-white shadow-xs'
+                        : 'bg-white text-slate-600 hover:bg-slate-100 hover:text-slate-900 border border-slate-200'
+                    }`}
+                  >
+                    {cat.icon}
+                    <span>{cat.name}</span>
+                  </button>
+                ))}
+              </div>
+
+              {/* Responsive Scenario Cards Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {PROMPT_SUGGESTIONS.map((item, idx) => (
+                {activeCategoryCards.map((item, idx) => (
                   <button
                     key={idx}
                     type="button"
@@ -368,7 +481,11 @@ export const AiChatContainer: React.FC = () => {
               <AiMessageItem
                 key={msg.id}
                 message={msg}
-                onRetry={msg.error ? retryLastMessage : undefined}
+                onRetry={retryLastMessage}
+                onEditPrompt={(content) => {
+                  setInputVal(content);
+                  textareaRef.current?.focus();
+                }}
               />
             ))}
             <div ref={messagesEndRef} />
@@ -388,9 +505,9 @@ export const AiChatContainer: React.FC = () => {
         </button>
       )}
 
-      {/* ── Modern Floating Composer Bar ── */}
-      <div className="p-2.5 sm:p-3 bg-gradient-to-t from-white via-white/95 to-transparent flex-shrink-0 z-10">
-        <div className="relative rounded-2xl bg-white border border-slate-300 focus-within:border-emerald-500 focus-within:ring-3 focus-within:ring-emerald-500/15 shadow-sm transition-all p-3 space-y-2.5">
+      {/* ── Modern ChatGPT / Grok Floating Composer Bar ── */}
+      <div className="p-2.5 sm:p-3 bg-gradient-to-t from-[#fcfcfd] via-[#fcfcfd]/95 to-transparent flex-shrink-0 z-10">
+        <div className="relative rounded-3xl bg-white border border-slate-300 focus-within:border-emerald-500 focus-within:ring-4 focus-within:ring-emerald-500/10 shadow-lg transition-all p-3 space-y-2">
           {/* Quick Prompt Templates Popover */}
           {showQuickMenu && (
             <>
@@ -400,7 +517,7 @@ export const AiChatContainer: React.FC = () => {
               />
               <div className="absolute bottom-full mb-2 left-0 right-0 bg-white border border-slate-200 rounded-2xl shadow-2xl p-2.5 space-y-1 z-30 animate-slide-down">
                 <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-2 py-1 flex items-center justify-between">
-                  <span>Шаблоны запросов:</span>
+                  <span>Готовые шаблоны запросов:</span>
                   <button
                     onClick={() => setShowQuickMenu(false)}
                     className="text-slate-400 hover:text-slate-700 text-xs p-1 cursor-pointer"
@@ -427,6 +544,22 @@ export const AiChatContainer: React.FC = () => {
             </>
           )}
 
+          {/* Attached Context Pill Badge (ChatGPT File/Web Search Style) */}
+          {attachedContext && (
+            <div className="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-[11px] font-medium w-fit animate-fade-in">
+              <Globe className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
+              <span className="max-w-[220px] truncate">{attachedContext}</span>
+              <button
+                type="button"
+                onClick={() => setAttachedContext(null)}
+                className="text-emerald-700 hover:text-rose-600 p-0.5 rounded-md transition-colors cursor-pointer ml-1"
+                title="Открепить контекст"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </div>
+          )}
+
           {/* Auto-expanding Textarea */}
           <textarea
             ref={textareaRef}
@@ -434,7 +567,7 @@ export const AiChatContainer: React.FC = () => {
             value={inputVal}
             onChange={(e) => setInputVal(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Спросите что угодно о GreenData, коде алгоритмов или SQL..."
+            placeholder="Спросите о коде GreenData, SQL-запросах или структуре .guf..."
             className="w-full bg-transparent text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none resize-none max-h-40 leading-relaxed font-normal"
           />
 
@@ -453,9 +586,9 @@ export const AiChatContainer: React.FC = () => {
 
               <button
                 type="button"
-                onClick={handleInjectTabContext}
+                onClick={handleAttachActiveTabContext}
                 disabled={isFetchingTab}
-                title="Вставить контекст активной вкладки браузера"
+                title="Прикрепить контекст активной страницы браузера"
                 className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-slate-100 hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 text-[11px] font-bold border border-slate-200/80 transition-colors flex-shrink-0 cursor-pointer shadow-2xs"
               >
                 <Globe className="w-3 h-3 text-emerald-600" />
@@ -476,18 +609,18 @@ export const AiChatContainer: React.FC = () => {
                   type="button"
                   onClick={stopGeneration}
                   title="Остановить генерацию"
-                  className="w-7.5 h-7.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white flex items-center justify-center transition-all shadow-xs cursor-pointer active:scale-95"
+                  className="w-8 h-8 rounded-full bg-rose-600 hover:bg-rose-700 text-white flex items-center justify-center transition-all shadow-md cursor-pointer active:scale-95 animate-pulse"
                 >
-                  <Square className="w-3 h-3 fill-current" />
+                  <Square className="w-3.5 h-3.5 fill-current" />
                 </button>
               ) : (
                 <button
                   type="button"
                   onClick={handleSend}
-                  disabled={!inputVal.trim() || isLoading}
+                  disabled={(!inputVal.trim() && !attachedContext) || isLoading}
                   title="Отправить (Enter)"
-                  className={`w-7.5 h-7.5 rounded-xl flex items-center justify-center transition-all shadow-xs ${
-                    inputVal.trim() && !isLoading
+                  className={`w-8 h-8 rounded-full flex items-center justify-center transition-all shadow-md ${
+                    (inputVal.trim() || attachedContext) && !isLoading
                       ? 'bg-slate-900 hover:bg-emerald-600 text-white hover:scale-105 cursor-pointer'
                       : 'bg-slate-100 text-slate-400 cursor-not-allowed'
                   }`}
