@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Check, Download, FileText, Code } from 'lucide-react';
+import { Check, Download, FileText, Code, FileJson } from 'lucide-react';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 import { ImplementationTask, BuildPackage } from '../../types';
@@ -29,15 +29,33 @@ export const TaskExportPreviewModal: React.FC<TaskExportPreviewModalProps> = ({
     linkedPackages: linkedPkgs.map((p) => ({ name: p.name, files: p.files })),
   });
 
+  const jsonBackupString = JSON.stringify(
+    {
+      version: '1.0',
+      type: 'gd_single_task_backup',
+      exportedAt: Date.now(),
+      task,
+    },
+    null,
+    2
+  );
+
   const handleCopy = (format: string, text: string) => {
     navigator.clipboard.writeText(text);
     setCopiedFormat(format);
     setTimeout(() => setCopiedFormat(null), 2500);
   };
 
-  const handleDownload = () => {
+  const handleDownloadMd = () => {
     const filename = `${task.taskNumber || 'task'}_implementation.md`;
     const blob = new Blob([markdownText], { type: 'text/markdown;charset=utf-8' });
+    saveAs(blob, filename);
+  };
+
+  const handleDownloadJson = () => {
+    const safeNum = (task.taskNumber || 'task').replace(/[^a-zA-Z0-9_-]/g, '_');
+    const filename = `gd_realization_${safeNum}.json`;
+    const blob = new Blob([jsonBackupString], { type: 'application/json;charset=utf-8' });
     saveAs(blob, filename);
   };
 
@@ -48,15 +66,25 @@ export const TaskExportPreviewModal: React.FC<TaskExportPreviewModalProps> = ({
       title="Экспорт и копирование описания реализации"
       maxWidth="lg"
       footer={
-        <div className="flex items-center justify-between w-full">
-          <Button
-            variant="secondary"
-            size="sm"
-            leftIcon={<Download className="w-3.5 h-3.5" />}
-            onClick={handleDownload}
-          >
-            Скачать .md файл
-          </Button>
+        <div className="flex items-center justify-between w-full flex-wrap gap-2">
+          <div className="flex items-center gap-1.5">
+            <Button
+              variant="secondary"
+              size="sm"
+              leftIcon={<Download className="w-3.5 h-3.5" />}
+              onClick={handleDownloadMd}
+            >
+              Скачать .md
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              leftIcon={<FileJson className="w-3.5 h-3.5 text-emerald-600" />}
+              onClick={handleDownloadJson}
+            >
+              Скачать .json
+            </Button>
+          </div>
           <Button variant="primary" size="sm" onClick={onClose}>
             Закрыть
           </Button>
@@ -65,43 +93,59 @@ export const TaskExportPreviewModal: React.FC<TaskExportPreviewModalProps> = ({
     >
       <div className="space-y-3.5 text-xs">
         {/* Quick action buttons */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
           <button
             onClick={() => handleCopy('md', markdownText)}
-            className="flex items-center justify-center gap-2 p-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-xl transition-all font-semibold text-xs shadow-sm"
+            className="flex items-center justify-center gap-2 p-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-xl transition-all font-semibold text-xs shadow-sm cursor-pointer"
           >
             {copiedFormat === 'md' ? (
               <>
                 <Check className="w-4 h-4 text-emerald-600" />
-                <span>Скопировано в буфер!</span>
+                <span>Скопировано!</span>
               </>
             ) : (
               <>
                 <Code className="w-4 h-4 text-emerald-600" />
-                <span>Копировать как Markdown</span>
+                <span>Markdown</span>
               </>
             )}
           </button>
 
           <button
             onClick={() => {
-              // Strip markdown formatting for plain text
               const plainText = markdownText
                 .replace(/^##+\s*/gm, '')
                 .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '$1 ($2)');
               handleCopy('plain', plainText);
             }}
-            className="flex items-center justify-center gap-2 p-2.5 bg-gray-50 hover:bg-gray-100 text-gray-800 border border-gray-200 rounded-xl transition-all font-semibold text-xs shadow-sm"
+            className="flex items-center justify-center gap-2 p-2.5 bg-gray-50 hover:bg-gray-100 text-gray-800 border border-gray-200 rounded-xl transition-all font-semibold text-xs shadow-sm cursor-pointer"
           >
             {copiedFormat === 'plain' ? (
               <>
                 <Check className="w-4 h-4 text-emerald-600" />
-                <span>Скопировано как текст!</span>
+                <span>Скопировано!</span>
               </>
             ) : (
               <>
                 <FileText className="w-4 h-4 text-gray-600" />
-                <span>Копировать чистый текст</span>
+                <span>Чистый текст</span>
+              </>
+            )}
+          </button>
+
+          <button
+            onClick={() => handleCopy('json', jsonBackupString)}
+            className="flex items-center justify-center gap-2 p-2.5 bg-slate-50 hover:bg-emerald-50 text-slate-800 hover:text-emerald-900 border border-slate-200 rounded-xl transition-all font-semibold text-xs shadow-sm cursor-pointer"
+          >
+            {copiedFormat === 'json' ? (
+              <>
+                <Check className="w-4 h-4 text-emerald-600" />
+                <span>Скопировано!</span>
+              </>
+            ) : (
+              <>
+                <FileJson className="w-4 h-4 text-emerald-600" />
+                <span>JSON бэкап</span>
               </>
             )}
           </button>

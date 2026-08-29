@@ -384,6 +384,106 @@ export function useImplementationTasks() {
     );
   }, []);
 
+  // Export all tasks to JSON format
+  const exportAllTasksJSON = useCallback(() => {
+    const payload = {
+      version: '1.0',
+      type: 'gd_implementation_backup',
+      exportedAt: Date.now(),
+      exportDate: new Date().toISOString(),
+      totalTasks: tasks.length,
+      tasks: tasks.map(normalizeTask),
+    };
+    return JSON.stringify(payload, null, 2);
+  }, [tasks]);
+
+  // Export a single task to JSON format
+  const exportTaskJSON = useCallback(
+    (taskId: string) => {
+      const t = tasks.find((item) => item.id === taskId) || activeTask;
+      if (!t) return '{}';
+      const payload = {
+        version: '1.0',
+        type: 'gd_single_task_backup',
+        exportedAt: Date.now(),
+        exportDate: new Date().toISOString(),
+        task: normalizeTask(t),
+      };
+      return JSON.stringify(payload, null, 2);
+    },
+    [tasks, activeTask]
+  );
+
+  // Import tasks with options
+  const importTasks = useCallback(
+    (
+      importedTasks: ImplementationTask[],
+      mode: 'merge' | 'replace' | 'update_active',
+      targetTaskId?: string
+    ): { success: boolean; count: number; error?: string } => {
+      if (!importedTasks || importedTasks.length === 0) {
+        return { success: false, count: 0, error: 'Нет задач для импорта' };
+      }
+
+      try {
+        if (mode === 'replace') {
+          const fresh = importedTasks.map((t) =>
+            normalizeTask({ ...t, id: t.id || crypto.randomUUID() })
+          );
+          setTasks(fresh);
+          if (fresh[0]) {
+            setActiveTaskId(fresh[0].id);
+          }
+          return { success: true, count: fresh.length };
+        }
+
+        if (mode === 'update_active') {
+          const taskToApply = importedTasks[0];
+          const targetId = targetTaskId || activeTaskId;
+          if (!targetId || !taskToApply) {
+            return { success: false, count: 0, error: 'Не указана целевая задача' };
+          }
+
+          setTasks((prev) =>
+            prev.map((t) => {
+              if (t.id !== targetId) return t;
+              return normalizeTask({
+                ...taskToApply,
+                id: targetId, // preserve original task ID
+                updatedAt: Date.now(),
+              });
+            })
+          );
+          return { success: true, count: 1 };
+        }
+
+        // Default: 'merge' (append, avoiding ID conflicts)
+        const existingIds = new Set(tasks.map((t) => t.id));
+        const newTasks = importedTasks.map((t) => {
+          const finalId = existingIds.has(t.id) ? crypto.randomUUID() : t.id;
+          existingIds.add(finalId);
+          return normalizeTask({
+            ...t,
+            id: finalId,
+            updatedAt: Date.now(),
+          });
+        });
+
+        setTasks((prev) => [...newTasks, ...prev]);
+
+        if (newTasks[0]) {
+          setActiveTaskId(newTasks[0].id);
+        }
+
+        return { success: true, count: newTasks.length };
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : 'Ошибка импорта';
+        return { success: false, count: 0, error: msg };
+      }
+    },
+    [tasks, activeTaskId]
+  );
+
   return {
     tasks,
     activeTask,
@@ -403,5 +503,117 @@ export function useImplementationTasks() {
     reorderChangeItems,
     moveChangeItem,
     clearTaskItems,
+    exportAllTasksJSON,
+    exportTaskJSON,
+    importTasks,
   };
+}
+
+/**
+ * Utility to parse, validate and normalize tasks from JSON import string
+ */
+export function parseTasksFromImport(jsonString: string): {
+  valid: boolean;
+  tasks: ImplementationTask[];
+  error?: string;
+  sourceType?: 'backup' | 'array' | 'single';
+} {
+  try {
+    const trimmed = jsonString.trim();
+    if (!trimmed) {
+      return { valid: false, tasks: [], error: 'Введен пустой текст' };
+    }
+
+    const parsed = JSON.parse(trimmed);
+    let rawTasks: unknown[] = [];
+    let sourceType: 'backup' | 'array' | 'single' = 'backup';
+
+    if (parsed && typeof parsed === 'object') {
+      if (Array.isArray(parsed)) {
+        rawTasks = parsed;
+        sourceType = 'array';
+      } else if ('tasks' in parsed && Array.isArray((parsed as { tasks: unknown[] }).tasks)) {
+        rawTasks = (parsed as { tasks: unknown[] }).tasks;
+        sourceType = 'backup';
+      } else if ('task' in parsed && typeof (parsed as { task: unknown }).task === 'object') {
+        rawTasks = [(parsed as { task: unknown }).task];
+        sourceType = 'single';
+      } else if ('taskNumber' in parsed || 'title' in parsed || 'items' in parsed) {
+        // Single task object
+        rawTasks = [parsed];
+        sourceType = 'single';
+      } else {
+        return { valid: false, tasks: [], error: 'Не найдены задачи в структуре JSON' };
+      }
+    } else {
+      return { valid: false, tasks: [], error: 'Некорректный JSON формат' };
+    }
+
+    if (rawTasks.length === 0) {
+      return { valid: false, tasks: [], error: 'Список задач пуст' };
+    }
+
+    const normalized: ImplementationTask[] = rawTasks.map((raw: unknown, idx: number) => {
+      const t = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>;
+      const taskNumber = String(t.taskNumber || `TASK-${idx + 1}`).trim();
+      const title = String(t.title || 'Импортированная задача').trim();
+      const summary = String(t.summary || '').trim();
+      const id = typeof t.id === 'string' && t.id.length > 0 ? t.id : crypto.randomUUID();
+
+      let sections: ImplementationSection[] = DEFAULT_IMPLEMENTATION_SECTIONS.map((s, sIdx) => ({
+        ...s,
+        order: sIdx,
+      }));
+      if (Array.isArray(t.sections) && t.sections.length > 0) {
+        sections = t.sections.map((sRaw: unknown, sIdx: number) => {
+          const s = (sRaw && typeof sRaw === 'object' ? sRaw : {}) as Record<string, unknown>;
+          return {
+            id: String(s.id || `sec-${sIdx}`),
+            name: String(s.name || `Раздел ${sIdx + 1}`),
+            order: typeof s.order === 'number' ? s.order : sIdx,
+          };
+        });
+      }
+
+      let items: ImplementationChangeItem[] = [];
+      if (Array.isArray(t.items)) {
+        items = t.items.map((itRaw: unknown, itIdx: number) => {
+          const it = (itRaw && typeof itRaw === 'object' ? itRaw : {}) as Record<string, unknown>;
+          return {
+            id: String(it.id || `item-${Date.now()}-${itIdx}`),
+            sectionId: it.sectionId ? String(it.sectionId) : undefined,
+            description: String(it.description || '').trim(),
+            linkTitle: it.linkTitle ? String(it.linkTitle).trim() : undefined,
+            linkUrl: it.linkUrl ? String(it.linkUrl).trim() : undefined,
+          };
+        });
+      }
+
+      const task: ImplementationTask = {
+        id,
+        taskNumber,
+        title,
+        summary,
+        sections,
+        items,
+        createdAt: typeof t.createdAt === 'number' ? t.createdAt : Date.now(),
+        updatedAt: Date.now(),
+      };
+
+      return normalizeTask(task);
+    });
+
+    return {
+      valid: true,
+      tasks: normalized,
+      sourceType,
+    };
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : 'Некорректный синтаксис';
+    return {
+      valid: false,
+      tasks: [],
+      error: `Ошибка парсинга JSON: ${msg}`,
+    };
+  }
 }

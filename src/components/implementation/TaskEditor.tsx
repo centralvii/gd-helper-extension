@@ -19,6 +19,7 @@ import {
   Package,
   ExternalLink,
   FilePlus,
+  FileJson,
 } from 'lucide-react';
 import {
   ImplementationTask,
@@ -55,6 +56,7 @@ interface TaskEditorProps {
   onDeleteChangeItem: (taskId: string, itemId: string) => void;
   onReorderChangeItems: (taskId: string, fromIndex: number, toIndex: number) => void;
   onMoveChangeItem: (taskId: string, itemId: string, targetSectionId?: string, targetIndex?: number) => void;
+  onOpenImportExport?: (defaultTab?: 'export' | 'import') => void;
 }
 
 export const TaskEditor: React.FC<TaskEditorProps> = ({
@@ -70,6 +72,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
   onUpdateChangeItem,
   onDeleteChangeItem,
   onReorderChangeItems,
+  onOpenImportExport,
 }) => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<ImplementationChangeItem | null>(null);
@@ -748,6 +751,18 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
           </div>
 
           <div className="flex items-center gap-2">
+            {onOpenImportExport && (
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => onOpenImportExport('export')}
+                leftIcon={<FileJson className="w-3.5 h-3.5 text-emerald-600" />}
+                title="Экспорт в JSON или загрузка резервной копии"
+              >
+                Бэкап / JSON
+              </Button>
+            )}
+
             <Button
               variant="secondary"
               size="sm"

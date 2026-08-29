@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Trash2, Copy, ChevronDown, Check, FileCode, Edit2 } from 'lucide-react';
+import { Plus, Trash2, Copy, ChevronDown, Check, FileCode, Edit2, ArrowDownUp } from 'lucide-react';
 import { ImplementationTask } from '../../types';
 import { Button } from '../ui/Button';
 import { Modal } from '../ui/Modal';
@@ -13,6 +13,7 @@ interface TaskSelectorProps {
   onDuplicateTask: (id: string) => void;
   onDeleteTask: (id: string) => void;
   onUpdateTask?: (id: string, updates: Partial<Omit<ImplementationTask, 'id' | 'createdAt'>>) => void;
+  onOpenImportExport?: (defaultTab?: 'export' | 'import') => void;
 }
 
 export const TaskSelector: React.FC<TaskSelectorProps> = ({
@@ -23,6 +24,7 @@ export const TaskSelector: React.FC<TaskSelectorProps> = ({
   onDuplicateTask,
   onDeleteTask,
   onUpdateTask,
+  onOpenImportExport,
 }) => {
   const [isOpenList, setIsOpenList] = useState(false);
   const [taskToDelete, setTaskToDelete] = useState<ImplementationTask | null>(null);
@@ -204,19 +206,34 @@ export const TaskSelector: React.FC<TaskSelectorProps> = ({
                   })}
                 </div>
 
-                {/* Footer: Create Task Button */}
-                <div className="p-2 border-t border-gray-100 bg-gray-50/60">
+                {/* Footer: Create Task & Import/Export Buttons */}
+                <div className="p-2 border-t border-slate-100 bg-slate-50/70 flex items-center gap-1.5">
                   <button
                     type="button"
                     onClick={() => {
                       onCreateTask();
                       setIsOpenList(false);
                     }}
-                    className="w-full flex items-center justify-center gap-1.5 py-1.5 px-2.5 text-xs text-emerald-700 hover:text-emerald-800 bg-white hover:bg-emerald-50 border border-emerald-200/80 rounded-xl transition-all font-semibold shadow-2xs"
+                    className="flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 text-xs text-emerald-700 hover:text-emerald-800 bg-white hover:bg-emerald-50 border border-emerald-200/80 rounded-xl transition-all font-semibold shadow-2xs cursor-pointer"
                   >
                     <Plus className="w-3.5 h-3.5 text-emerald-600" />
-                    <span>+ Создать новую задачу</span>
+                    <span>+ Новая задача</span>
                   </button>
+
+                  {onOpenImportExport && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onOpenImportExport('export');
+                        setIsOpenList(false);
+                      }}
+                      title="Резервное копирование, экспорт и импорт в формате JSON"
+                      className="flex items-center justify-center gap-1 py-1.5 px-2 text-xs text-slate-700 hover:text-emerald-800 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl transition-all font-medium shadow-2xs cursor-pointer"
+                    >
+                      <ArrowDownUp className="w-3.5 h-3.5 text-slate-500" />
+                      <span>Импорт / Экспорт</span>
+                    </button>
+                  )}
                 </div>
               </div>
             </>
@@ -236,12 +253,23 @@ export const TaskSelector: React.FC<TaskSelectorProps> = ({
             Создать
           </Button>
 
+          {onOpenImportExport && (
+            <button
+              type="button"
+              onClick={() => onOpenImportExport('export')}
+              title="Резервное копирование, экспорт и импорт в формате JSON"
+              className="icon-btn p-1.5 text-slate-500 hover:text-emerald-700 hover:bg-emerald-50 rounded-xl transition-colors cursor-pointer"
+            >
+              <ArrowDownUp className="w-3.5 h-3.5" />
+            </button>
+          )}
+
           {activeTask && (
             <button
               type="button"
               onClick={() => onDuplicateTask(activeTask.id)}
               title="Дублировать задачу"
-              className="icon-btn p-1.5 text-gray-500 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors"
+              className="icon-btn p-1.5 text-slate-500 hover:text-emerald-700 hover:bg-emerald-50 rounded-xl transition-colors cursor-pointer"
             >
               <Copy className="w-3.5 h-3.5" />
             </button>
@@ -252,7 +280,7 @@ export const TaskSelector: React.FC<TaskSelectorProps> = ({
               type="button"
               onClick={() => setTaskToDelete(activeTask)}
               title="Удалить задачу"
-              className="icon-btn icon-btn--danger p-1.5 text-gray-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+              className="icon-btn icon-btn--danger p-1.5 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors cursor-pointer"
             >
               <Trash2 className="w-3.5 h-3.5" />
             </button>

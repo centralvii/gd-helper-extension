@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useImplementationTasks } from '../../hooks/useImplementationTasks';
 import { TaskSelector } from './TaskSelector';
 import { TaskEditor } from './TaskEditor';
+import { TaskImportExportModal } from './TaskImportExportModal';
 import { BuildPackage } from '../../types';
 
 interface ImplementationToolProps {
@@ -33,7 +34,16 @@ export const ImplementationTool: React.FC<ImplementationToolProps> = ({
     deleteChangeItem,
     reorderChangeItems,
     moveChangeItem,
+    importTasks,
   } = tasksState || localTasks;
+
+  const [isImportExportOpen, setIsImportExportOpen] = useState(false);
+  const [importExportDefaultTab, setImportExportDefaultTab] = useState<'export' | 'import'>('export');
+
+  const handleOpenImportExport = (tab: 'export' | 'import' = 'export') => {
+    setImportExportDefaultTab(tab);
+    setIsImportExportOpen(true);
+  };
 
   return (
     <div className="space-y-3">
@@ -46,6 +56,7 @@ export const ImplementationTool: React.FC<ImplementationToolProps> = ({
         onDuplicateTask={duplicateTask}
         onDeleteTask={deleteTask}
         onUpdateTask={updateTask}
+        onOpenImportExport={handleOpenImportExport}
       />
 
       {/* Main Task Editor */}
@@ -64,8 +75,19 @@ export const ImplementationTool: React.FC<ImplementationToolProps> = ({
           onDeleteChangeItem={deleteChangeItem}
           onReorderChangeItems={reorderChangeItems}
           onMoveChangeItem={moveChangeItem}
+          onOpenImportExport={handleOpenImportExport}
         />
       )}
+
+      {/* Backup / Export / Import Modal */}
+      <TaskImportExportModal
+        isOpen={isImportExportOpen}
+        onClose={() => setIsImportExportOpen(false)}
+        tasks={tasks}
+        activeTask={activeTask}
+        onImport={importTasks}
+        defaultTab={importExportDefaultTab}
+      />
     </div>
   );
 };
