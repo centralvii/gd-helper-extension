@@ -755,21 +755,25 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
         )}
 
         {/* Task Bottom Actions Bar */}
-        <div className="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-gray-100">
-          <div className="text-[11px] text-gray-500">
-            Всего: <strong className="text-gray-900">{task.items.length}</strong> изменений
+        <div className="flex flex-wrap items-center justify-between gap-2.5 pt-3 border-t border-slate-100">
+          <div className="flex items-center gap-1.5 text-xs text-slate-500 min-w-0">
+            <span>Всего изменений:</span>
+            <span className="font-bold text-slate-900 bg-slate-100 px-2 py-0.5 rounded-lg border border-slate-200/80 text-[11px]">
+              {task.items.length}
+            </span>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 flex-wrap flex-shrink-0">
             {onOpenImportExport && (
               <Button
                 variant="secondary"
                 size="sm"
                 onClick={() => onOpenImportExport('export')}
-                leftIcon={<FileJson className="w-3.5 h-3.5 text-emerald-600" />}
-                title="Экспорт в JSON или загрузка резервной копии"
+                leftIcon={<FileJson className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />}
+                title="Резервное копирование и экспорт в JSON"
+                className="whitespace-nowrap px-2.5 py-1.5 text-xs font-semibold"
               >
-                Бэкап / JSON
+                Бэкап
               </Button>
             )}
 
@@ -777,18 +781,28 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
               variant="secondary"
               size="sm"
               onClick={handleQuickCopyMarkdown}
-              leftIcon={quickCopied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+              leftIcon={
+                quickCopied ? (
+                  <Check className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
+                ) : (
+                  <Copy className="w-3.5 h-3.5 flex-shrink-0" />
+                )
+              }
+              title="Копировать всё описание в формате Markdown"
+              className="whitespace-nowrap px-2.5 py-1.5 text-xs font-semibold"
             >
-              {quickCopied ? 'Скопировано!' : 'Копировать всё'}
+              {quickCopied ? 'Скопировано!' : 'Копировать'}
             </Button>
 
             <Button
-              variant="primary"
+              variant="emerald"
               size="sm"
               onClick={() => setIsPreviewModalOpen(true)}
-              leftIcon={<Eye className="w-3.5 h-3.5" />}
+              leftIcon={<Eye className="w-3.5 h-3.5 flex-shrink-0" />}
+              title="Просмотр и экспорт описания"
+              className="whitespace-nowrap px-3 py-1.5 text-xs font-semibold"
             >
-              Экспорт / Просмотр
+              Экспорт
             </Button>
           </div>
         </div>

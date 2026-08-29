@@ -22,7 +22,7 @@ export const Button: React.FC<ButtonProps> = ({
   ...props
 }) => {
   const base =
-    'inline-flex items-center justify-center font-semibold rounded-xl transition-all duration-150 focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed select-none will-change-transform active:scale-[0.97] active:transition-none cursor-pointer';
+    'inline-flex items-center justify-center font-semibold rounded-xl transition-all duration-150 focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed select-none will-change-transform active:scale-[0.97] active:transition-none cursor-pointer whitespace-nowrap';
 
   const variants = {
     primary:
