@@ -119,10 +119,10 @@
     .header-tab {
         display: inline-flex;
         align-items: center;
-        gap: 6px;
-        padding: 5px 11px;
+        gap: 5px;
+        padding: 5px 8.5px;
         border-radius: 9px;
-        font-size: 12px;
+        font-size: 11.5px;
         font-weight: 600;
         color: #475569;
         background: transparent;

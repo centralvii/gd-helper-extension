@@ -27,7 +27,7 @@ export const Header: React.FC<HeaderProps> = ({
         }
     };
 
-    const navTabs: { id: ActiveTool; label?: string; icon: React.ReactNode; title: string }[] = [
+    const navTabs: { id: ActiveTool; label: string; icon: React.ReactNode; title: string }[] = [
         {
             id: 'packer',
             label: 'Упаковка',
@@ -38,15 +38,17 @@ export const Header: React.FC<HeaderProps> = ({
             id: 'implementation',
             label: 'Реализация',
             icon: <FileText className="w-3.5 h-3.5" />,
-            title: 'Инструмент реализации',
+            title: 'Инструмент описания реализации',
         },
         {
             id: 'extra',
+            label: 'Экстра',
             icon: <Zap className="w-3.5 h-3.5" />,
-            title: 'Экстра инструменты',
+            title: 'Экстра инструменты (ID алгоритмов, стили)',
         },
         {
             id: 'ai',
+            label: 'ИИ',
             icon: <Bot className="w-3.5 h-3.5" />,
             title: 'ИИ Ассистент GreenData',
         },
@@ -54,23 +56,20 @@ export const Header: React.FC<HeaderProps> = ({
 
     return (
         <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
-            <div className="grid grid-cols-[36px_1fr_36px] items-center px-2.5 py-1.5 min-h-[44px]">
-                {/* Left empty spacer for symmetry */}
-                <div />
-
-                {/* ── Center: Navigation tabs ── */}
-                <div className="flex items-center justify-center">
-                    <div className="flex items-center gap-0.5 rounded-xl p-0.5 bg-slate-100/90 border border-slate-200/80 shadow-2xs">
+            <div className="flex items-center justify-between gap-1.5 px-2.5 py-1.5 min-h-[44px]">
+                {/* ── Navigation tabs pill ── */}
+                <div className="flex-1 flex items-center justify-center min-w-0">
+                    <div className="flex items-center gap-0.5 rounded-xl p-0.5 bg-slate-100/90 border border-slate-200/80 shadow-2xs max-w-full overflow-x-auto no-scrollbar">
                         {navTabs.map((tab) => (
                             <button
                                 key={tab.id}
                                 type="button"
                                 onClick={() => onSelectTool(tab.id)}
                                 title={tab.title}
-                                className={`header-tab ${activeTool === tab.id ? 'header-tab--active' : ''} ${!tab.label ? 'px-2' : ''}`}
+                                className={`header-tab ${activeTool === tab.id ? 'header-tab--active' : ''}`}
                             >
                                 {tab.icon}
-                                {tab.label && <span className="hidden xs:inline">{tab.label}</span>}
+                                <span>{tab.label}</span>
                                 {tab.id === 'packer' && fileCount > 0 && (
                                     <span
                                         className="rounded-full px-1.5 text-[9px] font-bold leading-none py-0.5 flex-shrink-0 transition-all shadow-2xs"
@@ -89,15 +88,13 @@ export const Header: React.FC<HeaderProps> = ({
                 </div>
 
                 {/* ── Right: Fullscreen Action ── */}
-                <div className="flex items-center justify-end">
-                    <button
-                        onClick={handleOpenFullscreen}
-                        title="Открыть во весь экран"
-                        className="icon-btn hover:text-slate-900"
-                    >
-                        <Maximize2 className="w-4 h-4" />
-                    </button>
-                </div>
+                <button
+                    onClick={handleOpenFullscreen}
+                    title="Открыть во весь экран (в новой вкладке)"
+                    className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-colors flex-shrink-0 cursor-pointer"
+                >
+                    <Maximize2 className="w-4 h-4" />
+                </button>
             </div>
         </header>
     );
