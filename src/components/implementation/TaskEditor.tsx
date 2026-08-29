@@ -18,7 +18,6 @@ import {
   Layers,
   Package,
   ExternalLink,
-  FilePlus,
   FileJson,
   MoreVertical,
 } from 'lucide-react';
@@ -39,7 +38,6 @@ import {
   formatTaskToMarkdown,
   DEFAULT_IMPLEMENTATION_SECTIONS,
   matchSectionForType,
-  detectFileSection,
   formatTitleInQuotes,
 } from '../../utils/tabUtils';
 
@@ -82,7 +80,6 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
   const [quickCopied, setQuickCopied] = useState(false);
   const [isTabFetching, setIsTabFetching] = useState(false);
-  const [importNotification, setImportNotification] = useState<string | null>(null);
 
   // Section Create/Edit Modal State
   const [isSectionModalOpen, setIsSectionModalOpen] = useState(false);
@@ -299,43 +296,6 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
     setEditingItem(null);
   };
 
-  // Import files from all linked packages with automatic section assignment
-  const handleImportFilesFromPackages = () => {
-    if (linkedPackages.length === 0) return;
-
-    let addedCount = 0;
-    const sectionCounts: Record<string, number> = {};
-
-    linkedPackages.forEach((pkg) => {
-      pkg.files.forEach((file) => {
-        const desc = file.newName || file.cleanName || file.originalName;
-        const alreadyExists = task.items.some((it) => it.description.trim() === desc.trim());
-        if (!alreadyExists) {
-          // Automatically detect the best section for this specific file
-          const matchedSection = detectFileSection(file, sections) || sections[0];
-          const assignedSecId = matchedSection ? matchedSection.id : undefined;
-          const assignedSecName = matchedSection ? matchedSection.name : 'Прочее';
-
-          onAddChangeItem(task.id, {
-            description: desc,
-            sectionId: assignedSecId,
-          });
-
-          addedCount++;
-          sectionCounts[assignedSecName] = (sectionCounts[assignedSecName] || 0) + 1;
-        }
-      });
-    });
-
-    if (addedCount > 0) {
-      const breakdown = Object.entries(sectionCounts)
-        .map(([name, count]) => `${count} в «${name}»`)
-        .join(', ');
-      setImportNotification(`Импортировано ${addedCount} файлов (${breakdown})`);
-      setTimeout(() => setImportNotification(null), 4500);
-    }
-  };
-
   // Section Modal Handlers
   const handleOpenCreateSection = () => {
     setEditingSection(null);
@@ -403,37 +363,9 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
 
         {/* ── Linked Packages Compact Row (1 Task -> N Packages) ── */}
         <div className="p-2.5 bg-emerald-50/60 border border-emerald-200/80 rounded-2xl text-xs shadow-2xs space-y-1.5">
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-1.5 font-bold text-emerald-950 text-[11px] min-w-0">
-              <Package className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
-              <span className="truncate">Пакеты сборки</span>
-            </div>
-
-            <div className="flex items-center gap-1 flex-shrink-0">
-              {linkedPackages.some((p) => p.files.length > 0) && (
-                <button
-                  type="button"
-                  onClick={handleImportFilesFromPackages}
-                  title="Добавить файлы из всех привязанных пакетов в список изменений"
-                  className="inline-flex items-center gap-1 px-2 py-1 bg-white hover:bg-emerald-100 text-emerald-900 border border-emerald-300 rounded-xl font-bold text-[10.5px] transition-all shadow-2xs cursor-pointer whitespace-nowrap"
-                >
-                  <FilePlus className="w-3 h-3 text-emerald-600" />
-                  <span>Импорт</span>
-                </button>
-              )}
-
-              {onNavigateToPackage && (
-                <button
-                  type="button"
-                  onClick={() => onNavigateToPackage('')}
-                  title="Перейти в упаковку для управления пакетами"
-                  className="inline-flex items-center gap-1 px-2 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-[10.5px] transition-all shadow-2xs cursor-pointer whitespace-nowrap"
-                >
-                  <Plus className="w-3 h-3" />
-                  <span>В упаковку</span>
-                </button>
-              )}
-            </div>
+          <div className="flex items-center gap-1.5 font-bold text-emerald-950 text-[11px] min-w-0">
+            <Package className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
+            <span className="truncate">Пакеты сборки</span>
           </div>
 
           {/* Linked package list */}
@@ -463,14 +395,6 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
             )}
           </div>
         </div>
-
-        {/* Import Toast Notification */}
-        {importNotification && (
-          <div className="p-2.5 bg-emerald-100 text-emerald-950 border border-emerald-300 rounded-xl text-xs flex items-center gap-2 animate-fade-in shadow-2xs font-semibold">
-            <Check className="w-4 h-4 text-emerald-700 flex-shrink-0" />
-            <span>{importNotification}</span>
-          </div>
-        )}
 
         {/* Task Summary / Description */}
         <div>
