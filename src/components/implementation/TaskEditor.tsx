@@ -402,15 +402,46 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
         </div>
 
         {/* ── Linked Packages Compact Row (1 Task -> N Packages) ── */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-3 py-2 bg-emerald-50/60 border border-emerald-200/80 rounded-xl text-xs shadow-2xs">
-          <div className="flex flex-wrap items-center gap-1.5 min-w-0 flex-1">
-            <span className="font-bold text-emerald-950 text-[11px] flex items-center gap-1.5 flex-shrink-0">
-              <Package className="w-3.5 h-3.5 text-emerald-600" />
-              <span>Пакеты сборки:</span>
-            </span>
+        <div className="p-2.5 bg-emerald-50/60 border border-emerald-200/80 rounded-2xl text-xs shadow-2xs space-y-1.5">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-1.5 font-bold text-emerald-950 text-[11px] min-w-0">
+              <Package className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
+              <span className="truncate">Пакеты сборки</span>
+            </div>
 
+            <div className="flex items-center gap-1 flex-shrink-0">
+              {linkedPackages.some((p) => p.files.length > 0) && (
+                <button
+                  type="button"
+                  onClick={handleImportFilesFromPackages}
+                  title="Добавить файлы из всех привязанных пакетов в список изменений"
+                  className="inline-flex items-center gap-1 px-2 py-1 bg-white hover:bg-emerald-100 text-emerald-900 border border-emerald-300 rounded-xl font-bold text-[10.5px] transition-all shadow-2xs cursor-pointer whitespace-nowrap"
+                >
+                  <FilePlus className="w-3 h-3 text-emerald-600" />
+                  <span>Импорт</span>
+                </button>
+              )}
+
+              {onNavigateToPackage && (
+                <button
+                  type="button"
+                  onClick={() => onNavigateToPackage('')}
+                  title="Перейти в упаковку для управления пакетами"
+                  className="inline-flex items-center gap-1 px-2 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-[10.5px] transition-all shadow-2xs cursor-pointer whitespace-nowrap"
+                >
+                  <Plus className="w-3 h-3" />
+                  <span>В упаковку</span>
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Linked package list */}
+          <div className="space-y-1">
             {linkedPackages.length === 0 ? (
-              <span className="text-[10.5px] text-slate-400">Нет привязанных пакетов</span>
+              <div className="px-1 text-[10.5px] text-slate-400 italic">
+                Нет привязанных пакетов
+              </div>
             ) : (
               linkedPackages.map((pkg) => (
                 <button
@@ -418,39 +449,17 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
                   type="button"
                   onClick={() => onNavigateToPackage && onNavigateToPackage(pkg.id)}
                   title={`Открыть пакет "${pkg.name}" во вкладке Упаковка`}
-                  className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-white border border-emerald-200 text-emerald-900 font-bold text-[10.5px] hover:bg-emerald-100/70 transition-all shadow-2xs group cursor-pointer max-w-full"
+                  className="w-full flex items-center justify-between gap-1.5 px-2.5 py-1.5 rounded-xl bg-white hover:bg-emerald-100/70 border border-emerald-200 text-emerald-900 font-bold text-xs transition-all shadow-2xs group cursor-pointer"
                 >
-                  <span className="font-mono text-emerald-800 truncate max-w-[180px]">{pkg.name}</span>
-                  <span className="text-slate-400 text-[10px] flex-shrink-0">({pkg.files.length} ф.)</span>
-                  <ExternalLink className="w-2.5 h-2.5 opacity-60 group-hover:opacity-100 text-emerald-600 flex-shrink-0" />
+                  <span className="font-mono text-emerald-800 truncate min-w-0 flex-1 text-left">
+                    {pkg.name}
+                  </span>
+                  <div className="flex items-center gap-1 flex-shrink-0">
+                    <span className="text-slate-500 text-[10px]">({pkg.files.length} ф.)</span>
+                    <ExternalLink className="w-3 h-3 opacity-60 group-hover:opacity-100 text-emerald-600" />
+                  </div>
                 </button>
               ))
-            )}
-          </div>
-
-          <div className="flex items-center gap-1.5 flex-shrink-0 self-end sm:self-auto">
-            {linkedPackages.some((p) => p.files.length > 0) && (
-              <button
-                type="button"
-                onClick={handleImportFilesFromPackages}
-                title="Добавить файлы из всех привязанных пакетов в список изменений"
-                className="inline-flex items-center gap-1 px-2 py-1 bg-white hover:bg-emerald-100 text-emerald-900 border border-emerald-300 rounded-xl font-bold text-[10.5px] transition-all shadow-2xs cursor-pointer"
-              >
-                <FilePlus className="w-3 h-3 text-emerald-600" />
-                <span>Импорт файлов</span>
-              </button>
-            )}
-
-            {onNavigateToPackage && (
-              <button
-                type="button"
-                onClick={() => onNavigateToPackage('')}
-                title="Перейти в упаковку для управления пакетами"
-                className="inline-flex items-center gap-1 px-2 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-[10.5px] transition-all shadow-2xs cursor-pointer"
-              >
-                <Plus className="w-3 h-3" />
-                <span>В упаковку</span>
-              </button>
             )}
           </div>
         </div>
@@ -465,12 +474,14 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
 
         {/* Task Summary / Description */}
         <div>
-          <div className="flex items-center justify-between mb-1">
-            <label className="flex items-center gap-1.5 text-[11px] font-bold text-slate-700">
+          <div className="flex items-center justify-between mb-1 gap-2">
+            <label className="flex items-center gap-1.5 text-[11px] font-bold text-slate-700 whitespace-nowrap">
               <FileText className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
-              <span>Общее описание реализации / Заметка</span>
+              <span>Описание / Заметка</span>
             </label>
-            <span className="text-[10px] text-slate-400">Краткая суть и детали</span>
+            <span className="text-[10px] text-slate-400 whitespace-nowrap truncate">
+              Краткая суть и детали
+            </span>
           </div>
           <textarea
             value={task.summary}
