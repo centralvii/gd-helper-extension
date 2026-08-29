@@ -142,7 +142,7 @@ export interface ImplementationTask {
   updatedAt: number;
 }
 
-export type ExtraSubTool = 'alg_generator' | 'site_css';
+export type ExtraSubTool = 'alg_generator';
 
 export type AlgorithmType =
   | 'general'
@@ -175,15 +175,5 @@ export interface AlgorithmHistoryItem {
   generatedId: string;
   type: AlgorithmType;
   createdAt: number;
-}
-
-export interface SiteCssRule {
-  id: string;
-  name: string;
-  urlPattern: string;
-  css: string;
-  isEnabled: boolean;
-  createdAt: number;
-  updatedAt: number;
 }
 
