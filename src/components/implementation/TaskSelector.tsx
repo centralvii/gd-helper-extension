@@ -180,6 +180,18 @@ export const TaskSelector: React.FC<TaskSelectorProps> = ({
                         <button
                           type="button"
                           onClick={() => {
+                            onDuplicateTask(t.id);
+                            setIsOpenList(false);
+                          }}
+                          title="Дублировать задачу"
+                          className="icon-btn p-1 text-gray-400 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors cursor-pointer"
+                        >
+                          <Copy className="w-3.5 h-3.5" />
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => {
                             handleOpenRename(t);
                             setIsOpenList(false);
                           }}
@@ -262,17 +274,6 @@ export const TaskSelector: React.FC<TaskSelectorProps> = ({
               className="icon-btn p-1.5 text-slate-500 hover:text-emerald-700 hover:bg-emerald-50 rounded-xl transition-colors cursor-pointer"
             >
               <ArrowDownUp className="w-3.5 h-3.5" />
-            </button>
-          )}
-
-          {activeTask && (
-            <button
-              type="button"
-              onClick={() => onDuplicateTask(activeTask.id)}
-              title="Дублировать задачу"
-              className="icon-btn p-1.5 text-slate-500 hover:text-emerald-700 hover:bg-emerald-50 rounded-xl transition-colors cursor-pointer"
-            >
-              <Copy className="w-3.5 h-3.5" />
             </button>
           )}
 
