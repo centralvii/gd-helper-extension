@@ -20,6 +20,7 @@ import {
   ExternalLink,
   FilePlus,
   FileJson,
+  MoreVertical,
 } from 'lucide-react';
 import {
   ImplementationTask,
@@ -90,6 +91,9 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
 
   // Delete Section Confirm Modal State
   const [sectionToDelete, setSectionToDelete] = useState<ImplementationSection | null>(null);
+
+  // Section 3-dots Menu State
+  const [openSectionMenuId, setOpenSectionMenuId] = useState<string | null>(null);
 
   const getStorageKey = (taskId: string) => `gd_collapsed_sections_${taskId}`;
 
@@ -482,49 +486,37 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
       <div className="p-4 bg-white border border-slate-200/90 rounded-2xl space-y-3.5 shadow-xs">
         {/* Main Toolbar - Organized into 2 balanced rows to prevent any overflow */}
         <div className="space-y-2 border-b border-slate-100 pb-2.5">
-          {/* Top Line: Header title on left, Primary add buttons on right */}
+          {/* Top Line: Header title on left, Primary add button on right */}
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-1.5 min-w-0">
               <ListOrdered className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-              <h3 className="font-bold text-xs text-slate-900 tracking-tight truncate">Внесённые изменения</h3>
+              <h3 className="font-bold text-xs text-slate-900 tracking-tight whitespace-nowrap">
+                Внесённые изменения
+              </h3>
               <span className="px-2 py-0.5 rounded-lg bg-emerald-50 text-emerald-800 text-[10.5px] font-bold border border-emerald-200 flex-shrink-0 shadow-2xs">
                 {task.items.length}
               </span>
             </div>
 
-            <div className="flex items-center gap-1.5 flex-shrink-0">
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => handleOpenAddWithTab()}
-                disabled={isTabFetching}
-                title="Добавить пункт и автоматически подставить ссылку на открытую вкладку"
-                leftIcon={<Sparkles className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />}
-                className="px-2.5 py-1 text-[11px]"
-              >
-                С вкладки
-              </Button>
-
-              <Button
-                variant="emerald"
-                size="sm"
-                onClick={() => handleOpenAddNew()}
-                leftIcon={<Plus className="w-3.5 h-3.5 flex-shrink-0" />}
-                className="px-2.5 py-1 text-[11px]"
-              >
-                Добавить
-              </Button>
-            </div>
+            <Button
+              variant="emerald"
+              size="sm"
+              onClick={() => handleOpenAddNew()}
+              leftIcon={<Plus className="w-3.5 h-3.5 flex-shrink-0" />}
+              className="px-2.5 py-1 text-[11px]"
+            >
+              Добавить
+            </Button>
           </div>
 
-          {/* Sub Line: Section tools */}
+          {/* Sub Line: Section tools and quick tab import */}
           <div className="flex items-center justify-between gap-1.5 pt-0.5">
             {sections.length > 1 ? (
               <button
                 type="button"
                 onClick={toggleCollapseAll}
                 title={allSectionsCollapsed ? 'Развернуть все разделы' : 'Свернуть все разделы'}
-                className="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200/90 rounded-xl text-[10.5px] font-bold transition-all shadow-2xs cursor-pointer"
+                className="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200/90 rounded-xl text-[10.5px] font-bold transition-all shadow-2xs cursor-pointer whitespace-nowrap"
               >
                 <ChevronsUpDown className="w-3.5 h-3.5 text-slate-500" />
                 <span>{allSectionsCollapsed ? 'Развернуть все' : 'Свернуть все'}</span>
@@ -533,15 +525,28 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
               <div />
             )}
 
-            <button
-              type="button"
-              onClick={handleOpenCreateSection}
-              title="Создать новый раздел (категорию)"
-              className="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200/90 rounded-xl text-[10.5px] font-bold transition-all shadow-2xs cursor-pointer"
-            >
-              <FolderPlus className="w-3.5 h-3.5 text-emerald-600" />
-              <span>+ Раздел</span>
-            </button>
+            <div className="flex items-center gap-1.5 flex-shrink-0">
+              <button
+                type="button"
+                onClick={() => handleOpenAddWithTab()}
+                disabled={isTabFetching}
+                title="Добавить пункт и автоматически подставить ссылку на открытую вкладку"
+                className="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200/90 rounded-xl text-[10.5px] font-bold transition-all shadow-2xs cursor-pointer whitespace-nowrap"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
+                <span>С вкладки</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleOpenCreateSection}
+                title="Создать новый раздел (категорию)"
+                className="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200/90 rounded-xl text-[10.5px] font-bold transition-all shadow-2xs cursor-pointer whitespace-nowrap"
+              >
+                <FolderPlus className="w-3.5 h-3.5 text-emerald-600" />
+                <span>+ Раздел</span>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -619,54 +624,98 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
                     </div>
 
                     {/* Section Controls */}
-                    <div className="flex items-center gap-0.5 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
-                      <button
-                        type="button"
-                        onClick={() => onReorderSections(task.id, secIdx, secIdx - 1)}
-                        disabled={secIdx === 0}
-                        title="Поднять раздел выше"
-                        className="icon-btn p-1 text-slate-400 hover:text-slate-700 hover:bg-slate-200 rounded disabled:opacity-20 disabled:hover:bg-transparent cursor-pointer"
-                      >
-                        <ChevronUp className="w-3.5 h-3.5" />
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => onReorderSections(task.id, secIdx, secIdx + 1)}
-                        disabled={secIdx === sections.length - 1}
-                        title="Опустить раздел ниже"
-                        className="icon-btn p-1 text-slate-400 hover:text-slate-700 hover:bg-slate-200 rounded disabled:opacity-20 disabled:hover:bg-transparent cursor-pointer"
-                      >
-                        <ChevronDown className="w-3.5 h-3.5" />
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => handleOpenEditSection(sec)}
-                        title="Переименовать раздел"
-                        className="icon-btn p-1 text-slate-400 hover:text-sky-600 hover:bg-sky-50 rounded cursor-pointer"
-                      >
-                        <Edit2 className="w-3.5 h-3.5" />
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => setSectionToDelete(sec)}
-                        title="Удалить раздел"
-                        className="icon-btn icon-btn--danger p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded cursor-pointer"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-
+                    <div className="relative flex items-center gap-1 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
                       <button
                         type="button"
                         onClick={() => handleOpenAddNew(sec.id)}
                         title={`Добавить пункт в раздел "${sec.name}"`}
-                        className="ml-0.5 inline-flex items-center gap-0.5 px-2 py-0.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-900 text-[10.5px] font-bold border border-emerald-200/90 transition-all shadow-2xs cursor-pointer flex-shrink-0"
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-900 text-[11px] font-bold border border-emerald-200/90 transition-all shadow-2xs cursor-pointer flex-shrink-0 whitespace-nowrap"
                       >
-                        <Plus className="w-3 h-3 text-emerald-700" />
+                        <Plus className="w-3.5 h-3.5 text-emerald-700" />
                         <span>Пункт</span>
                       </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setOpenSectionMenuId(openSectionMenuId === sec.id ? null : sec.id)}
+                        title="Опции раздела"
+                        className={`p-1.5 rounded-xl transition-all cursor-pointer ${
+                          openSectionMenuId === sec.id
+                            ? 'bg-slate-200 text-slate-900'
+                            : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100'
+                        }`}
+                      >
+                        <MoreVertical className="w-3.5 h-3.5" />
+                      </button>
+
+                      {/* 3-dots Dropdown Menu */}
+                      {openSectionMenuId === sec.id && (
+                        <>
+                          <div
+                            className="fixed inset-0 z-40"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setOpenSectionMenuId(null);
+                            }}
+                          />
+                          <div
+                            className="absolute right-0 top-full mt-1.5 z-50 bg-white border border-slate-200/90 rounded-2xl shadow-xl p-1.5 min-w-[175px] space-y-0.5 animate-fade-in text-xs"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <button
+                              type="button"
+                              onClick={() => {
+                                onReorderSections(task.id, secIdx, secIdx - 1);
+                                setOpenSectionMenuId(null);
+                              }}
+                              disabled={secIdx === 0}
+                              className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-slate-700 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer transition-colors text-[11px] font-medium"
+                            >
+                              <ChevronUp className="w-3.5 h-3.5 text-slate-500" />
+                              <span>Поднять выше</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => {
+                                onReorderSections(task.id, secIdx, secIdx + 1);
+                                setOpenSectionMenuId(null);
+                              }}
+                              disabled={secIdx === sections.length - 1}
+                              className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-slate-700 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer transition-colors text-[11px] font-medium"
+                            >
+                              <ChevronDown className="w-3.5 h-3.5 text-slate-500" />
+                              <span>Опустить ниже</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => {
+                                handleOpenEditSection(sec);
+                                setOpenSectionMenuId(null);
+                              }}
+                              className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-slate-700 hover:bg-sky-50 hover:text-sky-700 cursor-pointer transition-colors text-[11px] font-medium"
+                            >
+                              <Edit2 className="w-3.5 h-3.5 text-sky-600" />
+                              <span>Переименовать</span>
+                            </button>
+
+                            <div className="h-px bg-slate-100 my-0.5" />
+
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setSectionToDelete(sec);
+                                setOpenSectionMenuId(null);
+                              }}
+                              className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-rose-600 hover:bg-rose-50 hover:text-rose-700 cursor-pointer transition-colors text-[11px] font-medium"
+                            >
+                              <Trash2 className="w-3.5 h-3.5 text-rose-500" />
+                              <span>Удалить раздел</span>
+                            </button>
+                          </div>
+                        </>
+                      )}
                     </div>
                   </div>
 
