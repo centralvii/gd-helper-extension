@@ -217,7 +217,7 @@ export const App: React.FC = () => {
             <main
                 className={
                     activeTool === 'ai'
-                        ? 'flex-1 overflow-hidden flex flex-col min-h-0 p-1.5 sm:p-2.5'
+                        ? 'flex-1 overflow-hidden flex flex-col min-h-0 p-0'
                         : 'flex-1 p-3 space-y-3 pb-6'
                 }
             >

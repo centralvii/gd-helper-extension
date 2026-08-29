@@ -16,8 +16,6 @@ import {
   Settings2,
   Bot,
   X,
-  Bug,
-  Workflow,
 } from 'lucide-react';
 import { useAiChat } from '../../hooks/useAiChat';
 import { AiMessageItem } from './AiMessageItem';
@@ -26,117 +24,30 @@ import { Button } from '../ui/Button';
 import { Modal } from '../ui/Modal';
 import { getActiveTabInfo, TabInfo } from '../../utils/tabUtils';
 
-interface CategoryScenario {
-  id: string;
-  name: string;
-  icon: React.ReactNode;
-  cards: {
-    title: string;
-    desc: string;
-    prompt: string;
-    icon: React.ReactNode;
-    badge: string;
-  }[];
-}
-
-const CATEGORIES: CategoryScenario[] = [
+const PROMPT_SUGGESTIONS = [
   {
-    id: 'all',
-    name: 'Все сценарии',
-    icon: <Sparkles className="w-3.5 h-3.5 text-amber-500" />,
-    cards: [
-      {
-        title: 'Алгоритм валидации',
-        desc: 'Скрипт проверки обязательных полей карточки с ошибками',
-        prompt: 'Напиши пример скрипта алгоритма для валидации обязательных полей карточки GreenData с выводом ошибок пользователю.',
-        icon: <Code2 className="w-4 h-4 text-emerald-600" />,
-        badge: 'Скрипты',
-      },
-      {
-        title: 'Стандарты именования ID',
-        desc: 'Генерация кода идентификатора по регламенту GD',
-        prompt: 'Как правильно составить идентификатор алгоритма GreenData для задачи: "Проверка полномочий согласующего лица при изменении статуса договора"?',
-        icon: <Zap className="w-4 h-4 text-amber-500" />,
-        badge: 'Регламент',
-      },
-      {
-        title: 'SQL выборка в GD',
-        desc: 'Оптимизированный SQL-запрос для выборки данных в GreenData',
-        prompt: 'Помоги составить эффективный SQL-запрос для выборки активных договоров со связанными контрагентами и суммами больше 1 000 000 руб.',
-        icon: <Layers className="w-4 h-4 text-sky-600" />,
-        badge: 'SQL / БД',
-      },
-      {
-        title: 'Структура пакета .guf',
-        desc: 'Правила упаковки и файл README.txt',
-        prompt: 'Объясни правила формирования структуры пакетов обновлений .guf и составления файла README.txt в GreenData.',
-        icon: <FileCode className="w-4 h-4 text-purple-600" />,
-        badge: 'Упаковка',
-      },
-    ],
-  },
-  {
-    id: 'scripts',
-    name: 'Алгоритмы & JS',
+    title: 'Алгоритм валидации',
+    desc: 'Скрипт проверки обязательных полей карточки',
+    prompt: 'Напиши пример скрипта алгоритма для валидации обязательных полей карточки GreenData с выводом ошибок пользователю.',
     icon: <Code2 className="w-3.5 h-3.5 text-emerald-600" />,
-    cards: [
-      {
-        title: 'Оптимизация формулы',
-        desc: 'Поиск узких мест и ускорение вычислений',
-        prompt: 'Оптимизируй следующий алгоритм GreenData для быстродействия и найди потенциальные ошибки:\n```javascript\n\n```',
-        icon: <Zap className="w-4 h-4 text-amber-500" />,
-        badge: 'Оптимизация',
-      },
-      {
-        title: 'Парсинг JSON и HTTP',
-        desc: 'Обработка внешних REST API ответов в GD',
-        prompt: 'Напиши пример скрипта алгоритма GreenData для разбора входящего JSON-ответа от внешнего сервиса и заполнения полей объекта.',
-        icon: <Code2 className="w-4 h-4 text-emerald-600" />,
-        badge: 'REST API',
-      },
-    ],
   },
   {
-    id: 'sql',
-    name: 'SQL & База данных',
+    title: 'Стандарты именования ID',
+    desc: 'Генерация ID алгоритма по регламенту GD',
+    prompt: 'Как правильно составить идентификатор алгоритма GreenData для задачи: "Проверка полномочий согласующего лица при изменении статуса договора"?',
+    icon: <Zap className="w-3.5 h-3.5 text-amber-500" />,
+  },
+  {
+    title: 'SQL выборка в GD',
+    desc: 'Оптимизированный SQL-запрос для выборки данных',
+    prompt: 'Помоги составить эффективный SQL-запрос для выборки активных договоров со связанными контрагентами и суммами больше 1 000 000 руб.',
     icon: <Layers className="w-3.5 h-3.5 text-sky-600" />,
-    cards: [
-      {
-        title: 'Сложный JOIN и агрегаты',
-        desc: 'Группировка с фильтрацией по статусам',
-        prompt: 'Составь SQL-запрос с объединением таблиц и группировкой для формирования отчёта по исполнителям и среднему времени обработки задач.',
-        icon: <Layers className="w-4 h-4 text-sky-600" />,
-        badge: 'Агрегаты',
-      },
-      {
-        title: 'Поиск дубликатов в БД',
-        desc: 'Выявление повторяющихся записей по ключам',
-        prompt: 'Напиши SQL-запрос для поиска дублирующихся карточек контрагентов по ИНН и КПП в базе GreenData.',
-        icon: <Bug className="w-4 h-4 text-rose-500" />,
-        badge: 'Анализ',
-      },
-    ],
   },
   {
-    id: 'bp',
-    name: 'Бизнес-процессы',
-    icon: <Workflow className="w-3.5 h-3.5 text-indigo-600" />,
-    cards: [
-      {
-        title: 'Маршрут согласования',
-        desc: 'Логика параллельных и последовательных этапов',
-        prompt: 'Опиши архитектуру и логику развилок бизнес-процесса многоуровневого согласования заявок на оплату с контролем сроков.',
-        icon: <Workflow className="w-4 h-4 text-indigo-600" />,
-        badge: 'BPMN',
-      },
-      {
-        title: 'Описание для теста',
-        desc: 'Техническая памятка тестировщику по задаче',
-        prompt: 'Помоги составить краткое техническое описание доработок и чек-лист сценариев проверки для передачи задачи в тестирование.',
-        icon: <Check className="w-4 h-4 text-emerald-600" />,
-        badge: 'Тестирование',
-      },
-    ],
+    title: 'Структура пакета .guf',
+    desc: 'Правила упаковки и файл README.txt',
+    prompt: 'Объясни правила формирования структуры пакетов обновлений .guf и составления файла README.txt в GreenData.',
+    icon: <FileCode className="w-3.5 h-3.5 text-purple-600" />,
   },
 ];
 
@@ -179,7 +90,6 @@ export const AiChatContainer: React.FC = () => {
   } = useAiChat();
 
   const [inputVal, setInputVal] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [attachedContext, setAttachedContext] = useState<string | null>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isClearModalOpen, setIsClearModalOpen] = useState(false);
@@ -227,13 +137,13 @@ export const AiChatContainer: React.FC = () => {
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
-      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 160)}px`;
+      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 140)}px`;
     }
   }, [inputVal]);
 
   const handleSend = () => {
     if ((!inputVal.trim() && !attachedContext) || isLoading) return;
-    
+
     let finalPrompt = inputVal.trim();
     if (attachedContext) {
       finalPrompt = `${attachedContext}\n\n${finalPrompt}`;
@@ -290,44 +200,36 @@ export const AiChatContainer: React.FC = () => {
       settings.baseUrl.includes('127.0.0.1')
   );
 
-  const activeCategoryCards = CATEGORIES.find((c) => c.id === selectedCategory)?.cards || CATEGORIES[0].cards;
-
   return (
-    <div className="flex flex-col h-full w-full min-h-0 flex-1 bg-[#fcfcfd] border border-slate-200/90 rounded-2xl shadow-xs overflow-hidden animate-fade-in relative font-sans">
-      {/* ── Modern ChatGPT / Grok Minimal Top Bar ── */}
-      <div className="flex items-center justify-between px-3.5 py-2.5 bg-white/95 backdrop-blur-md border-b border-slate-200/80 flex-shrink-0 z-20">
-        <div className="flex items-center gap-2.5 min-w-0">
+    <div className="flex flex-col h-full w-full min-h-0 flex-1 bg-white overflow-hidden relative font-sans">
+      {/* ── Minimalist Top Bar ── */}
+      <div className="flex items-center justify-between px-3 py-2 bg-white/95 backdrop-blur-md border-b border-slate-200/80 flex-shrink-0 z-20">
+        <div className="flex items-center gap-2 min-w-0">
           <div className="relative flex-shrink-0">
-            <div className="w-7 h-7 rounded-xl bg-gradient-to-tr from-emerald-600 via-teal-600 to-emerald-500 text-white flex items-center justify-center shadow-xs">
-              <Sparkles className="w-4 h-4" />
+            <div className="w-6 h-6 rounded-lg bg-gradient-to-tr from-emerald-600 to-teal-600 text-white flex items-center justify-center shadow-2xs">
+              <Bot className="w-3.5 h-3.5" />
             </div>
             <span
-              className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full ring-2 ring-white ${
-                isConfigured ? 'bg-emerald-500 shadow-xs' : 'bg-amber-400 animate-pulse'
+              className={`absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full ring-1.5 ring-white ${
+                isConfigured ? 'bg-emerald-500' : 'bg-amber-400 animate-pulse'
               }`}
-              title={isConfigured ? 'ИИ подключен и готов к работе' : 'Требуется настройка подключения'}
+              title={isConfigured ? 'ИИ подключен' : 'Требуется настройка API'}
             />
           </div>
 
-          <div className="flex items-center gap-2 min-w-0">
-            <span className="text-xs font-extrabold text-slate-900 tracking-tight whitespace-nowrap">
-              GreenData AI
-            </span>
-
-            {/* Custom Model Pill Button */}
-            <button
-              type="button"
-              onClick={() => setIsSettingsOpen(true)}
-              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-100/90 hover:bg-emerald-50 text-slate-800 hover:text-emerald-900 text-[10.5px] font-mono font-bold border border-slate-200 hover:border-emerald-300 transition-all shadow-2xs max-w-[150px] cursor-pointer group"
-              title="Настроить подключение модели (OpenAI compatibility)"
-            >
-              <span className="truncate">{settings.model || 'Кастомная модель'}</span>
-              <Settings2 className="w-2.5 h-2.5 opacity-50 group-hover:opacity-100 group-hover:rotate-45 transition-all flex-shrink-0" />
-            </button>
-          </div>
+          {/* Model Pill Button -> Opens Settings */}
+          <button
+            type="button"
+            onClick={() => setIsSettingsOpen(true)}
+            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-slate-100/90 hover:bg-emerald-50 text-slate-800 hover:text-emerald-900 text-[10.5px] font-mono font-bold border border-slate-200 hover:border-emerald-300 transition-all max-w-[150px] cursor-pointer group truncate"
+            title="Настройки подключения модели"
+          >
+            <span className="truncate">{settings.model || 'Кастомная модель'}</span>
+            <Settings2 className="w-2.5 h-2.5 opacity-50 group-hover:opacity-100 flex-shrink-0 ml-0.5" />
+          </button>
         </div>
 
-        {/* Header Actions */}
+        {/* Top Actions */}
         <div className="flex items-center gap-1 flex-shrink-0">
           {messages.length > 0 && (
             <>
@@ -335,17 +237,17 @@ export const AiChatContainer: React.FC = () => {
                 type="button"
                 onClick={() => setIsClearModalOpen(true)}
                 title="Начать новый диалог"
-                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-[11px] font-bold text-slate-700 hover:text-slate-900 bg-slate-100/90 hover:bg-slate-200/80 border border-slate-200 transition-all shadow-2xs cursor-pointer"
+                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-bold text-slate-700 hover:text-slate-900 bg-slate-100 hover:bg-slate-200/80 border border-slate-200 transition-all cursor-pointer"
               >
-                <Plus className="w-3.5 h-3.5 text-emerald-600" />
-                <span className="hidden xs:inline">Новый чат</span>
+                <Plus className="w-3 h-3 text-emerald-600" />
+                <span>Новый</span>
               </button>
 
               <button
                 type="button"
                 onClick={handleCopyEntireChat}
                 title="Скопировать весь диалог"
-                className="p-1.5 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
+                className="p-1 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
               >
                 {copiedAll ? (
                   <Check className="w-3.5 h-3.5 text-emerald-600" />
@@ -359,92 +261,69 @@ export const AiChatContainer: React.FC = () => {
           <button
             type="button"
             onClick={() => setIsSettingsOpen(true)}
-            title="Настройки ИИ подключения"
-            className="p-1.5 text-slate-500 hover:text-emerald-700 hover:bg-emerald-50 rounded-xl transition-colors cursor-pointer"
+            title="Настройки подключения"
+            className="p-1 text-slate-500 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors cursor-pointer"
           >
-            <Settings2 className="w-4 h-4" />
+            <Settings2 className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>
 
-      {/* ── Messages Scroll View ── */}
+      {/* ── Messages Area ── */}
       <div
         ref={messagesContainerRef}
         onScroll={handleScroll}
-        className="flex-1 p-3.5 sm:p-4 overflow-y-auto overscroll-contain space-y-4 bg-slate-50/40 min-h-0 select-text scrollbar-thin"
+        className="flex-1 p-3 sm:p-3.5 overflow-y-auto overscroll-contain space-y-3 bg-[#fafafa] min-h-0 select-text scrollbar-thin"
       >
         {messages.length === 0 ? (
-          <div className="py-4 px-1 text-center max-w-md mx-auto space-y-4 animate-fade-in">
-            {/* ChatGPT / Grok Animated Hero */}
-            <div className="space-y-2.5">
-              <div className="relative inline-block">
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-emerald-600 via-teal-600 to-emerald-400 text-white flex items-center justify-center mx-auto shadow-lg shadow-emerald-500/20">
-                  <Bot className="w-6 h-6" />
-                </div>
-                <span className="absolute -bottom-1 -right-1 p-0.5 rounded-full bg-white shadow-xs">
-                  <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-                </span>
+          <div className="py-4 px-1 text-center max-w-sm mx-auto space-y-3.5 animate-fade-in">
+            {/* Hero */}
+            <div className="space-y-2">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white flex items-center justify-center mx-auto shadow-md shadow-emerald-600/15">
+                <Sparkles className="w-5 h-5" />
               </div>
 
-              <div className="space-y-1">
-                <h3 className="text-base font-extrabold text-slate-900 tracking-tight">
-                  Чем могу помочь сегодня?
+              <div className="space-y-0.5">
+                <h3 className="text-sm font-bold text-slate-900">
+                  GreenData AI Ассистент
                 </h3>
-                <p className="text-xs text-slate-500 leading-relaxed max-w-xs mx-auto">
-                  Составление алгоритмов GreenData, оптимизация SQL, отладка ошибок и пакеты .guf.
+                <p className="text-[11px] text-slate-500 leading-relaxed max-w-xs mx-auto">
+                  Алгоритмы, скрипты валидации, оптимизация SQL и структура .guf
                 </p>
               </div>
 
-              {/* Active Tab Detection Banner (Grok Web Context Style) */}
+              {/* Active Tab Detection Banner */}
               {activeTabInfo && (
-                <div className="pt-1">
+                <div className="pt-0.5">
                   <button
                     type="button"
                     onClick={handleAttachActiveTabContext}
-                    className="w-full inline-flex items-center justify-between gap-2 p-2.5 rounded-2xl bg-white border border-emerald-200/90 hover:border-emerald-400 hover:bg-emerald-50/40 text-left transition-all shadow-2xs hover:shadow-xs group cursor-pointer"
+                    className="w-full inline-flex items-center justify-between gap-2 p-2 rounded-xl bg-white border border-emerald-200 hover:border-emerald-400 hover:bg-emerald-50/40 text-left transition-all group cursor-pointer shadow-2xs"
                   >
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <div className="w-7 h-7 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center flex-shrink-0 shadow-2xs">
-                        <Globe className="w-3.5 h-3.5" />
-                      </div>
+                    <div className="flex items-center gap-2 min-w-0">
+                      <Globe className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
                       <div className="min-w-0">
-                        <span className="text-[11.5px] font-bold text-slate-900 block truncate group-hover:text-emerald-800">
+                        <span className="text-[11px] font-bold text-slate-900 block truncate group-hover:text-emerald-800">
                           {activeTabInfo.cleanTitle || activeTabInfo.title}
                         </span>
-                        <span className="text-[10px] text-slate-400 block truncate">
-                          {activeTabInfo.detectedSectionName || 'Вкладка GreenData'} • Прикрепить контекст страницы
+                        <span className="text-[9.5px] text-slate-400 block truncate">
+                          {activeTabInfo.detectedSectionName || 'GreenData'} • Прикрепить контекст
                         </span>
                       </div>
                     </div>
-                    <Plus className="w-4 h-4 text-emerald-600 flex-shrink-0 group-hover:rotate-90 transition-transform" />
+                    <Plus className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0 group-hover:rotate-90 transition-transform" />
                   </button>
                 </div>
               )}
             </div>
 
-            {/* Grok-style Category Filter Chips */}
-            <div className="space-y-2 pt-1 text-left">
-              <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1">
-                {CATEGORIES.map((cat) => (
-                  <button
-                    key={cat.id}
-                    type="button"
-                    onClick={() => setSelectedCategory(cat.id)}
-                    className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-[11px] font-bold transition-all flex-shrink-0 cursor-pointer shadow-2xs ${
-                      selectedCategory === cat.id
-                        ? 'bg-slate-900 text-white shadow-xs'
-                        : 'bg-white text-slate-600 hover:bg-slate-100 hover:text-slate-900 border border-slate-200'
-                    }`}
-                  >
-                    {cat.icon}
-                    <span>{cat.name}</span>
-                  </button>
-                ))}
-              </div>
-
-              {/* Responsive Scenario Cards Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {activeCategoryCards.map((item, idx) => (
+            {/* Prompt Starter Cards */}
+            <div className="space-y-1.5 pt-1 text-left">
+              <span className="text-[9.5px] font-bold uppercase tracking-wider text-slate-400 block px-0.5">
+                Частые сценарии:
+              </span>
+              <div className="grid grid-cols-1 gap-1.5">
+                {PROMPT_SUGGESTIONS.map((item, idx) => (
                   <button
                     key={idx}
                     type="button"
@@ -452,21 +331,16 @@ export const AiChatContainer: React.FC = () => {
                       setInputVal(item.prompt);
                       textareaRef.current?.focus();
                     }}
-                    className="p-3 rounded-2xl bg-white border border-slate-200 hover:border-emerald-400 hover:bg-emerald-50/30 hover:shadow-xs text-left transition-all flex items-start gap-2.5 group cursor-pointer"
+                    className="p-2.5 rounded-xl bg-white border border-slate-200/90 hover:border-emerald-400 hover:bg-emerald-50/30 text-left transition-all flex items-start gap-2.5 group cursor-pointer shadow-2xs"
                   >
-                    <div className="p-2 rounded-xl bg-slate-100 group-hover:bg-white transition-colors flex-shrink-0 shadow-2xs">
+                    <div className="p-1.5 rounded-lg bg-slate-100 group-hover:bg-white transition-colors flex-shrink-0 mt-0.5">
                       {item.icon}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <div className="flex items-center justify-between gap-1 mb-0.5">
-                        <span className="font-bold text-slate-900 group-hover:text-emerald-900 transition-colors text-[11.5px] truncate">
-                          {item.title}
-                        </span>
-                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider flex-shrink-0">
-                          {item.badge}
-                        </span>
-                      </div>
-                      <span className="text-[10.5px] text-slate-500 line-clamp-2 leading-tight block">
+                      <span className="font-bold text-slate-900 group-hover:text-emerald-900 transition-colors text-[11.5px] block truncate">
+                        {item.title}
+                      </span>
+                      <span className="text-[10.5px] text-slate-500 line-clamp-1 leading-tight block">
                         {item.desc}
                       </span>
                     </div>
@@ -498,16 +372,16 @@ export const AiChatContainer: React.FC = () => {
         <button
           type="button"
           onClick={() => scrollToBottom('smooth')}
-          className="absolute bottom-26 right-4 z-20 p-2 rounded-full bg-white text-emerald-700 hover:text-emerald-800 shadow-lg border border-slate-200 transition-all hover:scale-105 cursor-pointer"
+          className="absolute bottom-22 right-3 z-20 p-1.5 rounded-full bg-white text-emerald-700 hover:text-emerald-800 shadow-md border border-slate-200 transition-all hover:scale-105 cursor-pointer"
           title="Прокрутить вниз"
         >
-          <ArrowDown className="w-4 h-4" />
+          <ArrowDown className="w-3.5 h-3.5" />
         </button>
       )}
 
-      {/* ── Modern ChatGPT / Grok Floating Composer Bar ── */}
-      <div className="p-2.5 sm:p-3 bg-gradient-to-t from-[#fcfcfd] via-[#fcfcfd]/95 to-transparent flex-shrink-0 z-10">
-        <div className="relative rounded-3xl bg-white border border-slate-300 focus-within:border-emerald-500 focus-within:ring-4 focus-within:ring-emerald-500/10 shadow-lg transition-all p-3 space-y-2">
+      {/* ── Floating Composer Bar ── */}
+      <div className="p-2 sm:p-2.5 bg-white border-t border-slate-200 flex-shrink-0 z-10">
+        <div className="relative rounded-2xl bg-white border border-slate-300 focus-within:border-emerald-500 focus-within:ring-2 focus-within:ring-emerald-500/15 shadow-sm transition-all p-2.5 space-y-1.5">
           {/* Quick Prompt Templates Popover */}
           {showQuickMenu && (
             <>
@@ -515,12 +389,12 @@ export const AiChatContainer: React.FC = () => {
                 className="fixed inset-0 z-20"
                 onClick={() => setShowQuickMenu(false)}
               />
-              <div className="absolute bottom-full mb-2 left-0 right-0 bg-white border border-slate-200 rounded-2xl shadow-2xl p-2.5 space-y-1 z-30 animate-slide-down">
-                <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-2 py-1 flex items-center justify-between">
-                  <span>Готовые шаблоны запросов:</span>
+              <div className="absolute bottom-full mb-2 left-0 right-0 bg-white border border-slate-200 rounded-xl shadow-xl p-2 space-y-1 z-30 animate-slide-down">
+                <div className="text-[9.5px] font-bold uppercase tracking-wider text-slate-400 px-2 py-0.5 flex items-center justify-between">
+                  <span>Шаблоны запросов:</span>
                   <button
                     onClick={() => setShowQuickMenu(false)}
-                    className="text-slate-400 hover:text-slate-700 text-xs p-1 cursor-pointer"
+                    className="text-slate-400 hover:text-slate-700 text-xs p-0.5 cursor-pointer"
                   >
                     ✕
                   </button>
@@ -534,51 +408,51 @@ export const AiChatContainer: React.FC = () => {
                       setShowQuickMenu(false);
                       textareaRef.current?.focus();
                     }}
-                    className="w-full text-left px-2.5 py-1.5 rounded-xl hover:bg-emerald-50 text-xs text-slate-800 hover:text-emerald-900 transition-colors flex items-center justify-between cursor-pointer"
+                    className="w-full text-left px-2 py-1 rounded-lg hover:bg-emerald-50 text-[11px] text-slate-800 hover:text-emerald-900 transition-colors flex items-center justify-between cursor-pointer"
                   >
                     <span>{item.label}</span>
-                    <span className="text-[10px] text-slate-400">Вставить ↵</span>
+                    <span className="text-[9.5px] text-slate-400">Вставить ↵</span>
                   </button>
                 ))}
               </div>
             </>
           )}
 
-          {/* Attached Context Pill Badge (ChatGPT File/Web Search Style) */}
+          {/* Attached Context Pill Badge */}
           {attachedContext && (
-            <div className="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-[11px] font-medium w-fit animate-fade-in">
-              <Globe className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
-              <span className="max-w-[220px] truncate">{attachedContext}</span>
+            <div className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-900 text-[10.5px] font-medium w-fit animate-fade-in">
+              <Globe className="w-3 h-3 text-emerald-600 flex-shrink-0" />
+              <span className="max-w-[200px] truncate">{attachedContext}</span>
               <button
                 type="button"
                 onClick={() => setAttachedContext(null)}
-                className="text-emerald-700 hover:text-rose-600 p-0.5 rounded-md transition-colors cursor-pointer ml-1"
+                className="text-emerald-700 hover:text-rose-600 p-0.5 rounded transition-colors cursor-pointer"
                 title="Открепить контекст"
               >
-                <X className="w-3 h-3" />
+                <X className="w-2.5 h-2.5" />
               </button>
             </div>
           )}
 
-          {/* Auto-expanding Textarea */}
+          {/* Textarea */}
           <textarea
             ref={textareaRef}
             rows={1}
             value={inputVal}
             onChange={(e) => setInputVal(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Спросите о коде GreenData, SQL-запросах или структуре .guf..."
-            className="w-full bg-transparent text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none resize-none max-h-40 leading-relaxed font-normal"
+            placeholder="Спросите о коде GreenData, SQL или .guf пакетах..."
+            className="w-full bg-transparent text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none resize-none max-h-36 leading-relaxed font-normal"
           />
 
           {/* Bottom Toolbar inside Composer */}
           <div className="flex items-center justify-between gap-1 pt-1 border-t border-slate-100">
             {/* Left Action Pills */}
-            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+            <div className="flex items-center gap-1 overflow-x-auto no-scrollbar">
               <button
                 type="button"
                 onClick={() => setShowQuickMenu(!showQuickMenu)}
-                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-slate-100 hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 text-[11px] font-bold border border-slate-200/80 transition-colors flex-shrink-0 cursor-pointer shadow-2xs"
+                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-slate-100 hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 text-[10.5px] font-bold border border-slate-200 transition-colors flex-shrink-0 cursor-pointer shadow-2xs"
               >
                 <Sparkles className="w-3 h-3 text-amber-500" />
                 <span>Шаблоны</span>
@@ -588,18 +462,18 @@ export const AiChatContainer: React.FC = () => {
                 type="button"
                 onClick={handleAttachActiveTabContext}
                 disabled={isFetchingTab}
-                title="Прикрепить контекст активной страницы браузера"
-                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-slate-100 hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 text-[11px] font-bold border border-slate-200/80 transition-colors flex-shrink-0 cursor-pointer shadow-2xs"
+                title="Прикрепить контекст активной страницы"
+                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-slate-100 hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 text-[10.5px] font-bold border border-slate-200 transition-colors flex-shrink-0 cursor-pointer shadow-2xs"
               >
                 <Globe className="w-3 h-3 text-emerald-600" />
-                <span>Контекст вкладки</span>
+                <span>Контекст</span>
               </button>
             </div>
 
             {/* Right Action: Counter & Send / Stop Button */}
-            <div className="flex items-center gap-2 flex-shrink-0">
+            <div className="flex items-center gap-1.5 flex-shrink-0">
               {inputVal.length > 0 && (
-                <span className="text-[10px] text-slate-400 font-mono hidden xs:inline">
+                <span className="text-[9.5px] text-slate-400 font-mono hidden xs:inline">
                   {inputVal.length}
                 </span>
               )}
@@ -609,9 +483,9 @@ export const AiChatContainer: React.FC = () => {
                   type="button"
                   onClick={stopGeneration}
                   title="Остановить генерацию"
-                  className="w-8 h-8 rounded-full bg-rose-600 hover:bg-rose-700 text-white flex items-center justify-center transition-all shadow-md cursor-pointer active:scale-95 animate-pulse"
+                  className="w-7 h-7 rounded-full bg-rose-600 hover:bg-rose-700 text-white flex items-center justify-center transition-all shadow-xs cursor-pointer active:scale-95 animate-pulse"
                 >
-                  <Square className="w-3.5 h-3.5 fill-current" />
+                  <Square className="w-3 h-3 fill-current" />
                 </button>
               ) : (
                 <button
@@ -619,13 +493,13 @@ export const AiChatContainer: React.FC = () => {
                   onClick={handleSend}
                   disabled={(!inputVal.trim() && !attachedContext) || isLoading}
                   title="Отправить (Enter)"
-                  className={`w-8 h-8 rounded-full flex items-center justify-center transition-all shadow-md ${
+                  className={`w-7 h-7 rounded-full flex items-center justify-center transition-all shadow-xs ${
                     (inputVal.trim() || attachedContext) && !isLoading
                       ? 'bg-slate-900 hover:bg-emerald-600 text-white hover:scale-105 cursor-pointer'
                       : 'bg-slate-100 text-slate-400 cursor-not-allowed'
                   }`}
                 >
-                  <ArrowUp className="w-4 h-4" />
+                  <ArrowUp className="w-3.5 h-3.5" />
                 </button>
               )}
             </div>
