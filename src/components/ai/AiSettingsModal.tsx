@@ -19,6 +19,7 @@ import { Input } from '../ui/Input';
 import { Select } from '../ui/Select';
 import { AiSettings, AiAuthType } from '../../types';
 import { DEFAULT_AI_SETTINGS } from '../../hooks/useAiChat';
+import { AI_AGENTS, DEFAULT_AGENT } from '../../constants/aiAgents';
 
 interface AiSettingsModalProps {
   isOpen: boolean;
@@ -226,19 +227,53 @@ export const AiSettingsModal: React.FC<AiSettingsModalProps> = ({
           />
         </div>
 
+        {/* Agent Preset Selector */}
+        <div>
+          <label className="block text-[11px] font-semibold text-gray-700 mb-1 flex items-center gap-1.5">
+            <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+            <span>Выбор активного ИИ-агента (Пресет роли)</span>
+          </label>
+          <div className="grid grid-cols-2 gap-1.5">
+            {AI_AGENTS.map((ag) => {
+              const isCurrent = (settings.selectedAgentId || DEFAULT_AGENT.id) === ag.id;
+              return (
+                <button
+                  key={ag.id}
+                  type="button"
+                  onClick={() => {
+                    setSystemPrompt(ag.systemPrompt);
+                    onSave({ selectedAgentId: ag.id, systemPrompt: ag.systemPrompt });
+                  }}
+                  className={`p-2 rounded-xl text-left border transition-all cursor-pointer ${
+                    isCurrent
+                      ? 'bg-emerald-50 border-emerald-300 text-emerald-950 shadow-2xs'
+                      : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
+                  }`}
+                >
+                  <span className="font-bold text-[11px] block truncate">{ag.name}</span>
+                  <span className="text-[9.5px] text-gray-500 line-clamp-1 block">{ag.shortName}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
         {/* System Prompt */}
         <div>
           <div className="flex items-center justify-between mb-1">
             <label className="text-[11px] font-semibold text-gray-700 flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
-              <span>Системный промпт (Инструкция ассистента)</span>
+              <Code className="w-3.5 h-3.5 text-emerald-600" />
+              <span>Системный промпт (Инструкция агента)</span>
             </label>
             <button
               type="button"
-              onClick={() => setSystemPrompt(DEFAULT_AI_SETTINGS.systemPrompt)}
-              className="text-[10px] text-emerald-600 hover:underline"
+              onClick={() => {
+                const target = AI_AGENTS.find((a) => a.id === settings.selectedAgentId) || DEFAULT_AGENT;
+                setSystemPrompt(target.systemPrompt);
+              }}
+              className="text-[10px] text-emerald-600 hover:underline cursor-pointer"
             >
-              Восстановить GD промпт
+              Восстановить промпт агента
             </button>
           </div>
           <textarea

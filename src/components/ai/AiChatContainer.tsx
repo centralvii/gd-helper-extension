@@ -4,7 +4,6 @@ import {
   ArrowUp,
   Square,
   Trash2,
-  Zap,
   Code2,
   FileCode,
   Layers,
@@ -16,6 +15,8 @@ import {
   Settings2,
   Bot,
   X,
+  ChevronDown,
+  CheckCircle2,
 } from 'lucide-react';
 import { useAiChat } from '../../hooks/useAiChat';
 import { AiMessageItem } from './AiMessageItem';
@@ -23,56 +24,7 @@ import { AiSettingsModal } from './AiSettingsModal';
 import { Button } from '../ui/Button';
 import { Modal } from '../ui/Modal';
 import { getActiveTabInfo, TabInfo } from '../../utils/tabUtils';
-
-const PROMPT_SUGGESTIONS = [
-  {
-    title: 'Алгоритм валидации',
-    desc: 'Скрипт проверки обязательных полей карточки',
-    prompt: 'Напиши пример скрипта алгоритма для валидации обязательных полей карточки GreenData с выводом ошибок пользователю.',
-    icon: <Code2 className="w-3.5 h-3.5 text-emerald-600" />,
-  },
-  {
-    title: 'Стандарты именования ID',
-    desc: 'Генерация ID алгоритма по регламенту GD',
-    prompt: 'Как правильно составить идентификатор алгоритма GreenData для задачи: "Проверка полномочий согласующего лица при изменении статуса договора"?',
-    icon: <Zap className="w-3.5 h-3.5 text-amber-500" />,
-  },
-  {
-    title: 'SQL выборка в GD',
-    desc: 'Оптимизированный SQL-запрос для выборки данных',
-    prompt: 'Помоги составить эффективный SQL-запрос для выборки активных договоров со связанными контрагентами и суммами больше 1 000 000 руб.',
-    icon: <Layers className="w-3.5 h-3.5 text-sky-600" />,
-  },
-  {
-    title: 'Структура пакета .guf',
-    desc: 'Правила упаковки и файл README.txt',
-    prompt: 'Объясни правила формирования структуры пакетов обновлений .guf и составления файла README.txt в GreenData.',
-    icon: <FileCode className="w-3.5 h-3.5 text-purple-600" />,
-  },
-];
-
-const QUICK_PROMPTS_MENU = [
-  {
-    label: '✨ Написать алгоритм валидации',
-    text: 'Напиши алгоритм валидации для объекта GreenData: ',
-  },
-  {
-    label: '⚡ Оптимизировать скрипт / формулу',
-    text: 'Оптимизируй следующий код/формулу GreenData и найди ошибки:\n```javascript\n\n```',
-  },
-  {
-    label: '📊 Составить SQL-запрос',
-    text: 'Помоги написать SQL запрос для: ',
-  },
-  {
-    label: '🧩 Описать бизнес-процесс',
-    text: 'Опиши пошаговую логику и развилки для бизнес-процесса: ',
-  },
-  {
-    label: '📝 Описание реализации для задачи',
-    text: 'Помоги составить краткое техническое описание изменений для передачи в тестирование: ',
-  },
-];
+import { AiAgent } from '../../types';
 
 export const AiChatContainer: React.FC = () => {
   const {
@@ -80,6 +32,9 @@ export const AiChatContainer: React.FC = () => {
     messages,
     isLoading,
     isStreaming,
+    activeAgent,
+    allAgents,
+    selectAgent,
     updateSettings,
     resetSettings,
     sendMessage,
@@ -92,6 +47,7 @@ export const AiChatContainer: React.FC = () => {
   const [inputVal, setInputVal] = useState('');
   const [attachedContext, setAttachedContext] = useState<string | null>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isAgentMenuOpen, setIsAgentMenuOpen] = useState(false);
   const [isClearModalOpen, setIsClearModalOpen] = useState(false);
   const [showScrollBottom, setShowScrollBottom] = useState(false);
   const [showQuickMenu, setShowQuickMenu] = useState(false);
@@ -185,7 +141,7 @@ export const AiChatContainer: React.FC = () => {
   const handleCopyEntireChat = () => {
     if (messages.length === 0) return;
     const text = messages
-      .map((m) => `**${m.role === 'user' ? '👤 Пользователь' : '🤖 GreenData AI'}**:\n${m.content}\n`)
+      .map((m) => `**${m.role === 'user' ? '👤 Пользователь' : `🤖 ${activeAgent.name}`}**:\n${m.content}\n`)
       .join('\n---\n\n');
     navigator.clipboard.writeText(text);
     setCopiedAll(true);
@@ -200,47 +156,137 @@ export const AiChatContainer: React.FC = () => {
       settings.baseUrl.includes('127.0.0.1')
   );
 
+  const getAgentIcon = (iconName: string, className = 'w-4 h-4') => {
+    switch (iconName) {
+      case 'code':
+        return <Code2 className={className} />;
+      case 'database':
+        return <Layers className={className} />;
+      case 'package':
+        return <FileCode className={className} />;
+      case 'bot':
+      default:
+        return <Bot className={className} />;
+    }
+  };
+
+  const getAgentBadgeColor = (agent: AiAgent) => {
+    switch (agent.badgeColor) {
+      case 'emerald':
+        return 'bg-emerald-50 text-emerald-800 border-emerald-200 hover:border-emerald-300';
+      case 'indigo':
+        return 'bg-indigo-50 text-indigo-800 border-indigo-200 hover:border-indigo-300';
+      case 'sky':
+        return 'bg-sky-50 text-sky-800 border-sky-200 hover:border-sky-300';
+      case 'purple':
+        return 'bg-purple-50 text-purple-800 border-purple-200 hover:border-purple-300';
+      default:
+        return 'bg-slate-50 text-slate-800 border-slate-200 hover:border-slate-300';
+    }
+  };
+
   return (
     <div className="flex flex-col h-full w-full min-h-0 flex-1 bg-white overflow-hidden relative font-sans">
-      {/* ── Minimalist Top Bar ── */}
-      <div className="flex items-center justify-between px-3 py-2 bg-white/95 backdrop-blur-md border-b border-slate-200/80 flex-shrink-0 z-20">
-        <div className="flex items-center gap-2 min-w-0">
-          <div className="relative flex-shrink-0">
-            <div className="w-6 h-6 rounded-lg bg-gradient-to-tr from-emerald-600 to-teal-600 text-white flex items-center justify-center shadow-2xs">
-              <Bot className="w-3.5 h-3.5" />
-            </div>
-            <span
-              className={`absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full ring-1.5 ring-white ${
-                isConfigured ? 'bg-emerald-500' : 'bg-amber-400 animate-pulse'
-              }`}
-              title={isConfigured ? 'ИИ подключен' : 'Требуется настройка API'}
-            />
-          </div>
+      {/* ── Top Bar with Agent Switcher ── */}
+      <div className="flex items-center justify-between px-2.5 py-1.5 bg-white/95 backdrop-blur-md border-b border-slate-200/80 flex-shrink-0 z-20">
+        {/* Agent Switcher Dropdown Button */}
+        <div className="relative min-w-0">
+          <button
+            type="button"
+            onClick={() => setIsAgentMenuOpen(!isAgentMenuOpen)}
+            className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-xl border text-[11px] font-bold transition-all cursor-pointer shadow-2xs group ${getAgentBadgeColor(
+              activeAgent
+            )}`}
+            title="Сменить активного ИИ-агента"
+          >
+            {getAgentIcon(activeAgent.avatarIcon, 'w-3.5 h-3.5 flex-shrink-0')}
+            <span className="truncate max-w-[130px]">{activeAgent.name}</span>
+            <ChevronDown className="w-3 h-3 opacity-60 group-hover:opacity-100 transition-transform" />
+          </button>
 
-          {/* Model Pill Button -> Opens Settings */}
+          {/* Agent Selection Popover Menu */}
+          {isAgentMenuOpen && (
+            <>
+              <div
+                className="fixed inset-0 z-30"
+                onClick={() => setIsAgentMenuOpen(false)}
+              />
+              <div className="absolute top-full mt-1.5 left-0 w-64 bg-white border border-slate-200 rounded-2xl shadow-2xl p-1.5 space-y-1 z-40 animate-slide-down">
+                <div className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                  Выборка ИИ-агентов
+                </div>
+                {allAgents.map((agent) => {
+                  const isSelected = agent.id === activeAgent.id;
+                  return (
+                    <button
+                      key={agent.id}
+                      type="button"
+                      onClick={() => {
+                        selectAgent(agent.id);
+                        setIsAgentMenuOpen(false);
+                      }}
+                      className={`w-full text-left p-2 rounded-xl transition-all flex items-start gap-2 cursor-pointer ${
+                        isSelected
+                          ? 'bg-emerald-50/90 text-emerald-950 border border-emerald-200'
+                          : 'hover:bg-slate-50 text-slate-800 border border-transparent'
+                      }`}
+                    >
+                      <div
+                        className={`p-1.5 rounded-lg flex-shrink-0 mt-0.5 ${
+                          isSelected
+                            ? 'bg-emerald-600 text-white'
+                            : 'bg-slate-100 text-slate-600'
+                        }`}
+                      >
+                        {getAgentIcon(agent.avatarIcon, 'w-3.5 h-3.5')}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center justify-between gap-1">
+                          <span className="font-bold text-xs truncate">
+                            {agent.name}
+                          </span>
+                          {isSelected && (
+                            <CheckCircle2 className="w-3 h-3 text-emerald-600 flex-shrink-0" />
+                          )}
+                        </div>
+                        <span className="text-[10px] text-slate-500 line-clamp-1 block">
+                          {agent.role}
+                        </span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Right Top Actions */}
+        <div className="flex items-center gap-1 flex-shrink-0">
+          {/* Model Badge */}
           <button
             type="button"
             onClick={() => setIsSettingsOpen(true)}
-            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-slate-100/90 hover:bg-emerald-50 text-slate-800 hover:text-emerald-900 text-[10.5px] font-mono font-bold border border-slate-200 hover:border-emerald-300 transition-all max-w-[150px] cursor-pointer group truncate"
-            title="Настройки подключения модели"
+            className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-lg bg-slate-100 hover:bg-slate-200/80 text-slate-700 text-[10px] font-mono font-semibold border border-slate-200 transition-all cursor-pointer max-w-[110px] truncate"
+            title={`Модель: ${settings.model || 'gpt-4o-mini'}`}
           >
-            <span className="truncate">{settings.model || 'Кастомная модель'}</span>
-            <Settings2 className="w-2.5 h-2.5 opacity-50 group-hover:opacity-100 flex-shrink-0 ml-0.5" />
+            <span
+              className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
+                isConfigured ? 'bg-emerald-500' : 'bg-amber-400 animate-pulse'
+              }`}
+            />
+            <span className="truncate">{settings.model || 'Модель'}</span>
           </button>
-        </div>
 
-        {/* Top Actions */}
-        <div className="flex items-center gap-1 flex-shrink-0">
           {messages.length > 0 && (
             <>
               <button
                 type="button"
                 onClick={() => setIsClearModalOpen(true)}
                 title="Начать новый диалог"
-                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-bold text-slate-700 hover:text-slate-900 bg-slate-100 hover:bg-slate-200/80 border border-slate-200 transition-all cursor-pointer"
+                className="p-1 text-slate-500 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors cursor-pointer"
               >
-                <Plus className="w-3 h-3 text-emerald-600" />
-                <span>Новый</span>
+                <Plus className="w-3.5 h-3.5" />
               </button>
 
               <button
@@ -261,7 +307,7 @@ export const AiChatContainer: React.FC = () => {
           <button
             type="button"
             onClick={() => setIsSettingsOpen(true)}
-            title="Настройки подключения"
+            title="Настройки ИИ подключения"
             className="p-1 text-slate-500 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors cursor-pointer"
           >
             <Settings2 className="w-3.5 h-3.5" />
@@ -276,25 +322,58 @@ export const AiChatContainer: React.FC = () => {
         className="flex-1 p-3 sm:p-3.5 overflow-y-auto overscroll-contain space-y-3 bg-[#fafafa] min-h-0 select-text scrollbar-thin"
       >
         {messages.length === 0 ? (
-          <div className="py-4 px-1 text-center max-w-sm mx-auto space-y-3.5 animate-fade-in">
-            {/* Hero */}
+          <div className="py-3 px-1 text-center max-w-sm mx-auto space-y-3 animate-fade-in">
+            {/* Agent Hero */}
             <div className="space-y-2">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white flex items-center justify-center mx-auto shadow-md shadow-emerald-600/15">
-                <Sparkles className="w-5 h-5" />
+              <div
+                className={`w-11 h-11 rounded-2xl text-white flex items-center justify-center mx-auto shadow-md ${
+                  activeAgent.badgeColor === 'emerald'
+                    ? 'bg-gradient-to-tr from-emerald-600 via-teal-600 to-emerald-500 shadow-emerald-600/20'
+                    : activeAgent.badgeColor === 'indigo'
+                    ? 'bg-gradient-to-tr from-indigo-600 to-purple-600 shadow-indigo-600/20'
+                    : activeAgent.badgeColor === 'sky'
+                    ? 'bg-gradient-to-tr from-sky-600 to-cyan-600 shadow-sky-600/20'
+                    : 'bg-gradient-to-tr from-purple-600 to-pink-600 shadow-purple-600/20'
+                }`}
+              >
+                {getAgentIcon(activeAgent.avatarIcon, 'w-5 h-5')}
               </div>
 
               <div className="space-y-0.5">
-                <h3 className="text-sm font-bold text-slate-900">
-                  GreenData AI Ассистент
+                <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 text-[10px] font-bold">
+                  <Sparkles className="w-2.5 h-2.5 text-amber-500" />
+                  <span>{activeAgent.name}</span>
+                </div>
+                <h3 className="text-sm font-bold text-slate-900 pt-0.5">
+                  {activeAgent.role}
                 </h3>
                 <p className="text-[11px] text-slate-500 leading-relaxed max-w-xs mx-auto">
-                  Алгоритмы, скрипты валидации, оптимизация SQL и структура .guf
+                  {activeAgent.description}
                 </p>
+              </div>
+
+              {/* Agent Quick Switcher Chips */}
+              <div className="flex items-center justify-center gap-1 pt-1 flex-wrap">
+                {allAgents.map((agent) => (
+                  <button
+                    key={agent.id}
+                    type="button"
+                    onClick={() => selectAgent(agent.id)}
+                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${
+                      agent.id === activeAgent.id
+                        ? 'bg-slate-900 text-white shadow-2xs'
+                        : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+                    }`}
+                  >
+                    {getAgentIcon(agent.avatarIcon, 'w-2.5 h-2.5')}
+                    <span>{agent.shortName}</span>
+                  </button>
+                ))}
               </div>
 
               {/* Active Tab Detection Banner */}
               {activeTabInfo && (
-                <div className="pt-0.5">
+                <div className="pt-1">
                   <button
                     type="button"
                     onClick={handleAttachActiveTabContext}
@@ -317,13 +396,13 @@ export const AiChatContainer: React.FC = () => {
               )}
             </div>
 
-            {/* Prompt Starter Cards */}
+            {/* Agent Specific Starter Prompts */}
             <div className="space-y-1.5 pt-1 text-left">
               <span className="text-[9.5px] font-bold uppercase tracking-wider text-slate-400 block px-0.5">
-                Частые сценарии:
+                Сценарии для {activeAgent.shortName}:
               </span>
               <div className="grid grid-cols-1 gap-1.5">
-                {PROMPT_SUGGESTIONS.map((item, idx) => (
+                {activeAgent.starterSuggestions.map((item, idx) => (
                   <button
                     key={idx}
                     type="button"
@@ -334,7 +413,7 @@ export const AiChatContainer: React.FC = () => {
                     className="p-2.5 rounded-xl bg-white border border-slate-200/90 hover:border-emerald-400 hover:bg-emerald-50/30 text-left transition-all flex items-start gap-2.5 group cursor-pointer shadow-2xs"
                   >
                     <div className="p-1.5 rounded-lg bg-slate-100 group-hover:bg-white transition-colors flex-shrink-0 mt-0.5">
-                      {item.icon}
+                      {getAgentIcon(activeAgent.avatarIcon, 'w-3 h-3 text-emerald-600')}
                     </div>
                     <div className="min-w-0 flex-1">
                       <span className="font-bold text-slate-900 group-hover:text-emerald-900 transition-colors text-[11.5px] block truncate">
@@ -391,7 +470,7 @@ export const AiChatContainer: React.FC = () => {
               />
               <div className="absolute bottom-full mb-2 left-0 right-0 bg-white border border-slate-200 rounded-xl shadow-xl p-2 space-y-1 z-30 animate-slide-down">
                 <div className="text-[9.5px] font-bold uppercase tracking-wider text-slate-400 px-2 py-0.5 flex items-center justify-between">
-                  <span>Шаблоны запросов:</span>
+                  <span>Шаблоны для {activeAgent.shortName}:</span>
                   <button
                     onClick={() => setShowQuickMenu(false)}
                     className="text-slate-400 hover:text-slate-700 text-xs p-0.5 cursor-pointer"
@@ -399,19 +478,19 @@ export const AiChatContainer: React.FC = () => {
                     ✕
                   </button>
                 </div>
-                {QUICK_PROMPTS_MENU.map((item, idx) => (
+                {activeAgent.starterSuggestions.map((item, idx) => (
                   <button
                     key={idx}
                     type="button"
                     onClick={() => {
-                      setInputVal(item.text);
+                      setInputVal(item.prompt);
                       setShowQuickMenu(false);
                       textareaRef.current?.focus();
                     }}
                     className="w-full text-left px-2 py-1 rounded-lg hover:bg-emerald-50 text-[11px] text-slate-800 hover:text-emerald-900 transition-colors flex items-center justify-between cursor-pointer"
                   >
-                    <span>{item.label}</span>
-                    <span className="text-[9.5px] text-slate-400">Вставить ↵</span>
+                    <span className="truncate">{item.title}</span>
+                    <span className="text-[9.5px] text-slate-400 flex-shrink-0 ml-1">Вставить ↵</span>
                   </button>
                 ))}
               </div>
@@ -441,7 +520,11 @@ export const AiChatContainer: React.FC = () => {
             value={inputVal}
             onChange={(e) => setInputVal(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Спросите о коде GreenData, SQL или .guf пакетах..."
+            placeholder={
+              activeAgent.id === 'gdsl_agent'
+                ? 'Вставьте скрипт GDSL (LaTeX или JS) или задайте вопрос...'
+                : `Спросите ${activeAgent.name}...`
+            }
             className="w-full bg-transparent text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none resize-none max-h-36 leading-relaxed font-normal"
           />
 

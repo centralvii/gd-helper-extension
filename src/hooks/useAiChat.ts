@@ -1,19 +1,14 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { AiChatMessage, AiSettings } from '../types';
+import { AI_AGENTS, DEFAULT_AGENT } from '../constants/aiAgents';
 
 export const DEFAULT_AI_SETTINGS: AiSettings = {
   baseUrl: 'https://api.openai.com/v1',
   apiKey: '',
   authType: 'bearer',
   model: 'gpt-4o-mini',
-  systemPrompt: `Ты — профессиональный ИИ-ассистент и эксперт по платформе GreenData (GDHelper).
-Твоя задача — помогать разработчикам, аналитикам и инженерам GreenData:
-- Составлять и оптимизировать алгоритмы, формулы и скрипты GreenData.
-- Проектировать структуры объектов, экранные формы и бизнес-процессы.
-- Писать SQL-запросы, парсить JSON и формировать пакеты обновлений (.guf).
-- Генерировать стандартные идентификаторы алгоритмов по регламенту GD.
-- Помогать с отладкой ошибок и реализацией задач.
-Отвечай структурированно, понятно, с примерами кода и на русском языке.`,
+  selectedAgentId: DEFAULT_AGENT.id,
+  systemPrompt: DEFAULT_AGENT.systemPrompt,
   temperature: 0.7,
   stream: true,
   maxTokens: 4096,
@@ -490,12 +485,28 @@ export function useAiChat() {
     }
   }, [messages, isLoading, sendMessage]);
 
+  const activeAgent = AI_AGENTS.find((a) => a.id === settings.selectedAgentId) || DEFAULT_AGENT;
+
+  const selectAgent = useCallback(
+    (agentId: string) => {
+      const target = AI_AGENTS.find((a) => a.id === agentId) || DEFAULT_AGENT;
+      updateSettings({
+        selectedAgentId: target.id,
+        systemPrompt: target.systemPrompt,
+      });
+    },
+    [updateSettings]
+  );
+
   return {
     settings,
     messages,
     isLoading,
     isStreaming,
     error,
+    activeAgent,
+    allAgents: AI_AGENTS,
+    selectAgent,
     updateSettings,
     resetSettings,
     sendMessage,

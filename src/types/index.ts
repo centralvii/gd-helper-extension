@@ -103,11 +103,31 @@ export interface AiChatMessage {
 
 export type AiAuthType = 'bearer' | 'api-key' | 'x-api-key' | 'none';
 
+export interface AiStarterSuggestion {
+  title: string;
+  desc: string;
+  prompt: string;
+  icon?: string;
+}
+
+export interface AiAgent {
+  id: string;
+  name: string;
+  shortName: string;
+  role: string;
+  avatarIcon: 'code' | 'bot' | 'database' | 'package' | 'sparkles';
+  badgeColor: 'emerald' | 'indigo' | 'purple' | 'sky' | 'amber';
+  description: string;
+  systemPrompt: string;
+  starterSuggestions: AiStarterSuggestion[];
+}
+
 export interface AiSettings {
   baseUrl: string;
   apiKey: string;
   authType?: AiAuthType;
   model: string;
+  selectedAgentId?: string;
   systemPrompt: string;
   temperature: number;
   stream: boolean;
