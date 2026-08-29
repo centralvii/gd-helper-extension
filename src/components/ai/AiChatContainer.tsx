@@ -8,7 +8,6 @@ import {
   Code2,
   FileCode,
   Layers,
-  ChevronDown,
   ArrowDown,
   Copy,
   Check,
@@ -17,7 +16,7 @@ import {
   Settings2,
   Bot,
 } from 'lucide-react';
-import { useAiChat, AI_PROVIDER_PRESETS } from '../../hooks/useAiChat';
+import { useAiChat } from '../../hooks/useAiChat';
 import { AiMessageItem } from './AiMessageItem';
 import { AiSettingsModal } from './AiSettingsModal';
 import { Button } from '../ui/Button';
@@ -98,7 +97,6 @@ export const AiChatContainer: React.FC = () => {
   const [isClearModalOpen, setIsClearModalOpen] = useState(false);
   const [showScrollBottom, setShowScrollBottom] = useState(false);
   const [showQuickMenu, setShowQuickMenu] = useState(false);
-  const [showModelPicker, setShowModelPicker] = useState(false);
   const [copiedAll, setCopiedAll] = useState(false);
   const [activeTabInfo, setActiveTabInfo] = useState<TabInfo | null>(null);
   const [isFetchingTab, setIsFetchingTab] = useState(false);
@@ -150,7 +148,6 @@ export const AiChatContainer: React.FC = () => {
     sendMessage(inputVal);
     setInputVal('');
     setShowQuickMenu(false);
-    setShowModelPicker(false);
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
     }
@@ -211,7 +208,7 @@ export const AiChatContainer: React.FC = () => {
               className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full ring-2 ring-white ${
                 isConfigured ? 'bg-emerald-500 shadow-xs' : 'bg-amber-400 animate-pulse'
               }`}
-              title={isConfigured ? 'ИИ подключен и готов к работе' : 'Требуется настройка API ключа'}
+              title={isConfigured ? 'ИИ подключен и готов к работе' : 'Требуется настройка подключения'}
             />
           </div>
 
@@ -220,86 +217,16 @@ export const AiChatContainer: React.FC = () => {
               GreenData AI
             </span>
 
-            {/* Model Pill Selector with Popover */}
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => setShowModelPicker(!showModelPicker)}
-                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-100/80 hover:bg-emerald-50 text-slate-800 hover:text-emerald-900 text-[10.5px] font-mono font-bold border border-slate-200 hover:border-emerald-300 transition-all shadow-2xs max-w-[140px] cursor-pointer"
-                title="Выбрать модель / провайдера"
-              >
-                <span className="truncate">{settings.model}</span>
-                <ChevronDown className="w-3 h-3 opacity-60 flex-shrink-0" />
-              </button>
-
-              {/* Quick Model Switcher Popover */}
-              {showModelPicker && (
-                <>
-                  <div
-                    className="fixed inset-0 z-30"
-                    onClick={() => setShowModelPicker(false)}
-                  />
-                  <div className="absolute top-full left-0 mt-1.5 w-72 bg-white border border-slate-200 rounded-2xl shadow-2xl p-2.5 space-y-2 z-40 animate-slide-down">
-                    <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-2 py-0.5 flex items-center justify-between">
-                      <span>Провайдеры и модели:</span>
-                      <button
-                        onClick={() => setShowModelPicker(false)}
-                        className="text-slate-400 hover:text-slate-700 text-xs p-0.5 rounded cursor-pointer"
-                      >
-                        ✕
-                      </button>
-                    </div>
-
-                    <div className="space-y-2 max-h-64 overflow-y-auto pr-1 scrollbar-thin">
-                      {AI_PROVIDER_PRESETS.map((preset, pIdx) => (
-                        <div key={pIdx} className="space-y-1">
-                          <div className="text-[10px] font-bold text-emerald-800 uppercase px-2 pt-1 border-t border-slate-100 first:border-0 first:pt-0">
-                            {preset.name}
-                          </div>
-                          <div className="space-y-0.5">
-                            {preset.models.map((m, mIdx) => (
-                              <button
-                                key={mIdx}
-                                type="button"
-                                onClick={() => {
-                                  updateSettings({
-                                    baseUrl: preset.baseUrl,
-                                    model: m,
-                                    authType: 'authType' in preset && preset.authType ? preset.authType : settings.authType,
-                                  });
-                                  setShowModelPicker(false);
-                                }}
-                                className={`w-full text-left px-2.5 py-1.5 rounded-xl text-[11px] font-mono transition-all flex items-center justify-between cursor-pointer ${
-                                  settings.model === m
-                                    ? 'bg-emerald-50 text-emerald-950 font-bold border border-emerald-300 shadow-2xs'
-                                    : 'text-slate-700 hover:bg-slate-50 hover:text-slate-950'
-                                }`}
-                              >
-                                <span className="truncate">{m}</span>
-                                {settings.model === m && <Check className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0 ml-1" />}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-
-                    <div className="pt-1.5 border-t border-slate-100">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setShowModelPicker(false);
-                          setIsSettingsOpen(true);
-                        }}
-                        className="w-full text-center py-1.5 rounded-xl text-xs font-bold text-emerald-700 hover:bg-emerald-50 border border-emerald-200 transition-colors cursor-pointer"
-                      >
-                        ⚙ Все настройки подключения...
-                      </button>
-                    </div>
-                  </div>
-                </>
-              )}
-            </div>
+            {/* Custom Model Badge -> Click to Open Settings Modal */}
+            <button
+              type="button"
+              onClick={() => setIsSettingsOpen(true)}
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-100/90 hover:bg-emerald-50 text-slate-800 hover:text-emerald-900 text-[10.5px] font-mono font-bold border border-slate-200 hover:border-emerald-300 transition-all shadow-2xs max-w-[150px] cursor-pointer group"
+              title="Настроить подключение модели (OpenAI compatibility)"
+            >
+              <span className="truncate">{settings.model || 'Кастомная модель'}</span>
+              <Settings2 className="w-2.5 h-2.5 opacity-50 group-hover:opacity-100 group-hover:rotate-45 transition-all flex-shrink-0" />
+            </button>
           </div>
         </div>
 

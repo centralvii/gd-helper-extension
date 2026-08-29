@@ -8,7 +8,6 @@ import {
   Key,
   Server,
   Cpu,
-  Zap,
   HelpCircle,
   Activity,
   Shield,
@@ -19,7 +18,7 @@ import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { Select } from '../ui/Select';
 import { AiSettings, AiAuthType } from '../../types';
-import { AI_PROVIDER_PRESETS, DEFAULT_AI_SETTINGS } from '../../hooks/useAiChat';
+import { DEFAULT_AI_SETTINGS } from '../../hooks/useAiChat';
 
 interface AiSettingsModalProps {
   isOpen: boolean;
@@ -67,15 +66,6 @@ export const AiSettingsModal: React.FC<AiSettingsModalProps> = ({
     }
   }, [isOpen, settings]);
 
-  const handleSelectPreset = (preset: (typeof AI_PROVIDER_PRESETS)[0]) => {
-    setBaseUrl(preset.baseUrl);
-    setModel(preset.defaultModel);
-    if ('authType' in preset && preset.authType) {
-      setAuthType(preset.authType);
-    }
-    setTestResult(null);
-  };
-
   const handleRunTest = async () => {
     setIsTesting(true);
     setTestResult(null);
@@ -117,7 +107,7 @@ export const AiSettingsModal: React.FC<AiSettingsModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Настройки ИИ подключения (OpenAI Compatibility)"
+      title="Настройки ИИ (OpenAI-совместимое подключение)"
       maxWidth="md"
       footer={
         <div className="flex items-center justify-between w-full">
@@ -152,32 +142,6 @@ export const AiSettingsModal: React.FC<AiSettingsModalProps> = ({
       }
     >
       <form onSubmit={handleSave} className="space-y-3.5 text-xs">
-        {/* Quick Provider Selector Chips */}
-        <div>
-          <label className="block text-[11px] font-bold text-gray-700 mb-1.5 flex items-center gap-1.5">
-            <Zap className="w-3.5 h-3.5 text-amber-500" />
-            <span>Готовые пресеты провайдеров:</span>
-          </label>
-          <div className="flex flex-wrap gap-1.5">
-            {AI_PROVIDER_PRESETS.map((p) => {
-              const isActive = baseUrl === p.baseUrl;
-              return (
-                <button
-                  key={p.name}
-                  type="button"
-                  onClick={() => handleSelectPreset(p)}
-                  className={`px-2 py-1 rounded-lg text-[11px] font-medium border transition-colors ${
-                    isActive
-                      ? 'bg-emerald-50 border-emerald-300 text-emerald-800 font-bold'
-                      : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
-                  }`}
-                >
-                  {p.name}
-                </button>
-              );
-            })}
-          </div>
-        </div>
 
         {/* Base URL */}
         <div>
