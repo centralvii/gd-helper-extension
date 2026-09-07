@@ -455,6 +455,10 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
         if (tabInfo.url) {
           const existing = task.items.find((i) => isSameUrl(i.linkUrl, tabInfo.url));
           if (existing) {
+            const initialDesc = existing.description || formatTitleInQuotes(rawName);
+            setReplaceDescription(initialDesc);
+            setReplaceSectionId(assignedSec || existing.sectionId || sections[0]?.id || '');
+            setReplaceLinkTitle(rawName || existing.linkTitle || '');
             setDuplicateCandidate({
               existingItem: existing,
               newItemData: {
@@ -504,6 +508,9 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
         (i) => i.id !== editingItem?.id && isSameUrl(i.linkUrl, itemData.linkUrl)
       );
       if (existing) {
+        setReplaceDescription(itemData.description || existing.description || '');
+        setReplaceSectionId(assignedSec || existing.sectionId || sections[0]?.id || '');
+        setReplaceLinkTitle(itemData.linkTitle || existing.linkTitle || '');
         setDuplicateCandidate({
           existingItem: existing,
           newItemData: {

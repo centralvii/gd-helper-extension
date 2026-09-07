@@ -468,7 +468,7 @@ export const AiChatContainer: React.FC = () => {
                 className="fixed inset-0 z-20"
                 onClick={() => setShowQuickMenu(false)}
               />
-              <div className="absolute bottom-full mb-2 left-0 right-0 bg-white border border-slate-200 rounded-xl shadow-xl p-2 space-y-1 z-30 animate-slide-down">
+              <div className="absolute bottom-full mb-2 left-0 right-0 bg-white border border-slate-200 rounded-xl shadow-xl p-2 space-y-1 z-30 animate-slide-up">
                 <div className="text-[9.5px] font-bold uppercase tracking-wider text-slate-400 px-2 py-0.5 flex items-center justify-between">
                   <span>Шаблоны для {activeAgent.shortName}:</span>
                   <button
