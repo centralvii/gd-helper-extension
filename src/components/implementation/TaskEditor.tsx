@@ -25,6 +25,7 @@ import {
   Zap,
   RotateCw,
   AlertCircle,
+  Link as LinkIcon,
 } from 'lucide-react';
 import {
   ImplementationTask,
@@ -43,6 +44,7 @@ import { AlgorithmHeaderSettingsModal } from './AlgorithmHeaderSettingsModal';
 import { Input } from '../ui/Input';
 import { Button } from '../ui/Button';
 import { Modal } from '../ui/Modal';
+import { Select } from '../ui/Select';
 import { ChangeItemRow } from './ChangeItemRow';
 import { AddChangeItemModal } from './AddChangeItemModal';
 import { TaskExportPreviewModal } from './TaskExportPreviewModal';
@@ -97,33 +99,10 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
     newItemData: Omit<ImplementationChangeItem, 'id'>;
   } | null>(null);
 
-  const handleConfirmReplaceDuplicate = () => {
-    if (!duplicateCandidate) return;
-    onUpdateChangeItem(task.id, duplicateCandidate.existingItem.id, duplicateCandidate.newItemData);
-    if (duplicateCandidate.newItemData.sectionId) {
-      updateCollapsedSections((prev) => ({
-        ...prev,
-        [duplicateCandidate.newItemData.sectionId!]: false,
-      }));
-    }
-    setDuplicateCandidate(null);
-    setEditingItem(null);
-    setIsAddModalOpen(false);
-  };
-
-  const handleConfirmAddDuplicateAnyway = () => {
-    if (!duplicateCandidate) return;
-    onAddChangeItem(task.id, duplicateCandidate.newItemData);
-    if (duplicateCandidate.newItemData.sectionId) {
-      updateCollapsedSections((prev) => ({
-        ...prev,
-        [duplicateCandidate.newItemData.sectionId!]: false,
-      }));
-    }
-    setDuplicateCandidate(null);
-    setEditingItem(null);
-    setIsAddModalOpen(false);
-  };
+  // Editable fields within the duplicate replace modal
+  const [replaceDescription, setReplaceDescription] = useState('');
+  const [replaceSectionId, setReplaceSectionId] = useState<string>('');
+  const [replaceLinkTitle, setReplaceLinkTitle] = useState('');
 
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
   const [quickCopied, setQuickCopied] = useState(false);
@@ -296,6 +275,93 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
         : DEFAULT_IMPLEMENTATION_SECTIONS;
     return [...raw].sort((a, b) => a.order - b.order);
   }, [task.sections]);
+
+  // Synchronize fields when duplicate candidate appears
+  useEffect(() => {
+    if (duplicateCandidate) {
+      const isFromActiveTab =
+        duplicateCandidate.newItemData.description ===
+          formatTitleInQuotes(duplicateCandidate.newItemData.linkTitle || '') ||
+        duplicateCandidate.newItemData.description ===
+          duplicateCandidate.newItemData.linkTitle;
+
+      if (isFromActiveTab && duplicateCandidate.existingItem.description) {
+        setReplaceDescription(duplicateCandidate.existingItem.description);
+      } else {
+        setReplaceDescription(
+          duplicateCandidate.newItemData.description ||
+            duplicateCandidate.existingItem.description ||
+            ''
+        );
+      }
+
+      setReplaceSectionId(
+        duplicateCandidate.newItemData.sectionId ||
+          duplicateCandidate.existingItem.sectionId ||
+          sections[0]?.id ||
+          ''
+      );
+
+      setReplaceLinkTitle(
+        duplicateCandidate.newItemData.linkTitle ||
+          duplicateCandidate.existingItem.linkTitle ||
+          ''
+      );
+    }
+  }, [duplicateCandidate, sections]);
+
+  const handleConfirmReplaceDuplicate = () => {
+    if (!duplicateCandidate || !replaceDescription.trim()) return;
+    const finalData: Omit<ImplementationChangeItem, 'id'> = {
+      sectionId: replaceSectionId || undefined,
+      description: replaceDescription.trim(),
+      linkTitle: replaceLinkTitle.trim() || undefined,
+      linkUrl: duplicateCandidate.existingItem.linkUrl,
+    };
+    onUpdateChangeItem(task.id, duplicateCandidate.existingItem.id, finalData);
+    if (finalData.sectionId) {
+      updateCollapsedSections((prev) => ({
+        ...prev,
+        [finalData.sectionId!]: false,
+      }));
+    }
+    setDuplicateCandidate(null);
+    setEditingItem(null);
+    setIsAddModalOpen(false);
+  };
+
+  const handleConfirmAddDuplicateAnyway = () => {
+    if (!duplicateCandidate || !replaceDescription.trim()) return;
+    const finalData: Omit<ImplementationChangeItem, 'id'> = {
+      sectionId: replaceSectionId || undefined,
+      description: replaceDescription.trim(),
+      linkTitle: replaceLinkTitle.trim() || undefined,
+      linkUrl: duplicateCandidate.existingItem.linkUrl,
+    };
+    onAddChangeItem(task.id, finalData);
+    if (finalData.sectionId) {
+      updateCollapsedSections((prev) => ({
+        ...prev,
+        [finalData.sectionId!]: false,
+      }));
+    }
+    setDuplicateCandidate(null);
+    setEditingItem(null);
+    setIsAddModalOpen(false);
+  };
+
+  const handleOpenInFullEditor = () => {
+    if (!duplicateCandidate) return;
+    setEditingItem({
+      ...duplicateCandidate.existingItem,
+      description: replaceDescription.trim() || duplicateCandidate.existingItem.description,
+      sectionId: replaceSectionId || duplicateCandidate.existingItem.sectionId,
+      linkTitle: replaceLinkTitle.trim() || duplicateCandidate.existingItem.linkTitle,
+    });
+    setTargetSectionId(replaceSectionId || duplicateCandidate.existingItem.sectionId);
+    setDuplicateCandidate(null);
+    setIsAddModalOpen(true);
+  };
 
   // Group items by section
   const { groupedItems, unsectionedItems } = useMemo(() => {
@@ -1227,7 +1293,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
         isOpen={Boolean(duplicateCandidate)}
         onClose={() => setDuplicateCandidate(null)}
         title="Ссылка уже добавлена в реализацию"
-        maxWidth="sm"
+        maxWidth="md"
         footer={
           <div className="flex items-center justify-between w-full">
             <Button
@@ -1243,8 +1309,10 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
                 variant="ghost"
                 size="sm"
                 onClick={handleConfirmAddDuplicateAnyway}
+                disabled={!replaceDescription.trim()}
                 title="Добавить как отдельный пункт без замены"
                 className="text-slate-600 hover:text-slate-900 text-xs cursor-pointer"
+                leftIcon={<Copy className="w-3.5 h-3.5" />}
               >
                 Добавить копию
               </Button>
@@ -1253,6 +1321,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
                 variant="emerald"
                 size="sm"
                 onClick={handleConfirmReplaceDuplicate}
+                disabled={!replaceDescription.trim()}
                 leftIcon={<RotateCw className="w-3.5 h-3.5" />}
                 className="font-bold shadow-xs cursor-pointer"
               >
@@ -1264,23 +1333,24 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
       >
         {duplicateCandidate && (
           <div className="space-y-3 text-xs">
-            <div className="p-3 bg-amber-50 border border-amber-200/90 rounded-2xl flex items-start gap-2.5 text-amber-950">
+            <div className="p-3 bg-amber-50 border border-amber-200/90 rounded-2xl flex items-start gap-2.5 text-amber-950 shadow-2xs">
               <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
-              <div className="space-y-1 min-w-0 flex-1">
-                <span className="font-bold text-[11.5px] block">
+              <div className="space-y-0.5 min-w-0 flex-1">
+                <span className="font-bold text-xs block">
                   Эта ссылка уже добавлена в текущую реализацию!
                 </span>
                 <p className="text-[11px] text-amber-900 leading-relaxed">
-                  Хотите заменить существующую запись на новые данные?
+                  Отредактируйте комментарий к изменениям ниже и нажмите «Заменить», либо сохраните как отдельную копию.
                 </p>
               </div>
             </div>
 
             {/* Existing Item Card */}
-            <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+            <div className="p-2.5 rounded-xl bg-slate-50/90 border border-slate-200/90 space-y-1.5 shadow-2xs">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                  Существующая запись:
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
+                  <Layers className="w-3 h-3 text-slate-400" />
+                  Существующая запись в реализации:
                 </span>
                 {duplicateCandidate.existingItem.sectionId && (
                   <span className="text-[10px] font-semibold text-slate-600 bg-white border border-slate-200 px-1.5 py-0.5 rounded">
@@ -1288,34 +1358,124 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
                   </span>
                 )}
               </div>
-              <p className="font-semibold text-slate-900 line-clamp-2">
+              <p className="font-semibold text-slate-800 text-xs line-clamp-2 bg-white p-2 rounded-lg border border-slate-200/70">
                 {duplicateCandidate.existingItem.description}
               </p>
-              <span className="text-[10px] text-slate-400 font-mono truncate block">
-                {duplicateCandidate.existingItem.linkUrl}
-              </span>
+              {duplicateCandidate.existingItem.linkUrl && (
+                <div className="text-[10px] text-slate-400 font-mono truncate flex items-center gap-1">
+                  <LinkIcon className="w-2.5 h-2.5 flex-shrink-0 text-slate-400" />
+                  <span className="truncate">{duplicateCandidate.existingItem.linkUrl}</span>
+                </div>
+              )}
             </div>
 
-            {/* New Item Card */}
-            <div className="p-2.5 rounded-xl bg-emerald-50/70 border border-emerald-200 space-y-1">
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-800">
-                  Новые данные для замены:
-                </span>
-                {duplicateCandidate.newItemData.sectionId && (
-                  <span className="text-[10px] font-bold text-emerald-800 bg-white border border-emerald-200 px-1.5 py-0.5 rounded">
-                    {sections.find((s) => s.id === duplicateCandidate.newItemData.sectionId)?.name || 'Без раздела'}
-                  </span>
-                )}
+            {/* Section & Link Title Row */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <div>
+                <label className="font-bold text-slate-800 text-[11px] mb-1 flex items-center gap-1.5">
+                  <Layers className="w-3 h-3 text-emerald-600" />
+                  <span>Раздел (категория)</span>
+                </label>
+                <Select
+                  value={replaceSectionId}
+                  onChange={(val) => setReplaceSectionId(val)}
+                  options={[
+                    { value: '', label: 'Без раздела' },
+                    ...sections.map((s) => ({ value: s.id, label: s.name })),
+                  ]}
+                  size="sm"
+                />
               </div>
-              <p className="font-semibold text-emerald-950 line-clamp-2">
-                {duplicateCandidate.newItemData.description}
-              </p>
-              {duplicateCandidate.newItemData.linkTitle && (
-                <span className="text-[10.5px] text-emerald-700 block truncate">
-                  Название ссылки: {duplicateCandidate.newItemData.linkTitle}
-                </span>
-              )}
+
+              <div>
+                <Input
+                  label="Заголовок ссылки (название объекта)"
+                  value={replaceLinkTitle}
+                  onChange={(e) => setReplaceLinkTitle(e.target.value)}
+                  placeholder="Например: ЖЦ до сохранения"
+                />
+              </div>
+            </div>
+
+            {/* Editable Description / Changes Comment Textarea */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between gap-1 flex-wrap">
+                <label className="font-bold text-slate-800 text-[11px] flex items-center gap-1">
+                  <span>Текст изменений / комментарий</span>
+                  <span className="text-rose-500">*</span>
+                </label>
+
+                {/* Helper action chips */}
+                <div className="flex items-center gap-1 text-[10.5px]">
+                  {duplicateCandidate.existingItem.description && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const existing = duplicateCandidate.existingItem.description;
+                        if (!replaceDescription.trim()) {
+                          setReplaceDescription(existing + '\n• ');
+                        } else if (!replaceDescription.includes(existing)) {
+                          setReplaceDescription(existing + '\n• ' + replaceDescription);
+                        } else {
+                          setReplaceDescription((prev) => prev + '\n• ');
+                        }
+                      }}
+                      className="text-emerald-700 hover:text-emerald-900 font-semibold cursor-pointer underline bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200"
+                      title="Добавить новый пункт к существующему описанию"
+                    >
+                      + Дополнить старое
+                    </button>
+                  )}
+
+                  {duplicateCandidate.existingItem.description && (
+                    <button
+                      type="button"
+                      onClick={() => setReplaceDescription(duplicateCandidate.existingItem.description)}
+                      className="text-slate-600 hover:text-slate-900 font-medium cursor-pointer underline bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200"
+                      title="Восстановить текст существующей записи"
+                    >
+                      Вернуть старое
+                    </button>
+                  )}
+
+                  {(replaceLinkTitle || duplicateCandidate.newItemData.linkTitle) && (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setReplaceDescription(
+                          formatTitleInQuotes(replaceLinkTitle || duplicateCandidate.newItemData.linkTitle || '')
+                        )
+                      }
+                      className="text-slate-600 hover:text-slate-900 font-medium cursor-pointer underline bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200"
+                      title="Вставить только заголовок в кавычках"
+                    >
+                      «Заголовок»
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              <textarea
+                value={replaceDescription}
+                onChange={(e) => setReplaceDescription(e.target.value)}
+                placeholder="Опишите внесенные изменения или добавьте комментарий..."
+                rows={3}
+                autoFocus
+                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/10 focus:border-emerald-500 text-xs resize-y shadow-2xs"
+              />
+            </div>
+
+            {/* Optional link to open full editor */}
+            <div className="flex items-center justify-between text-[11px] pt-1 border-t border-slate-100 text-slate-500">
+              <span>Нужно детально изменить поля ссылки?</span>
+              <button
+                type="button"
+                onClick={handleOpenInFullEditor}
+                className="text-emerald-700 hover:text-emerald-800 font-semibold underline cursor-pointer inline-flex items-center gap-1"
+              >
+                <Edit2 className="w-3 h-3" />
+                <span>Открыть в полном редакторе</span>
+              </button>
             </div>
           </div>
         )}
