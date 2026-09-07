@@ -18,9 +18,21 @@ export const Modal: React.FC<ModalProps> = ({
   footer,
   maxWidth = 'md',
 }) => {
+  const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
   const [mounted, setMounted] = useState(isOpen);
   const [isClosing, setIsClosing] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
+
+  // Synchronously update state on isOpen prop change during render
+  if (isOpen !== prevIsOpen) {
+    setPrevIsOpen(isOpen);
+    if (isOpen) {
+      setMounted(true);
+      setIsClosing(false);
+    } else if (mounted) {
+      setIsClosing(true);
+    }
+  }
 
   // Cache children, footer, and title so during exit animation content never disappears or collapses
   const cachedChildrenRef = useRef(children);
@@ -33,45 +45,49 @@ export const Modal: React.FC<ModalProps> = ({
     if (title) cachedTitleRef.current = title;
   }
 
-  // Active closing is true immediately when isOpen becomes false while mounted
-  const activeClosing = isClosing || (!isOpen && mounted);
-
+  // Handle closing animation timer
   useEffect(() => {
-    let timer: ReturnType<typeof setTimeout> | undefined;
-    if (isOpen) {
-      setMounted(true);
-      setIsClosing(false);
-    } else if (mounted) {
-      setIsClosing(true);
-      timer = setTimeout(() => {
+    if (isClosing) {
+      const timer = setTimeout(() => {
         setMounted(false);
         setIsClosing(false);
-      }, 240);
+      }, 230);
+      return () => clearTimeout(timer);
     }
-    return () => {
-      if (timer) clearTimeout(timer);
-    };
-  }, [isOpen, mounted]);
+  }, [isClosing]);
 
+  // Handle ESC key
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen && !activeClosing) {
+      if (e.key === 'Escape' && isOpen && !isClosing) {
         onClose();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, activeClosing, onClose]);
+  }, [isOpen, isClosing, onClose]);
 
-  // Lock body scroll only while modal is active
+  // Lock body scroll only while modal is active & prevent focus scroll jumps
   useEffect(() => {
-    if (mounted) {
-      document.body.style.overflow = 'hidden';
-    } else {
+    if (!mounted) {
       document.body.style.overflow = '';
+      return;
     }
+
+    document.body.style.overflow = 'hidden';
+    const originalScrollY = window.scrollY;
+
+    const handleFocusIn = () => {
+      // If native focus tried to scroll window, restore it immediately
+      if (window.scrollY !== originalScrollY) {
+        window.scrollTo(0, originalScrollY);
+      }
+    };
+
+    window.addEventListener('focusin', handleFocusIn);
     return () => {
       document.body.style.overflow = '';
+      window.removeEventListener('focusin', handleFocusIn);
     };
   }, [mounted]);
 
@@ -89,38 +105,38 @@ export const Modal: React.FC<ModalProps> = ({
   const renderedTitle = title || cachedTitleRef.current;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-hidden pointer-events-auto">
+    <div className="fixed inset-0 z-50 flex items-end justify-center p-0 overflow-hidden pointer-events-auto">
       {/* Backdrop with Fade-In / Fade-Out */}
       <div
-        className={`fixed inset-0 bg-slate-900/60 ${
-          activeClosing ? 'modal-backdrop-out' : 'modal-backdrop-in'
+        className={`fixed inset-0 bg-slate-900/60 modal-backdrop ${
+          isClosing ? 'modal-backdrop-out' : 'modal-backdrop-in'
         }`}
         onClick={() => {
-          if (!activeClosing) onClose();
+          if (!isClosing) onClose();
         }}
       />
 
-      {/* Modal Container — smooth slide-up from bottom on open, slide-down on close */}
+      {/* Modal Bottom Sheet Container — smooth hardware-accelerated slide from bottom */}
       <div
         ref={contentRef}
         className={`relative w-full ${maxWidthClasses[maxWidth]} bg-white border border-slate-200/90 shadow-2xl
-          flex flex-col max-h-[92vh] z-10 rounded-t-3xl sm:rounded-2xl ${
-            activeClosing ? 'modal-content-out' : 'modal-content-in'
+          flex flex-col max-h-[92vh] z-10 rounded-t-3xl modal-sheet ${
+            isClosing ? 'modal-sheet-out' : 'modal-sheet-in'
           }`}
       >
-        {/* Mobile Pull Handle Indicator */}
-        <div className="w-full flex justify-center pt-2.5 pb-1 sm:hidden bg-white rounded-t-3xl">
+        {/* Mobile / Sheet Pull Handle Indicator */}
+        <div className="w-full flex justify-center pt-2.5 pb-1 bg-white rounded-t-3xl flex-shrink-0">
           <div className="w-10 h-1 bg-slate-300 rounded-full" />
         </div>
 
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3.5 border-b border-slate-100 bg-white rounded-t-3xl sm:rounded-t-2xl flex-shrink-0">
+        <div className="flex items-center justify-between px-4 py-3.5 border-b border-slate-100 bg-white flex-shrink-0">
           <h3 className="text-sm font-bold text-slate-900 tracking-tight">
             {renderedTitle}
           </h3>
           <button
             onClick={() => {
-              if (!activeClosing) onClose();
+              if (!isClosing) onClose();
             }}
             className="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors flex-shrink-0 cursor-pointer"
           >
@@ -135,7 +151,7 @@ export const Modal: React.FC<ModalProps> = ({
 
         {/* Footer */}
         {renderedFooter && (
-          <div className="flex items-center justify-end gap-2 px-4 py-3 border-t border-slate-100 bg-slate-50/70 rounded-b-2xl flex-shrink-0">
+          <div className="flex items-center justify-end gap-2 px-4 py-3 border-t border-slate-100 bg-slate-50/70 rounded-b-none flex-shrink-0">
             {renderedFooter}
           </div>
         )}
