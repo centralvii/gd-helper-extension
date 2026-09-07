@@ -258,22 +258,22 @@
 @keyframes modalSlideUpIn {
     0% {
         opacity: 0;
-        transform: translate3d(0, 100%, 0);
+        transform: translateY(100%);
     }
     100% {
         opacity: 1;
-        transform: translate3d(0, 0, 0);
+        transform: translateY(0);
     }
 }
 
 @keyframes modalSlideDownOut {
     0% {
         opacity: 1;
-        transform: translate3d(0, 0, 0);
+        transform: translateY(0);
     }
     100% {
         opacity: 0;
-        transform: translate3d(0, 100%, 0);
+        transform: translateY(100%);
     }
 }
 
@@ -293,23 +293,23 @@
     .animate-slide-down  { animation: slideDown 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
     .animate-pulse-green { animation: pulseGreen 1.5s ease-in-out infinite; }
 
-    /* Modal Backdrop — smoothly fades in/out with hardware acceleration */
+    /* Modal Backdrop */
     .modal-backdrop {
         opacity: 0;
         will-change: opacity;
     }
     .modal-backdrop-in {
-        animation: backdropFadeIn 0.26s cubic-bezier(0.16, 1, 0.3, 1) both;
+        animation: backdropFadeIn 0.26s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         will-change: opacity;
     }
     .modal-backdrop-out {
-        animation: backdropFadeOut 0.22s cubic-bezier(0.32, 0, 0.67, 0) both;
+        animation: backdropFadeOut 0.22s cubic-bezier(0.32, 0, 0.67, 0) forwards;
         will-change: opacity;
     }
 
     /* Modal Bottom Sheet — base style starts translated 100% off-screen down, eliminating FOUC / top jerks */
     .modal-sheet {
-        transform: translate3d(0, 100%, 0);
+        transform: translateY(100%);
         opacity: 0;
         will-change: transform, opacity;
         -webkit-font-smoothing: antialiased;
@@ -318,7 +318,7 @@
     }
     .modal-sheet-in,
     .modal-content-in {
-        animation: modalSlideUpIn 0.28s cubic-bezier(0.16, 1, 0.3, 1) both;
+        animation: modalSlideUpIn 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         will-change: transform, opacity;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
@@ -326,7 +326,7 @@
     }
     .modal-sheet-out,
     .modal-content-out {
-        animation: modalSlideDownOut 0.22s cubic-bezier(0.32, 0, 0.67, 0) both;
+        animation: modalSlideDownOut 0.22s cubic-bezier(0.32, 0, 0.67, 0) forwards;
         will-change: transform, opacity;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
