@@ -153,6 +153,7 @@ export interface ImplementationChangeItem {
 export interface ImplementationTask {
   id: string;
   taskNumber: string;
+  releaseNumber?: string; // Номер релиза (например: 11-2026)
   title: string;
   summary: string;
   packageId?: string; // ID связанного пакета сборки .guf
@@ -160,6 +161,12 @@ export interface ImplementationTask {
   items: ImplementationChangeItem[];
   createdAt: number;
   updatedAt: number;
+}
+
+export interface AlgorithmHeaderSettings {
+  author: string; // Фамилия и инициалы разработчика (например: Кучин В.В.)
+  defaultRelease?: string; // Номер релиза по умолчанию (если не указан в задаче)
+  insertNewline: boolean; // Добавлять ли перенос строки после комментария
 }
 
 export type ExtraSubTool = 'alg_generator';

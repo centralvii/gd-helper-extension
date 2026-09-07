@@ -20,13 +20,24 @@ import {
   ExternalLink,
   FileJson,
   MoreVertical,
+  Code2,
+  Settings,
+  Zap,
 } from 'lucide-react';
 import {
   ImplementationTask,
   ImplementationChangeItem,
   ImplementationSection,
   BuildPackage,
+  AlgorithmHeaderSettings,
 } from '../../types';
+import {
+  DEFAULT_ALGORITHM_HEADER_SETTINGS,
+  ALGORITHM_HEADER_SETTINGS_KEY,
+  formatAlgorithmHeaderComment,
+} from '../../constants/algorithmHeader';
+import { injectAlgorithmComment } from '../../utils/algorithmCommentInjector';
+import { AlgorithmHeaderSettingsModal } from './AlgorithmHeaderSettingsModal';
 import { Input } from '../ui/Input';
 import { Button } from '../ui/Button';
 import { Modal } from '../ui/Modal';
@@ -80,6 +91,89 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
   const [quickCopied, setQuickCopied] = useState(false);
   const [isTabFetching, setIsTabFetching] = useState(false);
+
+  // Algorithm Header Comment State & Settings
+  const [isHeaderSettingsOpen, setIsHeaderSettingsOpen] = useState(false);
+  const [headerSettings, setHeaderSettings] = useState<AlgorithmHeaderSettings>(() => {
+    try {
+      const saved = localStorage.getItem(ALGORITHM_HEADER_SETTINGS_KEY);
+      if (saved) {
+        return { ...DEFAULT_ALGORITHM_HEADER_SETTINGS, ...JSON.parse(saved) };
+      }
+    } catch {
+      // ignore
+    }
+    return DEFAULT_ALGORITHM_HEADER_SETTINGS;
+  });
+
+  useEffect(() => {
+    if (typeof chrome !== 'undefined' && chrome.storage?.local) {
+      chrome.storage.local.get([ALGORITHM_HEADER_SETTINGS_KEY], (res) => {
+        if (res[ALGORITHM_HEADER_SETTINGS_KEY]) {
+          setHeaderSettings((prev) => ({ ...prev, ...res[ALGORITHM_HEADER_SETTINGS_KEY] }));
+        }
+      });
+    }
+  }, []);
+
+  const handleSaveHeaderSettings = (newSettings: AlgorithmHeaderSettings) => {
+    setHeaderSettings(newSettings);
+    try {
+      localStorage.setItem(ALGORITHM_HEADER_SETTINGS_KEY, JSON.stringify(newSettings));
+      if (typeof chrome !== 'undefined' && chrome.storage?.local) {
+        chrome.storage.local.set({ [ALGORITHM_HEADER_SETTINGS_KEY]: newSettings });
+      }
+    } catch {
+      // ignore
+    }
+  };
+
+  const [isInjecting, setIsInjecting] = useState(false);
+  const [injectResult, setInjectResult] = useState<{ success: boolean; message: string } | null>(null);
+  const [copiedHeader, setCopiedHeader] = useState(false);
+
+  // Live comment string
+  const headerCommentText = useMemo(() => {
+    return formatAlgorithmHeaderComment({
+      author: headerSettings.author,
+      taskNumber: task.taskNumber,
+      releaseNumber: task.releaseNumber || headerSettings.defaultRelease,
+    });
+  }, [headerSettings.author, headerSettings.defaultRelease, task.taskNumber, task.releaseNumber]);
+
+  const handleCopyHeaderComment = async () => {
+    const full = headerCommentText + (headerSettings.insertNewline ? '\n' : '');
+    try {
+      await navigator.clipboard.writeText(full);
+      setCopiedHeader(true);
+      setTimeout(() => setCopiedHeader(false), 2000);
+    } catch (e) {
+      console.warn('Copy failed:', e);
+    }
+  };
+
+  const handleInsertHeaderComment = async () => {
+    setIsInjecting(true);
+    setInjectResult(null);
+    try {
+      const res = await injectAlgorithmComment(headerCommentText, headerSettings.insertNewline);
+      setInjectResult({
+        success: res.success,
+        message: res.message,
+      });
+      if (res.copiedToClipboard) {
+        setCopiedHeader(true);
+        setTimeout(() => setCopiedHeader(false), 2500);
+      }
+    } catch (err: any) {
+      setInjectResult({
+        success: false,
+        message: err.message || 'Ошибка вставки комментария',
+      });
+    } finally {
+      setIsInjecting(false);
+    }
+  };
 
   // Section Create/Edit Modal State
   const [isSectionModalOpen, setIsSectionModalOpen] = useState(false);
@@ -336,17 +430,117 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
 
   return (
     <div className="space-y-3">
+      {/* ── Algorithm Header Quick Action Card (Feature: Вставка комментария в алгоритм) ── */}
+      <div className="p-3 bg-gradient-to-r from-emerald-50 via-teal-50/60 to-emerald-50 border border-emerald-200/90 rounded-2xl shadow-2xs space-y-2">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="p-1.5 rounded-xl bg-emerald-600 text-white shadow-2xs flex-shrink-0">
+              <Code2 className="w-3.5 h-3.5" />
+            </div>
+            <div className="min-w-0">
+              <span className="font-bold text-xs text-slate-900 block truncate">
+                Шапка алгоритма
+              </span>
+              <span className="text-[10px] text-slate-500 block truncate">
+                Быстрая вставка комментария в формулу GreenData
+              </span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-1.5 flex-shrink-0">
+            <button
+              type="button"
+              onClick={() => setIsHeaderSettingsOpen(true)}
+              title="Настройки шапки (Фамилия И.О., релиз)"
+              className="p-1.5 rounded-xl bg-white hover:bg-emerald-100/70 border border-emerald-200 text-slate-600 hover:text-emerald-900 transition-all cursor-pointer shadow-2xs"
+            >
+              <Settings className="w-3.5 h-3.5" />
+            </button>
+
+            <button
+              type="button"
+              onClick={handleCopyHeaderComment}
+              title="Скопировать комментарий в буфер обмена"
+              className="p-1.5 rounded-xl bg-white hover:bg-emerald-100/70 border border-emerald-200 text-slate-600 hover:text-emerald-900 transition-all cursor-pointer shadow-2xs"
+            >
+              {copiedHeader ? (
+                <Check className="w-3.5 h-3.5 text-emerald-600" />
+              ) : (
+                <Copy className="w-3.5 h-3.5" />
+              )}
+            </button>
+
+            <Button
+              variant="emerald"
+              size="sm"
+              disabled={isInjecting}
+              onClick={handleInsertHeaderComment}
+              leftIcon={
+                injectResult?.success ? (
+                  <Check className="w-3.5 h-3.5 text-white" />
+                ) : (
+                  <Zap className="w-3.5 h-3.5 text-amber-300" />
+                )
+              }
+              className="px-2.5 py-1 text-[11px] font-bold shadow-xs cursor-pointer"
+            >
+              {isInjecting ? 'Вставка...' : injectResult?.success ? 'Вставлено!' : 'Вставить в алгоритм'}
+            </Button>
+          </div>
+        </div>
+
+        {/* Live Preview Bar */}
+        <div className="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-xl bg-white/95 border border-emerald-200/80 font-mono text-[11px] text-emerald-950 shadow-2xs select-all">
+          <div className="flex items-center gap-1.5 truncate min-w-0">
+            <span className="truncate">{headerCommentText}</span>
+          </div>
+          <span className="text-[9.5px] font-sans font-bold text-emerald-700 bg-emerald-100/70 px-1.5 py-0.5 rounded-md flex-shrink-0">
+            {headerSettings.author}
+          </span>
+        </div>
+
+        {/* Feedback message if any */}
+        {injectResult && (
+          <div
+            className={`text-[10px] font-medium px-2 py-1 rounded-xl flex items-center justify-between gap-1 animate-fade-in ${
+              injectResult.success
+                ? 'bg-emerald-100/90 text-emerald-950 border border-emerald-200'
+                : 'bg-amber-100/90 text-amber-950 border border-amber-200'
+            }`}
+          >
+            <span>{injectResult.message}</span>
+            <button
+              type="button"
+              onClick={() => setInjectResult(null)}
+              className="text-slate-400 hover:text-slate-700 text-xs px-1 cursor-pointer"
+            >
+              ✕
+            </button>
+          </div>
+        )}
+      </div>
+
       {/* Task Metadata Card */}
       <div className="p-4 bg-white border border-slate-200/90 rounded-2xl space-y-3.5 shadow-xs">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-2.5">
           <div className="sm:col-span-1">
             <label className="block text-[11px] font-bold text-slate-700 mb-1">
-              Номер / Код задачи
+              Номер задачи
             </label>
             <Input
               value={task.taskNumber}
               onChange={(e) => onUpdateTask(task.id, { taskNumber: e.target.value })}
-              placeholder="TASK-1234"
+              placeholder="FINAPP-5638"
+            />
+          </div>
+          <div className="sm:col-span-1">
+            <label className="block text-[11px] font-bold text-slate-700 mb-1">
+              Номер релиза
+            </label>
+            <Input
+              value={task.releaseNumber || ''}
+              onChange={(e) => onUpdateTask(task.id, { releaseNumber: e.target.value })}
+              placeholder="11-2026"
             />
           </div>
           <div className="sm:col-span-2">
@@ -940,6 +1134,15 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
           Пункты из этого раздела не удалятся, а переместятся в список «Без раздела».
         </p>
       </Modal>
+
+      {/* Algorithm Header Settings Modal */}
+      <AlgorithmHeaderSettingsModal
+        isOpen={isHeaderSettingsOpen}
+        onClose={() => setIsHeaderSettingsOpen(false)}
+        settings={headerSettings}
+        onSave={handleSaveHeaderSettings}
+        currentTask={task}
+      />
     </div>
   );
 };

@@ -8,6 +8,7 @@ const STORAGE_KEY_ACTIVE_TASK = 'gd-helper-implementation-active-task-id';
 function normalizeTask(task: ImplementationTask): ImplementationTask {
   return {
     ...task,
+    releaseNumber: task.releaseNumber || '',
     sections:
       task.sections && task.sections.length > 0
         ? task.sections
@@ -18,7 +19,8 @@ function normalizeTask(task: ImplementationTask): ImplementationTask {
 
 const INITIAL_TASK: ImplementationTask = {
   id: 'task-welcome-1',
-  taskNumber: 'TASK-101',
+  taskNumber: 'FINAPP-5638',
+  releaseNumber: '11-2026',
   title: 'Пример описания реализации задачи',
   summary: 'В рамках задачи доработана логика валидации и обновлены сопутствующие алгоритмы.',
   sections: DEFAULT_IMPLEMENTATION_SECTIONS.map((s, idx) => ({ ...s, order: idx })),
@@ -592,6 +594,7 @@ export function parseTasksFromImport(jsonString: string): {
       const task: ImplementationTask = {
         id,
         taskNumber,
+        releaseNumber: typeof t.releaseNumber === 'string' ? t.releaseNumber.trim() : '',
         title,
         summary,
         sections,
