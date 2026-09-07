@@ -23,6 +23,8 @@ import {
   Code2,
   Settings,
   Zap,
+  RotateCw,
+  AlertCircle,
 } from 'lucide-react';
 import {
   ImplementationTask,
@@ -50,6 +52,7 @@ import {
   DEFAULT_IMPLEMENTATION_SECTIONS,
   matchSectionForType,
   formatTitleInQuotes,
+  isSameUrl,
 } from '../../utils/tabUtils';
 
 interface TaskEditorProps {
@@ -87,6 +90,40 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<ImplementationChangeItem | null>(null);
   const [targetSectionId, setTargetSectionId] = useState<string | undefined>(undefined);
+
+  // Duplicate URL candidate state when a link already exists in the task
+  const [duplicateCandidate, setDuplicateCandidate] = useState<{
+    existingItem: ImplementationChangeItem;
+    newItemData: Omit<ImplementationChangeItem, 'id'>;
+  } | null>(null);
+
+  const handleConfirmReplaceDuplicate = () => {
+    if (!duplicateCandidate) return;
+    onUpdateChangeItem(task.id, duplicateCandidate.existingItem.id, duplicateCandidate.newItemData);
+    if (duplicateCandidate.newItemData.sectionId) {
+      updateCollapsedSections((prev) => ({
+        ...prev,
+        [duplicateCandidate.newItemData.sectionId!]: false,
+      }));
+    }
+    setDuplicateCandidate(null);
+    setEditingItem(null);
+    setIsAddModalOpen(false);
+  };
+
+  const handleConfirmAddDuplicateAnyway = () => {
+    if (!duplicateCandidate) return;
+    onAddChangeItem(task.id, duplicateCandidate.newItemData);
+    if (duplicateCandidate.newItemData.sectionId) {
+      updateCollapsedSections((prev) => ({
+        ...prev,
+        [duplicateCandidate.newItemData.sectionId!]: false,
+      }));
+    }
+    setDuplicateCandidate(null);
+    setEditingItem(null);
+    setIsAddModalOpen(false);
+  };
 
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
   const [quickCopied, setQuickCopied] = useState(false);
@@ -345,23 +382,44 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
           }
         }
 
-        setTargetSectionId(secId || sections[0]?.id);
+        const assignedSec = secId || sections[0]?.id;
         const rawName = tabInfo.cleanTitle || tabInfo.title;
+
+        // Check if an item with this URL is already added to the task
+        if (tabInfo.url) {
+          const existing = task.items.find((i) => isSameUrl(i.linkUrl, tabInfo.url));
+          if (existing) {
+            setDuplicateCandidate({
+              existingItem: existing,
+              newItemData: {
+                sectionId: assignedSec,
+                description: formatTitleInQuotes(rawName),
+                linkTitle: rawName,
+                linkUrl: tabInfo.url,
+              },
+            });
+            return;
+          }
+        }
+
+        setTargetSectionId(assignedSec);
         setEditingItem({
           id: '',
-          sectionId: secId || sections[0]?.id,
+          sectionId: assignedSec,
           description: formatTitleInQuotes(rawName),
           linkTitle: rawName,
           linkUrl: tabInfo.url,
         });
+        setIsAddModalOpen(true);
       } else {
         setEditingItem(null);
+        setIsAddModalOpen(true);
       }
     } catch {
       setEditingItem(null);
+      setIsAddModalOpen(true);
     } finally {
       setIsTabFetching(false);
-      setIsAddModalOpen(true);
     }
   };
 
@@ -373,6 +431,25 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
 
   const handleSaveItem = (itemData: Omit<ImplementationChangeItem, 'id'>) => {
     const assignedSec = itemData.sectionId || targetSectionId;
+
+    // Check if an item with this URL already exists in current task (excluding current editing item)
+    if (itemData.linkUrl && itemData.linkUrl.trim()) {
+      const existing = task.items.find(
+        (i) => i.id !== editingItem?.id && isSameUrl(i.linkUrl, itemData.linkUrl)
+      );
+      if (existing) {
+        setDuplicateCandidate({
+          existingItem: existing,
+          newItemData: {
+            ...itemData,
+            sectionId: assignedSec,
+          },
+        });
+        setIsAddModalOpen(false);
+        return;
+      }
+    }
+
     if (editingItem && editingItem.id) {
       onUpdateChangeItem(task.id, editingItem.id, itemData);
     } else {
@@ -1030,6 +1107,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
         sections={sections}
         defaultSectionId={targetSectionId}
         onAddSection={(name) => onAddSection(task.id, name)}
+        existingItems={task.items}
       />
 
       {/* Task Markdown Preview Modal */}
@@ -1143,6 +1221,105 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
         onSave={handleSaveHeaderSettings}
         currentTask={task}
       />
+
+      {/* ── Duplicate URL Replace Confirmation Modal ── */}
+      <Modal
+        isOpen={Boolean(duplicateCandidate)}
+        onClose={() => setDuplicateCandidate(null)}
+        title="Ссылка уже добавлена в реализацию"
+        maxWidth="sm"
+        footer={
+          <div className="flex items-center justify-between w-full">
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => setDuplicateCandidate(null)}
+            >
+              Отмена
+            </Button>
+
+            <div className="flex items-center gap-1.5">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleConfirmAddDuplicateAnyway}
+                title="Добавить как отдельный пункт без замены"
+                className="text-slate-600 hover:text-slate-900 text-xs cursor-pointer"
+              >
+                Добавить копию
+              </Button>
+
+              <Button
+                variant="emerald"
+                size="sm"
+                onClick={handleConfirmReplaceDuplicate}
+                leftIcon={<RotateCw className="w-3.5 h-3.5" />}
+                className="font-bold shadow-xs cursor-pointer"
+              >
+                Заменить
+              </Button>
+            </div>
+          </div>
+        }
+      >
+        {duplicateCandidate && (
+          <div className="space-y-3 text-xs">
+            <div className="p-3 bg-amber-50 border border-amber-200/90 rounded-2xl flex items-start gap-2.5 text-amber-950">
+              <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+              <div className="space-y-1 min-w-0 flex-1">
+                <span className="font-bold text-[11.5px] block">
+                  Эта ссылка уже добавлена в текущую реализацию!
+                </span>
+                <p className="text-[11px] text-amber-900 leading-relaxed">
+                  Хотите заменить существующую запись на новые данные?
+                </p>
+              </div>
+            </div>
+
+            {/* Existing Item Card */}
+            <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                  Существующая запись:
+                </span>
+                {duplicateCandidate.existingItem.sectionId && (
+                  <span className="text-[10px] font-semibold text-slate-600 bg-white border border-slate-200 px-1.5 py-0.5 rounded">
+                    {sections.find((s) => s.id === duplicateCandidate.existingItem.sectionId)?.name || 'Без раздела'}
+                  </span>
+                )}
+              </div>
+              <p className="font-semibold text-slate-900 line-clamp-2">
+                {duplicateCandidate.existingItem.description}
+              </p>
+              <span className="text-[10px] text-slate-400 font-mono truncate block">
+                {duplicateCandidate.existingItem.linkUrl}
+              </span>
+            </div>
+
+            {/* New Item Card */}
+            <div className="p-2.5 rounded-xl bg-emerald-50/70 border border-emerald-200 space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-800">
+                  Новые данные для замены:
+                </span>
+                {duplicateCandidate.newItemData.sectionId && (
+                  <span className="text-[10px] font-bold text-emerald-800 bg-white border border-emerald-200 px-1.5 py-0.5 rounded">
+                    {sections.find((s) => s.id === duplicateCandidate.newItemData.sectionId)?.name || 'Без раздела'}
+                  </span>
+                )}
+              </div>
+              <p className="font-semibold text-emerald-950 line-clamp-2">
+                {duplicateCandidate.newItemData.description}
+              </p>
+              {duplicateCandidate.newItemData.linkTitle && (
+                <span className="text-[10.5px] text-emerald-700 block truncate">
+                  Название ссылки: {duplicateCandidate.newItemData.linkTitle}
+                </span>
+              )}
+            </div>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 };

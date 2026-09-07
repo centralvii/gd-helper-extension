@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { Plus, Link as LinkIcon, Sparkles, Check, ExternalLink, Layers, FolderPlus, ChevronDown, ChevronUp } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Plus, Link as LinkIcon, Sparkles, Check, ExternalLink, Layers, FolderPlus, ChevronDown, ChevronUp, AlertTriangle } from 'lucide-react';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { Select } from '../ui/Select';
-import { getActiveTabInfo, matchSectionForType, formatTitleInQuotes } from '../../utils/tabUtils';
+import { getActiveTabInfo, matchSectionForType, formatTitleInQuotes, isSameUrl } from '../../utils/tabUtils';
 import { ImplementationChangeItem, ImplementationSection } from '../../types';
 
 interface AddChangeItemModalProps {
@@ -15,6 +15,7 @@ interface AddChangeItemModalProps {
   sections?: ImplementationSection[];
   defaultSectionId?: string;
   onAddSection?: (name: string) => ImplementationSection | null | void;
+  existingItems?: ImplementationChangeItem[];
 }
 
 export const AddChangeItemModal: React.FC<AddChangeItemModalProps> = ({
@@ -25,6 +26,7 @@ export const AddChangeItemModal: React.FC<AddChangeItemModalProps> = ({
   sections = [],
   defaultSectionId,
   onAddSection,
+  existingItems = [],
 }) => {
   const [description, setDescription] = useState('');
   const [sectionId, setSectionId] = useState<string>('');
@@ -38,6 +40,20 @@ export const AddChangeItemModal: React.FC<AddChangeItemModalProps> = ({
 
   const [isCreatingNewSection, setIsCreatingNewSection] = useState(false);
   const [newSectionName, setNewSectionName] = useState('');
+
+  const duplicateItem = useMemo(() => {
+    if (!linkUrl.trim()) return null;
+    return (
+      existingItems.find(
+        (item) => item.id !== initialItem?.id && isSameUrl(item.linkUrl, linkUrl)
+      ) || null
+    );
+  }, [existingItems, initialItem?.id, linkUrl]);
+
+  const duplicateSection = useMemo(() => {
+    if (!duplicateItem?.sectionId) return null;
+    return sections.find((s) => s.id === duplicateItem.sectionId) || null;
+  }, [sections, duplicateItem]);
 
   useEffect(() => {
     if (isOpen) {
@@ -411,6 +427,32 @@ export const AddChangeItemModal: React.FC<AddChangeItemModalProps> = ({
               />
             </div>
           </div>
+
+          {/* Duplicate Link Warning Banner */}
+          {duplicateItem && (
+            <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs flex items-start gap-2 animate-fade-in shadow-2xs">
+              <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+              <div className="min-w-0 flex-1 space-y-0.5">
+                <div className="font-bold text-[11px] flex items-center justify-between">
+                  <span>Эта ссылка уже добавлена в реализацию</span>
+                  <span className="text-[9.5px] font-bold text-amber-800 bg-amber-200/70 px-1.5 py-0.5 rounded-md">
+                    Уже существует
+                  </span>
+                </div>
+                <p className="text-[10.5px] text-amber-800 line-clamp-2 leading-relaxed">
+                  Существующий пункт: <strong className="text-amber-950 font-semibold">«{duplicateItem.description}»</strong>
+                  {duplicateSection && (
+                    <span className="text-amber-700 ml-1">
+                      (раздел «{duplicateSection.name}»)
+                    </span>
+                  )}
+                </p>
+                <span className="text-[10px] text-amber-700 block">
+                  При нажатии «Сохранить» вам будет предложено заменить существующую запись на новую.
+                </span>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Live Preview */}

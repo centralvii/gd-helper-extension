@@ -121,6 +121,32 @@ export function formatTitleInQuotes(title: string): string {
 }
 
 /**
+ * Normalizes a URL by trimming, converting host/path to lowercase, and stripping trailing slash
+ */
+export function normalizeUrl(rawUrl?: string): string {
+  if (!rawUrl) return '';
+  const trimmed = rawUrl.trim();
+  if (!trimmed) return '';
+  try {
+    const parsed = new URL(trimmed);
+    const pathname = parsed.pathname.replace(/\/+$/, '') || '/';
+    return `${parsed.protocol}//${parsed.host}${pathname}${parsed.search}${parsed.hash}`.toLowerCase();
+  } catch {
+    return trimmed.toLowerCase().replace(/\/+$/, '');
+  }
+}
+
+/**
+ * Checks whether two URLs point to the same resource
+ */
+export function isSameUrl(url1?: string, url2?: string): boolean {
+  if (!url1 || !url2) return false;
+  const n1 = normalizeUrl(url1);
+  const n2 = normalizeUrl(url2);
+  return Boolean(n1 && n2 && n1 === n2);
+}
+
+/**
  * Match raw detected type or title/URL string against standard GreenData categories
  */
 export function detectGreenDataSection(
