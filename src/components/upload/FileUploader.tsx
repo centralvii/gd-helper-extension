@@ -9,8 +9,8 @@ import {
 import { Button } from '../ui/Button';
 
 interface FileUploaderProps {
-    onLoadZip: (file: File) => Promise<void>;
-    onLoadGufFiles: (files: File[]) => void;
+    onLoadZip?: (file: File) => Promise<void>;
+    onLoadGufFiles?: (files: File[]) => void;
     onAddFiles?: (files: File[]) => void;
     isCompact?: boolean;
 }
@@ -26,14 +26,14 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
     const addGufInputRef = useRef<HTMLInputElement>(null);
 
     const handleZipChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files && e.target.files[0]) {
+        if (e.target.files && e.target.files[0] && onLoadZip) {
             onLoadZip(e.target.files[0]);
             e.target.value = '';
         }
     };
 
     const handleGufChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files && e.target.files.length > 0) {
+        if (e.target.files && e.target.files.length > 0 && onLoadGufFiles) {
             onLoadGufFiles(Array.from(e.target.files));
             e.target.value = '';
         }

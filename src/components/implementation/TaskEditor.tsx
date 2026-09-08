@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import {
   Plus,
   Sparkles,
@@ -403,25 +403,29 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
     }
   };
 
-  const handleEditItem = (item: ImplementationChangeItem) => {
+  const handleEditItem = useCallback((item: ImplementationChangeItem) => {
     setEditingItem(item);
     setTargetSectionId(item.sectionId);
     setIsAddModalOpen(true);
-  };
+  }, []);
 
-  const handleMoveUpItem = (item: ImplementationChangeItem) => {
-    const idx = task.items.findIndex((i) => i.id === item.id);
+  const handleDeleteItem = useCallback((itemId: string) => {
+    onDeleteChangeItem(task.id, itemId);
+  }, [task.id, onDeleteChangeItem]);
+
+  const handleMoveUpItem = useCallback((itemId: string) => {
+    const idx = task.items.findIndex((i) => i.id === itemId);
     if (idx > 0) {
       onReorderChangeItems(task.id, idx, idx - 1);
     }
-  };
+  }, [task.id, task.items, onReorderChangeItems]);
 
-  const handleMoveDownItem = (item: ImplementationChangeItem) => {
-    const idx = task.items.findIndex((i) => i.id === item.id);
+  const handleMoveDownItem = useCallback((itemId: string) => {
+    const idx = task.items.findIndex((i) => i.id === itemId);
     if (idx !== -1 && idx < task.items.length - 1) {
       onReorderChangeItems(task.id, idx, idx + 1);
     }
-  };
+  }, [task.id, task.items, onReorderChangeItems]);
 
   const handleOpenAddWithTab = async (sectionId?: string) => {
     setIsTabFetching(true);
@@ -1052,9 +1056,9 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
                             index={idx}
                             totalCount={items.length}
                             onEdit={handleEditItem}
-                            onDelete={(id) => onDeleteChangeItem(task.id, id)}
-                            onMoveUp={() => handleMoveUpItem(item)}
-                            onMoveDown={() => handleMoveDownItem(item)}
+                            onDelete={handleDeleteItem}
+                            onMoveUp={handleMoveUpItem}
+                            onMoveDown={handleMoveDownItem}
                           />
                         ))
                       )}
@@ -1102,9 +1106,9 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
                         index={idx}
                         totalCount={unsectionedItems.length}
                         onEdit={handleEditItem}
-                        onDelete={(id) => onDeleteChangeItem(task.id, id)}
-                        onMoveUp={() => handleMoveUpItem(item)}
-                        onMoveDown={() => handleMoveDownItem(item)}
+                        onDelete={handleDeleteItem}
+                        onMoveUp={handleMoveUpItem}
+                        onMoveDown={handleMoveDownItem}
                       />
                     ))}
                   </div>

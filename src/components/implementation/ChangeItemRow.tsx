@@ -18,8 +18,8 @@ interface ChangeItemRowProps {
   totalCount: number;
   onEdit: (item: ImplementationChangeItem) => void;
   onDelete: (id: string) => void;
-  onMoveUp: () => void;
-  onMoveDown: () => void;
+  onMoveUp: (id: string) => void;
+  onMoveDown: (id: string) => void;
 }
 
 export const ChangeItemRow: React.FC<ChangeItemRowProps> = React.memo(({
@@ -56,7 +56,7 @@ export const ChangeItemRow: React.FC<ChangeItemRowProps> = React.memo(({
         {/* Action Toolbar */}
         <div className="flex items-center gap-0.5 flex-shrink-0">
           <button
-            onClick={onMoveUp}
+            onClick={() => onMoveUp(item.id)}
             disabled={index === 0}
             title="Переместить выше"
             className="icon-btn p-1 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg disabled:opacity-20 disabled:hover:bg-transparent cursor-pointer"
@@ -65,7 +65,7 @@ export const ChangeItemRow: React.FC<ChangeItemRowProps> = React.memo(({
           </button>
 
           <button
-            onClick={onMoveDown}
+            onClick={() => onMoveDown(item.id)}
             disabled={index === totalCount - 1}
             title="Переместить ниже"
             className="icon-btn p-1 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg disabled:opacity-20 disabled:hover:bg-transparent cursor-pointer"

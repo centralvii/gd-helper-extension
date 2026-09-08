@@ -7,7 +7,7 @@ import { BuildPackage } from '../../types';
 
 interface ImplementationToolProps {
   packages?: BuildPackage[];
-  tasksState?: ReturnType<typeof useImplementationTasks>;
+  tasksState: ReturnType<typeof useImplementationTasks>;
   onNavigateToPackage?: (pkgId: string) => void;
 }
 
@@ -16,7 +16,6 @@ export const ImplementationTool: React.FC<ImplementationToolProps> = ({
   tasksState,
   onNavigateToPackage,
 }) => {
-  const localTasks = useImplementationTasks();
   const {
     tasks,
     activeTask,
@@ -35,7 +34,7 @@ export const ImplementationTool: React.FC<ImplementationToolProps> = ({
     reorderChangeItems,
     moveChangeItem,
     importTasks,
-  } = tasksState || localTasks;
+  } = tasksState;
 
   const [isImportExportOpen, setIsImportExportOpen] = useState(false);
   const [importExportDefaultTab, setImportExportDefaultTab] = useState<'export' | 'import'>('export');

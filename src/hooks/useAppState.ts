@@ -135,6 +135,8 @@ export function useAppState() {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isExporting, setIsExporting] = useState<boolean>(false);
   const isInitialLoadedRef = useRef<boolean>(false);
+  const primaryTemplateRef = useRef(primaryTemplate);
+  primaryTemplateRef.current = primaryTemplate;
 
   // Active package computation
   const activePackage = useMemo(() => {
@@ -148,7 +150,7 @@ export function useAppState() {
   const readmeContent = activePackage.readmeContent;
   const variableValues = activePackage.variableValues;
 
-  // Load state on mount from IndexedDB
+  // Load state on mount from IndexedDB strictly once
   useEffect(() => {
     async function initFromStorage() {
       try {
@@ -168,7 +170,7 @@ export function useAppState() {
                 };
               });
 
-              const tpl = pkgMeta.template || primaryTemplate;
+              const tpl = pkgMeta.template || primaryTemplateRef.current;
               const calculatedFiles = recalculateAllNames(
                 restoredFiles,
                 tpl,
@@ -212,7 +214,7 @@ export function useAppState() {
               };
             });
 
-            const tpl = state.template || primaryTemplate;
+            const tpl = state.template || primaryTemplateRef.current;
             const calculated = recalculateAllNames(
               restoredFiles,
               tpl,
@@ -246,7 +248,7 @@ export function useAppState() {
     }
 
     initFromStorage();
-  }, [primaryTemplate]);
+  }, []);
 
   // Save presets to localStorage
   useEffect(() => {

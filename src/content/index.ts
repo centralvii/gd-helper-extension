@@ -1,4 +1,0 @@
-/**
- * GDHelper Content Script
- */
-export {};

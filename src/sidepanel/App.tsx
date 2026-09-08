@@ -221,11 +221,18 @@ export const App: React.FC = () => {
                         : 'flex-1 p-3 space-y-3 pb-6'
                 }
             >
-                {activeTool === 'ai' ? (
+                {/* AI Chat View (preserved in DOM so streaming / scroll / inputs never get lost) */}
+                <div className={activeTool === 'ai' ? 'flex-1 overflow-hidden flex flex-col min-h-0 h-full' : 'hidden'}>
                     <AiChatContainer />
-                ) : activeTool === 'extra' ? (
+                </div>
+
+                {/* Extra Tools View */}
+                <div className={activeTool === 'extra' ? 'space-y-3' : 'hidden'}>
                     <ExtraContainer />
-                ) : activeTool === 'implementation' ? (
+                </div>
+
+                {/* Implementation Tool View */}
+                <div className={activeTool === 'implementation' ? 'space-y-3' : 'hidden'}>
                     <ImplementationTool
                         packages={packages}
                         tasksState={implTasks}
@@ -234,114 +241,115 @@ export const App: React.FC = () => {
                             handleSelectTool('packer');
                         }}
                     />
-                ) : (
-                    <>
-                        {/* Package Selector / Session Switcher */}
-                        <PackageSelector
-                            packages={packages}
-                            activePackage={activePackage}
-                            tasks={implTasks.tasks}
-                            onSelectPackage={selectPackage}
-                            onCreatePackage={createPackage}
-                            onDuplicatePackage={duplicatePackage}
-                            onRenamePackage={renamePackage}
-                            onDeletePackage={deletePackage}
-                            onNavigateToTask={(taskId) => {
-                                implTasks.selectTask(taskId);
-                                handleSelectTool('implementation');
-                            }}
-                            isAutoCollectEnabled={isAutoCollectEnabled}
-                            onToggleAutoCollect={toggleAutoCollect}
+                </div>
+
+                {/* Packer View */}
+                <div className={activeTool === 'packer' ? 'space-y-3' : 'hidden'}>
+                    {/* Package Selector / Session Switcher */}
+                    <PackageSelector
+                        packages={packages}
+                        activePackage={activePackage}
+                        tasks={implTasks.tasks}
+                        onSelectPackage={selectPackage}
+                        onCreatePackage={createPackage}
+                        onDuplicatePackage={duplicatePackage}
+                        onRenamePackage={renamePackage}
+                        onDeletePackage={deletePackage}
+                        onNavigateToTask={(taskId) => {
+                            implTasks.selectTask(taskId);
+                            handleSelectTool('implementation');
+                        }}
+                        isAutoCollectEnabled={isAutoCollectEnabled}
+                        onToggleAutoCollect={toggleAutoCollect}
+                    />
+
+                    {files.length === 0 ? (
+                        <FileUploader
+                            onLoadZip={loadZip}
+                            onLoadGufFiles={loadGufFiles}
                         />
-
-                        {files.length === 0 ? (
-                            <FileUploader
-                                onLoadZip={loadZip}
-                                onLoadGufFiles={loadGufFiles}
-                            />
-                        ) : (
-                            <>
-                                {/* Package Tools Bar - Displayed in a separate block when at least one file is loaded */}
-                                <div className="flex items-center justify-between gap-1.5 p-1.5 bg-white border border-slate-200/90 rounded-2xl shadow-xs animate-fade-in">
-                                    <div className="flex items-center gap-1.5 pl-1.5 text-xs font-bold text-slate-800 min-w-0">
-                                        <SlidersHorizontal className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
-                                        <span className="truncate">Инструменты</span>
-                                    </div>
-
-                                    <div className="flex items-center gap-1 flex-shrink-0">
-                                        <button
-                                            type="button"
-                                            onClick={() => setIsMassActionsOpen(true)}
-                                            title="Массовые действия и заполнение тегов (переменных) для файлов"
-                                            className="inline-flex items-center gap-1 px-2 py-1 bg-slate-50 hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 border border-slate-200 hover:border-emerald-300 rounded-xl text-[11px] font-semibold transition-all shadow-2xs cursor-pointer whitespace-nowrap"
-                                        >
-                                            <SlidersHorizontal className="w-3 h-3 text-emerald-600" />
-                                            <span>Теги</span>
-                                        </button>
-
-                                        <button
-                                            type="button"
-                                            onClick={() => setIsPresetsOpen(true)}
-                                            title="Пресеты шаблонов наименования"
-                                            className="inline-flex items-center gap-1 px-2 py-1 bg-slate-50 hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 border border-slate-200 hover:border-emerald-300 rounded-xl text-[11px] font-semibold transition-all shadow-2xs cursor-pointer whitespace-nowrap"
-                                        >
-                                            <Bookmark className="w-3 h-3 text-emerald-600" />
-                                            <span>Пресеты</span>
-                                        </button>
-
-                                        <button
-                                            type="button"
-                                            onClick={() => setIsReadmeOpen(true)}
-                                            title="Редактор README.txt"
-                                            className="relative inline-flex items-center gap-1 px-2 py-1 bg-slate-50 hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 border border-slate-200 hover:border-emerald-300 rounded-xl text-[11px] font-semibold transition-all shadow-2xs cursor-pointer whitespace-nowrap"
-                                        >
-                                            <FileEdit className="w-3 h-3 text-emerald-600" />
-                                            <span>README</span>
-                                            {Boolean(readmeContent && readmeContent.trim().length > 0) && (
-                                                <span
-                                                    className="w-1.5 h-1.5 rounded-full bg-emerald-500"
-                                                    style={{ boxShadow: '0 0 4px rgba(34,197,94,0.7)' }}
-                                                />
-                                            )}
-                                        </button>
-
-                                        <button
-                                            type="button"
-                                            onClick={clearFiles}
-                                            title="Очистить все файлы в активном пакете"
-                                            className="icon-btn icon-btn--danger p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors cursor-pointer ml-0.5"
-                                        >
-                                            <Trash2 className="w-3.5 h-3.5" />
-                                        </button>
-                                    </div>
+                    ) : (
+                        <>
+                            {/* Package Tools Bar - Displayed in a separate block when at least one file is loaded */}
+                            <div className="flex items-center justify-between gap-1.5 p-1.5 bg-white border border-slate-200/90 rounded-2xl shadow-xs animate-fade-in">
+                                <div className="flex items-center gap-1.5 pl-1.5 text-xs font-bold text-slate-800 min-w-0">
+                                    <SlidersHorizontal className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
+                                    <span className="truncate">Инструменты</span>
                                 </div>
 
-                                {/* Template Editor */}
-                                <TemplateEditor
-                                    template={template}
-                                    primaryTemplate={primaryTemplate}
-                                    startNumber={startNumber}
-                                    variables={variables}
-                                    firstFile={files[0]}
-                                    onSetTemplate={setTemplate}
-                                    onSetPrimaryTemplate={setPrimaryTemplate}
-                                    onSetStartNumber={setStartNumber}
-                                    onResetTemplate={resetTemplate}
-                                />
+                                <div className="flex items-center gap-1 flex-shrink-0">
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsMassActionsOpen(true)}
+                                        title="Массовые действия и заполнение тегов (переменных) для файлов"
+                                        className="inline-flex items-center gap-1 px-2 py-1 bg-slate-50 hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 border border-slate-200 hover:border-emerald-300 rounded-xl text-[11px] font-semibold transition-all shadow-2xs cursor-pointer whitespace-nowrap"
+                                    >
+                                        <SlidersHorizontal className="w-3 h-3 text-emerald-600" />
+                                        <span>Теги</span>
+                                    </button>
 
-                                {/* File Table */}
-                                <FileTable
-                                    files={files}
-                                    validation={validation}
-                                    onReorder={reorderFiles}
-                                    onEditFile={(file) => setEditingFile(file)}
-                                    onDeleteFile={removeFile}
-                                    onAddFiles={addFiles}
-                                />
-                            </>
-                        )}
-                    </>
-                )}
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsPresetsOpen(true)}
+                                        title="Пресеты шаблонов наименования"
+                                        className="inline-flex items-center gap-1 px-2 py-1 bg-slate-50 hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 border border-slate-200 hover:border-emerald-300 rounded-xl text-[11px] font-semibold transition-all shadow-2xs cursor-pointer whitespace-nowrap"
+                                    >
+                                        <Bookmark className="w-3 h-3 text-emerald-600" />
+                                        <span>Пресеты</span>
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsReadmeOpen(true)}
+                                        title="Редактор README.txt"
+                                        className="relative inline-flex items-center gap-1 px-2 py-1 bg-slate-50 hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 border border-slate-200 hover:border-emerald-300 rounded-xl text-[11px] font-semibold transition-all shadow-2xs cursor-pointer whitespace-nowrap"
+                                    >
+                                        <FileEdit className="w-3 h-3 text-emerald-600" />
+                                        <span>README</span>
+                                        {Boolean(readmeContent && readmeContent.trim().length > 0) && (
+                                            <span
+                                                className="w-1.5 h-1.5 rounded-full bg-emerald-500"
+                                                style={{ boxShadow: '0 0 4px rgba(34,197,94,0.7)' }}
+                                            />
+                                        )}
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        onClick={clearFiles}
+                                        title="Очистить все файлы в активном пакете"
+                                        className="icon-btn icon-btn--danger p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors cursor-pointer ml-0.5"
+                                    >
+                                        <Trash2 className="w-3.5 h-3.5" />
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Template Editor */}
+                            <TemplateEditor
+                                template={template}
+                                primaryTemplate={primaryTemplate}
+                                startNumber={startNumber}
+                                variables={variables}
+                                firstFile={files[0]}
+                                onSetTemplate={setTemplate}
+                                onSetPrimaryTemplate={setPrimaryTemplate}
+                                onSetStartNumber={setStartNumber}
+                                onResetTemplate={resetTemplate}
+                            />
+
+                            {/* File Table */}
+                            <FileTable
+                                files={files}
+                                validation={validation}
+                                onReorder={reorderFiles}
+                                onEditFile={(file) => setEditingFile(file)}
+                                onDeleteFile={removeFile}
+                                onAddFiles={addFiles}
+                            />
+                        </>
+                    )}
+                </div>
             </main>
 
             {/* Footer / Export bar (only for packer tool) */}

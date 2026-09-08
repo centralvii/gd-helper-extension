@@ -17,20 +17,30 @@ export default defineConfig({
         sidepanel: resolve(__dirname, 'sidepanel.html'),
         fullscreen: resolve(__dirname, 'index.html'),
         background: resolve(__dirname, 'src/background/index.ts'),
-        content: resolve(__dirname, 'src/content/index.ts'),
       },
       output: {
         entryFileNames: (chunkInfo) => {
           if (chunkInfo.name === 'background') return 'background.js';
-          if (chunkInfo.name === 'content') return 'content.js';
           return 'assets/[name]-[hash].js';
         },
         chunkFileNames: 'assets/[name]-[hash].js',
         assetFileNames: 'assets/[name]-[hash].[ext]',
-        // Prevent content.js from importing shared chunks (must be self-contained)
         manualChunks: (id) => {
-          // Keep content script self-contained
-          if (id.includes('src/content/index')) return undefined;
+          if (id.includes('node_modules')) {
+            if (id.includes('react') || id.includes('react-dom') || id.includes('scheduler')) {
+              return 'vendor-react';
+            }
+            if (id.includes('@dnd-kit')) {
+              return 'vendor-dnd';
+            }
+            if (id.includes('jszip') || id.includes('file-saver')) {
+              return 'vendor-zip';
+            }
+            if (id.includes('lucide-react')) {
+              return 'vendor-icons';
+            }
+            return 'vendor';
+          }
         },
       },
     },

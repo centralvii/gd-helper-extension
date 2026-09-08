@@ -59,6 +59,8 @@ export const FileTable: React.FC<FileTableProps> = ({
         );
     }, [files, searchQuery]);
 
+    const fileIds = useMemo(() => filteredFiles.map((f) => f.id), [filteredFiles]);
+
     const handleDragEnd = (event: DragEndEvent) => {
         const { active, over } = event;
         if (!over || active.id === over.id) return;
@@ -90,8 +92,6 @@ export const FileTable: React.FC<FileTableProps> = ({
 
                 <FileUploader
                     isCompact
-                    onLoadZip={async () => {}}
-                    onLoadGufFiles={() => {}}
                     onAddFiles={onAddFiles}
                 />
             </div>
@@ -108,7 +108,7 @@ export const FileTable: React.FC<FileTableProps> = ({
                 onDragEnd={handleDragEnd}
             >
                 <SortableContext
-                    items={filteredFiles.map((f) => f.id)}
+                    items={fileIds}
                     strategy={verticalListSortingStrategy}
                     disabled={isFiltered}
                 >

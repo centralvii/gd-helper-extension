@@ -25,8 +25,7 @@
 - Row items: `p-2.5 bg-gray-50/70 hover:bg-emerald-50/30 border border-gray-200 hover:border-emerald-300 rounded-xl`
 
 ### Icons
-- Components: `lucide-react`
-- Navigation/Header: `@vkontakte/icons`
+- Components & Navigation: `lucide-react`
 - All icon buttons MUST animate on hover (`.icon-btn` handles this)
 
 ### Types
