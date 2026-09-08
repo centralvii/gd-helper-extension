@@ -147,6 +147,140 @@ export function isSameUrl(url1?: string, url2?: string): boolean {
 }
 
 /**
+ * Determines whether a string refers to a visual presentation, default form, or UI view
+ */
+export function isVisualOrForm(text?: string): boolean {
+  if (!text) return false;
+  const low = text.toLowerCase();
+  return (
+    low.includes('форма по умолчанию') ||
+    low.includes('экранная форма') ||
+    low.includes('экранные формы') ||
+    low.includes('визуальное представление') ||
+    low.includes('визуальные представления') ||
+    low.includes('форма') ||
+    low.includes('формы') ||
+    low.includes('визуал') ||
+    low.includes('визуалы')
+  );
+}
+
+/**
+ * Extracts target entity/category name from visual or form titles like:
+ * - 'Форма по умолчанию для "Тип объекта"' -> 'Тип объекта'
+ * - '«Форма по умолчанию для "Тип объекта"»' -> 'Тип объекта'
+ * - 'Форма для «Клиент»' -> 'Клиент'
+ * - 'Форма "Тип объекта"' -> 'Тип объекта'
+ * - 'Визуальное представление для "Договор"' -> 'Договор'
+ */
+export function extractVisualQuotedTarget(text?: string): string | null {
+  if (!text) return null;
+  const raw = text.trim();
+  if (!raw) return null;
+
+  // 1. Direct match for pattern: (для)? ["'«“‘]([^"'»”’]+)["'»”’]
+  const dlaMatch = raw.match(/(?:по\s*умолчанию\s*)?для\s+(?:[^"'«“‘\n\r]{0,30}?)["'«“‘]([^"'»”’]+)["'»”’]/i);
+  if (dlaMatch && dlaMatch[1]?.trim()) {
+    return dlaMatch[1].trim();
+  }
+
+  // 2. Pattern: (форма|визуал|представление) ... ["'«“‘]([^"'»”’]+)["'»”’]
+  const formMatch = raw.match(/(?:форма|визуал|представление)[^"'«“‘]*?["'«“‘]([^"'»”’]+)["'»”’]/i);
+  if (formMatch && formMatch[1]?.trim()) {
+    const content = formMatch[1].trim();
+    // If outer quotes were captured around the entire phrase (e.g. «Форма по умолчанию для "Тип объекта"»)
+    if (content.toLowerCase().startsWith('форма') || content.toLowerCase().startsWith('визуал')) {
+      const innerMatch =
+        content.match(/для\s+(?:[^"'«“‘\n\r]{0,30}?)["'«“‘]([^"'»”’]+)["'»”’]/i) ||
+        content.match(/["'«“‘]([^"'»”’]+)["'»”’]/);
+      if (innerMatch && innerMatch[1]?.trim()) {
+        return innerMatch[1].trim();
+      }
+    } else {
+      return content;
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Searches existing sections for a section matching the target name extracted from quotes.
+ * Supports exact match, normalized clean match, semantic groups (e.g. "Тип объекта" -> "Типы объекта"),
+ * and word stem / substring match.
+ */
+export function findSectionForQuotedTarget(
+  target: string,
+  sections: ImplementationSection[]
+): ImplementationSection | null {
+  if (!target || !sections || sections.length === 0) return null;
+  const targetLow = target.toLowerCase().trim();
+
+  // 1. Exact or clean match with section name
+  for (const sec of sections) {
+    const sName = sec.name.toLowerCase().trim();
+    const sNameClean = sName.replace(/\s*\([^)]*\)/g, '').trim();
+    if (sName === targetLow || sNameClean === targetLow) {
+      return sec;
+    }
+  }
+
+  // 2. Semantic category check:
+  // e.g. target is "Тип объекта" -> matches group 'objectTypes' (keywords contain 'тип объекта')
+  // -> finds section matching 'Типы объекта' or canonical group name
+  for (const group of Object.values(SECTION_SEMANTIC_GROUPS)) {
+    const targetMatchesGroup = group.keywords.some(
+      (kw) => kw.length >= 3 && (targetLow === kw || targetLow.includes(kw))
+    );
+    if (targetMatchesGroup) {
+      const groupCanonical = group.canonical.toLowerCase();
+      const matched = sections.find((sec) => {
+        const sName = sec.name.toLowerCase();
+        return (
+          sec.id === `sec-${groupCanonical}` ||
+          sName.includes(groupCanonical) ||
+          group.keywords.some((kw) => kw.length >= 3 && sName.includes(kw))
+        );
+      });
+      if (matched) {
+        return matched;
+      }
+    }
+  }
+
+  // 3. Substring containment or token stem overlap
+  // e.g. target "Тип объекта" vs section "Типы объекта"
+  // e.g. target "Справочник" vs section "Справочники и таблицы"
+  // e.g. target "Договор" vs section "Договоры"
+  for (const sec of sections) {
+    const sName = sec.name.toLowerCase().trim();
+    const sNameClean = sName.replace(/\s*\([^)]*\)/g, '').trim();
+
+    if (
+      sName.includes(targetLow) ||
+      targetLow.includes(sName) ||
+      sNameClean.includes(targetLow) ||
+      targetLow.includes(sNameClean)
+    ) {
+      return sec;
+    }
+
+    const sTokens = sName.split(/[\s/(),.\-_"]+/).filter((t) => t.length >= 3);
+    const targetTokens = targetLow.split(/[\s/(),.\-_"]+/).filter((t) => t.length >= 3);
+    const hasTokenOverlap =
+      targetTokens.length > 0 &&
+      targetTokens.every((tt) =>
+        sTokens.some((st) => st === tt || st.startsWith(tt) || tt.startsWith(st))
+      );
+    if (hasTokenOverlap) {
+      return sec;
+    }
+  }
+
+  return null;
+}
+
+/**
  * Match raw detected type or title/URL string against standard GreenData categories
  */
 export function detectGreenDataSection(
@@ -155,6 +289,24 @@ export function detectGreenDataSection(
   domTypeHint?: string
 ): { sectionName: string; rawType?: string } | null {
   const combined = `${domTypeHint || ''} ${title} ${url}`.toLowerCase();
+
+  // 1. Check if this is a visual / default form with a quoted entity
+  // e.g. 'Форма по умолчанию для "Тип объекта"' -> target is 'Тип объекта'
+  const visualCandidate = domTypeHint || title || '';
+  if (isVisualOrForm(visualCandidate)) {
+    const quotedTarget = extractVisualQuotedTarget(visualCandidate);
+    if (quotedTarget) {
+      const qLow = quotedTarget.toLowerCase().trim();
+      for (const group of Object.values(SECTION_SEMANTIC_GROUPS)) {
+        if (group.keywords.some((kw) => kw.length >= 3 && (qLow === kw || qLow.includes(kw)))) {
+          return { sectionName: group.canonical, rawType: domTypeHint || title };
+        }
+      }
+    }
+    // If no quoted target, or target doesn't match standard non-visual category:
+    // Rule: "если его нет - то это визуал"
+    return { sectionName: 'Визуалы', rawType: domTypeHint || title };
+  }
 
   // Check DOM Type Hint first
   if (domTypeHint) {
@@ -197,6 +349,46 @@ export function matchSectionForType(
   sections: ImplementationSection[]
 ): { section: ImplementationSection; reason: string } | null {
   if (!sections || sections.length === 0) return null;
+
+  const candidateText = input.title || input.detectedRawType || input.fileName || '';
+
+  // Priority Rule for Visuals / Forms:
+  // "название визуала будет как Форма по умолчанию для 'Тип объекта'.
+  // Название в этом случае находится в ковычках, и по нему нужно тоже распределять, если его нет - то это визуал"
+  if (isVisualOrForm(candidateText) || isVisualOrForm(input.detectedRawType) || isVisualOrForm(input.title)) {
+    const quotedTarget =
+      extractVisualQuotedTarget(input.title) ||
+      extractVisualQuotedTarget(input.detectedRawType) ||
+      extractVisualQuotedTarget(candidateText);
+
+    if (quotedTarget) {
+      const matchedSection = findSectionForQuotedTarget(quotedTarget, sections);
+      if (matchedSection) {
+        return {
+          section: matchedSection,
+          reason: `По названию в кавычках «${quotedTarget}» -> раздел «${matchedSection.name}»`,
+        };
+      }
+    }
+
+    // "если его нет - то это визуал"
+    // If no matching section for quoted target was found, or no quotes present:
+    const visualsSection = sections.find(
+      (s) =>
+        s.id === 'sec-visuals' ||
+        s.name.toLowerCase() === 'визуалы' ||
+        s.name.toLowerCase().includes('визуал') ||
+        s.name.toLowerCase().includes('форм')
+    );
+    if (visualsSection) {
+      return {
+        section: visualsSection,
+        reason: quotedTarget
+          ? `Раздел для «${quotedTarget}» не найден -> распределено как визуал («${visualsSection.name}»)`
+          : `Визуальная форма -> раздел «${visualsSection.name}»`,
+      };
+    }
+  }
 
   let bestSection: ImplementationSection | null = null;
   let bestScore = 0;
@@ -362,7 +554,7 @@ export async function getActiveTabInfo(): Promise<TabInfo | null> {
                       .forEach((e) => e.remove());
                     const raw = (clone.textContent || '').trim();
                     if (raw) {
-                      const match = raw.match(/Для\s*["'«]([^"'»]+)["'»]/i);
+                      const match = raw.match(/Для\s*["'«“‘]([^"'»”’]+)["'»”’]/i);
                       if (match && match[1]) {
                         typeHint = match[1].trim();
                         break;

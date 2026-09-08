@@ -177,6 +177,19 @@ export const AddChangeItemModal: React.FC<AddChangeItemModalProps> = ({
     }
   };
 
+  const handleDescriptionBlur = () => {
+    if (!description.trim() || initialItem) return;
+    const matched = matchSectionForType({ title: description.trim() }, sections);
+    if (matched) {
+      setSectionId(matched.section.id);
+      setDetectedBadge({
+        sectionName: matched.section.name,
+        rawType: description.trim(),
+        reason: matched.reason,
+      });
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!description.trim()) return;
@@ -375,6 +388,7 @@ export const AddChangeItemModal: React.FC<AddChangeItemModalProps> = ({
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
+            onBlur={handleDescriptionBlur}
             placeholder="Например: Изменен алгоритм ЖЦ до сохранения НПП контракты, добавлена проверка типа ЗИ..."
             rows={3}
             autoFocus
