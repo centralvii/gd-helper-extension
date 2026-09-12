@@ -3,7 +3,6 @@ import {
   Plus,
   Sparkles,
   ListOrdered,
-  FileText,
   Copy,
   Check,
   Eye,
@@ -16,8 +15,6 @@ import {
   Edit2,
   Trash2,
   Layers,
-  Package,
-  ExternalLink,
   FileJson,
   MoreVertical,
   Code2,
@@ -25,6 +22,7 @@ import {
   RotateCw,
   AlertCircle,
   Link as LinkIcon,
+  SlidersHorizontal,
 } from 'lucide-react';
 import {
   ImplementationTask,
@@ -40,6 +38,7 @@ import {
 } from '../../constants/algorithmHeader';
 import { injectAlgorithmComment } from '../../utils/algorithmCommentInjector';
 import { AlgorithmHeaderSettingsModal } from './AlgorithmHeaderSettingsModal';
+import { TaskSettingsModal } from './TaskSettingsModal';
 import { Input } from '../ui/Input';
 import { Button } from '../ui/Button';
 import { Modal } from '../ui/Modal';
@@ -103,6 +102,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
   const [replaceSectionId, setReplaceSectionId] = useState<string>('');
   const [replaceLinkTitle, setReplaceLinkTitle] = useState('');
 
+  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
   const [quickCopied, setQuickCopied] = useState(false);
   const [isTabFetching, setIsTabFetching] = useState(false);
@@ -583,6 +583,70 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
 
   return (
     <div className="space-y-3">
+      {/* ── Implementation Tools Bar ── */}
+      <div className="flex items-center justify-between gap-1.5 p-1.5 bg-white border border-slate-200/90 rounded-2xl shadow-xs animate-fade-in">
+        <div className="flex items-center gap-1.5 pl-1.5 text-xs font-bold text-slate-800 min-w-0">
+          <SlidersHorizontal className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
+          <span className="truncate">Инструменты</span>
+          {task.releaseNumber && (
+            <span className="hidden xs:inline-flex px-1.5 py-0.5 rounded-md bg-emerald-50 text-emerald-800 text-[10px] font-bold border border-emerald-200/80">
+              Релиз {task.releaseNumber}
+            </span>
+          )}
+        </div>
+
+        <div className="flex items-center gap-1 flex-shrink-0">
+          <button
+            type="button"
+            onClick={() => setIsSettingsModalOpen(true)}
+            title="Параметры задачи (номер, релиз, название, пакеты, заметка)"
+            className="inline-flex items-center gap-1 px-2 py-1 bg-slate-50 hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 border border-slate-200 hover:border-emerald-300 rounded-xl text-[11px] font-semibold transition-all shadow-2xs cursor-pointer whitespace-nowrap"
+          >
+            <Settings className="w-3 h-3 text-emerald-600" />
+            <span>Настройки</span>
+            {Boolean(task.summary?.trim()) && (
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" title="Есть заметка" />
+            )}
+          </button>
+
+          <button
+            type="button"
+            onClick={handleQuickCopyMarkdown}
+            title="Скопировать описание задачи в формате Markdown"
+            className="inline-flex items-center gap-1 px-2 py-1 bg-slate-50 hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 border border-slate-200 hover:border-emerald-300 rounded-xl text-[11px] font-semibold transition-all shadow-2xs cursor-pointer whitespace-nowrap"
+          >
+            {quickCopied ? (
+              <Check className="w-3 h-3 text-emerald-600" />
+            ) : (
+              <Copy className="w-3 h-3 text-emerald-600" />
+            )}
+            <span>{quickCopied ? 'Скопировано' : 'Копировать'}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setIsPreviewModalOpen(true)}
+            title="Просмотр и экспорт описания реализации"
+            className="inline-flex items-center gap-1 px-2 py-1 bg-slate-50 hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 border border-slate-200 hover:border-emerald-300 rounded-xl text-[11px] font-semibold transition-all shadow-2xs cursor-pointer whitespace-nowrap"
+          >
+            <Eye className="w-3 h-3 text-emerald-600" />
+            <span>Экспорт</span>
+          </button>
+
+          {onOpenImportExport && (
+            <button
+              type="button"
+              onClick={() => onOpenImportExport('export')}
+              title="Резервное копирование и экспорт в JSON"
+              className="inline-flex items-center gap-1 px-2 py-1 bg-slate-50 hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 border border-slate-200 hover:border-emerald-300 rounded-xl text-[11px] font-semibold transition-all shadow-2xs cursor-pointer whitespace-nowrap"
+            >
+              <FileJson className="w-3 h-3 text-emerald-600" />
+              <span>Бэкап</span>
+            </button>
+          )}
+        </div>
+      </div>
+
       {/* ── Algorithm Header Quick Action Card (Feature: Вставка комментария в алгоритм) ── */}
       <div className="p-3 bg-gradient-to-r from-emerald-50 via-teal-50/60 to-emerald-50 border border-emerald-200/90 rounded-2xl shadow-2xs space-y-2">
         <div className="flex items-center justify-between gap-2">
@@ -664,97 +728,6 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
             </button>
           </div>
         )}
-      </div>
-
-      {/* Task Metadata Card */}
-      <div className="p-4 bg-white border border-slate-200/90 rounded-2xl space-y-3.5 shadow-xs">
-        <div className="grid grid-cols-1 sm:grid-cols-4 gap-2.5">
-          <div className="sm:col-span-1">
-            <label className="block text-[11px] font-bold text-slate-700 mb-1">
-              Номер задачи
-            </label>
-            <Input
-              value={task.taskNumber}
-              onChange={(e) => onUpdateTask(task.id, { taskNumber: e.target.value })}
-              placeholder="FINAPP-5638"
-            />
-          </div>
-          <div className="sm:col-span-1">
-            <label className="block text-[11px] font-bold text-slate-700 mb-1">
-              Номер релиза
-            </label>
-            <Input
-              value={task.releaseNumber || ''}
-              onChange={(e) => onUpdateTask(task.id, { releaseNumber: e.target.value })}
-              placeholder="11-2026"
-            />
-          </div>
-          <div className="sm:col-span-2">
-            <label className="block text-[11px] font-bold text-slate-700 mb-1">
-              Название задачи
-            </label>
-            <Input
-              value={task.title}
-              onChange={(e) => onUpdateTask(task.id, { title: e.target.value })}
-              placeholder="Например: Доработка алгоритма проверки участников"
-            />
-          </div>
-        </div>
-
-        {/* ── Linked Packages Compact Row (1 Task -> N Packages) ── */}
-        <div className="p-2.5 bg-emerald-50/60 border border-emerald-200/80 rounded-2xl text-xs shadow-2xs space-y-1.5">
-          <div className="flex items-center gap-1.5 font-bold text-emerald-950 text-[11px] min-w-0">
-            <Package className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
-            <span className="truncate">Пакеты сборки</span>
-          </div>
-
-          {/* Linked package list */}
-          <div className="space-y-1">
-            {linkedPackages.length === 0 ? (
-              <div className="px-1 text-[10.5px] text-slate-400 italic">
-                Нет привязанных пакетов
-              </div>
-            ) : (
-              linkedPackages.map((pkg) => (
-                <button
-                  key={pkg.id}
-                  type="button"
-                  onClick={() => onNavigateToPackage && onNavigateToPackage(pkg.id)}
-                  title={`Открыть пакет "${pkg.name}" во вкладке Упаковка`}
-                  className="w-full flex items-center justify-between gap-1.5 px-2.5 py-1.5 rounded-xl bg-white hover:bg-emerald-100/70 border border-emerald-200 text-emerald-900 font-bold text-xs transition-all shadow-2xs group cursor-pointer"
-                >
-                  <span className="font-mono text-emerald-800 truncate min-w-0 flex-1 text-left">
-                    {pkg.name}
-                  </span>
-                  <div className="flex items-center gap-1 flex-shrink-0">
-                    <span className="text-slate-500 text-[10px]">({pkg.files.length} ф.)</span>
-                    <ExternalLink className="w-3 h-3 opacity-60 group-hover:opacity-100 text-emerald-600" />
-                  </div>
-                </button>
-              ))
-            )}
-          </div>
-        </div>
-
-        {/* Task Summary / Description */}
-        <div>
-          <div className="flex items-center justify-between mb-1 gap-2">
-            <label className="flex items-center gap-1.5 text-[11px] font-bold text-slate-700 whitespace-nowrap">
-              <FileText className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
-              <span>Описание / Заметка</span>
-            </label>
-            <span className="text-[10px] text-slate-400 whitespace-nowrap truncate">
-              Краткая суть и детали
-            </span>
-          </div>
-          <textarea
-            value={task.summary}
-            onChange={(e) => onUpdateTask(task.id, { summary: e.target.value })}
-            placeholder="Опишите общую суть решения, архитектурные особенности или примечания для тестировщиков..."
-            rows={3}
-            className="w-full px-3 py-2 bg-white border border-slate-200 focus:border-emerald-500 rounded-xl text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/10 text-xs resize-y transition-all shadow-2xs"
-          />
-        </div>
       </div>
 
       {/* Changes Section Container */}
@@ -1185,6 +1158,16 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
         onClose={() => setIsPreviewModalOpen(false)}
         task={task}
         packages={packages}
+      />
+
+      {/* Task Settings Modal */}
+      <TaskSettingsModal
+        isOpen={isSettingsModalOpen}
+        onClose={() => setIsSettingsModalOpen(false)}
+        task={task}
+        packages={packages}
+        onUpdateTask={onUpdateTask}
+        onNavigateToPackage={onNavigateToPackage}
       />
 
       {/* Section Create / Edit Modal */}
