@@ -12,7 +12,7 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { sanitizeCleanName, getActiveGreenDataPageName } from '../utils/tabUtils';
+import { sanitizeCleanName, getActiveGreenDataPageName, trimGreenDataUrl } from '../utils/tabUtils';
 import { parseFileName } from '../core/nameCleaner';
 import { AutoCollectNamingMode } from '../types';
 
@@ -121,13 +121,13 @@ export function useAutoCollector({ onFileCollected }: UseAutoCollectorProps) {
 
     try {
       // Determine tab/source URL
-      let sourceUrl = tabUrl;
+      let sourceUrl = tabUrl ? trimGreenDataUrl(tabUrl) : undefined;
       if (!sourceUrl && typeof chrome !== 'undefined' && chrome.tabs) {
         try {
           const tabs = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
           const activeTab = tabs[0] || (await chrome.tabs.query({ active: true, currentWindow: true }))[0];
           if (activeTab?.url && !activeTab.url.startsWith('chrome://') && !activeTab.url.startsWith('edge://')) {
-            sourceUrl = activeTab.url;
+            sourceUrl = trimGreenDataUrl(activeTab.url);
           }
         } catch {
           // ignore

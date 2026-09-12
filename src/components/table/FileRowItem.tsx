@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import { FileRow } from '../../types';
 import { Badge } from '../ui/Badge';
-import { formatSourceUrlDisplay } from '../../utils/tabUtils';
+import { formatSourceUrlDisplay, trimGreenDataUrl } from '../../utils/tabUtils';
 
 interface FileRowItemProps {
     file: FileRow;
@@ -130,10 +130,10 @@ export const FileRowItem: React.FC<FileRowItemProps> = React.memo(({
                 {file.sourceUrl && (
                     <div className="mt-1">
                         <a
-                            href={file.sourceUrl}
+                            href={trimGreenDataUrl(file.sourceUrl)}
                             target="_blank"
                             rel="noreferrer"
-                            title={file.sourceUrl}
+                            title={trimGreenDataUrl(file.sourceUrl)}
                             onClick={(e) => e.stopPropagation()}
                             className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-200/90 rounded-xl text-[10px] font-semibold transition-all max-w-full truncate shadow-2xs"
                         >

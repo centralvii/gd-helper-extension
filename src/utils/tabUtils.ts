@@ -150,11 +150,38 @@ export function formatTitleInQuotes(title: string): string {
 }
 
 /**
+ * Trims a GreenData card URL to its base card route (e.g. https://expo.greendatasoft.ru/#/card/660409)
+ * stripping subroutes, query params, or extra fragments after the card ID.
+ */
+export function trimGreenDataUrl(rawUrl?: string): string {
+  if (!rawUrl) return '';
+  const trimmed = rawUrl.trim();
+  if (!trimmed) return '';
+
+  // 1. GreenData card hash route: ...#/card/<id>
+  const cardMatch = trimmed.match(/^(https?:\/\/[^#?]+).*?(#\/card\/[a-zA-Z0-9_-]+)/i);
+  if (cardMatch) {
+    const base = cardMatch[1].replace(/\/+$/, '');
+    const cardPart = cardMatch[2];
+    return `${base}/${cardPart}`;
+  }
+
+  // 2. GreenData card path route (without hash): .../card/<id>
+  const pathCardMatch = trimmed.match(/^(https?:\/\/[^#?]+.*?\/card\/[a-zA-Z0-9_-]+)/i);
+  if (pathCardMatch) {
+    return pathCardMatch[1];
+  }
+
+  // Fallback: strip query parameters and trailing slash
+  return trimmed.split('?')[0].replace(/\/+$/, '');
+}
+
+/**
  * Normalizes a URL by trimming, converting host/path to lowercase, and stripping trailing slash
  */
 export function normalizeUrl(rawUrl?: string): string {
   if (!rawUrl) return '';
-  const trimmed = rawUrl.trim();
+  const trimmed = trimGreenDataUrl(rawUrl);
   if (!trimmed) return '';
   try {
     const parsed = new URL(trimmed);
@@ -180,7 +207,8 @@ export function isSameUrl(url1?: string, url2?: string): boolean {
  */
 export function formatSourceUrlDisplay(url?: string): string {
   if (!url) return '';
-  return url.replace(/^https?:\/\//i, '').replace(/\/+$/, '');
+  const trimmed = trimGreenDataUrl(url);
+  return trimmed.replace(/^https?:\/\//i, '').replace(/\/+$/, '');
 }
 
 /**

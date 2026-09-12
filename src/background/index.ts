@@ -25,7 +25,7 @@ chrome.action.onClicked.addListener(async (tab) => {
   }
 });
 
-import { sanitizeCleanName } from '../utils/tabUtils';
+import { sanitizeCleanName, trimGreenDataUrl } from '../utils/tabUtils';
 
 // ── Auto-Collector: .guf download watcher ────────────────────────────────────
 // chrome.downloads.onChanged MUST be in the background service worker —
@@ -150,7 +150,7 @@ chrome.downloads.onCreated.addListener(async (item) => {
       downloadMetaMap.set(item.id, {
         downloadId: item.id,
         tabId: activeTab.id,
-        tabUrl: activeTab.url,
+        tabUrl: trimGreenDataUrl(activeTab.url),
         pageName,
         createdAt: Date.now(),
       });
@@ -201,7 +201,7 @@ chrome.downloads.onChanged.addListener(async (delta) => {
         const tabs = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
         const activeTab = tabs[0] || (await chrome.tabs.query({ active: true, currentWindow: true }))[0];
         if (activeTab?.url && !activeTab.url.startsWith('chrome://') && !activeTab.url.startsWith('edge://')) {
-          tabUrl = activeTab.url;
+          tabUrl = trimGreenDataUrl(activeTab.url);
         }
       } catch {
         // ignore

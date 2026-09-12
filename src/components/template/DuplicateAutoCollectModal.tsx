@@ -9,7 +9,7 @@ import {
 import { FileRow } from '../../types';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
-import { formatSourceUrlDisplay } from '../../utils/tabUtils';
+import { formatSourceUrlDisplay, trimGreenDataUrl } from '../../utils/tabUtils';
 
 interface DuplicateAutoCollectModalProps {
   isOpen: boolean;
@@ -88,10 +88,10 @@ export const DuplicateAutoCollectModal: React.FC<DuplicateAutoCollectModalProps>
             Страница источника:
           </span>
           <a
-            href={sourceUrl}
+            href={trimGreenDataUrl(sourceUrl)}
             target="_blank"
             rel="noreferrer"
-            title={sourceUrl}
+            title={trimGreenDataUrl(sourceUrl)}
             className="flex items-center gap-1.5 px-2.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-200/90 rounded-xl text-xs font-semibold transition-colors max-w-full truncate shadow-2xs"
           >
             <LinkIcon className="w-3.5 h-3.5 flex-shrink-0 text-emerald-600" />
