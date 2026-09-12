@@ -158,7 +158,7 @@ export function useAutoCollector({ onFileCollected }: UseAutoCollectorProps) {
         return;
       }
 
-      // Режим: с названиями из алгоритма (со страницы GreenData)
+      // Режим: с названием со страницы GreenData (алгоритм, форма, объект)
       let pageName = payloadPageName;
       if (!pageName) {
         try {

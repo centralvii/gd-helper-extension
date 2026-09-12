@@ -17,33 +17,26 @@ export const AutoCollectModeBar: React.FC<AutoCollectModeBarProps> = ({
 }) => {
   return (
     <div className="flex items-center justify-between gap-2 px-3 py-1.5 bg-white border border-slate-200/90 rounded-2xl shadow-xs transition-all animate-fade-in">
-      {/* Status & Label (clickable to toggle auto-collect) */}
+      {/* Indicator & Label */}
       <button
         type="button"
         onClick={onToggleAutoCollect}
         title={
           isAutoCollectEnabled
-            ? 'Автосбор ВКЛЮЧЕН. Нажмите для паузы'
-            : 'Автосбор ВЫКЛЮЧЕН. Нажмите для включения'
+            ? 'Автосбор активен. Нажмите для паузы'
+            : 'Автосбор на паузе. Нажмите для включения'
         }
-        className="flex items-center gap-1.5 text-xs text-slate-700 hover:text-emerald-700 transition-colors cursor-pointer min-w-0 flex-1 text-left"
+        className="flex items-center gap-1.5 text-left cursor-pointer group min-w-0"
       >
         <div
           className={`w-2 h-2 rounded-full flex-shrink-0 transition-all ${
             isAutoCollectEnabled
               ? 'bg-emerald-500 shadow-[0_0_6px_rgba(34,197,94,0.8)] animate-pulse'
-              : 'bg-slate-300'
+              : 'bg-slate-300 group-hover:bg-slate-400'
           }`}
         />
-        <span className="font-bold text-[11px] text-slate-800 whitespace-nowrap flex-shrink-0">
-          Автосбор .guf:
-        </span>
-        <span className="text-[10px] truncate min-w-0">
-          {isAutoCollectEnabled ? (
-            <span className="text-emerald-600 font-semibold">активен</span>
-          ) : (
-            <span className="text-slate-400">на паузе</span>
-          )}
+        <span className="font-bold text-[11px] text-slate-700 whitespace-nowrap">
+          Имя при автосборе:
         </span>
       </button>
 
@@ -52,7 +45,7 @@ export const AutoCollectModeBar: React.FC<AutoCollectModeBarProps> = ({
         <button
           type="button"
           onClick={() => onChangeNamingMode('pageName')}
-          title="Режим: брать название со страницы / алгоритма GreenData"
+          title="Называть файл по названию открытой страницы в GreenData"
           className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
             namingMode === 'pageName'
               ? 'bg-white text-emerald-700 font-bold shadow-2xs'
@@ -60,13 +53,13 @@ export const AutoCollectModeBar: React.FC<AutoCollectModeBarProps> = ({
           }`}
         >
           <Sparkles className="w-3 h-3 text-emerald-600 flex-shrink-0" />
-          <span className="whitespace-nowrap">Из алгоритма</span>
+          <span className="whitespace-nowrap">Со страницы</span>
         </button>
 
         <button
           type="button"
           onClick={() => onChangeNamingMode('original')}
-          title="Режим: обычное название файла без изменения со страницы"
+          title="Сохранять исходное имя скачиваемого файла"
           className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
             namingMode === 'original'
               ? 'bg-white text-slate-800 font-bold shadow-2xs'
@@ -74,7 +67,7 @@ export const AutoCollectModeBar: React.FC<AutoCollectModeBarProps> = ({
           }`}
         >
           <FileText className="w-3 h-3 text-slate-500 flex-shrink-0" />
-          <span className="whitespace-nowrap">Обычное</span>
+          <span className="whitespace-nowrap">Исходное</span>
         </button>
       </div>
     </div>

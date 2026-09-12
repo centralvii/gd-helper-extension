@@ -200,7 +200,7 @@ export const App: React.FC = () => {
                             <span>Файл перехвачен</span>
                             {autoCollectNotification.mode && (
                                 <span className="text-[9px] font-semibold px-1.5 py-0.2 rounded bg-emerald-100/90 text-emerald-800 border border-emerald-300/80">
-                                    {autoCollectNotification.mode === 'original' ? 'обычное имя' : 'из алгоритма'}
+                                    {autoCollectNotification.mode === 'original' ? 'исходное имя' : 'со страницы'}
                                 </span>
                             )}
                         </div>
