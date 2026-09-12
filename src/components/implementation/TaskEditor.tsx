@@ -22,7 +22,6 @@ import {
   MoreVertical,
   Code2,
   Settings,
-  Zap,
   RotateCw,
   AlertCircle,
   Link as LinkIcon,
@@ -629,16 +628,9 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
               size="sm"
               disabled={isInjecting}
               onClick={handleInsertHeaderComment}
-              leftIcon={
-                injectResult?.success ? (
-                  <Check className="w-3.5 h-3.5 text-white" />
-                ) : (
-                  <Zap className="w-3.5 h-3.5 text-amber-300" />
-                )
-              }
               className="px-2.5 py-1 text-[11px] font-bold shadow-xs cursor-pointer"
             >
-              {isInjecting ? 'Вставка...' : injectResult?.success ? 'Вставлено!' : 'Вставить в алгоритм'}
+              {isInjecting ? 'Вставка...' : injectResult?.success ? 'Вставлено!' : 'Вставить'}
             </Button>
           </div>
         </div>
