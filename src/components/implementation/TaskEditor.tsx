@@ -609,30 +609,6 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
             )}
           </button>
 
-          <button
-            type="button"
-            onClick={handleQuickCopyMarkdown}
-            title="Скопировать описание задачи в формате Markdown"
-            className="inline-flex items-center gap-1 px-2 py-1 bg-slate-50 hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 border border-slate-200 hover:border-emerald-300 rounded-xl text-[11px] font-semibold transition-all shadow-2xs cursor-pointer whitespace-nowrap"
-          >
-            {quickCopied ? (
-              <Check className="w-3 h-3 text-emerald-600" />
-            ) : (
-              <Copy className="w-3 h-3 text-emerald-600" />
-            )}
-            <span>{quickCopied ? 'Скопировано' : 'Копировать'}</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setIsPreviewModalOpen(true)}
-            title="Просмотр и экспорт описания реализации"
-            className="inline-flex items-center gap-1 px-2 py-1 bg-slate-50 hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 border border-slate-200 hover:border-emerald-300 rounded-xl text-[11px] font-semibold transition-all shadow-2xs cursor-pointer whitespace-nowrap"
-          >
-            <Eye className="w-3 h-3 text-emerald-600" />
-            <span>Экспорт</span>
-          </button>
-
           {onOpenImportExport && (
             <button
               type="button"
