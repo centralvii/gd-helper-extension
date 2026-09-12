@@ -10,6 +10,7 @@ import { ImplementationTool } from '../components/implementation/ImplementationT
 import { ExtraContainer } from '../components/extra/ExtraContainer';
 import { AiChatContainer } from '../components/ai/AiChatContainer';
 import { PackageSelector } from '../components/template/PackageSelector';
+import { AutoCollectModeBar } from '../components/template/AutoCollectModeBar';
 import { FileUploader } from '../components/upload/FileUploader';
 import { TemplateEditor } from '../components/template/TemplateEditor';
 import { FileTable } from '../components/table/FileTable';
@@ -271,8 +272,14 @@ export const App: React.FC = () => {
                         }}
                         isAutoCollectEnabled={isAutoCollectEnabled}
                         onToggleAutoCollect={toggleAutoCollect}
+                    />
+
+                    {/* Auto-Collect Naming Mode Bar - Separate card below PackageSelector */}
+                    <AutoCollectModeBar
                         namingMode={autoCollectNamingMode}
                         onChangeNamingMode={setAutoCollectNamingMode}
+                        isAutoCollectEnabled={isAutoCollectEnabled}
+                        onToggleAutoCollect={toggleAutoCollect}
                     />
 
                     {files.length === 0 ? (

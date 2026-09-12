@@ -10,10 +10,8 @@ import {
   Zap,
   FileCode,
   ExternalLink,
-  Sparkles,
-  FileText,
 } from 'lucide-react';
-import { BuildPackage, ImplementationTask, AutoCollectNamingMode } from '../../types';
+import { BuildPackage, ImplementationTask } from '../../types';
 import { Button } from '../ui/Button';
 import { Modal } from '../ui/Modal';
 import { Input } from '../ui/Input';
@@ -31,8 +29,6 @@ interface PackageSelectorProps {
   onNavigateToTask?: (taskId: string) => void;
   isAutoCollectEnabled: boolean;
   onToggleAutoCollect: () => void;
-  namingMode?: AutoCollectNamingMode;
-  onChangeNamingMode?: (mode: AutoCollectNamingMode) => void;
 }
 
 export const PackageSelector: React.FC<PackageSelectorProps> = ({
@@ -47,8 +43,6 @@ export const PackageSelector: React.FC<PackageSelectorProps> = ({
   onNavigateToTask,
   isAutoCollectEnabled,
   onToggleAutoCollect,
-  namingMode = 'pageName',
-  onChangeNamingMode,
 }) => {
   const [isOpenList, setIsOpenList] = useState(false);
   const [packageToDelete, setPackageToDelete] = useState<BuildPackage | null>(null);
@@ -296,54 +290,18 @@ export const PackageSelector: React.FC<PackageSelectorProps> = ({
         )}
 
         {/* Package Actions Toolbar */}
-        <div className="flex items-center gap-1.5 flex-shrink-0">
-          {/* Auto-collect naming mode segmented switcher */}
-          {onChangeNamingMode && (
-            <div
-              className={`flex items-center p-0.5 bg-slate-100/90 border border-slate-200/90 rounded-xl text-[10px] font-medium shadow-2xs transition-opacity ${
-                !isAutoCollectEnabled ? 'opacity-50' : 'opacity-100'
-              }`}
-            >
-              <button
-                type="button"
-                onClick={() => onChangeNamingMode('pageName')}
-                title="Режим автосбора: с названиями из алгоритма (со страницы GreenData)"
-                className={`flex items-center gap-1 px-1.5 py-0.5 rounded-lg transition-all cursor-pointer ${
-                  namingMode === 'pageName'
-                    ? 'bg-white text-emerald-700 font-bold shadow-2xs'
-                    : 'text-slate-500 hover:text-slate-800'
-                }`}
-              >
-                <Sparkles className="w-3 h-3 text-emerald-600 flex-shrink-0" />
-                <span className="whitespace-nowrap">Алгоритм</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => onChangeNamingMode('original')}
-                title="Режим автосбора: обычное название файла без изменения"
-                className={`flex items-center gap-1 px-1.5 py-0.5 rounded-lg transition-all cursor-pointer ${
-                  namingMode === 'original'
-                    ? 'bg-white text-slate-800 font-bold shadow-2xs'
-                    : 'text-slate-500 hover:text-slate-800'
-                }`}
-              >
-                <FileText className="w-3 h-3 text-slate-500 flex-shrink-0" />
-                <span className="whitespace-nowrap">Обычное</span>
-              </button>
-            </div>
-          )}
-
+        <div className="flex items-center gap-0.5 flex-shrink-0">
           {/* Auto-collect toggle — lightning icon */}
           <button
             type="button"
             onClick={onToggleAutoCollect}
             title={
               isAutoCollectEnabled
-                ? `Автосбор ВКЛЮЧЕН (${namingMode === 'original' ? 'обычное имя' : 'из алгоритма'}): скачанные .guf файлы добавляются автоматически`
+                ? 'Автосбор ВКЛЮЧЕН: скачанные .guf файлы добавляются автоматически'
                 : 'Автосбор ВЫКЛЮЧЕН: нажмите для включения'
             }
             className={[
-              'icon-btn p-1.5 rounded-xl transition-colors cursor-pointer',
+              'icon-btn p-1.5 rounded-lg transition-colors cursor-pointer',
               isAutoCollectEnabled
                 ? 'text-emerald-600 bg-emerald-50 hover:bg-emerald-100 hover:text-emerald-700'
                 : 'text-gray-400 hover:text-emerald-600 hover:bg-emerald-50',
