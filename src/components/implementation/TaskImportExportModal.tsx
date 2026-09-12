@@ -12,8 +12,7 @@ import {
   FolderPlus,
   ArrowDownToLine,
 } from 'lucide-react';
-import { Modal } from '../ui/Modal';
-import { Button } from '../ui/Button';
+import { Modal, Button, SegmentedControl, Textarea } from '../ui';
 import { ImplementationTask } from '../../types';
 import { parseTasksFromImport } from '../../hooks/useImplementationTasks';
 import saveAs from 'file-saver';
@@ -168,32 +167,25 @@ export const TaskImportExportModal: React.FC<TaskImportExportModalProps> = ({
     >
       <div className="space-y-4 text-xs">
         {/* Navigation Tabs */}
-        <div className="flex items-center p-1 bg-slate-100/90 rounded-2xl border border-slate-200/80 shadow-inner">
-          <button
-            type="button"
-            onClick={() => setActiveTab('export')}
-            className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-xl font-bold text-xs transition-all cursor-pointer ${
-              activeTab === 'export'
-                ? 'bg-white text-emerald-950 shadow-xs border border-slate-200/80'
-                : 'text-slate-500 hover:text-slate-800'
-            }`}
-          >
-            <Download className="w-4 h-4 text-emerald-600" />
-            <span>Экспорт / Сохранить в файл</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab('import')}
-            className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-xl font-bold text-xs transition-all cursor-pointer ${
-              activeTab === 'import'
-                ? 'bg-white text-emerald-950 shadow-xs border border-slate-200/80'
-                : 'text-slate-500 hover:text-slate-800'
-            }`}
-          >
-            <Upload className="w-4 h-4 text-emerald-600" />
-            <span>Импорт / Загрузить обратно</span>
-          </button>
+        <div className="w-full">
+          <SegmentedControl<'export' | 'import'>
+            value={activeTab}
+            onChange={setActiveTab}
+            size="md"
+            className="w-full flex"
+            options={[
+              {
+                value: 'export',
+                label: 'Экспорт / Сохранить в файл',
+                icon: <Download className="w-4 h-4 text-emerald-600" />,
+              },
+              {
+                value: 'import',
+                label: 'Импорт / Загрузить обратно',
+                icon: <Upload className="w-4 h-4 text-emerald-600" />,
+              },
+            ]}
+          />
         </div>
 
         {/* ═══════════════════════════════════════════════════════════════ */}
@@ -317,37 +309,22 @@ export const TaskImportExportModal: React.FC<TaskImportExportModalProps> = ({
             </div>
 
             {/* Direct Paste Textarea */}
-            <div>
-              <div className="flex items-center justify-between mb-1">
-                <label className="text-[11px] font-bold text-slate-700 flex items-center gap-1.5">
-                  <FileCode className="w-3.5 h-3.5 text-emerald-600" />
-                  <span>Или вставьте JSON текст напрямую:</span>
-                </label>
-                {importJsonText && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setImportJsonText('');
-                      setImportStatus(null);
-                    }}
-                    className="text-[10.5px] text-rose-600 hover:underline cursor-pointer"
-                  >
-                    Очистить
-                  </button>
-                )}
-              </div>
-
-              <textarea
-                value={importJsonText}
-                onChange={(e) => {
-                  setImportJsonText(e.target.value);
-                  setImportStatus(null);
-                }}
-                placeholder="Вставьте JSON резервной копии (например: { &quot;tasks&quot;: [...] } или { &quot;taskNumber&quot;: &quot;TASK-101&quot;, ... })"
-                rows={4}
-                className="w-full px-3 py-2 bg-white border border-slate-200 focus:border-emerald-500 rounded-2xl text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/10 font-mono text-[11px] resize-y transition-all shadow-2xs"
-              />
-            </div>
+            <Textarea
+              label="Или вставьте JSON текст напрямую:"
+              value={importJsonText}
+              onChange={(e) => {
+                setImportJsonText(e.target.value);
+                setImportStatus(null);
+              }}
+              placeholder='Вставьте JSON резервной копии (например: { "tasks": [...] } или { "taskNumber": "TASK-101", ... })'
+              rows={4}
+              showClear
+              onClear={() => {
+                setImportJsonText('');
+                setImportStatus(null);
+              }}
+              className="font-mono text-[11px]"
+            />
 
             {/* Validation & Preview Box */}
             {parsedImport && (

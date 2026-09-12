@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import { Plus, Trash2, Check, Sparkles, Star } from 'lucide-react';
-import { Modal } from '../ui/Modal';
-import { Button } from '../ui/Button';
-import { Input } from '../ui/Input';
+import { Modal, Button, Input, IconButton } from '../ui';
 import { TemplatePreset } from '../../types';
 
 interface PresetManagerModalProps {
@@ -55,14 +53,14 @@ export const PresetManagerModal: React.FC<PresetManagerModalProps> = ({
           {presets.map((preset) => (
             <div
               key={preset.id}
-              className={`flex items-center justify-between gap-3 p-2.5 rounded-xl border transition-colors ${
+              className={`flex items-center justify-between gap-3 p-2.5 rounded-2xl border transition-colors shadow-2xs ${
                 preset.isPrimary
-                  ? 'bg-amber-50 border-amber-300'
-                  : 'bg-white border-gray-200 hover:border-emerald-300'
+                  ? 'bg-amber-50/80 border-amber-300'
+                  : 'bg-white border-slate-200/90 hover:border-emerald-300'
               }`}
             >
               <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-1.5 font-bold text-gray-900 text-xs truncate">
+                <div className="flex items-center gap-1.5 font-bold text-slate-900 text-xs truncate">
                   <span className="truncate">{preset.name}</span>
                   {preset.isPrimary && (
                     <span className="inline-flex items-center gap-0.5 text-[10px] text-amber-700 font-semibold">
@@ -78,13 +76,13 @@ export const PresetManagerModal: React.FC<PresetManagerModalProps> = ({
 
               <div className="flex items-center gap-1.5 flex-shrink-0">
                 {!preset.isPrimary && (
-                  <button
+                  <IconButton
+                    size="xs"
+                    variant="ghost"
                     onClick={() => onSetPresetAsPrimary(preset.id)}
                     title="Сделать основным шаблоном по умолчанию"
-                    className="icon-btn p-1.5 rounded-lg text-gray-400 hover:text-amber-600 hover:bg-amber-50"
-                  >
-                    <Star className="w-3.5 h-3.5" />
-                  </button>
+                    icon={<Star className="w-3.5 h-3.5 text-slate-400 hover:text-amber-600" />}
+                  />
                 )}
                 <Button
                   variant="secondary"
@@ -98,13 +96,13 @@ export const PresetManagerModal: React.FC<PresetManagerModalProps> = ({
                   Применить
                 </Button>
                 {!preset.isDefault && (
-                  <button
+                  <IconButton
+                    size="xs"
+                    variant="danger"
                     onClick={() => onDeletePreset(preset.id)}
                     title="Удалить пресет"
-                    className="icon-btn icon-btn--danger p-1.5 rounded-lg text-gray-400 hover:text-rose-600 hover:bg-rose-50"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
+                    icon={<Trash2 className="w-3.5 h-3.5" />}
+                  />
                 )}
               </div>
             </div>

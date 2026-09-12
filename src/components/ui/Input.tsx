@@ -2,17 +2,36 @@ import React from 'react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
-interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+export interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size'> {
   label?: string;
   error?: string;
   helperText?: string;
   leftElement?: React.ReactNode;
   rightElement?: React.ReactNode;
+  size?: 'sm' | 'md';
 }
 
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ label, error, helperText, leftElement, rightElement, className, id, ...props }, ref) => {
+  (
+    {
+      label,
+      error,
+      helperText,
+      leftElement,
+      rightElement,
+      size = 'md',
+      className,
+      id,
+      ...props
+    },
+    ref
+  ) => {
     const inputId = id || (label ? label.toLowerCase().replace(/\s+/g, '-') : undefined);
+
+    const sizeClasses = {
+      sm: 'px-2.5 py-1 text-xs rounded-xl min-h-[30px]',
+      md: 'px-3 py-2 text-xs rounded-xl min-h-[36px]',
+    };
 
     return (
       <div className="w-full space-y-1">
@@ -32,7 +51,8 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
             id={inputId}
             className={twMerge(
               clsx(
-                'block w-full rounded-xl bg-white border border-slate-200 px-3 py-2 text-xs text-slate-900 placeholder-slate-400 transition-all focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15 focus:outline-none disabled:opacity-50 disabled:bg-slate-50 font-normal',
+                'block w-full bg-white border border-slate-200 text-xs text-slate-900 placeholder-slate-400 transition-all focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15 focus:outline-none disabled:opacity-50 disabled:bg-slate-50 font-normal',
+                sizeClasses[size],
                 leftElement && 'pl-8.5',
                 rightElement && 'pr-8.5',
                 error && 'border-rose-400 focus:border-rose-500 focus:ring-rose-500/15',

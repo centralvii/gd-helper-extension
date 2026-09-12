@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { ImplementationChangeItem } from '../../types';
 import { formatChangeItemMarkdown } from '../../utils/tabUtils';
+import { IconButton } from '../ui';
 
 interface ChangeItemRowProps {
   item: ImplementationChangeItem;
@@ -55,47 +56,47 @@ export const ChangeItemRow: React.FC<ChangeItemRowProps> = React.memo(({
 
         {/* Action Toolbar */}
         <div className="flex items-center gap-0.5 flex-shrink-0">
-          <button
+          <IconButton
+            size="xs"
+            variant="ghost"
             onClick={() => onMoveUp(item.id)}
             disabled={index === 0}
             title="Переместить выше"
-            className="icon-btn p-1 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg disabled:opacity-20 disabled:hover:bg-transparent cursor-pointer"
-          >
-            <ChevronUp className="w-3.5 h-3.5" />
-          </button>
+            icon={<ChevronUp className="w-3.5 h-3.5" />}
+          />
 
-          <button
+          <IconButton
+            size="xs"
+            variant="ghost"
             onClick={() => onMoveDown(item.id)}
             disabled={index === totalCount - 1}
             title="Переместить ниже"
-            className="icon-btn p-1 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg disabled:opacity-20 disabled:hover:bg-transparent cursor-pointer"
-          >
-            <ChevronDown className="w-3.5 h-3.5" />
-          </button>
+            icon={<ChevronDown className="w-3.5 h-3.5" />}
+          />
 
-          <button
+          <IconButton
+            size="xs"
+            variant="emerald"
             onClick={handleCopy}
             title="Копировать пункт"
-            className="icon-btn p-1 text-slate-400 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors cursor-pointer"
-          >
-            {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
-          </button>
+            icon={copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+          />
 
-          <button
+          <IconButton
+            size="xs"
+            variant="sky"
             onClick={() => onEdit(item)}
             title="Редактировать"
-            className="icon-btn p-1 text-slate-400 hover:text-sky-700 hover:bg-sky-50 rounded-lg transition-colors cursor-pointer"
-          >
-            <Edit2 className="w-3.5 h-3.5" />
-          </button>
+            icon={<Edit2 className="w-3.5 h-3.5" />}
+          />
 
-          <button
+          <IconButton
+            size="xs"
+            variant="danger"
             onClick={() => onDelete(item.id)}
             title="Удалить"
-            className="icon-btn icon-btn--danger p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
-          >
-            <Trash2 className="w-3.5 h-3.5" />
-          </button>
+            icon={<Trash2 className="w-3.5 h-3.5" />}
+          />
         </div>
       </div>
 

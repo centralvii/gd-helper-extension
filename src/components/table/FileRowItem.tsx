@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { FileRow } from '../../types';
 import { Badge } from '../ui/Badge';
+import { IconButton } from '../ui';
 import { formatSourceUrlDisplay, trimGreenDataUrl } from '../../utils/tabUtils';
 
 interface FileRowItemProps {
@@ -147,22 +148,20 @@ export const FileRowItem: React.FC<FileRowItemProps> = React.memo(({
 
             {/* Actions */}
             <div className="flex flex-shrink-0 items-center gap-0.5">
-                <button
-                    type="button"
+                <IconButton
+                    size="sm"
+                    variant="emerald"
+                    icon={<Edit3 className="h-3.5 w-3.5" />}
                     onClick={() => onEdit(file)}
                     title="Редактировать параметры файла"
-                    className="icon-btn p-1 text-slate-400 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors cursor-pointer"
-                >
-                    <Edit3 className="h-3.5 w-3.5" />
-                </button>
-                <button
-                    type="button"
+                />
+                <IconButton
+                    size="sm"
+                    variant="danger"
+                    icon={<Trash2 className="h-3.5 w-3.5" />}
                     onClick={() => onDelete(file.id)}
-                    title="Удалить из списка"
-                    className="icon-btn icon-btn--danger p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
-                >
-                    <Trash2 className="h-3.5 w-3.5" />
-                </button>
+                    title="Удалить файл из пакета"
+                />
             </div>
         </div>
     );

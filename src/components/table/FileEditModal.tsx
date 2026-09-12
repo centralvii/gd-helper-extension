@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { FileText, Check, Calendar, Clock, FileCode } from 'lucide-react';
-import { Modal } from '../ui/Modal';
-import { Button } from '../ui/Button';
-import { Input } from '../ui/Input';
+import { Check, Calendar, Clock, FileCode } from 'lucide-react';
+import { Modal, Button, Input, Textarea } from '../ui';
 import { FileRow, VariableDefinition } from '../../types';
 
 interface FileEditModalProps {
@@ -63,26 +61,26 @@ export const FileEditModal: React.FC<FileEditModalProps> = ({
     >
       <div className="space-y-4">
         {/* Original File Info */}
-        <div className="p-3 rounded-xl bg-gray-50 border border-gray-200 space-y-1.5 text-[11px]">
-          <div className="flex items-center gap-1.5 text-gray-600">
+        <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200/90 space-y-1.5 text-[11px] shadow-2xs">
+          <div className="flex items-center gap-1.5 text-slate-600">
             <FileCode className="w-3.5 h-3.5 text-emerald-600" />
-            <span className="font-semibold text-gray-800">Исходный файл:</span>
-            <span className="font-mono text-gray-900 font-bold truncate">{file.originalName}</span>
+            <span className="font-semibold text-slate-800">Исходный файл:</span>
+            <span className="font-mono text-slate-900 font-bold truncate">{file.originalName}</span>
           </div>
-          <div className="flex items-center gap-4 text-gray-500">
+          <div className="flex items-center gap-4 text-slate-500">
             {file.detectedDate && (
               <span className="flex items-center gap-1">
-                <Calendar className="w-3 h-3 text-gray-400" />
+                <Calendar className="w-3 h-3 text-slate-400" />
                 {file.detectedDate}
               </span>
             )}
             {file.detectedTime && (
               <span className="flex items-center gap-1">
-                <Clock className="w-3 h-3 text-gray-400" />
+                <Clock className="w-3 h-3 text-slate-400" />
                 {file.detectedTime}
               </span>
             )}
-            <span>Порядок: #{file.order}</span>
+            <span className="font-mono font-semibold">Порядок: #{file.order}</span>
           </div>
         </div>
 
@@ -97,7 +95,7 @@ export const FileEditModal: React.FC<FileEditModalProps> = ({
         {/* Custom Variables */}
         {variables.length > 0 && (
           <div className="space-y-2">
-            <label className="block text-xs font-medium text-gray-700">
+            <label className="block text-xs font-bold text-slate-800">
               Индивидуальные переменные файла:
             </label>
             <div className="grid grid-cols-1 gap-2">
@@ -111,7 +109,7 @@ export const FileEditModal: React.FC<FileEditModalProps> = ({
                     onChange={(e) =>
                       setCustomVars((prev) => ({ ...prev, [v.key]: e.target.value }))
                     }
-                    className="flex-1 bg-white border border-gray-200 rounded-lg px-2.5 py-1 text-xs text-gray-900 placeholder:text-gray-400 focus:border-emerald-500 focus:outline-none"
+                    className="flex-1 bg-slate-50/70 border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/10 shadow-2xs transition-all"
                   />
                 </div>
               ))}
@@ -120,19 +118,13 @@ export const FileEditModal: React.FC<FileEditModalProps> = ({
         )}
 
         {/* Description for README */}
-        <div>
-          <label className="block text-xs font-medium text-gray-700 mb-1.5 flex items-center gap-1">
-            <FileText className="w-3.5 h-3.5 text-gray-500" />
-            <span>Описание для README.txt</span>
-          </label>
-          <textarea
-            rows={3}
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="Краткое описание назначения скрипта/файла..."
-            className="w-full bg-white border border-gray-200 rounded-xl p-2.5 text-xs text-gray-900 placeholder:text-gray-400 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none"
-          />
-        </div>
+        <Textarea
+          label="Описание для README.txt"
+          rows={3}
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          placeholder="Краткое описание назначения скрипта/файла..."
+        />
       </div>
     </Modal>
   );

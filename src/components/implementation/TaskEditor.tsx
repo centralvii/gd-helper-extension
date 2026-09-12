@@ -43,6 +43,7 @@ import { Input } from '../ui/Input';
 import { Button } from '../ui/Button';
 import { Modal } from '../ui/Modal';
 import { Select } from '../ui/Select';
+import { Toolbar } from '../ui/Toolbar';
 import { ChangeItemRow } from './ChangeItemRow';
 import { AddChangeItemModal } from './AddChangeItemModal';
 import { TaskExportPreviewModal } from './TaskExportPreviewModal';
@@ -584,48 +585,40 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
   return (
     <div className="space-y-3">
       {/* ── Implementation Tools Bar ── */}
-      <div className="flex items-center justify-between gap-1.5 p-1.5 bg-white border border-slate-200/90 rounded-2xl shadow-xs animate-fade-in">
-        <div className="flex items-center gap-1.5 pl-1.5 text-xs font-bold text-slate-800 min-w-0">
-          <SlidersHorizontal className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
-          <span className="truncate">Инструменты</span>
-          {task.releaseNumber && (
-            <span className="hidden xs:inline-flex px-1.5 py-0.5 rounded-md bg-emerald-50 text-emerald-800 text-[10px] font-bold border border-emerald-200/80">
-              Релиз {task.releaseNumber}
-            </span>
-          )}
-        </div>
+      <Toolbar className="animate-fade-in">
+        <Toolbar.Title
+          icon={<SlidersHorizontal className="w-3.5 h-3.5" />}
+          title="Инструменты"
+          badge={
+            task.releaseNumber ? (
+              <span className="hidden xs:inline-flex px-1.5 py-0.5 rounded-md bg-emerald-50 text-emerald-800 text-[10px] font-bold border border-emerald-200/80">
+                Релиз {task.releaseNumber}
+              </span>
+            ) : undefined
+          }
+        />
 
-        <div className="flex items-center gap-1 flex-shrink-0">
-          <button
-            type="button"
+        <Toolbar.Actions>
+          <Toolbar.Button
+            icon={<Settings className="w-3 h-3 text-emerald-600" />}
             onClick={() => setIsSettingsModalOpen(true)}
             title="Параметры задачи (номер, релиз, название, пакеты, заметка)"
-            className="relative inline-flex items-center justify-center gap-1 h-7 px-2.5 bg-slate-50 hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 border border-slate-200 hover:border-emerald-300 rounded-xl text-[11px] font-semibold leading-none transition-all shadow-2xs cursor-pointer whitespace-nowrap"
+            dot={Boolean(task.summary?.trim())}
           >
-            <Settings className="w-3 h-3 text-emerald-600" />
-            <span>Настройки</span>
-            {Boolean(task.summary?.trim()) && (
-              <span
-                className="w-1.5 h-1.5 rounded-full bg-emerald-500"
-                style={{ boxShadow: '0 0 4px rgba(34,197,94,0.7)' }}
-                title="Есть заметка"
-              />
-            )}
-          </button>
+            Настройки
+          </Toolbar.Button>
 
           {onOpenImportExport && (
-            <button
-              type="button"
+            <Toolbar.Button
+              icon={<FileJson className="w-3 h-3 text-emerald-600" />}
               onClick={() => onOpenImportExport('export')}
               title="Резервное копирование и экспорт в JSON"
-              className="inline-flex items-center justify-center gap-1 h-7 px-2.5 bg-slate-50 hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 border border-slate-200 hover:border-emerald-300 rounded-xl text-[11px] font-semibold leading-none transition-all shadow-2xs cursor-pointer whitespace-nowrap"
             >
-              <FileJson className="w-3 h-3 text-emerald-600" />
-              <span>Бэкап</span>
-            </button>
+              Бэкап
+            </Toolbar.Button>
           )}
-        </div>
-      </div>
+        </Toolbar.Actions>
+      </Toolbar>
 
       {/* ── Algorithm Header Quick Action Card (Feature: Вставка комментария в алгоритм) ── */}
       <div className="p-3 bg-gradient-to-r from-emerald-50 via-teal-50/60 to-emerald-50 border border-emerald-200/90 rounded-2xl shadow-2xs space-y-2">

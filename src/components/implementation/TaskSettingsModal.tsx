@@ -1,13 +1,10 @@
 import React from 'react';
 import {
   Package,
-  FileText,
   ExternalLink,
   Check,
 } from 'lucide-react';
-import { Modal } from '../ui/Modal';
-import { Button } from '../ui/Button';
-import { Input } from '../ui/Input';
+import { Modal, Button, Input, Textarea } from '../ui';
 import { ImplementationTask, BuildPackage } from '../../types';
 
 interface TaskSettingsModalProps {
@@ -134,24 +131,14 @@ export const TaskSettingsModal: React.FC<TaskSettingsModalProps> = ({
         </div>
 
         {/* Task Summary / Description */}
-        <div>
-          <div className="flex items-center justify-between mb-1 gap-2">
-            <label className="flex items-center gap-1.5 text-[11px] font-bold text-slate-700 whitespace-nowrap">
-              <FileText className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
-              <span>Описание / Заметка</span>
-            </label>
-            <span className="text-[10px] text-slate-400 whitespace-nowrap truncate">
-              Краткая суть и детали
-            </span>
-          </div>
-          <textarea
-            value={task.summary}
-            onChange={(e) => onUpdateTask(task.id, { summary: e.target.value })}
-            placeholder="Опишите общую суть решения, архитектурные особенности или примечания для тестировщиков..."
-            rows={4}
-            className="w-full px-3 py-2 bg-white border border-slate-200 focus:border-emerald-500 rounded-xl text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/10 text-xs resize-y transition-all shadow-2xs"
-          />
-        </div>
+        <Textarea
+          label="Описание / Заметка"
+          helperText="Краткая суть и детали"
+          value={task.summary}
+          onChange={(e) => onUpdateTask(task.id, { summary: e.target.value })}
+          placeholder="Опишите общую суть решения, архитектурные особенности или примечания для тестировщиков..."
+          rows={3}
+        />
       </div>
     </Modal>
   );

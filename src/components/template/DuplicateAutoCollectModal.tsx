@@ -7,8 +7,7 @@ import {
   Plus,
 } from 'lucide-react';
 import { FileRow } from '../../types';
-import { Modal } from '../ui/Modal';
-import { Button } from '../ui/Button';
+import { Modal, Button } from '../ui';
 import { formatSourceUrlDisplay, trimGreenDataUrl } from '../../utils/tabUtils';
 
 interface DuplicateAutoCollectModalProps {
@@ -50,19 +49,19 @@ export const DuplicateAutoCollectModal: React.FC<DuplicateAutoCollectModalProps>
             onClick={onAppend}
             title="Добавить файл как новый в конец пакета"
             className="gap-1.5"
+            leftIcon={<Plus className="w-3.5 h-3.5 text-slate-500" />}
           >
-            <Plus className="w-3.5 h-3.5 text-slate-500" />
             <span>Добавить в конец</span>
           </Button>
 
           <Button
-            variant="primary"
+            variant="emerald"
             size="sm"
             onClick={onReplace}
             title="Убрать старый файл и поставить новый на его позицию"
             className="gap-1.5 font-bold"
+            leftIcon={<RefreshCw className="w-3.5 h-3.5" />}
           >
-            <RefreshCw className="w-3.5 h-3.5" />
             <span>Заменить файл</span>
           </Button>
         </>

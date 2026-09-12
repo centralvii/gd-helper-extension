@@ -85,7 +85,7 @@ export const TaskExportPreviewModal: React.FC<TaskExportPreviewModalProps> = ({
               Скачать .json
             </Button>
           </div>
-          <Button variant="primary" size="sm" onClick={onClose}>
+          <Button variant="emerald" size="sm" onClick={onClose}>
             Закрыть
           </Button>
         </div>
@@ -96,7 +96,7 @@ export const TaskExportPreviewModal: React.FC<TaskExportPreviewModalProps> = ({
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
           <button
             onClick={() => handleCopy('md', markdownText)}
-            className="flex items-center justify-center gap-2 p-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-xl transition-all font-semibold text-xs shadow-sm cursor-pointer"
+            className="flex items-center justify-center gap-2 p-2.5 bg-emerald-50/80 hover:bg-emerald-100 text-emerald-900 border border-emerald-300 rounded-xl transition-all font-semibold text-xs shadow-2xs cursor-pointer"
           >
             {copiedFormat === 'md' ? (
               <>
@@ -118,7 +118,7 @@ export const TaskExportPreviewModal: React.FC<TaskExportPreviewModalProps> = ({
                 .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '$1 ($2)');
               handleCopy('plain', plainText);
             }}
-            className="flex items-center justify-center gap-2 p-2.5 bg-gray-50 hover:bg-gray-100 text-gray-800 border border-gray-200 rounded-xl transition-all font-semibold text-xs shadow-sm cursor-pointer"
+            className="flex items-center justify-center gap-2 p-2.5 bg-slate-50 hover:bg-slate-100 text-slate-800 border border-slate-200 rounded-xl transition-all font-semibold text-xs shadow-2xs cursor-pointer"
           >
             {copiedFormat === 'plain' ? (
               <>
@@ -127,7 +127,7 @@ export const TaskExportPreviewModal: React.FC<TaskExportPreviewModalProps> = ({
               </>
             ) : (
               <>
-                <FileText className="w-4 h-4 text-gray-600" />
+                <FileText className="w-4 h-4 text-slate-600" />
                 <span>Чистый текст</span>
               </>
             )}
@@ -135,7 +135,7 @@ export const TaskExportPreviewModal: React.FC<TaskExportPreviewModalProps> = ({
 
           <button
             onClick={() => handleCopy('json', jsonBackupString)}
-            className="flex items-center justify-center gap-2 p-2.5 bg-slate-50 hover:bg-emerald-50 text-slate-800 hover:text-emerald-900 border border-slate-200 rounded-xl transition-all font-semibold text-xs shadow-sm cursor-pointer"
+            className="flex items-center justify-center gap-2 p-2.5 bg-slate-50 hover:bg-emerald-50 text-slate-800 hover:text-emerald-900 border border-slate-200 rounded-xl transition-all font-semibold text-xs shadow-2xs cursor-pointer"
           >
             {copiedFormat === 'json' ? (
               <>
@@ -154,15 +154,15 @@ export const TaskExportPreviewModal: React.FC<TaskExportPreviewModalProps> = ({
         {/* Content Viewer */}
         <div>
           <div className="flex items-center justify-between mb-1.5">
-            <span className="font-semibold text-gray-700 text-[11px]">
+            <span className="font-semibold text-slate-700 text-[11px]">
               Предпросмотр сформированного описания:
             </span>
-            <span className="text-[10px] text-gray-400">
+            <span className="text-[10px] text-slate-400">
               {markdownText.split('\n').length} строк • {markdownText.length} символов
             </span>
           </div>
 
-          <pre className="p-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 font-mono text-[11px] leading-relaxed whitespace-pre-wrap max-h-72 overflow-y-auto select-all">
+          <pre className="p-3 bg-slate-50/80 border border-slate-200/90 rounded-2xl text-slate-900 font-mono text-[11px] leading-relaxed whitespace-pre-wrap max-h-72 overflow-y-auto select-all shadow-2xs">
             {markdownText || '(Описание пока пусто)'}
           </pre>
         </div>

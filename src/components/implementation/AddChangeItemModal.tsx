@@ -1,9 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Plus, Link as LinkIcon, Sparkles, Check, ExternalLink, Layers, FolderPlus, ChevronDown, ChevronUp, AlertTriangle } from 'lucide-react';
-import { Modal } from '../ui/Modal';
-import { Button } from '../ui/Button';
-import { Input } from '../ui/Input';
-import { Select } from '../ui/Select';
+import { Modal, Button, Input, Select, Textarea } from '../ui';
 import { getActiveTabInfo, matchSectionForType, formatTitleInQuotes, isSameUrl } from '../../utils/tabUtils';
 import { ImplementationChangeItem, ImplementationSection } from '../../types';
 
@@ -378,23 +375,16 @@ export const AddChangeItemModal: React.FC<AddChangeItemModalProps> = ({
         </div>
 
         {/* Description textarea */}
-        <div>
-          <div className="flex items-center justify-between mb-1">
-            <label className="font-bold text-slate-800">
-              Описание изменения <span className="text-rose-500">*</span>
-            </label>
-            <span className="text-[10px] text-slate-400">Что было изменено/доработано</span>
-          </div>
-          <textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            onBlur={handleDescriptionBlur}
-            placeholder="Например: Изменен алгоритм ЖЦ до сохранения НПП контракты, добавлена проверка типа ЗИ..."
-            rows={3}
-            autoFocus
-            className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/10 focus:border-emerald-500 text-xs resize-y shadow-2xs"
-          />
-        </div>
+        <Textarea
+          label="Описание изменения *"
+          helperText="Что было изменено/доработано"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          onBlur={handleDescriptionBlur}
+          placeholder="Например: Изменен алгоритм ЖЦ до сохранения НПП контракты, добавлена проверка типа ЗИ..."
+          rows={3}
+          autoFocus
+        />
 
         {/* Browser tab insertion bar */}
         <div className="p-3 bg-slate-50/90 border border-slate-200/90 rounded-2xl space-y-2.5 shadow-2xs">
@@ -403,16 +393,17 @@ export const AddChangeItemModal: React.FC<AddChangeItemModalProps> = ({
               <LinkIcon className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
               <span className="truncate text-xs font-bold">Ссылка на объект (опционально)</span>
             </div>
-            <button
+            <Button
               type="button"
+              variant="secondary"
+              size="xs"
               onClick={handleFetchActiveTab}
               disabled={isLoadingTab}
               title="Получить заголовок, тип объекта и адрес текущей открытой вкладки Chrome"
-              className="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-200/90 rounded-xl text-[11px] font-bold transition-all flex-shrink-0 shadow-2xs cursor-pointer"
+              leftIcon={<Sparkles className="w-3 h-3 text-emerald-600 flex-shrink-0" />}
             >
-              <Sparkles className="w-3 h-3 text-emerald-600 flex-shrink-0" />
               {isLoadingTab ? 'Считывание...' : 'С активной вкладки'}
-            </button>
+            </Button>
           </div>
 
           {tabLoadedMessage && (

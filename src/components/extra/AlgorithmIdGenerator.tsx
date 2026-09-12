@@ -12,7 +12,6 @@ import {
   Sparkles,
   Zap,
   Settings,
-  X,
 } from 'lucide-react';
 import {
   generateAlgorithmId,
@@ -22,11 +21,16 @@ import { AlgorithmHistoryItem, AlgorithmType, AiAlgorithmIdResult } from '../../
 import { generateAlgorithmIdViaAi, isAiConfigured } from '../../services/aiAlgorithmGenerator';
 import { useAiChat } from '../../hooks/useAiChat';
 import { AiSettingsModal } from '../ai/AiSettingsModal';
-import { Modal } from '../ui/Modal';
-import { Badge } from '../ui/Badge';
-import { Button } from '../ui/Button';
-import { Input } from '../ui/Input';
-import { Select } from '../ui/Select';
+import {
+  Modal,
+  Badge,
+  Button,
+  Input,
+  Select,
+  Toolbar,
+  SegmentedControl,
+  Textarea,
+} from '../ui';
 import confetti from 'canvas-confetti';
 
 const POSTFIX_OPTIONS = [
@@ -305,97 +309,64 @@ export const AlgorithmIdGenerator: React.FC = () => {
   return (
     <div className="space-y-3">
       {/* ── Top Toolbar Bar (Project Standard Style) ── */}
-      <div className="flex items-center justify-between gap-1.5 p-1.5 bg-white border border-slate-200/90 rounded-2xl shadow-xs">
-        {/* Left Title & Status */}
-        <div className="flex items-center gap-2 pl-1.5 min-w-0">
-          <div className="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center flex-shrink-0 font-bold shadow-2xs">
-            <Wand2 className="w-3.5 h-3.5" />
-          </div>
-          <div className="flex items-center gap-1.5 min-w-0">
-            <span className="text-xs font-bold text-slate-800 truncate">Генератор ID</span>
-            <span
-              className={`w-2 h-2 rounded-full flex-shrink-0 ${
-                isAiConfigured() ? 'bg-emerald-500' : 'bg-amber-400'
-              }`}
-              title={
-                isAiConfigured()
-                  ? `AI подключен (${aiSettings.model || 'OpenAI'})`
-                  : 'Требуется настройка подключения AI'
-              }
-            />
-          </div>
-        </div>
+      <Toolbar>
+        <Toolbar.Title
+          icon={<Wand2 className="w-3.5 h-3.5" />}
+          title="Генератор ID"
+          statusDot={isAiConfigured() ? 'success' : 'warning'}
+          statusTitle={
+            isAiConfigured()
+              ? `AI подключен (${aiSettings.model || 'OpenAI'})`
+              : 'Требуется настройка подключения AI'
+          }
+        />
 
-        {/* Right Action Buttons */}
-        <div className="flex items-center gap-1 flex-shrink-0">
-          <button
-            type="button"
+        <Toolbar.Actions>
+          <Toolbar.Button
             onClick={() => setIsHistoryOpen(true)}
             title="История генераций"
-            className="relative inline-flex items-center justify-center gap-1 h-7 px-2.5 bg-slate-50 hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 border border-slate-200 hover:border-emerald-300 rounded-xl text-[11px] font-semibold leading-none transition-all shadow-2xs cursor-pointer whitespace-nowrap"
+            icon={<History className="w-3 h-3 text-slate-500" />}
+            badge={history.length > 0 ? history.length : undefined}
           >
-            <History className="w-3 h-3 text-slate-500" />
             <span className="hidden xs:inline">История</span>
-            {history.length > 0 && (
-              <span className="px-1.5 py-0.2 rounded-full bg-slate-200 text-slate-700 text-[9px] font-bold">
-                {history.length}
-              </span>
-            )}
-          </button>
+          </Toolbar.Button>
 
-          <button
-            type="button"
+          <Toolbar.Button
             onClick={() => setIsDictOpen(true)}
             title="Словарь терминов и сокращений"
-            className="inline-flex items-center justify-center gap-1 h-7 px-2.5 bg-slate-50 hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 border border-slate-200 hover:border-emerald-300 rounded-xl text-[11px] font-semibold leading-none transition-all shadow-2xs cursor-pointer whitespace-nowrap"
+            icon={<BookA className="w-3 h-3 text-slate-500" />}
           >
-            <BookA className="w-3 h-3 text-slate-500" />
             <span className="hidden xs:inline">Словарь</span>
-          </button>
+          </Toolbar.Button>
 
-          <button
-            type="button"
+          <Toolbar.Button
             onClick={() => setIsRulesOpen(true)}
             title="Стандарты именования алгоритмов GreenData"
-            className="inline-flex items-center justify-center gap-1 h-7 px-2.5 bg-slate-50 hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 border border-slate-200 hover:border-emerald-300 rounded-xl text-[11px] font-semibold leading-none transition-all shadow-2xs cursor-pointer whitespace-nowrap"
+            icon={<BookOpen className="w-3 h-3 text-slate-500" />}
           >
-            <BookOpen className="w-3 h-3 text-slate-500" />
             <span className="hidden xs:inline">Правила</span>
-          </button>
+          </Toolbar.Button>
 
-          <button
-            type="button"
+          <Toolbar.Button
             onClick={() => setIsAiSettingsOpen(true)}
             title="Параметры модели AI"
-            className="inline-flex items-center justify-center gap-1 h-7 px-2.5 bg-slate-50 hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 border border-slate-200 hover:border-emerald-300 rounded-xl text-[11px] font-semibold leading-none transition-all shadow-2xs cursor-pointer whitespace-nowrap"
+            icon={<Settings className="w-3 h-3 text-slate-500" />}
           >
-            <Settings className="w-3 h-3 text-slate-500" />
             <span className="hidden xs:inline">AI</span>
-          </button>
-        </div>
-      </div>
+          </Toolbar.Button>
+        </Toolbar.Actions>
+      </Toolbar>
 
       {/* ── Input Card (Clean & Compact) ── */}
       <div className="rounded-2xl border border-slate-200/90 bg-white p-3 shadow-xs space-y-2.5">
-        <div className="relative">
-          <textarea
-            value={inputText}
-            onChange={(e) => handleSetInputText(e.target.value)}
-            placeholder="Например: Лимиты. Рассчитать VaR по портфелю..."
-            rows={2}
-            className="w-full rounded-xl border border-slate-200 bg-slate-50/70 p-2.5 pr-7 text-xs font-medium text-slate-900 placeholder:text-slate-400 outline-none transition-all focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-500/10 shadow-2xs resize-none"
-          />
-          {inputText && (
-            <button
-              type="button"
-              onClick={() => handleSetInputText('')}
-              className="absolute top-2 right-2 text-slate-400 hover:text-slate-600 p-0.5 rounded-md hover:bg-slate-200/60 transition-colors cursor-pointer"
-              title="Очистить"
-            >
-              <X className="w-3.5 h-3.5" />
-            </button>
-          )}
-        </div>
+        <Textarea
+          value={inputText}
+          onChange={(e) => handleSetInputText(e.target.value)}
+          placeholder="Например: Лимиты. Рассчитать VaR по портфелю..."
+          rows={2}
+          showClear
+          onClear={() => handleSetInputText('')}
+        />
 
         {/* Controls row */}
         <div className="flex items-center justify-between gap-2 flex-wrap text-xs">
@@ -454,32 +425,15 @@ export const AlgorithmIdGenerator: React.FC = () => {
         <div className="flex items-center justify-between gap-2 border-b border-slate-100 bg-slate-50/80 px-3 py-2">
           <div className="flex items-center gap-2 min-w-0 flex-wrap">
             {aiResult ? (
-              <div className="inline-flex rounded-lg border border-slate-200 bg-white p-0.5 text-xs shadow-2xs">
-                <button
-                  type="button"
-                  onClick={() => setActiveSource('ai')}
-                  className={`flex items-center gap-1 px-2 py-0.5 rounded-md font-semibold text-[10.5px] transition-all cursor-pointer ${
-                    activeSource === 'ai'
-                      ? 'bg-emerald-600 text-white shadow-2xs'
-                      : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  <Sparkles className="w-3 h-3" />
-                  <span>AI</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setActiveSource('local')}
-                  className={`flex items-center gap-1 px-2 py-0.5 rounded-md font-semibold text-[10.5px] transition-all cursor-pointer ${
-                    activeSource === 'local'
-                      ? 'bg-slate-700 text-white shadow-2xs'
-                      : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  <Zap className="w-3 h-3" />
-                  <span>Локальный</span>
-                </button>
-              </div>
+              <SegmentedControl<'ai' | 'local'>
+                size="xs"
+                value={activeSource}
+                onChange={setActiveSource}
+                options={[
+                  { value: 'ai', label: 'AI', icon: <Sparkles className="w-3 h-3" /> },
+                  { value: 'local', label: 'Локальный', icon: <Zap className="w-3 h-3" /> },
+                ]}
+              />
             ) : (
               <span className="inline-flex items-center gap-1 text-[10.5px] font-semibold text-slate-600 bg-white border border-slate-200 px-2 py-0.5 rounded-md shadow-2xs">
                 <Zap className="w-3 h-3 text-amber-500" />

@@ -21,8 +21,7 @@ import {
 import { useAiChat } from '../../hooks/useAiChat';
 import { AiMessageItem } from './AiMessageItem';
 import { AiSettingsModal } from './AiSettingsModal';
-import { Button } from '../ui/Button';
-import { Modal } from '../ui/Modal';
+import { Button, Modal, IconButton } from '../ui';
 import { getActiveTabInfo, TabInfo } from '../../utils/tabUtils';
 import { AiAgent } from '../../types';
 
@@ -267,7 +266,7 @@ export const AiChatContainer: React.FC = () => {
           <button
             type="button"
             onClick={() => setIsSettingsOpen(true)}
-            className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-lg bg-slate-100 hover:bg-slate-200/80 text-slate-700 text-[10px] font-mono font-semibold border border-slate-200 transition-all cursor-pointer max-w-[110px] truncate"
+            className="inline-flex items-center gap-1.5 h-7 px-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 text-[10px] font-mono font-semibold border border-slate-200/90 transition-all cursor-pointer max-w-[120px] truncate shadow-2xs"
             title={`Модель: ${settings.model || 'gpt-4o-mini'}`}
           >
             <span
@@ -280,38 +279,37 @@ export const AiChatContainer: React.FC = () => {
 
           {messages.length > 0 && (
             <>
-              <button
-                type="button"
+              <IconButton
+                size="sm"
+                variant="ghost"
+                icon={<Plus className="w-3.5 h-3.5" />}
                 onClick={() => setIsClearModalOpen(true)}
                 title="Начать новый диалог"
-                className="p-1 text-slate-500 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors cursor-pointer"
-              >
-                <Plus className="w-3.5 h-3.5" />
-              </button>
+              />
 
-              <button
-                type="button"
+              <IconButton
+                size="sm"
+                variant="ghost"
+                icon={
+                  copiedAll ? (
+                    <Check className="w-3.5 h-3.5 text-emerald-600" />
+                  ) : (
+                    <Copy className="w-3.5 h-3.5" />
+                  )
+                }
                 onClick={handleCopyEntireChat}
                 title="Скопировать весь диалог"
-                className="p-1 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
-              >
-                {copiedAll ? (
-                  <Check className="w-3.5 h-3.5 text-emerald-600" />
-                ) : (
-                  <Copy className="w-3.5 h-3.5" />
-                )}
-              </button>
+              />
             </>
           )}
 
-          <button
-            type="button"
+          <IconButton
+            size="sm"
+            variant="ghost"
+            icon={<Settings2 className="w-3.5 h-3.5" />}
             onClick={() => setIsSettingsOpen(true)}
             title="Настройки ИИ подключения"
-            className="p-1 text-slate-500 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors cursor-pointer"
-          >
-            <Settings2 className="w-3.5 h-3.5" />
-          </button>
+          />
         </div>
       </div>
 

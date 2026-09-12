@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Plus, Trash2, Check, Sparkles, Tag, Wand2 } from 'lucide-react';
-import { Modal } from '../ui/Modal';
-import { Button } from '../ui/Button';
+import { Modal, Button, IconButton } from '../ui';
 import { VariableDefinition } from '../../types';
 
 export const BUILT_IN_TAGS = [
@@ -243,14 +242,13 @@ export const MassActionsModal: React.FC<MassActionsModalProps> = ({
 
                 {/* Delete custom variable button */}
                 {!['type', 'module', 'task'].includes(v.key) && (
-                  <button
-                    type="button"
+                  <IconButton
+                    size="sm"
+                    variant="danger"
                     onClick={() => onRemoveVariable(v.key)}
                     title={`Удалить тег {${v.key}}`}
-                    className="icon-btn icon-btn--danger p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl flex-shrink-0 cursor-pointer"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
+                    icon={<Trash2 className="w-3.5 h-3.5" />}
+                  />
                 )}
               </div>
             );

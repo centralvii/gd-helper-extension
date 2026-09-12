@@ -22,6 +22,7 @@ import { FileEditModal } from '../components/table/FileEditModal';
 import { DuplicateAutoCollectModal } from '../components/template/DuplicateAutoCollectModal';
 import { isSameUrl } from '../utils/tabUtils';
 import { AutoCollectedMeta } from '../hooks/useAutoCollector';
+import { Toolbar } from '../components/ui/Toolbar';
 import { FileRow, ActiveTool } from '../types';
 
 export const App: React.FC = () => {
@@ -340,59 +341,47 @@ export const App: React.FC = () => {
                     ) : (
                         <>
                             {/* Package Tools Bar - Displayed in a separate block when at least one file is loaded */}
-                            <div className="flex items-center justify-between gap-1.5 p-1.5 bg-white border border-slate-200/90 rounded-2xl shadow-xs animate-fade-in">
-                                <div className="flex items-center gap-1.5 pl-1.5 text-xs font-bold text-slate-800 min-w-0">
-                                    <SlidersHorizontal className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
-                                    <span className="truncate">Инструменты</span>
-                                </div>
+                            <Toolbar className="animate-fade-in">
+                                <Toolbar.Title
+                                    icon={<SlidersHorizontal className="w-3.5 h-3.5" />}
+                                    title="Инструменты"
+                                />
 
-                                <div className="flex items-center gap-1 flex-shrink-0">
-                                    <button
-                                        type="button"
+                                <Toolbar.Actions>
+                                    <Toolbar.Button
+                                        icon={<SlidersHorizontal className="w-3 h-3 text-emerald-600" />}
                                         onClick={() => setIsMassActionsOpen(true)}
                                         title="Массовые действия и заполнение тегов (переменных) для файлов"
-                                        className="inline-flex items-center justify-center gap-1 h-7 px-2.5 bg-slate-50 hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 border border-slate-200 hover:border-emerald-300 rounded-xl text-[11px] font-semibold leading-none transition-all shadow-2xs cursor-pointer whitespace-nowrap"
                                     >
-                                        <SlidersHorizontal className="w-3 h-3 text-emerald-600" />
-                                        <span>Теги</span>
-                                    </button>
+                                        Теги
+                                    </Toolbar.Button>
 
-                                    <button
-                                        type="button"
+                                    <Toolbar.Button
+                                        icon={<Bookmark className="w-3 h-3 text-emerald-600" />}
                                         onClick={() => setIsPresetsOpen(true)}
                                         title="Пресеты шаблонов наименования"
-                                        className="inline-flex items-center justify-center gap-1 h-7 px-2.5 bg-slate-50 hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 border border-slate-200 hover:border-emerald-300 rounded-xl text-[11px] font-semibold leading-none transition-all shadow-2xs cursor-pointer whitespace-nowrap"
                                     >
-                                        <Bookmark className="w-3 h-3 text-emerald-600" />
-                                        <span>Пресеты</span>
-                                    </button>
+                                        Пресеты
+                                    </Toolbar.Button>
 
-                                    <button
-                                        type="button"
+                                    <Toolbar.Button
+                                        icon={<FileEdit className="w-3 h-3 text-emerald-600" />}
                                         onClick={() => setIsReadmeOpen(true)}
                                         title="Редактор README.txt"
-                                        className="relative inline-flex items-center justify-center gap-1 h-7 px-2.5 bg-slate-50 hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 border border-slate-200 hover:border-emerald-300 rounded-xl text-[11px] font-semibold leading-none transition-all shadow-2xs cursor-pointer whitespace-nowrap"
+                                        dot={Boolean(readmeContent && readmeContent.trim().length > 0)}
                                     >
-                                        <FileEdit className="w-3 h-3 text-emerald-600" />
-                                        <span>README</span>
-                                        {Boolean(readmeContent && readmeContent.trim().length > 0) && (
-                                            <span
-                                                className="w-1.5 h-1.5 rounded-full bg-emerald-500"
-                                                style={{ boxShadow: '0 0 4px rgba(34,197,94,0.7)' }}
-                                            />
-                                        )}
-                                    </button>
+                                        README
+                                    </Toolbar.Button>
 
-                                    <button
-                                        type="button"
+                                    <Toolbar.IconButton
+                                        variant="danger"
                                         onClick={clearFiles}
                                         title="Очистить все файлы в активном пакете"
-                                        className="h-7 w-7 inline-flex items-center justify-center text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors cursor-pointer ml-0.5"
                                     >
                                         <Trash2 className="w-3.5 h-3.5" />
-                                    </button>
-                                </div>
-                            </div>
+                                    </Toolbar.IconButton>
+                                </Toolbar.Actions>
+                            </Toolbar>
 
                             {/* Template Editor */}
                             <TemplateEditor
