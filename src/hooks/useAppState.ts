@@ -13,6 +13,7 @@ import {
 } from '../core/templateEngine';
 import { validateFiles } from '../core/validation';
 import { extractZip, gufFilesToRows, generateZip } from '../core/zipHandler';
+import { parseFileName, getExtension } from '../core/nameCleaner';
 import {
   saveMetadataToDB,
   saveBlobsToDB,
@@ -577,14 +578,18 @@ export function useAppState() {
   );
 
   const addFiles = useCallback(
-    (newFiles: File[], cleanNameOverrides?: Record<string, string>) => {
+    (
+      newFiles: File[],
+      cleanNameOverrides?: Record<string, string>,
+      extraMeta?: Record<string, { cleanName?: string; sourceUrl?: string }>
+    ) => {
       const validFiles = newFiles.filter((f) => f.name.toLowerCase().endsWith('.guf'));
       if (validFiles.length === 0) return;
 
       updateActivePackage((pkg) => {
         const newRows = gufFilesToRows(validFiles, pkg.startNumber + pkg.files.length);
-        if (cleanNameOverrides) {
-          newRows.forEach((row) => {
+        newRows.forEach((row) => {
+          if (cleanNameOverrides) {
             const override =
               cleanNameOverrides[row.originalName] ||
               cleanNameOverrides[row.originalPath] ||
@@ -592,11 +597,76 @@ export function useAppState() {
             if (override) {
               row.cleanName = override;
             }
-          });
-        }
+          }
+          if (extraMeta) {
+            const extra =
+              extraMeta[row.originalName] ||
+              extraMeta[row.originalPath] ||
+              extraMeta['*'];
+            if (extra?.cleanName) {
+              row.cleanName = extra.cleanName;
+            }
+            if (extra?.sourceUrl) {
+              row.sourceUrl = extra.sourceUrl;
+            }
+          }
+        });
         saveBlobsToDB(newRows.map((f) => ({ id: f.id, blob: f.file })));
         const combined = [...pkg.files, ...newRows];
         const calculated = recalculateAllNames(combined, pkg.template, pkg.startNumber, pkg.variableValues);
+        return {
+          ...pkg,
+          files: calculated,
+        };
+      });
+    },
+    [updateActivePackage]
+  );
+
+  const replaceFile = useCallback(
+    (
+      oldFileId: string,
+      newFile: File,
+      meta?: { cleanName?: string; sourceUrl?: string }
+    ) => {
+      updateActivePackage((pkg) => {
+        const oldIndex = pkg.files.findIndex((f) => f.id === oldFileId);
+        if (oldIndex === -1) return pkg;
+
+        const oldRow = pkg.files[oldIndex];
+        // Delete old blob from IndexedDB
+        deleteBlobsFromDB([oldFileId]);
+
+        const parsed = parseFileName(newFile.name);
+        const cleanName = meta?.cleanName || parsed.cleanName;
+        const newRow: FileRow = {
+          id: crypto.randomUUID(),
+          order: oldRow.order,
+          originalPath: newFile.name,
+          originalName: newFile.name,
+          extension: getExtension(newFile.name) || 'guf',
+          file: newFile,
+          detectedDate: parsed.detectedDate,
+          detectedTime: parsed.detectedTime,
+          cleanName,
+          variables: { ...oldRow.variables },
+          newName: '',
+          description: oldRow.description || '',
+          sourceUrl: meta?.sourceUrl || oldRow.sourceUrl,
+        };
+
+        saveBlobsToDB([{ id: newRow.id, blob: newRow.file }]);
+
+        const updatedFiles = [...pkg.files];
+        updatedFiles[oldIndex] = newRow;
+
+        const calculated = recalculateAllNames(
+          updatedFiles,
+          pkg.template,
+          pkg.startNumber,
+          pkg.variableValues
+        );
+
         return {
           ...pkg,
           files: calculated,
@@ -838,6 +908,7 @@ export function useAppState() {
     loadZip,
     loadGufFiles,
     addFiles,
+    replaceFile,
     updateFileCleanName,
     updateFileDescription,
     updateFileVariable,

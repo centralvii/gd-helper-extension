@@ -176,6 +176,14 @@ export function isSameUrl(url1?: string, url2?: string): boolean {
 }
 
 /**
+ * Formats a GreenData URL for concise UI display (e.g. expo.greendatasoft.ru/#/card/9555317)
+ */
+export function formatSourceUrlDisplay(url?: string): string {
+  if (!url) return '';
+  return url.replace(/^https?:\/\//i, '').replace(/\/+$/, '');
+}
+
+/**
  * Determines whether a string refers to a visual presentation, default form, or UI view
  */
 export function isVisualOrForm(text?: string): boolean {

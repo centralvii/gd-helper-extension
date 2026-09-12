@@ -11,6 +11,7 @@ export interface FileRow {
   variables: Record<string, string>;
   newName: string;
   description: string;
+  sourceUrl?: string; // URL вкладки/страницы GreenData, с которой скачан файл
 }
 
 export interface VariableDefinition {

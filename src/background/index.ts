@@ -38,6 +38,7 @@ const processedDownloads = new Set<number>();
 interface DownloadMeta {
   downloadId: number;
   tabId?: number;
+  tabUrl?: string;
   pageName?: string;
   createdAt: number;
 }
@@ -108,11 +109,11 @@ function extractPageNameInTab(): string | null {
 
 // Intercept the download at the exact moment it is created to capture the active tab
 chrome.downloads.onCreated.addListener(async (item) => {
+  let isOriginalMode = false;
   try {
     const stored = await chrome.storage.local.get([AUTO_COLLECT_KEY, AUTO_COLLECT_MODE_KEY]);
     if (stored[AUTO_COLLECT_KEY] !== true) return;
-    // If mode is 'original', skip page name extraction
-    if (stored[AUTO_COLLECT_MODE_KEY] === 'original') return;
+    isOriginalMode = stored[AUTO_COLLECT_MODE_KEY] === 'original';
   } catch {
     return;
   }
@@ -129,24 +130,27 @@ chrome.downloads.onCreated.addListener(async (item) => {
       !activeTab.url.startsWith('edge://')
     ) {
       let pageName: string | undefined;
-      try {
-        const results = await chrome.scripting.executeScript({
-          target: { tabId: activeTab.id },
-          func: extractPageNameInTab,
-        });
-        if (results && results[0] && typeof results[0].result === 'string') {
-          const raw = results[0].result.trim();
-          if (raw) {
-            pageName = sanitizeCleanName(raw);
+      if (!isOriginalMode) {
+        try {
+          const results = await chrome.scripting.executeScript({
+            target: { tabId: activeTab.id },
+            func: extractPageNameInTab,
+          });
+          if (results && results[0] && typeof results[0].result === 'string') {
+            const raw = results[0].result.trim();
+            if (raw) {
+              pageName = sanitizeCleanName(raw);
+            }
           }
+        } catch (err) {
+          console.warn('[GDHelper BG] Scripting onCreated error:', err);
         }
-      } catch (err) {
-        console.warn('[GDHelper BG] Scripting onCreated error:', err);
       }
 
       downloadMetaMap.set(item.id, {
         downloadId: item.id,
         tabId: activeTab.id,
+        tabUrl: activeTab.url,
         pageName,
         createdAt: Date.now(),
       });
@@ -188,8 +192,21 @@ chrome.downloads.onChanged.addListener(async (delta) => {
 
     processedDownloads.add(downloadId);
 
-    // Retrieve or extract page name (only if not in original mode)
+    // Retrieve or extract page name & tab URL
     let pageName: string | undefined = undefined;
+    let tabUrl: string | undefined = downloadMetaMap.get(downloadId)?.tabUrl;
+
+    if (!tabUrl) {
+      try {
+        const tabs = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
+        const activeTab = tabs[0] || (await chrome.tabs.query({ active: true, currentWindow: true }))[0];
+        if (activeTab?.url && !activeTab.url.startsWith('chrome://') && !activeTab.url.startsWith('edge://')) {
+          tabUrl = activeTab.url;
+        }
+      } catch {
+        // ignore
+      }
+    }
 
     if (!isOriginalMode) {
       pageName = downloadMetaMap.get(downloadId)?.pageName;
@@ -231,6 +248,7 @@ chrome.downloads.onChanged.addListener(async (delta) => {
         downloadId,
         filename,
         url: finalUrl || downloadUrl,
+        tabUrl,
         mime: item.mime || 'application/octet-stream',
         pageName,
       },
@@ -240,6 +258,7 @@ chrome.downloads.onChanged.addListener(async (delta) => {
         downloadId,
         filename,
         url: finalUrl || downloadUrl,
+        tabUrl,
         pageName,
       });
     });
@@ -261,6 +280,7 @@ async function storePendingDownload(info: {
   downloadId: number;
   filename: string;
   url: string;
+  tabUrl?: string;
   pageName?: string;
 }) {
   try {

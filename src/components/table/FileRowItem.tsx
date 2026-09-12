@@ -8,9 +8,12 @@ import {
     AlertTriangle,
     FileText,
     Calendar,
+    Link as LinkIcon,
+    ExternalLink,
 } from 'lucide-react';
 import { FileRow } from '../../types';
 import { Badge } from '../ui/Badge';
+import { formatSourceUrlDisplay } from '../../utils/tabUtils';
 
 interface FileRowItemProps {
     file: FileRow;
@@ -122,6 +125,24 @@ export const FileRowItem: React.FC<FileRowItemProps> = React.memo(({
                         </span>
                     )}
                 </div>
+
+                {/* Attached Source URL */}
+                {file.sourceUrl && (
+                    <div className="mt-1">
+                        <a
+                            href={file.sourceUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            title={file.sourceUrl}
+                            onClick={(e) => e.stopPropagation()}
+                            className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-200/90 rounded-xl text-[10px] font-semibold transition-all max-w-full truncate shadow-2xs"
+                        >
+                            <LinkIcon className="w-2.5 h-2.5 flex-shrink-0 text-emerald-600" />
+                            <span className="truncate">{formatSourceUrlDisplay(file.sourceUrl)}</span>
+                            <ExternalLink className="w-2.5 h-2.5 flex-shrink-0 opacity-70 text-emerald-600" />
+                        </a>
+                    </div>
+                )}
             </div>
 
             {/* Actions */}

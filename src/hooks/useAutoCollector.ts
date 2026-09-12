@@ -23,6 +23,7 @@ const PENDING_DOWNLOADS_KEY = 'gd_pending_guf_downloads';
 export interface AutoCollectedMeta {
   cleanName?: string;
   pageName?: string;
+  sourceUrl?: string;
   mode?: AutoCollectNamingMode;
 }
 
@@ -34,6 +35,7 @@ interface PendingDownload {
   downloadId: number;
   filename: string;
   url: string;
+  tabUrl?: string;
   pageName?: string;
 }
 
@@ -112,12 +114,26 @@ export function useAutoCollector({ onFileCollected }: UseAutoCollectorProps) {
 
   // ── Process a downloaded .guf file by URL ──
   const processGufDownload = useCallback(async (payload: PendingDownload) => {
-    const { downloadId, filename, url, pageName: payloadPageName } = payload;
+    const { downloadId, filename, url, tabUrl, pageName: payloadPageName } = payload;
 
     if (processedIdsRef.current.has(downloadId)) return;
     processedIdsRef.current.add(downloadId);
 
     try {
+      // Determine tab/source URL
+      let sourceUrl = tabUrl;
+      if (!sourceUrl && typeof chrome !== 'undefined' && chrome.tabs) {
+        try {
+          const tabs = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
+          const activeTab = tabs[0] || (await chrome.tabs.query({ active: true, currentWindow: true }))[0];
+          if (activeTab?.url && !activeTab.url.startsWith('chrome://') && !activeTab.url.startsWith('edge://')) {
+            sourceUrl = activeTab.url;
+          }
+        } catch {
+          // ignore
+        }
+      }
+
       // Fetch the file blob
       // blob: URLs are still accessible in extension context
       // https: URLs require no special permission
@@ -140,6 +156,7 @@ export function useAutoCollector({ onFileCollected }: UseAutoCollectorProps) {
 
         onFileCollectedRef.current(file, {
           cleanName: parsedOriginal.cleanName,
+          sourceUrl,
           mode: 'original',
         });
 
@@ -192,6 +209,7 @@ export function useAutoCollector({ onFileCollected }: UseAutoCollectorProps) {
       onFileCollectedRef.current(file, {
         cleanName: effectiveCleanName,
         pageName: cleanTargetName || undefined,
+        sourceUrl,
         mode: 'pageName',
       });
 

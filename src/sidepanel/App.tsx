@@ -19,6 +19,9 @@ import { PresetManagerModal } from '../components/template/PresetManagerModal';
 import { ReadmeEditorModal } from '../components/readme/ReadmeEditorModal';
 import { ValidationPanel } from '../components/validation/ValidationPanel';
 import { FileEditModal } from '../components/table/FileEditModal';
+import { DuplicateAutoCollectModal } from '../components/template/DuplicateAutoCollectModal';
+import { isSameUrl } from '../utils/tabUtils';
+import { AutoCollectedMeta } from '../hooks/useAutoCollector';
 import { FileRow, ActiveTool } from '../types';
 
 export const App: React.FC = () => {
@@ -53,6 +56,7 @@ export const App: React.FC = () => {
         loadZip,
         loadGufFiles,
         addFiles,
+        replaceFile,
         updateFileCleanName,
         updateFileDescription,
         updateFileVariable,
@@ -90,6 +94,13 @@ export const App: React.FC = () => {
         }
     };
 
+    // Duplicate auto-collect resolution prompt
+    const [duplicatePrompt, setDuplicatePrompt] = useState<{
+        file: File;
+        meta?: AutoCollectedMeta;
+        existingFile: FileRow;
+    } | null>(null);
+
     // Auto Collector for downloaded .guf files
     const {
         isEnabled: isAutoCollectEnabled,
@@ -101,12 +112,51 @@ export const App: React.FC = () => {
     } = useAutoCollector({
         onFileCollected: (file, meta) => {
             handleSelectTool('packer');
+
+            // Check if active package already contains a file with the exact same sourceUrl
+            if (meta?.sourceUrl) {
+                const existing = activePackage.files.find(
+                    (f) => f.sourceUrl && isSameUrl(f.sourceUrl, meta.sourceUrl)
+                );
+                if (existing) {
+                    setDuplicatePrompt({
+                        file,
+                        meta,
+                        existingFile: existing,
+                    });
+                    return;
+                }
+            }
+
+            // Normal add with sourceUrl saved
             addFiles(
                 [file],
-                meta?.cleanName ? { [file.name]: meta.cleanName, '*': meta.cleanName } : undefined
+                meta?.cleanName ? { [file.name]: meta.cleanName, '*': meta.cleanName } : undefined,
+                meta ? { '*': { cleanName: meta.cleanName, sourceUrl: meta.sourceUrl } } : undefined
             );
         },
     });
+
+    const handleReplaceDuplicate = () => {
+        if (!duplicatePrompt) return;
+        const { file, meta, existingFile } = duplicatePrompt;
+        replaceFile(existingFile.id, file, {
+            cleanName: meta?.cleanName,
+            sourceUrl: meta?.sourceUrl,
+        });
+        setDuplicatePrompt(null);
+    };
+
+    const handleAppendDuplicate = () => {
+        if (!duplicatePrompt) return;
+        const { file, meta } = duplicatePrompt;
+        addFiles(
+            [file],
+            meta?.cleanName ? { [file.name]: meta.cleanName, '*': meta.cleanName } : undefined,
+            meta ? { '*': { cleanName: meta.cleanName, sourceUrl: meta.sourceUrl } } : undefined
+        );
+        setDuplicatePrompt(null);
+    };
 
     // Modals state
     const [isPresetsOpen, setIsPresetsOpen] = useState(false);
@@ -443,6 +493,19 @@ export const App: React.FC = () => {
                 onClose={() => setEditingFile(null)}
                 onSave={handleSaveFileEdit}
             />
+
+            {duplicatePrompt && (
+                <DuplicateAutoCollectModal
+                    isOpen={Boolean(duplicatePrompt)}
+                    onClose={() => setDuplicatePrompt(null)}
+                    existingFile={duplicatePrompt.existingFile}
+                    newFile={duplicatePrompt.file}
+                    newCleanName={duplicatePrompt.meta?.cleanName}
+                    sourceUrl={duplicatePrompt.meta?.sourceUrl || duplicatePrompt.existingFile.sourceUrl || ''}
+                    onReplace={handleReplaceDuplicate}
+                    onAppend={handleAppendDuplicate}
+                />
+            )}
         </div>
     );
 };
