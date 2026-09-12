@@ -1,14 +1,28 @@
-import React, { useState, useEffect } from 'react';
-import { Plus, Trash2, Check, Sparkles, Tag } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Plus, Trash2, Check, Sparkles, Tag, Wand2 } from 'lucide-react';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 import { VariableDefinition } from '../../types';
+
+export const BUILT_IN_TAGS = [
+  { tag: '{indexPad6}', desc: '000001 (номер 6 знаков)' },
+  { tag: '{cleanName}', desc: 'Очищенное имя файла' },
+  { tag: '{type}', desc: 'Тип (algo, form, struct...)' },
+  { tag: '{module}', desc: 'Модуль' },
+  { tag: '{task}', desc: 'Задача (FINAPP-...)' },
+  { tag: '{date}', desc: 'YYYY-MM-DD' },
+  { tag: '{time}', desc: 'HH-MM-SS' },
+  { tag: '{index}', desc: '1 (без ведущих нулей)' },
+  { tag: '{originalName}', desc: 'Исходное имя' },
+];
 
 interface MassActionsModalProps {
   isOpen: boolean;
   onClose: () => void;
   variables: VariableDefinition[];
   variableValues: Record<string, string>;
+  template?: string;
+  onSetTemplate?: (template: string) => void;
   linkedTask?: { taskNumber: string } | null;
   onApplyMassVariables: (values: Record<string, string>) => void;
   onAddVariable: (key: string, label?: string) => void;
@@ -20,6 +34,8 @@ export const MassActionsModal: React.FC<MassActionsModalProps> = ({
   onClose,
   variables,
   variableValues,
+  template,
+  onSetTemplate,
   linkedTask,
   onApplyMassVariables,
   onAddVariable,
@@ -28,6 +44,7 @@ export const MassActionsModal: React.FC<MassActionsModalProps> = ({
   const [formValues, setFormValues] = useState<Record<string, string>>(variableValues);
   const [newVarKey, setNewVarKey] = useState('');
   const [newVarLabel, setNewVarLabel] = useState('');
+  const templateInputRef = useRef<HTMLInputElement>(null);
 
   // Sync values when modal is opened
   useEffect(() => {
@@ -35,6 +52,25 @@ export const MassActionsModal: React.FC<MassActionsModalProps> = ({
       setFormValues(variableValues);
     }
   }, [isOpen, variableValues]);
+
+  const insertTag = (tag: string) => {
+    if (!onSetTemplate || template === undefined) return;
+    if (!templateInputRef.current) {
+      onSetTemplate(template + tag);
+      return;
+    }
+    const start = templateInputRef.current.selectionStart || 0;
+    const end = templateInputRef.current.selectionEnd || 0;
+    const nextVal = template.substring(0, start) + tag + template.substring(end);
+    onSetTemplate(nextVal);
+
+    setTimeout(() => {
+      if (templateInputRef.current) {
+        templateInputRef.current.focus();
+        templateInputRef.current.setSelectionRange(start + tag.length, start + tag.length);
+      }
+    }, 10);
+  };
 
   const handleValueChange = (key: string, value: string) => {
     setFormValues((prev) => ({ ...prev, [key]: value }));
@@ -58,7 +94,7 @@ export const MassActionsModal: React.FC<MassActionsModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Массовые действия и значения тегов"
+      title="Настройка тегов и шаблона"
       maxWidth="md"
       footer={
         <>
@@ -77,6 +113,64 @@ export const MassActionsModal: React.FC<MassActionsModalProps> = ({
       }
     >
       <div className="space-y-4 text-xs">
+        {/* Template & Quick Tag Insertion */}
+        {template !== undefined && onSetTemplate && (
+          <div className="rounded-2xl border border-slate-200/90 bg-white p-3 space-y-2.5 shadow-2xs">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-bold text-slate-800 flex items-center gap-1.5">
+                <Wand2 className="w-3.5 h-3.5 text-emerald-600" />
+                Шаблон имени файлов:
+              </span>
+            </div>
+
+            <div className="relative">
+              <input
+                ref={templateInputRef}
+                type="text"
+                value={template}
+                onChange={(e) => onSetTemplate(e.target.value)}
+                placeholder="{indexPad6}_{type}_{module}_{task}_{cleanName}"
+                className="w-full rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2 font-mono text-xs font-bold text-emerald-800 outline-none transition-all placeholder:text-slate-400 focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-500/15 shadow-2xs"
+              />
+            </div>
+
+            {/* Clickable Tag Chips */}
+            <div className="space-y-1.5 pt-0.5">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                Быстрая вставка тегов:
+              </span>
+
+              <div className="flex flex-wrap gap-1.5">
+                {BUILT_IN_TAGS.map(({ tag, desc }) => (
+                  <button
+                    key={tag}
+                    type="button"
+                    onClick={() => insertTag(tag)}
+                    title={`${tag} — ${desc}. Нажмите для вставки в шаблон`}
+                    className="rounded-lg border border-slate-200 bg-slate-50/90 hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-900 px-2 py-1 font-mono text-[11px] font-semibold text-slate-700 transition-all active:scale-95 shadow-2xs cursor-pointer"
+                  >
+                    {tag}
+                  </button>
+                ))}
+
+                {variables
+                  .filter((v) => !['type', 'module', 'task'].includes(v.key))
+                  .map((v) => (
+                    <button
+                      key={v.key}
+                      type="button"
+                      onClick={() => insertTag(`{${v.key}}`)}
+                      title={`Пользовательская переменная: {${v.key}}. Нажмите для вставки в шаблон`}
+                      className="rounded-lg border border-sky-200 bg-sky-50 px-2 py-1 font-mono text-[11px] font-semibold text-sky-800 transition-all hover:border-sky-300 hover:bg-sky-100 active:scale-95 shadow-2xs cursor-pointer"
+                    >
+                      {`{${v.key}}`}
+                    </button>
+                  ))}
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="rounded-2xl border border-emerald-200/90 bg-emerald-50/60 p-3 shadow-2xs">
           <p className="text-emerald-950 text-[11px] leading-relaxed font-medium">
             Значения тегов автоматически подставляются в шаблон имени файлов (например,{' '}

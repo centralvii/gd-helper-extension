@@ -451,6 +451,8 @@ export const App: React.FC = () => {
                 onClose={() => setIsMassActionsOpen(false)}
                 variables={variables}
                 variableValues={variableValues}
+                template={template}
+                onSetTemplate={setTemplate}
                 linkedTask={
                     activePackage.taskId
                         ? implTasks.tasks.find((t) => t.id === activePackage.taskId)

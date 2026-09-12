@@ -3,7 +3,6 @@ import {
   Sparkles,
   RotateCcw,
   Star,
-  Eye,
   Wand2,
 } from 'lucide-react';
 import { FileRow, VariableDefinition } from '../../types';
@@ -12,7 +11,7 @@ interface TemplateEditorProps {
   template: string;
   primaryTemplate: string;
   startNumber: number;
-  variables: VariableDefinition[];
+  variables?: VariableDefinition[];
   firstFile?: FileRow;
   onSetTemplate: (template: string) => void;
   onSetPrimaryTemplate: (template: string) => void;
@@ -20,24 +19,10 @@ interface TemplateEditorProps {
   onResetTemplate: () => void;
 }
 
-const BUILT_IN_TAGS = [
-  { tag: '{indexPad6}', desc: '000001 (номер 6 знаков)' },
-  { tag: '{cleanName}', desc: 'Очищенное имя файла' },
-  { tag: '{type}', desc: 'Тип (algo, form, struct...)' },
-  { tag: '{module}', desc: 'Модуль' },
-  { tag: '{task}', desc: 'Задача (FINAPP-...)' },
-  { tag: '{date}', desc: 'YYYY-MM-DD' },
-  { tag: '{time}', desc: 'HH-MM-SS' },
-  { tag: '{index}', desc: '1 (без ведущих нулей)' },
-  { tag: '{originalName}', desc: 'Исходное имя' },
-];
-
 export const TemplateEditor: React.FC<TemplateEditorProps> = ({
   template,
   primaryTemplate,
   startNumber,
-  variables,
-  firstFile,
   onSetTemplate,
   onSetPrimaryTemplate,
   onSetStartNumber,
@@ -45,25 +30,6 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const isPrimary = template === primaryTemplate;
-
-  const insertTag = (tag: string) => {
-    if (!inputRef.current) return;
-    const start = inputRef.current.selectionStart || 0;
-    const end = inputRef.current.selectionEnd || 0;
-    const nextVal =
-      template.substring(0, start) + tag + template.substring(end);
-    onSetTemplate(nextVal);
-
-    setTimeout(() => {
-      if (inputRef.current) {
-        inputRef.current.focus();
-        inputRef.current.setSelectionRange(
-          start + tag.length,
-          start + tag.length
-        );
-      }
-    }, 10);
-  };
 
   return (
     <div className="overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-xs transition-all">
@@ -123,7 +89,7 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
         </div>
       </div>
 
-      <div className="space-y-3 p-3.5">
+      <div className="p-2.5">
         {/* Main Template Input */}
         <div className="relative">
           <Wand2 className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-emerald-600" />
@@ -136,56 +102,6 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
             className="w-full rounded-xl border border-slate-200 bg-slate-50/70 pl-9 pr-3 py-2 font-mono text-xs font-bold text-emerald-800 outline-none transition-all placeholder:text-slate-400 focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-500/15 shadow-2xs"
           />
         </div>
-
-        {/* Clickable Tag Chips */}
-        <div className="space-y-1.5">
-          <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-slate-400">
-            <span>Быстрая вставка тегов:</span>
-          </div>
-
-          <div className="flex flex-wrap gap-1.5">
-            {BUILT_IN_TAGS.map(({ tag, desc }) => (
-              <button
-                key={tag}
-                type="button"
-                onClick={() => insertTag(tag)}
-                title={`${tag} — ${desc}`}
-                className="rounded-lg border border-slate-200 bg-slate-50/80 hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-900 px-2 py-1 font-mono text-[11px] font-medium text-slate-700 transition-all active:scale-95 shadow-2xs cursor-pointer"
-              >
-                {tag}
-              </button>
-            ))}
-
-            {variables
-              .filter((v) => !['type', 'module', 'task'].includes(v.key))
-              .map((v) => (
-                <button
-                  key={v.key}
-                  type="button"
-                  onClick={() => insertTag(`{${v.key}}`)}
-                  title={`Пользовательская переменная: {${v.key}}`}
-                  className="rounded-lg border border-sky-200 bg-sky-50 px-2 py-1 font-mono text-[11px] font-medium text-sky-800 transition-all hover:border-sky-300 hover:bg-sky-100 active:scale-95 shadow-2xs cursor-pointer"
-                >
-                  {`{${v.key}}`}
-                </button>
-              ))}
-          </div>
-        </div>
-
-        {/* Live Preview of 1st File */}
-        {firstFile && (
-          <div className="rounded-xl border border-emerald-200/90 bg-emerald-50/60 px-3.5 py-2.5 shadow-2xs">
-            <div className="flex items-start gap-2 text-[11px]">
-              <Eye className="mt-0.5 h-3.5 w-3.5 text-emerald-700 flex-shrink-0" />
-              <div className="min-w-0 flex-1">
-                <span className="text-slate-600 font-medium">Пример (файл 1): </span>
-                <span className="block truncate font-mono font-bold text-emerald-900 mt-0.5">
-                  {firstFile.newName || '—'}
-                </span>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
