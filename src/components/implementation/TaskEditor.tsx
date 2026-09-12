@@ -600,12 +600,16 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
             type="button"
             onClick={() => setIsSettingsModalOpen(true)}
             title="Параметры задачи (номер, релиз, название, пакеты, заметка)"
-            className="inline-flex items-center gap-1 px-2 py-1 bg-slate-50 hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 border border-slate-200 hover:border-emerald-300 rounded-xl text-[11px] font-semibold transition-all shadow-2xs cursor-pointer whitespace-nowrap"
+            className="relative inline-flex items-center gap-1 px-2 py-1 bg-slate-50 hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 border border-slate-200 hover:border-emerald-300 rounded-xl text-[11px] font-semibold transition-all shadow-2xs cursor-pointer whitespace-nowrap"
           >
             <Settings className="w-3 h-3 text-emerald-600" />
             <span>Настройки</span>
             {Boolean(task.summary?.trim()) && (
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" title="Есть заметка" />
+              <span
+                className="w-1.5 h-1.5 rounded-full bg-emerald-500"
+                style={{ boxShadow: '0 0 4px rgba(34,197,94,0.7)' }}
+                title="Есть заметка"
+              />
             )}
           </button>
 
