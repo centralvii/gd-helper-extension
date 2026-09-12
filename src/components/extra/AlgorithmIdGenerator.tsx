@@ -11,12 +11,18 @@ import {
   AlertCircle,
   BookA,
   Plus,
+  Sparkles,
+  Zap,
+  Settings,
 } from 'lucide-react';
 import {
   generateAlgorithmId,
   DEFAULT_CUSTOM_DICTIONARY,
 } from '../../utils/algorithmIdGenerator';
-import { AlgorithmHistoryItem, AlgorithmType } from '../../types';
+import { AlgorithmHistoryItem, AlgorithmType, AiAlgorithmIdResult } from '../../types';
+import { generateAlgorithmIdViaAi, isAiConfigured } from '../../services/aiAlgorithmGenerator';
+import { useAiChat } from '../../hooks/useAiChat';
+import { AiSettingsModal } from '../ai/AiSettingsModal';
 import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
@@ -38,6 +44,19 @@ const ALG_INPUT_KEY = 'gd-helper-alg-input';
 const ALG_POSTFIX_KEY = 'gd-helper-alg-postfix';
 
 export const AlgorithmIdGenerator: React.FC = () => {
+  const {
+    settings: aiSettings,
+    updateSettings: updateAiSettings,
+    resetSettings: resetAiSettings,
+    testConnection: testAiConnection,
+  } = useAiChat();
+
+  const [isAiSettingsOpen, setIsAiSettingsOpen] = useState(false);
+  const [aiResult, setAiResult] = useState<AiAlgorithmIdResult | null>(null);
+  const [isAiLoading, setIsAiLoading] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
+  const [activeSource, setActiveSource] = useState<'ai' | 'local'>('local');
+
   const [inputText, setInputText] = useState<string>(() => {
     try {
       return localStorage.getItem(ALG_INPUT_KEY) ?? 'Лимиты. Рассчитать VaR по портфелю';
@@ -74,6 +93,7 @@ export const AlgorithmIdGenerator: React.FC = () => {
 
   const handleSetInputText = (val: string) => {
     setInputText(val);
+    setActiveSource('local');
     try {
       localStorage.setItem(ALG_INPUT_KEY, val);
     } catch {
@@ -104,6 +124,28 @@ export const AlgorithmIdGenerator: React.FC = () => {
       // ignore
     }
   }, []);
+
+  const handleGenerateAi = async () => {
+    const trimmed = inputText.trim();
+    if (!trimmed) return;
+
+    if (!isAiConfigured()) {
+      setIsAiSettingsOpen(true);
+      return;
+    }
+
+    setIsAiLoading(true);
+    setAiError(null);
+    try {
+      const res = await generateAlgorithmIdViaAi(trimmed, { postfix });
+      setAiResult(res);
+      setActiveSource('ai');
+    } catch (err: any) {
+      setAiError(err?.message || 'Не удалось сгенерировать ID через AI модель.');
+    } finally {
+      setIsAiLoading(false);
+    }
+  };
 
   const handleAddCustomTerm = (e: React.FormEvent) => {
     e.preventDefault();
@@ -157,8 +199,13 @@ export const AlgorithmIdGenerator: React.FC = () => {
     });
   };
 
-  const handleCopy = (idToCopy?: string) => {
-    const textToCopy = idToCopy || parsed.generatedId;
+  const currentGeneratedId =
+    activeSource === 'ai' && aiResult?.primaryId ? aiResult.primaryId : parsed.generatedId;
+  const currentDetectedType: AlgorithmType =
+    activeSource === 'ai' && aiResult?.detectedType ? aiResult.detectedType : parsed.detectedType;
+
+  const handleCopy = (idToCopy?: string, itemType?: AlgorithmType) => {
+    const textToCopy = idToCopy || currentGeneratedId;
     if (!textToCopy) return;
 
     navigator.clipboard.writeText(textToCopy);
@@ -174,7 +221,7 @@ export const AlgorithmIdGenerator: React.FC = () => {
       id: crypto.randomUUID(),
       russianName: inputText.trim(),
       generatedId: textToCopy,
-      type: parsed.detectedType,
+      type: itemType || currentDetectedType,
       createdAt: Date.now(),
     });
 
@@ -276,6 +323,84 @@ export const AlgorithmIdGenerator: React.FC = () => {
             className="w-full rounded-xl border border-slate-200 bg-slate-50/70 p-3 text-xs font-medium text-slate-900 placeholder:text-slate-400 outline-none transition-all focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-500/10 shadow-2xs"
           />
         </div>
+
+        {/* AI Action Row */}
+        <div className="flex items-center justify-between gap-2 flex-wrap pt-0.5">
+          <div className="flex items-center gap-2">
+            <Button
+              variant="emerald"
+              size="sm"
+              onClick={handleGenerateAi}
+              disabled={isAiLoading || !inputText.trim()}
+              className="bg-gradient-to-r from-emerald-600 via-teal-600 to-indigo-600 hover:from-emerald-500 hover:to-indigo-500 text-white shadow-xs font-semibold cursor-pointer"
+              leftIcon={
+                isAiLoading ? (
+                  <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin flex-shrink-0" />
+                ) : (
+                  <Sparkles className="w-3.5 h-3.5 flex-shrink-0 text-amber-300 animate-pulse" />
+                )
+              }
+            >
+              <span>
+                {isAiLoading
+                  ? 'AI анализирует...'
+                  : aiResult && activeSource === 'ai'
+                  ? 'Перегенерировать через AI'
+                  : 'Сгенерировать через AI'}
+              </span>
+            </Button>
+
+            <button
+              type="button"
+              onClick={() => setIsAiSettingsOpen(true)}
+              title="Настройки подключения AI (модель, API ключ, сервер)"
+              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-medium transition-colors shadow-2xs cursor-pointer"
+            >
+              <Settings className="w-3.5 h-3.5 text-slate-500" />
+              <span className="hidden sm:inline">Настройки AI</span>
+              <span
+                className={`w-2 h-2 rounded-full ${
+                  isAiConfigured() ? 'bg-emerald-500 ring-2 ring-emerald-200' : 'bg-amber-400 ring-2 ring-amber-200'
+                }`}
+                title={isAiConfigured() ? 'AI настроен' : 'Требуется настройка подключения AI'}
+              />
+            </button>
+          </div>
+
+          <div className="text-[11px] text-slate-400">
+            {isAiConfigured() ? (
+              <span className="text-slate-500 font-mono">Модель: {aiSettings.model || 'OpenAI API'}</span>
+            ) : (
+              <button
+                type="button"
+                className="text-amber-600 font-medium hover:underline cursor-pointer flex items-center gap-1"
+                onClick={() => setIsAiSettingsOpen(true)}
+              >
+                <span>⚙️ Настройте API ключ</span>
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* AI Error Banner */}
+        {aiError && (
+          <div className="flex items-start justify-between gap-2 rounded-xl bg-rose-50 border border-rose-200 p-2.5 text-xs text-rose-800 animate-shake">
+            <div className="flex items-start gap-2 min-w-0">
+              <AlertCircle className="w-4 h-4 text-rose-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <div className="font-bold">Ошибка AI генератора:</div>
+                <div className="text-[11px] text-rose-700 mt-0.5">{aiError}</div>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsAiSettingsOpen(true)}
+              className="text-[11px] font-semibold text-rose-700 underline hover:text-rose-900 whitespace-nowrap flex-shrink-0 cursor-pointer"
+            >
+              Настройки AI
+            </button>
+          </div>
+        )}
 
         {/* Postfix and Settings Row */}
         <div className="pt-2 border-t border-gray-100 flex items-center justify-between gap-2 flex-wrap text-xs">
@@ -409,29 +534,65 @@ export const AlgorithmIdGenerator: React.FC = () => {
         {/* Header — single compact row: label left, char-count right */}
         <div className="flex items-center gap-2 border-b border-emerald-100 bg-emerald-50/70 px-3.5 py-2.5">
           <div className="flex-1 min-w-0 flex items-center gap-2 flex-wrap">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-900 whitespace-nowrap">
-              Сгенерированный ID
-            </span>
-            <Badge variant={getTypeBadgeVariant(parsed.detectedType)} size="xs" dot>
-              {getTypeLabel(parsed.detectedType)}
+            {aiResult ? (
+              <div className="inline-flex rounded-lg border border-emerald-200 bg-white p-0.5 text-xs shadow-2xs">
+                <button
+                  type="button"
+                  onClick={() => setActiveSource('ai')}
+                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md font-semibold text-[11px] transition-all cursor-pointer ${
+                    activeSource === 'ai'
+                      ? 'bg-gradient-to-r from-emerald-600 to-teal-700 text-white shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <Sparkles className="w-3 h-3 text-amber-300" />
+                  <span>AI Генерация</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveSource('local')}
+                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md font-semibold text-[11px] transition-all cursor-pointer ${
+                    activeSource === 'local'
+                      ? 'bg-slate-800 text-white shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <Zap className="w-3 h-3 text-amber-400" />
+                  <span>Локальный движок</span>
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-900 whitespace-nowrap">
+                  Сгенерированный ID
+                </span>
+                <span className="inline-flex items-center gap-1 text-[10.5px] font-medium text-slate-600 bg-white border border-emerald-200 px-2 py-0.5 rounded-md shadow-2xs">
+                  <Zap className="w-2.5 h-2.5 text-amber-500" />
+                  Локальный движок
+                </span>
+              </div>
+            )}
+
+            <Badge variant={getTypeBadgeVariant(currentDetectedType)} size="xs" dot>
+              {getTypeLabel(currentDetectedType)}
             </Badge>
           </div>
 
-          {parsed.generatedId && (
+          {currentGeneratedId && (
             <span className="flex-shrink-0 text-[11px] font-mono font-bold text-emerald-800 whitespace-nowrap">
-              {parsed.generatedId.length} симв.
+              {currentGeneratedId.length} симв.
             </span>
           )}
         </div>
 
         {/* Result Content */}
         <div className="p-3.5 space-y-3">
-          {parsed.generatedId ? (
+          {currentGeneratedId ? (
             <div className="space-y-3">
               {/* Main ID Block */}
               <div className="rounded-xl border border-emerald-200/90 bg-emerald-50/50 p-3 space-y-2.5 shadow-2xs">
                 <div className="font-mono text-xs font-bold text-slate-900 break-all select-all tracking-wide leading-relaxed">
-                  {parsed.generatedId}
+                  {currentGeneratedId}
                 </div>
 
                 <Button
@@ -439,131 +600,189 @@ export const AlgorithmIdGenerator: React.FC = () => {
                   size="sm"
                   onClick={() => handleCopy()}
                   leftIcon={
-                    copied ? (
+                    copied && (!copiedId || copiedId === currentGeneratedId) ? (
                       <Check className="w-3.5 h-3.5 flex-shrink-0" />
                     ) : (
                       <Copy className="w-3.5 h-3.5 flex-shrink-0" />
                     )
                   }
-                  className="w-full justify-center shadow-xs"
+                  className="w-full justify-center shadow-xs cursor-pointer"
                 >
-                  <span>{copied ? 'Скопировано в буфер!' : 'Копировать'}</span>
+                  <span>
+                    {copied && (!copiedId || copiedId === currentGeneratedId)
+                      ? 'Скопировано в буфер!'
+                      : 'Копировать'}
+                  </span>
                 </Button>
               </div>
 
-              {/* Semantic Breakdown Details */}
-              <div className="grid grid-cols-1 gap-1.5 text-xs">
-                {parsed.block && (
-                  <div className="flex items-center justify-between rounded-lg bg-gray-50 px-2.5 py-1.5 border border-gray-100">
-                    <span className="text-gray-500 text-[11px]">
-                      Функциональный блок:
-                    </span>
-                    <span className="font-semibold text-gray-900">
-                      {parsed.block}{' '}
-                      <code className="text-emerald-700 font-mono">
-                        ({parsed.blockCode})
-                      </code>
-                    </span>
+              {/* Display details based on activeSource */}
+              {activeSource === 'ai' && aiResult ? (
+                <div className="space-y-2.5">
+                  {/* Semantic Breakdown Details from AI */}
+                  <div className="rounded-xl bg-gradient-to-br from-indigo-50/70 via-sky-50/50 to-emerald-50/40 border border-indigo-100 p-3 text-xs space-y-1.5 shadow-2xs">
+                    <div className="flex items-center gap-1.5 font-bold text-indigo-950 text-[11px]">
+                      <Sparkles className="w-3.5 h-3.5 text-indigo-600 flex-shrink-0" />
+                      <span>Семантический разбор AI модели:</span>
+                    </div>
+                    <p className="text-[11.5px] text-slate-700 leading-relaxed pl-5">
+                      {aiResult.explanation}
+                    </p>
                   </div>
-                )}
 
-                {parsed.detectedType === 'filter_condition' && (
-                  <>
-                    {parsed.targetObject && (
-                      <div className="flex items-center justify-between rounded-lg bg-gray-50 px-2.5 py-1.5 border border-gray-100">
-                        <span className="text-gray-500 text-[11px]">
-                          Тип объекта:
-                        </span>
-                        <span className="font-semibold text-gray-900">
-                          {parsed.targetObject}{' '}
-                          <code className="text-emerald-700 font-mono">
-                            ({parsed.targetObjectCode})
-                          </code>
-                        </span>
+                  {/* AI Alternative Variants */}
+                  {aiResult.variants && aiResult.variants.length > 0 && (
+                    <div className="space-y-1.5 pt-1 min-w-0">
+                      <div className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">
+                        Альтернативные варианты от AI (клик для копирования):
                       </div>
-                    )}
-                    {parsed.filterParams && (
-                      <div className="flex items-center justify-between rounded-lg bg-gray-50 px-2.5 py-1.5 border border-gray-100">
-                        <span className="text-gray-500 text-[11px]">
-                          Параметры фильтрации:
-                        </span>
-                        <span className="font-semibold text-gray-900">
-                          {parsed.filterParams}{' '}
-                          <code className="text-emerald-700 font-mono">
-                            ({parsed.filterParamsCode})
-                          </code>
-                        </span>
+                      <div className="space-y-1.5 min-w-0">
+                        {aiResult.variants.map((v) => (
+                          <button
+                            key={v.id}
+                            type="button"
+                            onClick={() => handleCopy(v.id)}
+                            className="w-full rounded-xl border border-gray-200 bg-gray-50 hover:bg-emerald-50 hover:border-emerald-300 px-3 py-2 text-[11px] transition-all flex items-center justify-between gap-2 group cursor-pointer text-left min-w-0 shadow-2xs"
+                            title={v.desc}
+                          >
+                            <div className="min-w-0 flex-1">
+                              <div className="font-mono font-bold text-slate-900 group-hover:text-emerald-950 break-all select-all leading-tight">
+                                {v.id}
+                              </div>
+                              {v.desc && (
+                                <div className="text-[10px] text-slate-500 truncate mt-0.5">
+                                  {v.desc}
+                                </div>
+                              )}
+                            </div>
+                            {copied && copiedId === v.id ? (
+                              <Check className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
+                            ) : (
+                              <Copy className="w-3.5 h-3.5 text-gray-400 group-hover:text-emerald-600 flex-shrink-0" />
+                            )}
+                          </button>
+                        ))}
                       </div>
-                    )}
-                    {parsed.baseObject && (
-                      <div className="flex items-center justify-between rounded-lg bg-gray-50 px-2.5 py-1.5 border border-gray-100">
-                        <span className="text-gray-500 text-[11px]">
-                          Базовый объект:
-                        </span>
-                        <span className="font-semibold text-gray-900">
-                          {parsed.baseObject}{' '}
-                          <code className="text-emerald-700 font-mono">
-                            ({parsed.baseObjectCode})
-                          </code>
-                        </span>
-                      </div>
-                    )}
-                  </>
-                )}
-
-                <div className="flex items-center justify-between rounded-lg bg-gray-50 px-2.5 py-1.5 border border-gray-100">
-                  <span className="text-gray-500 text-[11px]">Тип правила:</span>
-                  <span className="font-medium text-gray-700 text-[11px]">
-                    {parsed.explanation}
-                  </span>
+                    </div>
+                  )}
                 </div>
-              </div>
+              ) : (
+                <div className="space-y-2.5">
+                  {/* Semantic Breakdown Details from Local Engine */}
+                  <div className="grid grid-cols-1 gap-1.5 text-xs">
+                    {parsed.block && (
+                      <div className="flex items-center justify-between rounded-lg bg-gray-50 px-2.5 py-1.5 border border-gray-100">
+                        <span className="text-gray-500 text-[11px]">
+                          Функциональный блок:
+                        </span>
+                        <span className="font-semibold text-gray-900">
+                          {parsed.block}{' '}
+                          <code className="text-emerald-700 font-mono">
+                            ({parsed.blockCode})
+                          </code>
+                        </span>
+                      </div>
+                    )}
 
-              {/* Alternative Variations */}
-              {parsed.variants && (
-                <div className="space-y-1.5 pt-2 border-t border-emerald-100 min-w-0">
-                  <div className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">
-                    Альтернативные варианты (клик для копирования):
+                    {parsed.detectedType === 'filter_condition' && (
+                      <>
+                        {parsed.targetObject && (
+                          <div className="flex items-center justify-between rounded-lg bg-gray-50 px-2.5 py-1.5 border border-gray-100">
+                            <span className="text-gray-500 text-[11px]">
+                              Тип объекта:
+                            </span>
+                            <span className="font-semibold text-gray-900">
+                              {parsed.targetObject}{' '}
+                              <code className="text-emerald-700 font-mono">
+                                ({parsed.targetObjectCode})
+                              </code>
+                            </span>
+                          </div>
+                        )}
+                        {parsed.filterParams && (
+                          <div className="flex items-center justify-between rounded-lg bg-gray-50 px-2.5 py-1.5 border border-gray-100">
+                            <span className="text-gray-500 text-[11px]">
+                              Параметры фильтрации:
+                            </span>
+                            <span className="font-semibold text-gray-900">
+                              {parsed.filterParams}{' '}
+                              <code className="text-emerald-700 font-mono">
+                                ({parsed.filterParamsCode})
+                              </code>
+                            </span>
+                          </div>
+                        )}
+                        {parsed.baseObject && (
+                          <div className="flex items-center justify-between rounded-lg bg-gray-50 px-2.5 py-1.5 border border-gray-100">
+                            <span className="text-gray-500 text-[11px]">
+                              Базовый объект:
+                            </span>
+                            <span className="font-semibold text-gray-900">
+                              {parsed.baseObject}{' '}
+                              <code className="text-emerald-700 font-mono">
+                                ({parsed.baseObjectCode})
+                              </code>
+                            </span>
+                          </div>
+                        )}
+                      </>
+                    )}
+
+                    <div className="flex items-center justify-between rounded-lg bg-gray-50 px-2.5 py-1.5 border border-gray-100">
+                      <span className="text-gray-500 text-[11px]">Тип правила:</span>
+                      <span className="font-medium text-gray-700 text-[11px]">
+                        {parsed.explanation}
+                      </span>
+                    </div>
                   </div>
-                  <div className="space-y-1.5 min-w-0">
-                    {parsed.variants.scopeFirstId &&
-                      parsed.variants.scopeFirstId !== parsed.generatedId && (
-                        <button
-                          type="button"
-                          onClick={() => handleCopy(parsed.variants?.scopeFirstId)}
-                          className="w-full rounded-xl border border-gray-200 bg-gray-50 hover:bg-emerald-50 hover:border-emerald-300 px-2.5 py-1.5 font-mono text-[11px] font-semibold text-gray-800 hover:text-emerald-950 transition-all flex items-center justify-between gap-2 group cursor-pointer text-left min-w-0 shadow-2xs"
-                          title="Вариант с префиксом предметной области в начале"
-                        >
-                          <span className="break-all select-all flex-1 min-w-0 leading-tight">
-                            {parsed.variants.scopeFirstId}
-                          </span>
-                          {copiedId === parsed.variants.scopeFirstId ? (
-                            <Check className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
-                          ) : (
-                            <Copy className="w-3.5 h-3.5 text-gray-400 group-hover:text-emerald-600 flex-shrink-0" />
+
+                  {/* Alternative Variations */}
+                  {parsed.variants && (
+                    <div className="space-y-1.5 pt-2 border-t border-emerald-100 min-w-0">
+                      <div className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">
+                        Альтернативные варианты (клик для копирования):
+                      </div>
+                      <div className="space-y-1.5 min-w-0">
+                        {parsed.variants.scopeFirstId &&
+                          parsed.variants.scopeFirstId !== parsed.generatedId && (
+                            <button
+                              type="button"
+                              onClick={() => handleCopy(parsed.variants?.scopeFirstId)}
+                              className="w-full rounded-xl border border-gray-200 bg-gray-50 hover:bg-emerald-50 hover:border-emerald-300 px-2.5 py-1.5 font-mono text-[11px] font-semibold text-gray-800 hover:text-emerald-950 transition-all flex items-center justify-between gap-2 group cursor-pointer text-left min-w-0 shadow-2xs"
+                              title="Вариант с префиксом предметной области в начале"
+                            >
+                              <span className="break-all select-all flex-1 min-w-0 leading-tight">
+                                {parsed.variants.scopeFirstId}
+                              </span>
+                              {copiedId === parsed.variants.scopeFirstId ? (
+                                <Check className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
+                              ) : (
+                                <Copy className="w-3.5 h-3.5 text-gray-400 group-hover:text-emerald-600 flex-shrink-0" />
+                              )}
+                            </button>
                           )}
-                        </button>
-                      )}
-                    {parsed.variants.compactId &&
-                      parsed.variants.compactId !== parsed.generatedId &&
-                      parsed.variants.compactId !== parsed.variants.scopeFirstId && (
-                        <button
-                          type="button"
-                          onClick={() => handleCopy(parsed.variants?.compactId)}
-                          className="w-full rounded-xl border border-gray-200 bg-gray-50 hover:bg-emerald-50 hover:border-emerald-300 px-2.5 py-1.5 font-mono text-[11px] font-semibold text-gray-800 hover:text-emerald-950 transition-all flex items-center justify-between gap-2 group cursor-pointer text-left min-w-0 shadow-2xs"
-                          title="Компактный вариант"
-                        >
-                          <span className="break-all select-all flex-1 min-w-0 leading-tight">
-                            {parsed.variants.compactId}
-                          </span>
-                          {copiedId === parsed.variants.compactId ? (
-                            <Check className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
-                          ) : (
-                            <Copy className="w-3.5 h-3.5 text-gray-400 group-hover:text-emerald-600 flex-shrink-0" />
+                        {parsed.variants.compactId &&
+                          parsed.variants.compactId !== parsed.generatedId &&
+                          parsed.variants.compactId !== parsed.variants.scopeFirstId && (
+                            <button
+                              type="button"
+                              onClick={() => handleCopy(parsed.variants?.compactId)}
+                              className="w-full rounded-xl border border-gray-200 bg-gray-50 hover:bg-emerald-50 hover:border-emerald-300 px-2.5 py-1.5 font-mono text-[11px] font-semibold text-gray-800 hover:text-emerald-950 transition-all flex items-center justify-between gap-2 group cursor-pointer text-left min-w-0 shadow-2xs"
+                              title="Компактный вариант"
+                            >
+                              <span className="break-all select-all flex-1 min-w-0 leading-tight">
+                                {parsed.variants.compactId}
+                              </span>
+                              {copiedId === parsed.variants.compactId ? (
+                                <Check className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
+                              ) : (
+                                <Copy className="w-3.5 h-3.5 text-gray-400 group-hover:text-emerald-600 flex-shrink-0" />
+                              )}
+                            </button>
                           )}
-                        </button>
-                      )}
-                  </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -689,6 +908,16 @@ export const AlgorithmIdGenerator: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* ── AI Settings Modal ── */}
+      <AiSettingsModal
+        isOpen={isAiSettingsOpen}
+        onClose={() => setIsAiSettingsOpen(false)}
+        settings={aiSettings}
+        onSave={updateAiSettings}
+        onReset={resetAiSettings}
+        onTestConnection={testAiConnection}
+      />
     </div>
   );
 };

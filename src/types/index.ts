@@ -207,3 +207,16 @@ export interface AlgorithmHistoryItem {
 
 export type AutoCollectNamingMode = 'pageName' | 'original';
 
+export interface AiAlgorithmVariant {
+  id: string;
+  desc: string;
+}
+
+export interface AiAlgorithmIdResult {
+  primaryId: string;
+  detectedType: AlgorithmType;
+  explanation: string;
+  variants: AiAlgorithmVariant[];
+  source: 'ai' | 'local';
+}
+
