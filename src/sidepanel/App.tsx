@@ -93,12 +93,17 @@ export const App: React.FC = () => {
     const {
         isEnabled: isAutoCollectEnabled,
         toggleEnabled: toggleAutoCollect,
+        namingMode: autoCollectNamingMode,
+        setNamingMode: setAutoCollectNamingMode,
         notification: autoCollectNotification,
         clearNotification,
     } = useAutoCollector({
-        onFileCollected: (file) => {
+        onFileCollected: (file, meta) => {
             handleSelectTool('packer');
-            addFiles([file]);
+            addFiles(
+                [file],
+                meta?.cleanName ? { [file.name]: meta.cleanName, '*': meta.cleanName } : undefined
+            );
         },
     });
 
@@ -189,9 +194,14 @@ export const App: React.FC = () => {
                 >
                     <Zap className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: '#22c55e' }} />
                     <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1 text-xs font-bold" style={{ color: '#111827' }}>
+                        <div className="flex items-center gap-1.5 text-xs font-bold" style={{ color: '#111827' }}>
                             <Check className="w-3 h-3" style={{ color: '#22c55e' }} />
                             <span>Файл перехвачен</span>
+                            {autoCollectNotification.mode && (
+                                <span className="text-[9px] font-semibold px-1.5 py-0.2 rounded bg-emerald-100/90 text-emerald-800 border border-emerald-300/80">
+                                    {autoCollectNotification.mode === 'original' ? 'обычное имя' : 'из алгоритма'}
+                                </span>
+                            )}
                         </div>
                         <p className="text-[11px] truncate mt-0.5 font-medium" style={{ color: '#16a34a' }}>
                             {autoCollectNotification.fileName}
@@ -261,6 +271,8 @@ export const App: React.FC = () => {
                         }}
                         isAutoCollectEnabled={isAutoCollectEnabled}
                         onToggleAutoCollect={toggleAutoCollect}
+                        namingMode={autoCollectNamingMode}
+                        onChangeNamingMode={setAutoCollectNamingMode}
                     />
 
                     {files.length === 0 ? (

@@ -104,6 +104,35 @@ export function cleanTabTitle(rawTitle: string): string {
 }
 
 /**
+ * Sanitizes page name or title for safe usage in file names and ZIP archives
+ */
+export function sanitizeCleanName(name: string): string {
+  if (!name) return '';
+  let clean = name.trim();
+
+  // Replace colons with " - "
+  clean = clean.replace(/\s*:\s*/g, ' - ');
+
+  // Replace slashes and backslashes with hyphens
+  clean = clean.replace(/[/\\]+/g, '-');
+
+  // Replace double quotes with Russian typographical quotes « »
+  clean = clean.replace(/"([^"]*)"/g, '«$1»').replace(/"/g, '');
+
+  // Remove illegal characters for filesystems: * ? < > |
+  clean = clean.replace(/[*?<>|]/g, '');
+
+  // Collapse multiple spaces or dashes
+  clean = clean.replace(/\s+/g, ' ');
+  clean = clean.replace(/-{2,}/g, '-');
+
+  // Strip leading/trailing dots, hyphens, and whitespace
+  clean = clean.replace(/^[-_.\s]+/, '').replace(/[-_.\s]+$/, '');
+
+  return clean;
+}
+
+/**
  * Wraps title or description in Russian quotes «...» if not already in quotes
  */
 export function formatTitleInQuotes(title: string): string {
@@ -633,12 +662,29 @@ export async function getActiveTabInfo(): Promise<TabInfo | null> {
                   }
                 }
 
-                // 6. Header / title element in page
-                const h1 = document.querySelector(
-                  'h1, h2, .title, .form-title, .page-header-title, [class*="page-title"], [class*="pageTitle"], [class*="card-title"], [class*="cardTitle"]'
+                // 6. Header / title element in page (Priority: GreenData .page-name-wrapper .page-h)
+                const pageNameElem = document.querySelector(
+                  '.page-name-wrapper .page-h, [class*="page-name-wrapper"] [class*="page-h"], .page-name-wrapper [title], .page-name-wrapper span, .page-name-wrapper, .page-h, [class*="page-h"]'
                 );
-                if (h1 && h1.textContent) {
-                  titleHint = h1.textContent.trim();
+                if (pageNameElem) {
+                  const titleAttr = pageNameElem.getAttribute('title')?.trim();
+                  if (titleAttr) {
+                    titleHint = titleAttr;
+                  } else {
+                    const clone = pageNameElem.cloneNode(true) as HTMLElement;
+                    clone.querySelectorAll('button, svg, [class*="tooltip"], i').forEach((e) => e.remove());
+                    const t = clone.textContent?.trim();
+                    if (t) titleHint = t;
+                  }
+                }
+
+                if (!titleHint) {
+                  const h1 = document.querySelector(
+                    'h1, h2, .title, .form-title, .page-header-title, [class*="page-title"], [class*="pageTitle"], [class*="card-title"], [class*="cardTitle"]'
+                  );
+                  if (h1 && h1.textContent) {
+                    titleHint = h1.textContent.trim();
+                  }
                 }
 
                 // 7. Input fields for Name / Title
@@ -670,8 +716,8 @@ export async function getActiveTabInfo(): Promise<TabInfo | null> {
               if (res.typeHint) domTypeHint = res.typeHint;
               if (res.breadcrumbHint) domBreadcrumb = res.breadcrumbHint;
               if (res.activeTabHint) domActiveTab = res.activeTabHint;
-              if (res.titleHint && (!clean || clean.toLowerCase().includes('greendata') || clean === 'Главная')) {
-                clean = res.titleHint;
+              if (res.titleHint) {
+                clean = cleanTabTitle(res.titleHint);
                 rawTitle = res.titleHint;
               }
             }
@@ -711,6 +757,102 @@ export async function getActiveTabInfo(): Promise<TabInfo | null> {
     };
   }
 
+  return null;
+}
+
+/**
+ * Injected function to extract the GreenData page name directly from the DOM
+ * Target markup: <div class="flex-auto page-name-wrapper"><span class="page-h ... title="...">...</span></div>
+ */
+export function extractGreenDataPageNameFromDom(): string | null {
+  // 1. Primary: .page-name-wrapper .page-h
+  const selectors = [
+    '.page-name-wrapper .page-h',
+    '.page-name-wrapper [title]',
+    '[class*="page-name-wrapper"] [class*="page-h"]',
+    '[class*="page-name-wrapper"] [title]',
+    '.page-name-wrapper span',
+    '.page-name-wrapper',
+    '.page-h',
+    '[class*="page-h"]',
+  ];
+
+  for (const sel of selectors) {
+    const el = document.querySelector(sel);
+    if (el) {
+      const titleAttr = el.getAttribute('title')?.trim();
+      if (titleAttr) return titleAttr;
+      const clone = el.cloneNode(true) as HTMLElement;
+      clone.querySelectorAll('button, svg, [class*="tooltip"], i').forEach((e) => e.remove());
+      const text = clone.textContent?.trim();
+      if (text) return text;
+    }
+  }
+
+  // 2. Secondary: page-header-title, form-title, h1
+  const secondary = [
+    '.page-header-title',
+    '.form-title',
+    'h1',
+    '[class*="page-title"]',
+    '[class*="pageTitle"]',
+    '[class*="card-title"]',
+  ];
+  for (const sel of secondary) {
+    const el = document.querySelector(sel);
+    if (el) {
+      const titleAttr = el.getAttribute('title')?.trim();
+      if (titleAttr) return titleAttr;
+      const text = el.textContent?.trim();
+      if (text) return text;
+    }
+  }
+
+  // 3. Fallback: document.title without portal suffixes
+  if (document.title) {
+    let t = document.title.trim();
+    t = t
+      .replace(/^GreenData\s*[-|–—:]\s*/i, '')
+      .replace(/\s*[-|–—:]\s*GreenData$/i, '')
+      .trim();
+    if (t && t !== 'Главная' && !t.toLowerCase().includes('greendata')) {
+      return t;
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Queries active browser tab and retrieves sanitized GreenData page name
+ */
+export async function getActiveGreenDataPageName(): Promise<string | null> {
+  try {
+    if (typeof chrome !== 'undefined' && chrome.tabs && chrome.scripting) {
+      const tabs = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
+      const activeTab = tabs[0] || (await chrome.tabs.query({ active: true, currentWindow: true }))[0];
+
+      if (
+        activeTab &&
+        activeTab.id &&
+        activeTab.url &&
+        !activeTab.url.startsWith('chrome://') &&
+        !activeTab.url.startsWith('edge://')
+      ) {
+        const results = await chrome.scripting.executeScript({
+          target: { tabId: activeTab.id },
+          func: extractGreenDataPageNameFromDom,
+        });
+
+        if (results && results[0] && typeof results[0].result === 'string') {
+          const raw = results[0].result.trim();
+          if (raw) return sanitizeCleanName(raw);
+        }
+      }
+    }
+  } catch (err) {
+    console.warn('Could not extract GreenData page name from active tab:', err);
+  }
   return null;
 }
 

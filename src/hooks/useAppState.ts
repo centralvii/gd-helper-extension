@@ -550,9 +550,20 @@ export function useAppState() {
   );
 
   const loadGufFiles = useCallback(
-    (gufFiles: File[]) => {
+    (gufFiles: File[], cleanNameOverrides?: Record<string, string>) => {
       updateActivePackage((pkg) => {
         const newRows = gufFilesToRows(gufFiles, pkg.startNumber);
+        if (cleanNameOverrides) {
+          newRows.forEach((row) => {
+            const override =
+              cleanNameOverrides[row.originalName] ||
+              cleanNameOverrides[row.originalPath] ||
+              cleanNameOverrides['*'];
+            if (override) {
+              row.cleanName = override;
+            }
+          });
+        }
         saveBlobsToDB(newRows.map((f) => ({ id: f.id, blob: f.file })));
         const calculated = recalculateAllNames(newRows, pkg.template, pkg.startNumber, pkg.variableValues);
         return {
@@ -566,12 +577,23 @@ export function useAppState() {
   );
 
   const addFiles = useCallback(
-    (newFiles: File[]) => {
+    (newFiles: File[], cleanNameOverrides?: Record<string, string>) => {
       const validFiles = newFiles.filter((f) => f.name.toLowerCase().endsWith('.guf'));
       if (validFiles.length === 0) return;
 
       updateActivePackage((pkg) => {
         const newRows = gufFilesToRows(validFiles, pkg.startNumber + pkg.files.length);
+        if (cleanNameOverrides) {
+          newRows.forEach((row) => {
+            const override =
+              cleanNameOverrides[row.originalName] ||
+              cleanNameOverrides[row.originalPath] ||
+              cleanNameOverrides['*'];
+            if (override) {
+              row.cleanName = override;
+            }
+          });
+        }
         saveBlobsToDB(newRows.map((f) => ({ id: f.id, blob: f.file })));
         const combined = [...pkg.files, ...newRows];
         const calculated = recalculateAllNames(combined, pkg.template, pkg.startNumber, pkg.variableValues);

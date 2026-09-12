@@ -204,3 +204,5 @@ export interface AlgorithmHistoryItem {
   createdAt: number;
 }
 
+export type AutoCollectNamingMode = 'pageName' | 'original';
+

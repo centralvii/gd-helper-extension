@@ -12,25 +12,38 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { sanitizeCleanName, getActiveGreenDataPageName } from '../utils/tabUtils';
+import { parseFileName } from '../core/nameCleaner';
+import { AutoCollectNamingMode } from '../types';
 
-const AUTO_COLLECT_STORAGE_KEY = 'gd-helper-auto-collect-enabled';
+export const AUTO_COLLECT_STORAGE_KEY = 'gd-helper-auto-collect-enabled';
+export const AUTO_COLLECT_MODE_STORAGE_KEY = 'gd-helper-auto-collect-mode';
 const PENDING_DOWNLOADS_KEY = 'gd_pending_guf_downloads';
 
+export interface AutoCollectedMeta {
+  cleanName?: string;
+  pageName?: string;
+  mode?: AutoCollectNamingMode;
+}
+
 interface UseAutoCollectorProps {
-  onFileCollected: (file: File) => void;
+  onFileCollected: (file: File, meta?: AutoCollectedMeta) => void;
 }
 
 interface PendingDownload {
   downloadId: number;
   filename: string;
   url: string;
+  pageName?: string;
 }
 
 export function useAutoCollector({ onFileCollected }: UseAutoCollectorProps) {
   const [isEnabled, setIsEnabled] = useState<boolean>(false);
+  const [namingMode, setNamingModeState] = useState<AutoCollectNamingMode>('pageName');
   const [notification, setNotification] = useState<{
     id: string;
     fileName: string;
+    mode?: AutoCollectNamingMode;
     timestamp: number;
   } | null>(null);
 
@@ -38,17 +51,27 @@ export function useAutoCollector({ onFileCollected }: UseAutoCollectorProps) {
   const onFileCollectedRef = useRef(onFileCollected);
   onFileCollectedRef.current = onFileCollected;
 
-  // ── Load initial enabled state from chrome.storage ──
+  const namingModeRef = useRef<AutoCollectNamingMode>(namingMode);
+  namingModeRef.current = namingMode;
+
+  // ── Load initial enabled state and naming mode from chrome.storage ──
   useEffect(() => {
     const load = async () => {
       try {
         if (typeof chrome !== 'undefined' && chrome.storage?.local) {
-          const res = await chrome.storage.local.get([AUTO_COLLECT_STORAGE_KEY]);
+          const res = await chrome.storage.local.get([AUTO_COLLECT_STORAGE_KEY, AUTO_COLLECT_MODE_STORAGE_KEY]);
           setIsEnabled(res[AUTO_COLLECT_STORAGE_KEY] === true);
+          if (res[AUTO_COLLECT_MODE_STORAGE_KEY] === 'original' || res[AUTO_COLLECT_MODE_STORAGE_KEY] === 'pageName') {
+            setNamingModeState(res[AUTO_COLLECT_MODE_STORAGE_KEY]);
+          }
         } else {
           // Dev fallback
           const saved = localStorage.getItem(AUTO_COLLECT_STORAGE_KEY);
           setIsEnabled(saved === 'true');
+          const savedMode = localStorage.getItem(AUTO_COLLECT_MODE_STORAGE_KEY) as AutoCollectNamingMode | null;
+          if (savedMode === 'original' || savedMode === 'pageName') {
+            setNamingModeState(savedMode);
+          }
         }
       } catch {
         setIsEnabled(false);
@@ -72,13 +95,24 @@ export function useAutoCollector({ onFileCollected }: UseAutoCollectorProps) {
     });
   }, []);
 
+  const setNamingMode = useCallback((mode: AutoCollectNamingMode) => {
+    setNamingModeState(mode);
+    try {
+      if (typeof chrome !== 'undefined' && chrome.storage?.local) {
+        chrome.storage.local.set({ [AUTO_COLLECT_MODE_STORAGE_KEY]: mode });
+      } else {
+        localStorage.setItem(AUTO_COLLECT_MODE_STORAGE_KEY, mode);
+      }
+    } catch { /* ignore */ }
+  }, []);
+
   const clearNotification = useCallback(() => {
     setNotification(null);
   }, []);
 
   // ── Process a downloaded .guf file by URL ──
   const processGufDownload = useCallback(async (payload: PendingDownload) => {
-    const { downloadId, filename, url } = payload;
+    const { downloadId, filename, url, pageName: payloadPageName } = payload;
 
     if (processedIdsRef.current.has(downloadId)) return;
     processedIdsRef.current.add(downloadId);
@@ -94,23 +128,86 @@ export function useAutoCollector({ onFileCollected }: UseAutoCollectorProps) {
       }
 
       const blob = await response.blob();
-      const file = new File([blob], filename, {
+      const currentMode = namingModeRef.current;
+      const parsedOriginal = parseFileName(filename);
+
+      if (currentMode === 'original') {
+        // Режим: обычное название файла без изменения
+        const file = new File([blob], filename, {
+          type: blob.type || 'application/octet-stream',
+          lastModified: Date.now(),
+        });
+
+        onFileCollectedRef.current(file, {
+          cleanName: parsedOriginal.cleanName,
+          mode: 'original',
+        });
+
+        setNotification({
+          id: crypto.randomUUID(),
+          fileName: filename,
+          mode: 'original',
+          timestamp: Date.now(),
+        });
+
+        setTimeout(() => {
+          setNotification((curr) =>
+            curr && curr.fileName === filename ? null : curr
+          );
+        }, 4000);
+        return;
+      }
+
+      // Режим: с названиями из алгоритма (со страницы GreenData)
+      let pageName = payloadPageName;
+      if (!pageName) {
+        try {
+          pageName = (await getActiveGreenDataPageName()) || undefined;
+        } catch (err) {
+          console.warn('[AutoCollector] getActiveGreenDataPageName error:', err);
+        }
+      }
+
+      const cleanTargetName = pageName ? sanitizeCleanName(pageName) : '';
+
+      // Construct file name preserving date prefix if it existed in original download
+      let finalFileName = filename;
+      if (cleanTargetName) {
+        let prefix = '';
+        if (parsedOriginal.detectedDate && parsedOriginal.detectedTime) {
+          prefix = `${parsedOriginal.detectedDate} ${parsedOriginal.detectedTime} `;
+        } else if (parsedOriginal.detectedDate) {
+          prefix = `${parsedOriginal.detectedDate} `;
+        }
+        finalFileName = `${prefix}${cleanTargetName}.guf`;
+      }
+
+      const file = new File([blob], finalFileName, {
         type: blob.type || 'application/octet-stream',
         lastModified: Date.now(),
       });
 
-      onFileCollectedRef.current(file);
+      const effectiveCleanName = cleanTargetName || parsedOriginal.cleanName;
+
+      onFileCollectedRef.current(file, {
+        cleanName: effectiveCleanName,
+        pageName: cleanTargetName || undefined,
+        mode: 'pageName',
+      });
+
+      const displayFileName = cleanTargetName ? `${cleanTargetName}.guf` : filename;
 
       setNotification({
         id: crypto.randomUUID(),
-        fileName: filename,
+        fileName: displayFileName,
+        mode: 'pageName',
         timestamp: Date.now(),
       });
 
       // Auto-dismiss after 4s
       setTimeout(() => {
         setNotification((curr) =>
-          curr && curr.fileName === filename ? null : curr
+          curr && curr.fileName === displayFileName ? null : curr
         );
       }, 4000);
     } catch (err) {
@@ -176,6 +273,8 @@ export function useAutoCollector({ onFileCollected }: UseAutoCollectorProps) {
   return {
     isEnabled,
     toggleEnabled,
+    namingMode,
+    setNamingMode,
     notification,
     clearNotification,
   };
