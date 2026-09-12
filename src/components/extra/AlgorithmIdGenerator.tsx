@@ -6,14 +6,13 @@ import {
   History,
   Trash2,
   BookOpen,
-  ChevronDown,
-  ChevronUp,
   AlertCircle,
   BookA,
   Plus,
   Sparkles,
   Zap,
   Settings,
+  X,
 } from 'lucide-react';
 import {
   generateAlgorithmId,
@@ -23,6 +22,7 @@ import { AlgorithmHistoryItem, AlgorithmType, AiAlgorithmIdResult } from '../../
 import { generateAlgorithmIdViaAi, isAiConfigured } from '../../services/aiAlgorithmGenerator';
 import { useAiChat } from '../../hooks/useAiChat';
 import { AiSettingsModal } from '../ai/AiSettingsModal';
+import { Modal } from '../ui/Modal';
 import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
@@ -52,6 +52,10 @@ export const AlgorithmIdGenerator: React.FC = () => {
   } = useAiChat();
 
   const [isAiSettingsOpen, setIsAiSettingsOpen] = useState(false);
+  const [isDictOpen, setIsDictOpen] = useState(false);
+  const [isRulesOpen, setIsRulesOpen] = useState(false);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+
   const [aiResult, setAiResult] = useState<AiAlgorithmIdResult | null>(null);
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
@@ -86,10 +90,23 @@ export const AlgorithmIdGenerator: React.FC = () => {
     return DEFAULT_CUSTOM_DICTIONARY;
   });
 
-  const [showDictModal, setShowDictModal] = useState(false);
   const [newRuWord, setNewRuWord] = useState('');
   const [newEnCode, setNewEnCode] = useState('');
   const [dictSearch, setDictSearch] = useState('');
+
+  const [copied, setCopied] = useState(false);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [history, setHistory] = useState<AlgorithmHistoryItem[]>([]);
+
+  // Load history on mount
+  useEffect(() => {
+    try {
+      const savedHist = localStorage.getItem(HISTORY_STORAGE_KEY);
+      if (savedHist) setHistory(JSON.parse(savedHist));
+    } catch {
+      // ignore
+    }
+  }, []);
 
   const handleSetInputText = (val: string) => {
     setInputText(val);
@@ -109,21 +126,6 @@ export const AlgorithmIdGenerator: React.FC = () => {
       // ignore
     }
   };
-
-  const [copied, setCopied] = useState(false);
-  const [copiedId, setCopiedId] = useState<string | null>(null);
-  const [showRulesGuide, setShowRulesGuide] = useState(false);
-  const [history, setHistory] = useState<AlgorithmHistoryItem[]>([]);
-
-  // Load history & storage on mount
-  useEffect(() => {
-    try {
-      const savedHist = localStorage.getItem(HISTORY_STORAGE_KEY);
-      if (savedHist) setHistory(JSON.parse(savedHist));
-    } catch {
-      // ignore
-    }
-  }, []);
 
   const handleGenerateAi = async () => {
     const trimmed = inputText.trim();
@@ -185,11 +187,10 @@ export const AlgorithmIdGenerator: React.FC = () => {
     return generateAlgorithmId(inputText, { postfix, customDictionary: customDict });
   }, [inputText, postfix, customDict]);
 
-  // Save to history when valid ID generated
   const saveToHistory = (item: AlgorithmHistoryItem) => {
     setHistory((prev) => {
       const filtered = prev.filter((h) => h.generatedId !== item.generatedId);
-      const next = [item, ...filtered].slice(0, 15);
+      const next = [item, ...filtered].slice(0, 20);
       try {
         localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(next));
       } catch {
@@ -216,7 +217,6 @@ export const AlgorithmIdGenerator: React.FC = () => {
       setCopiedId(null);
     }, 2000);
 
-    // Save to history
     saveToHistory({
       id: crypto.randomUUID(),
       russianName: inputText.trim(),
@@ -227,10 +227,10 @@ export const AlgorithmIdGenerator: React.FC = () => {
 
     try {
       confetti({
-        particleCount: 30,
-        spread: 45,
+        particleCount: 25,
+        spread: 40,
         origin: { y: 0.8 },
-        colors: ['#22c55e', '#16a34a', '#86efac'],
+        colors: ['#10b981', '#059669', '#34d399'],
       });
     } catch {
       // ignore
@@ -264,15 +264,15 @@ export const AlgorithmIdGenerator: React.FC = () => {
   const getTypeLabel = (type: AlgorithmType) => {
     switch (type) {
       case 'filter_condition':
-        return 'Фильтрация элементов';
+        return 'Фильтрация';
       case 'card_action':
-        return 'Карточка объекта';
+        return 'Карточка';
       case 'calculation':
-        return 'Расчет параметров';
+        return 'Расчет';
       case 'validation':
         return 'Валидация';
       default:
-        return 'Общий алгоритм';
+        return 'Общий';
     }
   };
 
@@ -284,293 +284,207 @@ export const AlgorithmIdGenerator: React.FC = () => {
     });
   }, [customDict, dictSearch]);
 
+  const activeVariants = useMemo(() => {
+    if (activeSource === 'ai' && aiResult?.variants && aiResult.variants.length > 0) {
+      return aiResult.variants;
+    }
+    const list: Array<{ id: string; desc?: string }> = [];
+    if (parsed.variants?.scopeFirstId && parsed.variants.scopeFirstId !== parsed.generatedId) {
+      list.push({ id: parsed.variants.scopeFirstId, desc: 'Префикс блока' });
+    }
+    if (
+      parsed.variants?.compactId &&
+      parsed.variants.compactId !== parsed.generatedId &&
+      parsed.variants.compactId !== parsed.variants?.scopeFirstId
+    ) {
+      list.push({ id: parsed.variants.compactId, desc: 'Компактный' });
+    }
+    return list;
+  }, [activeSource, aiResult, parsed]);
+
   return (
     <div className="space-y-3">
-      {/* ── Input Card ── */}
-      <div className="rounded-2xl border border-slate-200/90 bg-white p-4 shadow-xs space-y-3.5">
-        <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
-          <div className="flex items-center gap-2.5 min-w-0 flex-1">
-            <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700 shadow-2xs font-bold">
-              <Wand2 className="w-4 h-4 flex-shrink-0" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="text-xs font-bold text-slate-900 tracking-tight truncate">
-                Название алгоритма на русском
-              </div>
-              <div className="text-[10.5px] text-slate-500 truncate">
-                Автоматически переводится в смысловой ID GreenData
-              </div>
-            </div>
+      {/* ── Top Toolbar Bar (Project Standard Style) ── */}
+      <div className="flex items-center justify-between gap-1.5 p-1.5 bg-white border border-slate-200/90 rounded-2xl shadow-xs">
+        {/* Left Title & Status */}
+        <div className="flex items-center gap-2 pl-1.5 min-w-0">
+          <div className="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center flex-shrink-0 font-bold shadow-2xs">
+            <Wand2 className="w-3.5 h-3.5" />
           </div>
-
-          {inputText && (
-            <button
-              onClick={() => handleSetInputText('')}
-              className="text-[11px] font-semibold text-slate-400 hover:text-slate-700 transition-colors flex-shrink-0 cursor-pointer"
-            >
-              Очистить
-            </button>
-          )}
+          <div className="flex items-center gap-1.5 min-w-0">
+            <span className="text-xs font-bold text-slate-800 truncate">Генератор ID</span>
+            <span
+              className={`w-2 h-2 rounded-full flex-shrink-0 ${
+                isAiConfigured() ? 'bg-emerald-500' : 'bg-amber-400'
+              }`}
+              title={
+                isAiConfigured()
+                  ? `AI подключен (${aiSettings.model || 'OpenAI'})`
+                  : 'Требуется настройка подключения AI'
+              }
+            />
+          </div>
         </div>
 
-        {/* Input Text Area */}
+        {/* Right Action Buttons */}
+        <div className="flex items-center gap-1 flex-shrink-0">
+          <button
+            type="button"
+            onClick={() => setIsHistoryOpen(true)}
+            title="История генераций"
+            className="relative inline-flex items-center justify-center gap-1 h-7 px-2.5 bg-slate-50 hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 border border-slate-200 hover:border-emerald-300 rounded-xl text-[11px] font-semibold leading-none transition-all shadow-2xs cursor-pointer whitespace-nowrap"
+          >
+            <History className="w-3 h-3 text-slate-500" />
+            <span className="hidden xs:inline">История</span>
+            {history.length > 0 && (
+              <span className="px-1.5 py-0.2 rounded-full bg-slate-200 text-slate-700 text-[9px] font-bold">
+                {history.length}
+              </span>
+            )}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setIsDictOpen(true)}
+            title="Словарь терминов и сокращений"
+            className="inline-flex items-center justify-center gap-1 h-7 px-2.5 bg-slate-50 hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 border border-slate-200 hover:border-emerald-300 rounded-xl text-[11px] font-semibold leading-none transition-all shadow-2xs cursor-pointer whitespace-nowrap"
+          >
+            <BookA className="w-3 h-3 text-slate-500" />
+            <span className="hidden xs:inline">Словарь</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setIsRulesOpen(true)}
+            title="Стандарты именования алгоритмов GreenData"
+            className="inline-flex items-center justify-center gap-1 h-7 px-2.5 bg-slate-50 hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 border border-slate-200 hover:border-emerald-300 rounded-xl text-[11px] font-semibold leading-none transition-all shadow-2xs cursor-pointer whitespace-nowrap"
+          >
+            <BookOpen className="w-3 h-3 text-slate-500" />
+            <span className="hidden xs:inline">Правила</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setIsAiSettingsOpen(true)}
+            title="Параметры модели AI"
+            className="inline-flex items-center justify-center gap-1 h-7 px-2.5 bg-slate-50 hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 border border-slate-200 hover:border-emerald-300 rounded-xl text-[11px] font-semibold leading-none transition-all shadow-2xs cursor-pointer whitespace-nowrap"
+          >
+            <Settings className="w-3 h-3 text-slate-500" />
+            <span className="hidden xs:inline">AI</span>
+          </button>
+        </div>
+      </div>
+
+      {/* ── Input Card (Clean & Compact) ── */}
+      <div className="rounded-2xl border border-slate-200/90 bg-white p-3 shadow-xs space-y-2.5">
         <div className="relative">
           <textarea
             value={inputText}
             onChange={(e) => handleSetInputText(e.target.value)}
-            placeholder="Например: Лимиты. Рассчитать VaR по портфелю"
-            rows={3}
-            className="w-full rounded-xl border border-slate-200 bg-slate-50/70 p-3 text-xs font-medium text-slate-900 placeholder:text-slate-400 outline-none transition-all focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-500/10 shadow-2xs"
+            placeholder="Например: Лимиты. Рассчитать VaR по портфелю..."
+            rows={2}
+            className="w-full rounded-xl border border-slate-200 bg-slate-50/70 p-2.5 pr-7 text-xs font-medium text-slate-900 placeholder:text-slate-400 outline-none transition-all focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-500/10 shadow-2xs resize-none"
           />
+          {inputText && (
+            <button
+              type="button"
+              onClick={() => handleSetInputText('')}
+              className="absolute top-2 right-2 text-slate-400 hover:text-slate-600 p-0.5 rounded-md hover:bg-slate-200/60 transition-colors cursor-pointer"
+              title="Очистить"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
         </div>
 
-        {/* AI Action Row */}
-        <div className="flex items-center justify-between gap-2 flex-wrap pt-0.5">
-          <div className="flex items-center gap-2">
+        {/* Controls row */}
+        <div className="flex items-center justify-between gap-2 flex-wrap text-xs">
+          <div className="flex items-center gap-1.5 flex-1 min-w-[170px]">
+            <span className="text-[11px] text-slate-500 font-medium flex-shrink-0">Постфикс:</span>
+            <Select
+              size="sm"
+              value={postfix}
+              onChange={(val) => handleSetPostfix(val)}
+              options={POSTFIX_OPTIONS}
+              className="flex-1 text-xs"
+            />
+          </div>
+
+          <div className="flex items-center gap-1.5 flex-shrink-0">
             <Button
               variant="emerald"
               size="sm"
               onClick={handleGenerateAi}
               disabled={isAiLoading || !inputText.trim()}
-              className="bg-gradient-to-r from-emerald-600 via-teal-600 to-indigo-600 hover:from-emerald-500 hover:to-indigo-500 text-white shadow-xs font-semibold cursor-pointer"
+              className="h-8 px-3 text-xs font-semibold shadow-2xs cursor-pointer bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 hover:from-emerald-500 hover:to-teal-600 text-white"
               leftIcon={
                 isAiLoading ? (
                   <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin flex-shrink-0" />
                 ) : (
-                  <Sparkles className="w-3.5 h-3.5 flex-shrink-0 text-amber-300 animate-pulse" />
+                  <Sparkles className="w-3.5 h-3.5 text-amber-300 flex-shrink-0" />
                 )
               }
             >
-              <span>
-                {isAiLoading
-                  ? 'AI анализирует...'
-                  : aiResult && activeSource === 'ai'
-                  ? 'Перегенерировать через AI'
-                  : 'Сгенерировать через AI'}
-              </span>
+              <span>{isAiLoading ? 'AI думает...' : 'AI Генерация'}</span>
             </Button>
-
-            <button
-              type="button"
-              onClick={() => setIsAiSettingsOpen(true)}
-              title="Настройки подключения AI (модель, API ключ, сервер)"
-              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-medium transition-colors shadow-2xs cursor-pointer"
-            >
-              <Settings className="w-3.5 h-3.5 text-slate-500" />
-              <span className="hidden sm:inline">Настройки AI</span>
-              <span
-                className={`w-2 h-2 rounded-full ${
-                  isAiConfigured() ? 'bg-emerald-500 ring-2 ring-emerald-200' : 'bg-amber-400 ring-2 ring-amber-200'
-                }`}
-                title={isAiConfigured() ? 'AI настроен' : 'Требуется настройка подключения AI'}
-              />
-            </button>
-          </div>
-
-          <div className="text-[11px] text-slate-400">
-            {isAiConfigured() ? (
-              <span className="text-slate-500 font-mono">Модель: {aiSettings.model || 'OpenAI API'}</span>
-            ) : (
-              <button
-                type="button"
-                className="text-amber-600 font-medium hover:underline cursor-pointer flex items-center gap-1"
-                onClick={() => setIsAiSettingsOpen(true)}
-              >
-                <span>⚙️ Настройте API ключ</span>
-              </button>
-            )}
           </div>
         </div>
 
-        {/* AI Error Banner */}
+        {/* Error notification */}
         {aiError && (
-          <div className="flex items-start justify-between gap-2 rounded-xl bg-rose-50 border border-rose-200 p-2.5 text-xs text-rose-800 animate-shake">
-            <div className="flex items-start gap-2 min-w-0">
-              <AlertCircle className="w-4 h-4 text-rose-600 flex-shrink-0 mt-0.5" />
-              <div>
-                <div className="font-bold">Ошибка AI генератора:</div>
-                <div className="text-[11px] text-rose-700 mt-0.5">{aiError}</div>
-              </div>
+          <div className="flex items-center justify-between gap-2 rounded-xl bg-rose-50 border border-rose-200 p-2 text-xs text-rose-800">
+            <div className="flex items-center gap-1.5 min-w-0">
+              <AlertCircle className="w-3.5 h-3.5 text-rose-600 flex-shrink-0" />
+              <span className="text-[11px] text-rose-700 truncate">{aiError}</span>
             </div>
             <button
               type="button"
               onClick={() => setIsAiSettingsOpen(true)}
-              className="text-[11px] font-semibold text-rose-700 underline hover:text-rose-900 whitespace-nowrap flex-shrink-0 cursor-pointer"
+              className="text-[10px] font-bold text-rose-700 underline hover:text-rose-900 whitespace-nowrap flex-shrink-0 cursor-pointer"
             >
               Настройки AI
             </button>
           </div>
         )}
-
-        {/* Postfix and Settings Row */}
-        <div className="pt-2 border-t border-gray-100 flex items-center justify-between gap-2 flex-wrap text-xs">
-          <div className="flex items-center gap-2">
-            <label className="text-[11px] font-semibold text-gray-600 flex-shrink-0">
-              Постфикс:
-            </label>
-            <Select
-              size="sm"
-              value={postfix}
-              onChange={(val) => handleSetPostfix(val)}
-              options={POSTFIX_OPTIONS.map((opt) => ({
-                value: opt.value,
-                label: opt.label,
-              }))}
-              className="min-w-[180px]"
-            />
-          </div>
-
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setShowDictModal(!showDictModal)}
-              className="inline-flex items-center gap-1 text-[11px] font-medium text-sky-700 hover:text-sky-800 bg-sky-50 px-2 py-1 rounded-lg border border-sky-200 transition-colors"
-            >
-              <BookA className="w-3 h-3 text-sky-600" />
-              <span>Словарь терминов ({Object.keys(customDict).length})</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setShowRulesGuide(!showRulesGuide)}
-              className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-700 hover:text-emerald-800"
-            >
-              <BookOpen className="w-3 h-3" />
-              <span>{showRulesGuide ? 'Скрыть правила' : 'Правила'}</span>
-              {showRulesGuide ? (
-                <ChevronUp className="w-3 h-3" />
-              ) : (
-                <ChevronDown className="w-3 h-3" />
-              )}
-            </button>
-          </div>
-        </div>
       </div>
 
-      {/* ── Custom Dictionary Section (Collapsible) ── */}
-      {showDictModal && (
-        <div className="rounded-xl border border-sky-200 bg-white p-3 shadow-sm space-y-3 animate-slide-down">
-          <div className="flex items-center justify-between border-b border-sky-100 pb-2">
-            <div className="flex items-center gap-2">
-              <BookA className="w-4 h-4 text-sky-600" />
-              <div>
-                <span className="text-xs font-bold text-gray-900 block">
-                  Словарь терминов и сокращений
-                </span>
-                <span className="text-[10px] text-gray-500 block">
-                  Добавляйте свои сокращения — они имеют высший приоритет при переводе
-                </span>
-              </div>
-            </div>
-            <button
-              onClick={() => setShowDictModal(false)}
-              className="text-[11px] text-gray-400 hover:text-gray-600"
-            >
-              Свернуть
-            </button>
-          </div>
-
-          {/* Add Term Form */}
-          <form onSubmit={handleAddCustomTerm} className="flex items-center gap-1.5">
-            <Input
-              value={newRuWord}
-              onChange={(e) => setNewRuWord(e.target.value)}
-              placeholder="Слово (напр. сппр, участник)"
-              className="flex-1"
-            />
-            <Input
-              value={newEnCode}
-              onChange={(e) => setNewEnCode(e.target.value)}
-              placeholder="Код (напр. SPPR, PARTICIPANT)"
-              className="flex-1 font-mono uppercase"
-            />
-            <Button
-              type="submit"
-              variant="emerald"
-              size="sm"
-              disabled={!newRuWord.trim() || !newEnCode.trim()}
-              leftIcon={<Plus className="w-3.5 h-3.5" />}
-            >
-              Добавить
-            </Button>
-          </form>
-
-          {/* Search Term */}
-          <div className="space-y-1.5">
-            <input
-              type="text"
-              value={dictSearch}
-              onChange={(e) => setDictSearch(e.target.value)}
-              placeholder="Поиск по словарю..."
-              className="w-full px-2.5 py-1 text-xs border border-gray-200 rounded-lg bg-gray-50 focus:bg-white focus:border-sky-500 outline-none"
-            />
-
-            <div className="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto p-1 bg-gray-50/50 rounded-lg border border-gray-100">
-              {filteredDictEntries.map(([ru, en]) => (
-                <span
-                  key={ru}
-                  className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-white border border-gray-200 text-[11px] font-medium shadow-2xs"
-                >
-                  <span className="text-gray-700">{ru}</span>
-                  <span className="text-gray-300">→</span>
-                  <strong className="font-mono text-emerald-700">{en}</strong>
-                  <button
-                    type="button"
-                    onClick={() => handleDeleteCustomTerm(ru)}
-                    title="Удалить из словаря"
-                    className="text-gray-300 hover:text-rose-600 ml-0.5"
-                  >
-                    ×
-                  </button>
-                </span>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* ── Generated Result Card ── */}
-      <div className="overflow-hidden rounded-2xl border border-emerald-300 bg-white shadow-xs">
-        {/* Header — single compact row: label left, char-count right */}
-        <div className="flex items-center gap-2 border-b border-emerald-100 bg-emerald-50/70 px-3.5 py-2.5">
-          <div className="flex-1 min-w-0 flex items-center gap-2 flex-wrap">
+      <div className="overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-xs">
+        {/* Header bar */}
+        <div className="flex items-center justify-between gap-2 border-b border-slate-100 bg-slate-50/80 px-3 py-2">
+          <div className="flex items-center gap-2 min-w-0 flex-wrap">
             {aiResult ? (
-              <div className="inline-flex rounded-lg border border-emerald-200 bg-white p-0.5 text-xs shadow-2xs">
+              <div className="inline-flex rounded-lg border border-slate-200 bg-white p-0.5 text-xs shadow-2xs">
                 <button
                   type="button"
                   onClick={() => setActiveSource('ai')}
-                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md font-semibold text-[11px] transition-all cursor-pointer ${
+                  className={`flex items-center gap-1 px-2 py-0.5 rounded-md font-semibold text-[10.5px] transition-all cursor-pointer ${
                     activeSource === 'ai'
-                      ? 'bg-gradient-to-r from-emerald-600 to-teal-700 text-white shadow-xs'
+                      ? 'bg-emerald-600 text-white shadow-2xs'
                       : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
-                  <Sparkles className="w-3 h-3 text-amber-300" />
-                  <span>AI Генерация</span>
+                  <Sparkles className="w-3 h-3" />
+                  <span>AI</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setActiveSource('local')}
-                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md font-semibold text-[11px] transition-all cursor-pointer ${
+                  className={`flex items-center gap-1 px-2 py-0.5 rounded-md font-semibold text-[10.5px] transition-all cursor-pointer ${
                     activeSource === 'local'
-                      ? 'bg-slate-800 text-white shadow-xs'
+                      ? 'bg-slate-700 text-white shadow-2xs'
                       : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
-                  <Zap className="w-3 h-3 text-amber-400" />
-                  <span>Локальный движок</span>
+                  <Zap className="w-3 h-3" />
+                  <span>Локальный</span>
                 </button>
               </div>
             ) : (
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-900 whitespace-nowrap">
-                  Сгенерированный ID
-                </span>
-                <span className="inline-flex items-center gap-1 text-[10.5px] font-medium text-slate-600 bg-white border border-emerald-200 px-2 py-0.5 rounded-md shadow-2xs">
-                  <Zap className="w-2.5 h-2.5 text-amber-500" />
-                  Локальный движок
-                </span>
-              </div>
+              <span className="inline-flex items-center gap-1 text-[10.5px] font-semibold text-slate-600 bg-white border border-slate-200 px-2 py-0.5 rounded-md shadow-2xs">
+                <Zap className="w-3 h-3 text-amber-500" />
+                Локальный перевод
+              </span>
             )}
 
             <Badge variant={getTypeBadgeVariant(currentDetectedType)} size="xs" dot>
@@ -579,335 +493,303 @@ export const AlgorithmIdGenerator: React.FC = () => {
           </div>
 
           {currentGeneratedId && (
-            <span className="flex-shrink-0 text-[11px] font-mono font-bold text-emerald-800 whitespace-nowrap">
+            <span className="text-[10px] font-mono font-bold text-slate-500 whitespace-nowrap">
               {currentGeneratedId.length} симв.
             </span>
           )}
         </div>
 
         {/* Result Content */}
-        <div className="p-3.5 space-y-3">
+        <div className="p-3 space-y-2.5">
           {currentGeneratedId ? (
-            <div className="space-y-3">
-              {/* Main ID Block */}
-              <div className="rounded-xl border border-emerald-200/90 bg-emerald-50/50 p-3 space-y-2.5 shadow-2xs">
-                <div className="font-mono text-xs font-bold text-slate-900 break-all select-all tracking-wide leading-relaxed">
+            <>
+              {/* Monospace ID block with inline copy button */}
+              <div className="flex items-center justify-between gap-2 p-2.5 rounded-xl border border-emerald-200/90 bg-emerald-50/50 shadow-2xs">
+                <div className="font-mono text-xs font-bold text-slate-900 break-all select-all leading-snug flex-1 min-w-0">
                   {currentGeneratedId}
                 </div>
-
-                <Button
-                  variant="emerald"
-                  size="sm"
+                <button
+                  type="button"
                   onClick={() => handleCopy()}
-                  leftIcon={
-                    copied && (!copiedId || copiedId === currentGeneratedId) ? (
-                      <Check className="w-3.5 h-3.5 flex-shrink-0" />
-                    ) : (
-                      <Copy className="w-3.5 h-3.5 flex-shrink-0" />
-                    )
-                  }
-                  className="w-full justify-center shadow-xs cursor-pointer"
+                  title="Скопировать идентификатор"
+                  className={`flex-shrink-0 inline-flex items-center justify-center gap-1.5 h-7 px-3 rounded-lg text-xs font-semibold shadow-2xs transition-all cursor-pointer ${
+                    copied && (!copiedId || copiedId === currentGeneratedId)
+                      ? 'bg-emerald-700 text-white'
+                      : 'bg-emerald-600 hover:bg-emerald-700 text-white active:scale-95'
+                  }`}
                 >
-                  <span>
-                    {copied && (!copiedId || copiedId === currentGeneratedId)
-                      ? 'Скопировано в буфер!'
-                      : 'Копировать'}
-                  </span>
-                </Button>
+                  {copied && (!copiedId || copiedId === currentGeneratedId) ? (
+                    <>
+                      <Check className="w-3.5 h-3.5 flex-shrink-0" />
+                      <span>Скопировано</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-3.5 h-3.5 flex-shrink-0" />
+                      <span>Копировать</span>
+                    </>
+                  )}
+                </button>
               </div>
 
-              {/* Display details based on activeSource */}
-              {activeSource === 'ai' && aiResult ? (
-                <div className="space-y-2.5">
-                  {/* Semantic Breakdown Details from AI */}
-                  <div className="rounded-xl bg-gradient-to-br from-indigo-50/70 via-sky-50/50 to-emerald-50/40 border border-indigo-100 p-3 text-xs space-y-1.5 shadow-2xs">
-                    <div className="flex items-center gap-1.5 font-bold text-indigo-950 text-[11px]">
-                      <Sparkles className="w-3.5 h-3.5 text-indigo-600 flex-shrink-0" />
-                      <span>Семантический разбор AI модели:</span>
-                    </div>
-                    <p className="text-[11.5px] text-slate-700 leading-relaxed pl-5">
-                      {aiResult.explanation}
-                    </p>
-                  </div>
-
-                  {/* AI Alternative Variants */}
-                  {aiResult.variants && aiResult.variants.length > 0 && (
-                    <div className="space-y-1.5 pt-1 min-w-0">
-                      <div className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">
-                        Альтернативные варианты от AI (клик для копирования):
-                      </div>
-                      <div className="space-y-1.5 min-w-0">
-                        {aiResult.variants.map((v) => (
-                          <button
-                            key={v.id}
-                            type="button"
-                            onClick={() => handleCopy(v.id)}
-                            className="w-full rounded-xl border border-gray-200 bg-gray-50 hover:bg-emerald-50 hover:border-emerald-300 px-3 py-2 text-[11px] transition-all flex items-center justify-between gap-2 group cursor-pointer text-left min-w-0 shadow-2xs"
-                            title={v.desc}
-                          >
-                            <div className="min-w-0 flex-1">
-                              <div className="font-mono font-bold text-slate-900 group-hover:text-emerald-950 break-all select-all leading-tight">
-                                {v.id}
-                              </div>
-                              {v.desc && (
-                                <div className="text-[10px] text-slate-500 truncate mt-0.5">
-                                  {v.desc}
-                                </div>
-                              )}
-                            </div>
-                            {copied && copiedId === v.id ? (
-                              <Check className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
-                            ) : (
-                              <Copy className="w-3.5 h-3.5 text-gray-400 group-hover:text-emerald-600 flex-shrink-0" />
-                            )}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="space-y-2.5">
-                  {/* Semantic Breakdown Details from Local Engine */}
-                  <div className="grid grid-cols-1 gap-1.5 text-xs">
-                    {parsed.block && (
-                      <div className="flex items-center justify-between rounded-lg bg-gray-50 px-2.5 py-1.5 border border-gray-100">
-                        <span className="text-gray-500 text-[11px]">
-                          Функциональный блок:
-                        </span>
-                        <span className="font-semibold text-gray-900">
-                          {parsed.block}{' '}
-                          <code className="text-emerald-700 font-mono">
-                            ({parsed.blockCode})
-                          </code>
-                        </span>
-                      </div>
-                    )}
-
-                    {parsed.detectedType === 'filter_condition' && (
-                      <>
-                        {parsed.targetObject && (
-                          <div className="flex items-center justify-between rounded-lg bg-gray-50 px-2.5 py-1.5 border border-gray-100">
-                            <span className="text-gray-500 text-[11px]">
-                              Тип объекта:
-                            </span>
-                            <span className="font-semibold text-gray-900">
-                              {parsed.targetObject}{' '}
-                              <code className="text-emerald-700 font-mono">
-                                ({parsed.targetObjectCode})
-                              </code>
-                            </span>
-                          </div>
-                        )}
-                        {parsed.filterParams && (
-                          <div className="flex items-center justify-between rounded-lg bg-gray-50 px-2.5 py-1.5 border border-gray-100">
-                            <span className="text-gray-500 text-[11px]">
-                              Параметры фильтрации:
-                            </span>
-                            <span className="font-semibold text-gray-900">
-                              {parsed.filterParams}{' '}
-                              <code className="text-emerald-700 font-mono">
-                                ({parsed.filterParamsCode})
-                              </code>
-                            </span>
-                          </div>
-                        )}
-                        {parsed.baseObject && (
-                          <div className="flex items-center justify-between rounded-lg bg-gray-50 px-2.5 py-1.5 border border-gray-100">
-                            <span className="text-gray-500 text-[11px]">
-                              Базовый объект:
-                            </span>
-                            <span className="font-semibold text-gray-900">
-                              {parsed.baseObject}{' '}
-                              <code className="text-emerald-700 font-mono">
-                                ({parsed.baseObjectCode})
-                              </code>
-                            </span>
-                          </div>
-                        )}
-                      </>
-                    )}
-
-                    <div className="flex items-center justify-between rounded-lg bg-gray-50 px-2.5 py-1.5 border border-gray-100">
-                      <span className="text-gray-500 text-[11px]">Тип правила:</span>
-                      <span className="font-medium text-gray-700 text-[11px]">
-                        {parsed.explanation}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Alternative Variations */}
-                  {parsed.variants && (
-                    <div className="space-y-1.5 pt-2 border-t border-emerald-100 min-w-0">
-                      <div className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">
-                        Альтернативные варианты (клик для копирования):
-                      </div>
-                      <div className="space-y-1.5 min-w-0">
-                        {parsed.variants.scopeFirstId &&
-                          parsed.variants.scopeFirstId !== parsed.generatedId && (
-                            <button
-                              type="button"
-                              onClick={() => handleCopy(parsed.variants?.scopeFirstId)}
-                              className="w-full rounded-xl border border-gray-200 bg-gray-50 hover:bg-emerald-50 hover:border-emerald-300 px-2.5 py-1.5 font-mono text-[11px] font-semibold text-gray-800 hover:text-emerald-950 transition-all flex items-center justify-between gap-2 group cursor-pointer text-left min-w-0 shadow-2xs"
-                              title="Вариант с префиксом предметной области в начале"
-                            >
-                              <span className="break-all select-all flex-1 min-w-0 leading-tight">
-                                {parsed.variants.scopeFirstId}
-                              </span>
-                              {copiedId === parsed.variants.scopeFirstId ? (
-                                <Check className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
-                              ) : (
-                                <Copy className="w-3.5 h-3.5 text-gray-400 group-hover:text-emerald-600 flex-shrink-0" />
-                              )}
-                            </button>
-                          )}
-                        {parsed.variants.compactId &&
-                          parsed.variants.compactId !== parsed.generatedId &&
-                          parsed.variants.compactId !== parsed.variants.scopeFirstId && (
-                            <button
-                              type="button"
-                              onClick={() => handleCopy(parsed.variants?.compactId)}
-                              className="w-full rounded-xl border border-gray-200 bg-gray-50 hover:bg-emerald-50 hover:border-emerald-300 px-2.5 py-1.5 font-mono text-[11px] font-semibold text-gray-800 hover:text-emerald-950 transition-all flex items-center justify-between gap-2 group cursor-pointer text-left min-w-0 shadow-2xs"
-                              title="Компактный вариант"
-                            >
-                              <span className="break-all select-all flex-1 min-w-0 leading-tight">
-                                {parsed.variants.compactId}
-                              </span>
-                              {copiedId === parsed.variants.compactId ? (
-                                <Check className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
-                              ) : (
-                                <Copy className="w-3.5 h-3.5 text-gray-400 group-hover:text-emerald-600 flex-shrink-0" />
-                              )}
-                            </button>
-                          )}
-                      </div>
-                    </div>
-                  )}
+              {/* Semantic explanation note */}
+              {activeSource === 'ai' && aiResult?.explanation && (
+                <div className="text-[11px] text-slate-600 bg-slate-50/80 p-2 rounded-xl border border-slate-100 leading-relaxed flex items-start gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-indigo-500 flex-shrink-0 mt-0.5" />
+                  <span>{aiResult.explanation}</span>
                 </div>
               )}
 
-              {/* Warnings if any */}
-              {parsed.warnings.length > 0 && (
-                <div className="space-y-1 pt-1">
-                  {parsed.warnings.map((w, idx) => (
-                    <div
-                      key={idx}
-                      className="flex items-start gap-1.5 text-[11px] text-amber-800 bg-amber-50 border border-amber-200 rounded-lg p-2"
-                    >
-                      <AlertCircle className="w-3.5 h-3.5 text-amber-600 flex-shrink-0 mt-0.5" />
-                      <span>{w}</span>
-                    </div>
-                  ))}
+              {/* Local breakdown badges */}
+              {activeSource === 'local' && (
+                <div className="flex items-center gap-1.5 flex-wrap text-[10.5px]">
+                  {parsed.block && (
+                    <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200/80">
+                      Блок: <strong className="text-emerald-700 font-mono">{parsed.blockCode}</strong>
+                    </span>
+                  )}
+                  {parsed.targetObject && (
+                    <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200/80">
+                      Объект: <strong className="text-emerald-700 font-mono">{parsed.targetObjectCode}</strong>
+                    </span>
+                  )}
+                  {parsed.filterParams && (
+                    <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200/80">
+                      Фильтр: <strong className="text-emerald-700 font-mono">{parsed.filterParamsCode}</strong>
+                    </span>
+                  )}
+                  <span className="text-slate-500 truncate max-w-full">
+                    {parsed.explanation}
+                  </span>
                 </div>
               )}
-            </div>
+
+              {/* Alternative Variants as compact chips */}
+              {activeVariants.length > 0 && (
+                <div className="pt-2 border-t border-slate-100 space-y-1.5">
+                  <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
+                    Варианты (клик для копирования):
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {activeVariants.map((v) => (
+                      <button
+                        key={v.id}
+                        type="button"
+                        onClick={() => handleCopy(v.id)}
+                        title={v.desc}
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-slate-200 bg-slate-50 hover:bg-emerald-50 hover:border-emerald-300 text-slate-800 text-[11px] font-mono font-medium transition-all shadow-2xs cursor-pointer group"
+                      >
+                        <span className="break-all">{v.id}</span>
+                        {v.desc && (
+                          <span className="text-[9.5px] font-sans text-slate-400 group-hover:text-emerald-700">
+                            ({v.desc})
+                          </span>
+                        )}
+                        {copied && copiedId === v.id ? (
+                          <Check className="w-3 h-3 text-emerald-600 flex-shrink-0" />
+                        ) : (
+                          <Copy className="w-3 h-3 text-slate-400 group-hover:text-emerald-600 flex-shrink-0" />
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
           ) : (
-            <div className="text-center py-4 text-xs text-gray-400">
+            <div className="text-center py-5 text-xs text-slate-400">
               Введите русское название алгоритма выше для генерации идентификатора
             </div>
           )}
         </div>
       </div>
 
-      {/* ── Rules Reference Guide (Collapsible) ── */}
-      {showRulesGuide && (
-        <div className="rounded-xl border border-gray-200 bg-white p-3 shadow-sm space-y-2.5 animate-slide-down">
-          <div className="flex items-center gap-2 border-b border-gray-100 pb-2">
-            <BookOpen className="w-4 h-4 text-emerald-600" />
-            <span className="text-xs font-bold text-gray-900">
-              Стандарты именования алгоритмов GreenData
-            </span>
+      {/* ── Dictionary Modal ── */}
+      <Modal
+        isOpen={isDictOpen}
+        onClose={() => setIsDictOpen(false)}
+        title="Словарь терминов и исключений"
+        maxWidth="md"
+      >
+        <div className="space-y-3">
+          <div className="text-xs text-slate-500">
+            Пользовательские сокращения имеют высший приоритет при формировании идентификаторов.
           </div>
 
-          <div className="space-y-2 text-xs text-gray-700 leading-relaxed">
-            <div className="rounded-lg bg-gray-50 p-2 border border-gray-100 space-y-1">
-              <div className="font-bold text-gray-900 flex items-center gap-1.5">
-                <span className="flex h-4 w-4 items-center justify-center rounded-full bg-emerald-600 text-[9px] text-white">
-                  1
-                </span>
-                Общий принцип и префиксы блоков:
-              </div>
-              <p className="text-[11px] text-gray-600">
-                Все алгоритмы должны называться осмысленно. Если алгоритм относится к блоку, в начале добавляется префикс (например «Лимиты. Рассчитать VaR по портфелю» → <code className="font-mono font-bold text-emerald-700 bg-white px-1 py-0.5 rounded">LIM_VAR_CALC_ALG</code>).
-              </p>
-            </div>
+          <form onSubmit={handleAddCustomTerm} className="flex items-center gap-1.5">
+            <Input
+              value={newRuWord}
+              onChange={(e) => setNewRuWord(e.target.value)}
+              placeholder="Русское слово (напр. сппр)"
+              className="flex-1 text-xs"
+            />
+            <Input
+              value={newEnCode}
+              onChange={(e) => setNewEnCode(e.target.value)}
+              placeholder="Код (напр. SPPR)"
+              className="flex-1 text-xs font-mono uppercase"
+            />
+            <Button
+              type="submit"
+              variant="emerald"
+              size="sm"
+              disabled={!newRuWord.trim() || !newEnCode.trim()}
+              leftIcon={<Plus className="w-3.5 h-3.5" />}
+              className="text-xs flex-shrink-0"
+            >
+              Добавить
+            </Button>
+          </form>
 
-            <div className="rounded-lg bg-gray-50 p-2 border border-gray-100 space-y-1">
-              <div className="font-bold text-gray-900 flex items-center gap-1.5">
-                <span className="flex h-4 w-4 items-center justify-center rounded-full bg-emerald-600 text-[9px] text-white">
-                  2
-                </span>
-                Алгоритм карточки объектов:
-              </div>
-              <p className="text-[11px] text-gray-600">
-                Название экземпляра типа «Алгоритма. карточки объектов» должно содержать глагол в инфинитиве (например «КИБ. ЗПР. Создать экземпляр экспертизы рисков»).
-              </p>
-            </div>
+          <div className="space-y-1.5">
+            <input
+              type="text"
+              value={dictSearch}
+              onChange={(e) => setDictSearch(e.target.value)}
+              placeholder="Поиск по терминам..."
+              className="w-full px-2.5 py-1.5 text-xs border border-slate-200 rounded-xl bg-slate-50 focus:bg-white focus:border-emerald-500 outline-none"
+            />
 
-            <div className="rounded-lg bg-gray-50 p-2 border border-gray-100 space-y-1">
-              <div className="font-bold text-gray-900 flex items-center gap-1.5">
-                <span className="flex h-4 w-4 items-center justify-center rounded-full bg-emerald-600 text-[9px] text-white">
-                  3
+            <div className="flex flex-wrap gap-1.5 max-h-56 overflow-y-auto p-1.5 bg-slate-50/70 rounded-xl border border-slate-200/80">
+              {filteredDictEntries.map(([ru, en]) => (
+                <span
+                  key={ru}
+                  className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-white border border-slate-200 text-[11px] font-medium shadow-2xs"
+                >
+                  <span className="text-slate-700">{ru}</span>
+                  <span className="text-slate-300">→</span>
+                  <strong className="font-mono text-emerald-700">{en}</strong>
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteCustomTerm(ru)}
+                    title="Удалить из словаря"
+                    className="text-slate-300 hover:text-rose-600 ml-0.5 cursor-pointer"
+                  >
+                    ×
+                  </button>
                 </span>
-                Условие фильтрации для выбора элементов:
-              </div>
-              <p className="text-[11px] text-gray-600">
-                Конструкция: <code className="font-mono text-[10px] bg-white px-1 py-0.5 rounded">&lt;Блок&gt;. Фильтрация &lt;Тип объекта&gt; по &lt;Параметры&gt;[, на основании &lt;Базовый объект&gt;]</code>.
-              </p>
+              ))}
             </div>
           </div>
         </div>
-      )}
+      </Modal>
 
-      {/* ── History of Generated IDs ── */}
-      {history.length > 0 && (
-        <div className="rounded-xl border border-gray-200 bg-white p-3 shadow-sm space-y-2">
-          <div className="flex items-center justify-between border-b border-gray-100 pb-2">
-            <div className="flex items-center gap-1.5 text-xs font-bold text-gray-900">
-              <History className="w-3.5 h-3.5 text-gray-500" />
-              <span>История генераций ({history.length})</span>
+      {/* ── Rules Modal ── */}
+      <Modal
+        isOpen={isRulesOpen}
+        onClose={() => setIsRulesOpen(false)}
+        title="Стандарты именования GreenData"
+        maxWidth="md"
+      >
+        <div className="space-y-2.5 text-xs text-slate-700 leading-relaxed max-h-[70vh] overflow-y-auto pr-1">
+          <div className="rounded-xl bg-slate-50 p-2.5 border border-slate-200/80 space-y-1">
+            <div className="font-bold text-slate-900 flex items-center gap-1.5">
+              <span className="flex h-4 w-4 items-center justify-center rounded-full bg-emerald-600 text-[9px] text-white font-bold">1</span>
+              Каноническая формула и префиксы блоков:
             </div>
-
-            <button
-              onClick={handleClearHistory}
-              className="text-[10px] text-gray-400 hover:text-rose-600 transition-colors flex items-center gap-1"
-            >
-              <Trash2 className="w-3 h-3" />
-              Очистить
-            </button>
+            <p className="text-[11px] text-slate-600">
+              <code className="font-mono text-[10.5px] bg-white px-1.5 py-0.5 rounded border border-slate-200 font-bold text-emerald-700">
+                [ПРЕФИКС_БЛОКА]_[СУБЪЕКТ]_[ДЕЙСТВИЕ]_[ПОСТФИКС]
+              </code>
+            </p>
+            <p className="text-[11px] text-slate-600">
+              Например: «Лимиты. Рассчитать VaR по портфелю» → <code className="font-mono font-bold text-emerald-700">LIM_VAR_CALC_ALG</code>.
+            </p>
           </div>
 
-          <div className="space-y-1.5 max-h-48 overflow-y-auto">
+          <div className="rounded-xl bg-slate-50 p-2.5 border border-slate-200/80 space-y-1">
+            <div className="font-bold text-slate-900 flex items-center gap-1.5">
+              <span className="flex h-4 w-4 items-center justify-center rounded-full bg-emerald-600 text-[9px] text-white font-bold">2</span>
+              Алгоритмы карточек объектов:
+            </div>
+            <p className="text-[11px] text-slate-600">
+              Действие всегда содержит глагол в инфинитиве (CREATE, UPDATE, DELETE, EXEC, SEND, APPROVE). Постфикс: <code className="font-mono font-bold">_CARD_ALG</code> или <code className="font-mono font-bold">_ALG</code>.
+            </p>
+          </div>
+
+          <div className="rounded-xl bg-slate-50 p-2.5 border border-slate-200/80 space-y-1">
+            <div className="font-bold text-slate-900 flex items-center gap-1.5">
+              <span className="flex h-4 w-4 items-center justify-center rounded-full bg-emerald-600 text-[9px] text-white font-bold">3</span>
+              Условия фильтрации для выбора элементов:
+            </div>
+            <p className="text-[11px] text-slate-600">
+              Конструкция: <code className="font-mono text-[10.5px] bg-white px-1.5 py-0.5 rounded border border-slate-200 font-bold text-emerald-700">
+                FILTER_&lt;ТИП_ОБЪЕКТА&gt;_BY_&lt;ПАРАМЕТРЫ&gt;[_BASED_ON_&lt;БАЗОВЫЙ_ОБЪЕКТ&gt;]
+              </code>. Постфикс: <code className="font-mono font-bold">_FILTER_ALG</code>.
+            </p>
+          </div>
+
+          <div className="rounded-xl bg-slate-50 p-2.5 border border-slate-200/80 space-y-1">
+            <div className="font-bold text-slate-900 flex items-center gap-1.5">
+              <span className="flex h-4 w-4 items-center justify-center rounded-full bg-emerald-600 text-[9px] text-white font-bold">4</span>
+              Расчеты и валидации:
+            </div>
+            <p className="text-[11px] text-slate-600">
+              Для проверок используется ключевой токен <code className="font-mono font-bold text-amber-700">CHECK</code> (постфикс <code className="font-mono font-bold">_VALID_ALG</code>). Для вычислений — токен <code className="font-mono font-bold text-emerald-700">CALC</code> (постфикс <code className="font-mono font-bold">_CALC_ALG</code>).
+            </p>
+          </div>
+        </div>
+      </Modal>
+
+      {/* ── History Modal ── */}
+      <Modal
+        isOpen={isHistoryOpen}
+        onClose={() => setIsHistoryOpen(false)}
+        title="История генераций"
+        maxWidth="md"
+        footer={
+          history.length > 0 ? (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleClearHistory}
+              className="text-rose-600 hover:text-rose-700 hover:bg-rose-50 text-xs"
+              leftIcon={<Trash2 className="w-3.5 h-3.5" />}
+            >
+              Очистить историю
+            </Button>
+          ) : undefined
+        }
+      >
+        {history.length > 0 ? (
+          <div className="space-y-1.5 max-h-80 overflow-y-auto pr-1">
             {history.map((item) => (
               <div
                 key={item.id}
-                className="flex items-center justify-between gap-2 p-2 rounded-lg bg-gray-50/80 hover:bg-emerald-50/40 border border-gray-200 transition-colors text-xs"
+                className="flex items-center justify-between gap-2 p-2 rounded-xl bg-slate-50 hover:bg-emerald-50/50 border border-slate-200 transition-colors text-xs"
               >
                 <div
                   className="min-w-0 flex-1 cursor-pointer"
-                  onClick={() => setInputText(item.russianName)}
-                  title="Нажмите, чтобы вставить в поле ввода"
+                  onClick={() => {
+                    handleSetInputText(item.russianName);
+                    setIsHistoryOpen(false);
+                  }}
+                  title="Вставить в поле ввода"
                 >
-                  <span className="block truncate font-mono font-bold text-emerald-800">
+                  <div className="font-mono font-bold text-slate-900 truncate">
                     {item.generatedId}
-                  </span>
-                  <span className="block truncate text-[10px] text-gray-500">
+                  </div>
+                  <div className="text-[10px] text-slate-500 truncate">
                     {item.russianName}
-                  </span>
+                  </div>
                 </div>
-
                 <button
-                  onClick={() => handleCopy(item.generatedId)}
-                  title="Скопировать этот ID"
-                  className="icon-btn p-1 text-gray-400 hover:text-emerald-700"
+                  type="button"
+                  onClick={() => handleCopy(item.generatedId, item.type)}
+                  title="Скопировать"
+                  className="p-1 text-slate-400 hover:text-emerald-700 cursor-pointer"
                 >
                   <Copy className="w-3.5 h-3.5" />
                 </button>
               </div>
             ))}
           </div>
-        </div>
-      )}
+        ) : (
+          <div className="text-center py-8 text-xs text-slate-400">
+            История пуста
+          </div>
+        )}
+      </Modal>
 
       {/* ── AI Settings Modal ── */}
       <AiSettingsModal
