@@ -351,7 +351,7 @@ export const App: React.FC = () => {
                                         type="button"
                                         onClick={() => setIsMassActionsOpen(true)}
                                         title="Массовые действия и заполнение тегов (переменных) для файлов"
-                                        className="inline-flex items-center gap-1 px-2 py-1 bg-slate-50 hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 border border-slate-200 hover:border-emerald-300 rounded-xl text-[11px] font-semibold transition-all shadow-2xs cursor-pointer whitespace-nowrap"
+                                        className="inline-flex items-center justify-center gap-1 h-7 px-2.5 bg-slate-50 hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 border border-slate-200 hover:border-emerald-300 rounded-xl text-[11px] font-semibold leading-none transition-all shadow-2xs cursor-pointer whitespace-nowrap"
                                     >
                                         <SlidersHorizontal className="w-3 h-3 text-emerald-600" />
                                         <span>Теги</span>
@@ -361,7 +361,7 @@ export const App: React.FC = () => {
                                         type="button"
                                         onClick={() => setIsPresetsOpen(true)}
                                         title="Пресеты шаблонов наименования"
-                                        className="inline-flex items-center gap-1 px-2 py-1 bg-slate-50 hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 border border-slate-200 hover:border-emerald-300 rounded-xl text-[11px] font-semibold transition-all shadow-2xs cursor-pointer whitespace-nowrap"
+                                        className="inline-flex items-center justify-center gap-1 h-7 px-2.5 bg-slate-50 hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 border border-slate-200 hover:border-emerald-300 rounded-xl text-[11px] font-semibold leading-none transition-all shadow-2xs cursor-pointer whitespace-nowrap"
                                     >
                                         <Bookmark className="w-3 h-3 text-emerald-600" />
                                         <span>Пресеты</span>
@@ -371,7 +371,7 @@ export const App: React.FC = () => {
                                         type="button"
                                         onClick={() => setIsReadmeOpen(true)}
                                         title="Редактор README.txt"
-                                        className="relative inline-flex items-center gap-1 px-2 py-1 bg-slate-50 hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 border border-slate-200 hover:border-emerald-300 rounded-xl text-[11px] font-semibold transition-all shadow-2xs cursor-pointer whitespace-nowrap"
+                                        className="relative inline-flex items-center justify-center gap-1 h-7 px-2.5 bg-slate-50 hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 border border-slate-200 hover:border-emerald-300 rounded-xl text-[11px] font-semibold leading-none transition-all shadow-2xs cursor-pointer whitespace-nowrap"
                                     >
                                         <FileEdit className="w-3 h-3 text-emerald-600" />
                                         <span>README</span>
@@ -387,7 +387,7 @@ export const App: React.FC = () => {
                                         type="button"
                                         onClick={clearFiles}
                                         title="Очистить все файлы в активном пакете"
-                                        className="icon-btn icon-btn--danger p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors cursor-pointer ml-0.5"
+                                        className="h-7 w-7 inline-flex items-center justify-center text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors cursor-pointer ml-0.5"
                                     >
                                         <Trash2 className="w-3.5 h-3.5" />
                                     </button>
