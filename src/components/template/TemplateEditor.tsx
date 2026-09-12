@@ -75,7 +75,7 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
                 onSetStartNumber(parseInt(e.target.value, 10) || 1)
               }
               title="Стартовый номер"
-              className="w-9 rounded-lg border border-slate-200 bg-slate-50 px-1 py-0.5 text-center text-xs font-bold text-slate-900 outline-none transition-colors focus:border-emerald-500 focus:bg-white"
+              className="w-14 rounded-lg border border-slate-200 bg-slate-50 px-1.5 py-0.5 text-center text-xs font-bold text-slate-900 outline-none transition-colors focus:border-emerald-500 focus:bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
             />
             <button
               type="button"
