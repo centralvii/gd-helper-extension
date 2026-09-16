@@ -25,7 +25,7 @@ chrome.action.onClicked.addListener(async (tab) => {
   }
 });
 
-import { sanitizeCleanName, trimGreenDataUrl } from '../utils/tabUtils';
+import { sanitizeCleanName, trimGreenDataUrl, isUpdateCreationPage } from '../utils/tabUtils';
 
 // ── Auto-Collector: .guf download watcher ────────────────────────────────────
 // chrome.downloads.onChanged MUST be in the background service worker —
@@ -34,6 +34,64 @@ import { sanitizeCleanName, trimGreenDataUrl } from '../utils/tabUtils';
 const AUTO_COLLECT_KEY = 'gd-helper-auto-collect-enabled';
 const AUTO_COLLECT_MODE_KEY = 'gd-helper-auto-collect-mode';
 const processedDownloads = new Set<number>();
+const ignoredDownloadIds = new Set<number>();
+const recentInternalDownloads = new Map<string, number>();
+
+// Listen for internal downloads registered by side panel UI
+chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+  if (message?.type === 'REGISTER_INTERNAL_DOWNLOAD' && message.payload?.filename) {
+    const fn = String(message.payload.filename).toLowerCase().trim();
+    recentInternalDownloads.set(fn, Date.now());
+    // Cleanup old items > 60s
+    const now = Date.now();
+    for (const [key, ts] of recentInternalDownloads.entries()) {
+      if (now - ts > 60000) recentInternalDownloads.delete(key);
+    }
+    sendResponse?.({ status: 'ok' });
+  }
+});
+
+/**
+ * Checks whether a download was initiated by or originates from this extension
+ */
+function isInternalExtensionDownload(item: chrome.downloads.DownloadItem): boolean {
+  const myExtId = chrome.runtime.id;
+
+  // 1. Explicit initiated by our extension ID
+  if (item.byExtensionId && item.byExtensionId === myExtId) {
+    return true;
+  }
+
+  // 2. Extension URL or Blob URL originating from our extension
+  const url = item.url || '';
+  const finalUrl = item.finalUrl || '';
+
+  if (
+    url.startsWith(`blob:chrome-extension://${myExtId}`) ||
+    url.startsWith(`chrome-extension://${myExtId}`) ||
+    finalUrl.startsWith(`blob:chrome-extension://${myExtId}`) ||
+    finalUrl.startsWith(`chrome-extension://${myExtId}`) ||
+    url.includes(myExtId) ||
+    finalUrl.includes(myExtId) ||
+    url.startsWith('blob:chrome-extension://') ||
+    finalUrl.startsWith('blob:chrome-extension://')
+  ) {
+    return true;
+  }
+
+  // 3. Filename registered by our UI within 20s
+  const fullPath = item.filename || '';
+  const rawFilename = fullPath.replace(/\\/g, '/').split('/').pop() || '';
+  if (rawFilename) {
+    const lower = rawFilename.toLowerCase().trim();
+    const regTime = recentInternalDownloads.get(lower);
+    if (regTime && Date.now() - regTime < 20000) {
+      return true;
+    }
+  }
+
+  return false;
+}
 
 interface DownloadMeta {
   downloadId: number;
@@ -49,6 +107,21 @@ const downloadMetaMap = new Map<number, DownloadMeta>();
  * Self-contained DOM extractor for injection into GreenData tabs
  */
 function extractPageNameInTab(): string | null {
+  const checkUpdateCreation = (str: string | null | undefined): string | null => {
+    if (!str) return null;
+    const low = str.toLowerCase();
+    if (
+      low.includes('создание обновлен') ||
+      low.includes('создание пакета обновлен') ||
+      low.includes('создания обновлен') ||
+      low === 'пакет обновления' ||
+      low === 'пакет обновлений'
+    ) {
+      return 'Пакет обновления';
+    }
+    return str;
+  };
+
   // 1. Primary: .page-name-wrapper .page-h
   const selectors = [
     '.page-name-wrapper .page-h',
@@ -65,11 +138,11 @@ function extractPageNameInTab(): string | null {
     const el = document.querySelector(sel);
     if (el) {
       const titleAttr = el.getAttribute('title')?.trim();
-      if (titleAttr) return titleAttr;
+      if (titleAttr) return checkUpdateCreation(titleAttr);
       const clone = el.cloneNode(true) as HTMLElement;
       clone.querySelectorAll('button, svg, [class*="tooltip"], i').forEach((e) => e.remove());
       const text = clone.textContent?.trim();
-      if (text) return text;
+      if (text) return checkUpdateCreation(text);
     }
   }
 
@@ -86,9 +159,9 @@ function extractPageNameInTab(): string | null {
     const el = document.querySelector(sel);
     if (el) {
       const titleAttr = el.getAttribute('title')?.trim();
-      if (titleAttr) return titleAttr;
+      if (titleAttr) return checkUpdateCreation(titleAttr);
       const text = el.textContent?.trim();
-      if (text) return text;
+      if (text) return checkUpdateCreation(text);
     }
   }
 
@@ -100,7 +173,7 @@ function extractPageNameInTab(): string | null {
       .replace(/\s*[-|–—:]\s*GreenData$/i, '')
       .trim();
     if (t && t !== 'Главная' && !t.toLowerCase().includes('greendata')) {
-      return t;
+      return checkUpdateCreation(t);
     }
   }
 
@@ -109,6 +182,12 @@ function extractPageNameInTab(): string | null {
 
 // Intercept the download at the exact moment it is created to capture the active tab
 chrome.downloads.onCreated.addListener(async (item) => {
+  // Ignore downloads originating from our own extension
+  if (isInternalExtensionDownload(item)) {
+    ignoredDownloadIds.add(item.id);
+    return;
+  }
+
   let isOriginalMode = false;
   try {
     const stored = await chrome.storage.local.get([AUTO_COLLECT_KEY, AUTO_COLLECT_MODE_KEY]);
@@ -130,7 +209,11 @@ chrome.downloads.onCreated.addListener(async (item) => {
       !activeTab.url.startsWith('edge://')
     ) {
       let pageName: string | undefined;
-      if (!isOriginalMode) {
+
+      // Direct check: active tab title or url indicates update creation
+      if (isUpdateCreationPage(activeTab.title) || isUpdateCreationPage(activeTab.url)) {
+        pageName = 'Пакет обновления';
+      } else if (!isOriginalMode) {
         try {
           const results = await chrome.scripting.executeScript({
             target: { tabId: activeTab.id },
@@ -139,7 +222,7 @@ chrome.downloads.onCreated.addListener(async (item) => {
           if (results && results[0] && typeof results[0].result === 'string') {
             const raw = results[0].result.trim();
             if (raw) {
-              pageName = sanitizeCleanName(raw);
+              pageName = isUpdateCreationPage(raw) ? 'Пакет обновления' : sanitizeCleanName(raw);
             }
           }
         } catch (err) {
@@ -164,18 +247,12 @@ chrome.downloads.onChanged.addListener(async (delta) => {
   // Only react to completed downloads
   if (!delta.state || delta.state.current !== 'complete') return;
 
-  // Check if auto-collect is enabled
-  let isOriginalMode = false;
-  try {
-    const stored = await chrome.storage.local.get([AUTO_COLLECT_KEY, AUTO_COLLECT_MODE_KEY]);
-    const isEnabled = stored[AUTO_COLLECT_KEY] === true;
-    if (!isEnabled) return;
-    isOriginalMode = stored[AUTO_COLLECT_MODE_KEY] === 'original';
-  } catch {
+  const downloadId = delta.id;
+  if (ignoredDownloadIds.has(downloadId)) {
+    ignoredDownloadIds.delete(downloadId);
     return;
   }
 
-  const downloadId = delta.id;
   if (processedDownloads.has(downloadId)) return;
 
   try {
@@ -184,11 +261,36 @@ chrome.downloads.onChanged.addListener(async (delta) => {
     if (!items || items.length === 0) return;
 
     const item = items[0];
+
+    // Exclude downloads from our own extension
+    if (isInternalExtensionDownload(item)) {
+      return;
+    }
+
     const fullPath = item.filename || '';
     const filename = fullPath.replace(/\\/g, '/').split('/').pop() || '';
 
     // Only process .guf files
     if (!filename.toLowerCase().endsWith('.guf')) return;
+
+    // Check if registered by side panel UI recently
+    const lowerName = filename.toLowerCase().trim();
+    const regTime = recentInternalDownloads.get(lowerName);
+    if (regTime && Date.now() - regTime < 20000) {
+      recentInternalDownloads.delete(lowerName);
+      return;
+    }
+
+    // Check if auto-collect is enabled
+    let isOriginalMode = false;
+    try {
+      const stored = await chrome.storage.local.get([AUTO_COLLECT_KEY, AUTO_COLLECT_MODE_KEY]);
+      const isEnabled = stored[AUTO_COLLECT_KEY] === true;
+      if (!isEnabled) return;
+      isOriginalMode = stored[AUTO_COLLECT_MODE_KEY] === 'original';
+    } catch {
+      return;
+    }
 
     processedDownloads.add(downloadId);
 
@@ -208,7 +310,9 @@ chrome.downloads.onChanged.addListener(async (delta) => {
       }
     }
 
-    if (!isOriginalMode) {
+    if (isUpdateCreationPage(tabUrl)) {
+      pageName = 'Пакет обновления';
+    } else if (!isOriginalMode) {
       pageName = downloadMetaMap.get(downloadId)?.pageName;
 
       if (!pageName) {
@@ -229,13 +333,19 @@ chrome.downloads.onChanged.addListener(async (delta) => {
             });
             if (results && results[0] && typeof results[0].result === 'string') {
               const raw = results[0].result.trim();
-              if (raw) pageName = sanitizeCleanName(raw);
+              if (raw) {
+                pageName = isUpdateCreationPage(raw) ? 'Пакет обновления' : sanitizeCleanName(raw);
+              }
             }
           }
         } catch (err) {
           console.warn('[GDHelper BG] Fallback scripting error:', err);
         }
       }
+    }
+
+    if (isUpdateCreationPage(pageName)) {
+      pageName = 'Пакет обновления';
     }
 
     const downloadUrl = item.url || '';

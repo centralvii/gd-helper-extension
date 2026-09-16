@@ -797,10 +797,40 @@ export async function getActiveTabInfo(): Promise<TabInfo | null> {
 }
 
 /**
+ * Detects if a text, page name, or URL corresponds to GreenData update package creation
+ */
+export function isUpdateCreationPage(text?: string | null): boolean {
+  if (!text) return false;
+  const low = text.toLowerCase().trim();
+  return (
+    low.includes('создание обновлен') ||
+    low.includes('создание пакета обновлен') ||
+    low.includes('создания обновлен') ||
+    low === 'пакет обновления' ||
+    low === 'пакет обновлений'
+  );
+}
+
+/**
  * Injected function to extract the GreenData page name directly from the DOM
  * Target markup: <div class="flex-auto page-name-wrapper"><span class="page-h ... title="...">...</span></div>
  */
 export function extractGreenDataPageNameFromDom(): string | null {
+  const checkUpdateCreation = (str: string | null | undefined): string | null => {
+    if (!str) return null;
+    const low = str.toLowerCase();
+    if (
+      low.includes('создание обновлен') ||
+      low.includes('создание пакета обновлен') ||
+      low.includes('создания обновлен') ||
+      low === 'пакет обновления' ||
+      low === 'пакет обновлений'
+    ) {
+      return 'Пакет обновления';
+    }
+    return str;
+  };
+
   // 1. Primary: .page-name-wrapper .page-h
   const selectors = [
     '.page-name-wrapper .page-h',
@@ -817,11 +847,11 @@ export function extractGreenDataPageNameFromDom(): string | null {
     const el = document.querySelector(sel);
     if (el) {
       const titleAttr = el.getAttribute('title')?.trim();
-      if (titleAttr) return titleAttr;
+      if (titleAttr) return checkUpdateCreation(titleAttr);
       const clone = el.cloneNode(true) as HTMLElement;
       clone.querySelectorAll('button, svg, [class*="tooltip"], i').forEach((e) => e.remove());
       const text = clone.textContent?.trim();
-      if (text) return text;
+      if (text) return checkUpdateCreation(text);
     }
   }
 
@@ -838,9 +868,9 @@ export function extractGreenDataPageNameFromDom(): string | null {
     const el = document.querySelector(sel);
     if (el) {
       const titleAttr = el.getAttribute('title')?.trim();
-      if (titleAttr) return titleAttr;
+      if (titleAttr) return checkUpdateCreation(titleAttr);
       const text = el.textContent?.trim();
-      if (text) return text;
+      if (text) return checkUpdateCreation(text);
     }
   }
 
@@ -852,7 +882,7 @@ export function extractGreenDataPageNameFromDom(): string | null {
       .replace(/\s*[-|–—:]\s*GreenData$/i, '')
       .trim();
     if (t && t !== 'Главная' && !t.toLowerCase().includes('greendata')) {
-      return t;
+      return checkUpdateCreation(t);
     }
   }
 
@@ -875,6 +905,10 @@ export async function getActiveGreenDataPageName(): Promise<string | null> {
         !activeTab.url.startsWith('chrome://') &&
         !activeTab.url.startsWith('edge://')
       ) {
+        if (isUpdateCreationPage(activeTab.title) || isUpdateCreationPage(activeTab.url)) {
+          return 'Пакет обновления';
+        }
+
         const results = await chrome.scripting.executeScript({
           target: { tabId: activeTab.id },
           func: extractGreenDataPageNameFromDom,
@@ -882,7 +916,9 @@ export async function getActiveGreenDataPageName(): Promise<string | null> {
 
         if (results && results[0] && typeof results[0].result === 'string') {
           const raw = results[0].result.trim();
-          if (raw) return sanitizeCleanName(raw);
+          if (raw) {
+            return isUpdateCreationPage(raw) ? 'Пакет обновления' : sanitizeCleanName(raw);
+          }
         }
       }
     }

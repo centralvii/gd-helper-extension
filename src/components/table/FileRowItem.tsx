@@ -60,6 +60,21 @@ export const FileRowItem: React.FC<FileRowItemProps> = React.memo(({
         if (!downloadName.toLowerCase().endsWith('.guf')) {
             downloadName = `${downloadName}.guf`;
         }
+
+        // Notify background that this is an internal extension download so auto-collector ignores it
+        try {
+            if (typeof chrome !== 'undefined' && chrome.runtime?.sendMessage) {
+                chrome.runtime.sendMessage({
+                    type: 'REGISTER_INTERNAL_DOWNLOAD',
+                    payload: { filename: downloadName },
+                }).catch(() => {
+                    // ignore if background is not listening or suspended
+                });
+            }
+        } catch {
+            // ignore
+        }
+
         saveAs(file.file, downloadName);
         if (onDownload) {
             onDownload(file);

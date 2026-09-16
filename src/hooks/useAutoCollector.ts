@@ -12,7 +12,7 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { sanitizeCleanName, getActiveGreenDataPageName, trimGreenDataUrl } from '../utils/tabUtils';
+import { sanitizeCleanName, getActiveGreenDataPageName, trimGreenDataUrl, isUpdateCreationPage } from '../utils/tabUtils';
 import { parseFileName } from '../core/nameCleaner';
 import { AutoCollectNamingMode } from '../types';
 
@@ -116,6 +116,17 @@ export function useAutoCollector({ onFileCollected }: UseAutoCollectorProps) {
   const processGufDownload = useCallback(async (payload: PendingDownload) => {
     const { downloadId, filename, url, tabUrl, pageName: payloadPageName } = payload;
 
+    // Exclude downloads originating from our own extension
+    const myExtId = typeof chrome !== 'undefined' ? chrome.runtime?.id : '';
+    if (
+      (myExtId && (url.includes(myExtId) || tabUrl?.includes(myExtId))) ||
+      url.startsWith('blob:chrome-extension://') ||
+      url.startsWith('chrome-extension://')
+    ) {
+      console.log('[AutoCollector] Ignored self-download from extension UI:', url);
+      return;
+    }
+
     if (processedIdsRef.current.has(downloadId)) return;
     processedIdsRef.current.add(downloadId);
 
@@ -147,6 +158,61 @@ export function useAutoCollector({ onFileCollected }: UseAutoCollectorProps) {
       const currentMode = namingModeRef.current;
       const parsedOriginal = parseFileName(filename);
 
+      // Check if this download came from the "Создание обновлений" page
+      let pageName = payloadPageName;
+      if (!pageName) {
+        try {
+          pageName = (await getActiveGreenDataPageName()) || undefined;
+        } catch (err) {
+          console.warn('[AutoCollector] getActiveGreenDataPageName error:', err);
+        }
+      }
+
+      const isUpdatePage =
+        isUpdateCreationPage(payloadPageName) ||
+        isUpdateCreationPage(pageName) ||
+        isUpdateCreationPage(tabUrl) ||
+        isUpdateCreationPage(sourceUrl) ||
+        (typeof document !== 'undefined' && isUpdateCreationPage(document.title));
+
+      if (isUpdatePage) {
+        // Special requirement: always name "Пакет обновления" when downloaded from update creation page
+        const cleanTargetName = 'Пакет обновления';
+        let prefix = '';
+        if (parsedOriginal.detectedDate && parsedOriginal.detectedTime) {
+          prefix = `${parsedOriginal.detectedDate} ${parsedOriginal.detectedTime} `;
+        } else if (parsedOriginal.detectedDate) {
+          prefix = `${parsedOriginal.detectedDate} `;
+        }
+        const finalFileName = `${prefix}${cleanTargetName}.guf`;
+
+        const file = new File([blob], finalFileName, {
+          type: blob.type || 'application/octet-stream',
+          lastModified: Date.now(),
+        });
+
+        onFileCollectedRef.current(file, {
+          cleanName: cleanTargetName,
+          pageName: cleanTargetName,
+          sourceUrl,
+          mode: currentMode,
+        });
+
+        setNotification({
+          id: crypto.randomUUID(),
+          fileName: `${cleanTargetName}.guf`,
+          mode: currentMode,
+          timestamp: Date.now(),
+        });
+
+        setTimeout(() => {
+          setNotification((curr) =>
+            curr && curr.fileName === `${cleanTargetName}.guf` ? null : curr
+          );
+        }, 4000);
+        return;
+      }
+
       if (currentMode === 'original') {
         // Режим: обычное название файла без изменения
         const file = new File([blob], filename, {
@@ -176,15 +242,6 @@ export function useAutoCollector({ onFileCollected }: UseAutoCollectorProps) {
       }
 
       // Режим: с названием со страницы GreenData (алгоритм, форма, объект)
-      let pageName = payloadPageName;
-      if (!pageName) {
-        try {
-          pageName = (await getActiveGreenDataPageName()) || undefined;
-        } catch (err) {
-          console.warn('[AutoCollector] getActiveGreenDataPageName error:', err);
-        }
-      }
-
       const cleanTargetName = pageName ? sanitizeCleanName(pageName) : '';
 
       // Construct file name preserving date prefix if it existed in original download
