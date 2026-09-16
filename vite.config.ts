@@ -16,6 +16,7 @@ export default defineConfig({
       input: {
         sidepanel: resolve(__dirname, 'sidepanel.html'),
         fullscreen: resolve(__dirname, 'index.html'),
+        checklist: resolve(__dirname, 'checklist.html'),
         background: resolve(__dirname, 'src/background/index.ts'),
       },
       output: {

@@ -88,6 +88,28 @@ export function useImplementationTasks() {
     }
   }, [activeTaskId]);
 
+  // Sync state when changes occur in other tabs/windows (e.g. standalone checklist page)
+  useEffect(() => {
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === STORAGE_KEY_TASKS && e.newValue) {
+        try {
+          const parsed = JSON.parse(e.newValue);
+          if (Array.isArray(parsed)) {
+            setTasks(parsed.map(normalizeTask));
+          }
+        } catch {
+          // ignore
+        }
+      }
+      if (e.key === STORAGE_KEY_ACTIVE_TASK && e.newValue) {
+        setActiveTaskId(e.newValue);
+      }
+    };
+
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, []);
+
   // Ensure activeTaskId always points to an existing task
   useEffect(() => {
     if (tasks.length > 0 && !tasks.some((t) => t.id === activeTaskId)) {
@@ -286,6 +308,8 @@ export function useImplementationTasks() {
         description: item.description.trim(),
         linkTitle: item.linkTitle?.trim() || undefined,
         linkUrl: item.linkUrl?.trim() || undefined,
+        isCollected: Boolean(item.isCollected),
+        collectedAt: item.collectedAt,
       };
 
       setTasks((prev) =>
@@ -318,6 +342,47 @@ export function useImplementationTasks() {
     },
     []
   );
+
+  // Toggle item collected status
+  const toggleChangeItemCollected = useCallback((taskId: string, itemId: string) => {
+    setTasks((prev) =>
+      prev.map((t) => {
+        if (t.id !== taskId) return t;
+        return {
+          ...t,
+          items: t.items.map((i) => {
+            if (i.id !== itemId) return i;
+            const nextCollected = !i.isCollected;
+            return {
+              ...i,
+              isCollected: nextCollected,
+              collectedAt: nextCollected ? Date.now() : undefined,
+            };
+          }),
+          updatedAt: Date.now(),
+        };
+      })
+    );
+  }, []);
+
+  // Batch set collected status for all items in a task
+  const setAllChangeItemsCollected = useCallback((taskId: string, isCollected: boolean) => {
+    setTasks((prev) =>
+      prev.map((t) => {
+        if (t.id !== taskId) return t;
+        const now = Date.now();
+        return {
+          ...t,
+          items: t.items.map((i) => ({
+            ...i,
+            isCollected,
+            collectedAt: isCollected ? (i.collectedAt || now) : undefined,
+          })),
+          updatedAt: now,
+        };
+      })
+    );
+  }, []);
 
   // Delete change item
   const deleteChangeItem = useCallback((taskId: string, itemId: string) => {
@@ -502,6 +567,8 @@ export function useImplementationTasks() {
     addChangeItem,
     updateChangeItem,
     deleteChangeItem,
+    toggleChangeItemCollected,
+    setAllChangeItemsCollected,
     reorderChangeItems,
     moveChangeItem,
     clearTaskItems,
@@ -587,6 +654,8 @@ export function parseTasksFromImport(jsonString: string): {
             description: String(it.description || '').trim(),
             linkTitle: it.linkTitle ? String(it.linkTitle).trim() : undefined,
             linkUrl: it.linkUrl ? String(it.linkUrl).trim() : undefined,
+            isCollected: Boolean(it.isCollected),
+            collectedAt: typeof it.collectedAt === 'number' ? it.collectedAt : undefined,
           };
         });
       }

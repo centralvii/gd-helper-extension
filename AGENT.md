@@ -20,7 +20,7 @@
 1. **Прочитай `RULES.md`** — там описана дизайн-система, стандарты компонентов, цвета, отступы
 2. **Изучи `src/components/ui/`** — все базовые компоненты: `Button`, `Badge`, `Input`, `Modal`, `ConsoleCard`
 3. **Изучи `src/types/index.ts`** — все интерфейсы и типы данных проекта
-4. **Изучи `tailwind.config.js`** и `src/index.css`** — кастомные цвета, анимации, CSS-классы
+4. **Изучи `tailwind.config.js`** и `src/index.css`\*\* — кастомные цвета, анимации, CSS-классы
 
 ---
 
@@ -55,6 +55,10 @@
 - Все кнопки-иконки через `.icon-btn` получают hover-анимацию (`scale(1.18)`)
 - Для особых случаев используй `.vk-icon-pop`, `.vk-icon-shake`, `.vk-icon-spin`, `.vk-icon-bounce`
 - Не забывай `transition-all` или `transition-colors` на интерактивных элементах
+
+### Правила разработки
+
+- Используй метод разработки DRY - Don't Repeat Yourself
 
 ---
 

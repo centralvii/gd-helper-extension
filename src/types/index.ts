@@ -149,6 +149,8 @@ export interface ImplementationChangeItem {
   description: string;
   linkTitle?: string;
   linkUrl?: string;
+  isCollected?: boolean; // Статус "Собран" для чеклиста сбора объектов
+  collectedAt?: number; // Таймстемп момента сбора объекта
 }
 
 export interface ImplementationTask {

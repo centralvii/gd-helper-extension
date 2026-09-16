@@ -895,17 +895,27 @@ export async function getActiveGreenDataPageName(): Promise<string | null> {
 /**
  * Formats a change description and optional link into Markdown / text
  */
-export function formatChangeItemMarkdown(description: string, linkTitle?: string, linkUrl?: string): string {
+export function formatChangeItemMarkdown(
+  description: string,
+  linkTitle?: string,
+  linkUrl?: string,
+  isCollected?: boolean
+): string {
   const desc = description.trim();
   const title = (linkTitle || '').trim();
   const url = (linkUrl || '').trim();
 
+  let text = desc;
   if (url) {
     const label = title || url;
-    return `${desc} [${label}](${url})`.trim();
+    text = `${desc} [${label}](${url})`.trim();
   }
 
-  return desc;
+  if (isCollected) {
+    return `${text} — *(Собран)*`;
+  }
+
+  return text;
 }
 
 /**
@@ -923,6 +933,10 @@ export function formatTaskToMarkdown(task: {
 }): string {
   const lines: string[] = [];
 
+  const totalItems = task.items ? task.items.length : 0;
+  const collectedItems = task.items ? task.items.filter((i) => i.isCollected).length : 0;
+  const isAllCollected = totalItems > 0 && collectedItems === totalItems;
+
   // Header
   const headerParts = [task.taskNumber.trim(), task.title.trim()].filter(Boolean);
   if (headerParts.length > 0) {
@@ -936,8 +950,24 @@ export function formatTaskToMarkdown(task: {
     lines.push('### Пакеты обновления .guf');
     allLinked.forEach((pkg) => {
       const count = pkg.files?.length || 0;
-      lines.push(`- **Пакет:** \`${pkg.name}\` (${count} ${count === 1 ? 'файл' : 'файлов'})`);
+      const pkgStatus = isAllCollected
+        ? ' — ✅ **Все файлы собраны**'
+        : totalItems > 0 && collectedItems > 0
+        ? ` — ⚠️ **В процессе сбора (${collectedItems}/${totalItems})**`
+        : '';
+      lines.push(`- **Пакет:** \`${pkg.name}\` (${count} ${count === 1 ? 'файл' : 'файлов'})${pkgStatus}`);
+      if (pkg.files && pkg.files.length > 0) {
+        pkg.files.forEach((file) => {
+          const fileName = file.newName || file.originalName;
+          const fileStatus = isAllCollected ? ' — *(Собран)*' : '';
+          lines.push(`  - \`${fileName}\`${fileStatus}`);
+        });
+      }
     });
+    lines.push('');
+  } else if (isAllCollected) {
+    lines.push('### Статус готовности');
+    lines.push('✅ **Все объекты реализации собраны** (готов к упаковке/релизу)');
     lines.push('');
   }
 
@@ -950,7 +980,12 @@ export function formatTaskToMarkdown(task: {
 
   // Changes
   if (task.items && task.items.length > 0) {
-    lines.push('### Внесённые изменения');
+    const changesHeader = isAllCollected
+      ? `### Внесённые изменения (Все объекты собраны ✅ ${collectedItems}/${totalItems})`
+      : collectedItems > 0
+      ? `### Внесённые изменения (Собрано: ${collectedItems}/${totalItems})`
+      : '### Внесённые изменения';
+    lines.push(changesHeader);
 
     const sections = task.sections || DEFAULT_IMPLEMENTATION_SECTIONS;
     const sortedSections = [...sections].sort((a, b) => a.order - b.order);
@@ -978,9 +1013,14 @@ export function formatTaskToMarkdown(task: {
         hasAnyGrouped = true;
         lines.push(`#### ${sec.name}`);
         items.forEach((item) => {
-          const formatted = formatChangeItemMarkdown(item.description, item.linkTitle, item.linkUrl);
+          const formatted = formatChangeItemMarkdown(
+            item.description,
+            item.linkTitle,
+            item.linkUrl,
+            item.isCollected
+          );
           if (formatted) {
-            lines.push(`- ${formatted}`);
+            lines.push(`- [${item.isCollected ? 'x' : ' '}] ${formatted}`);
           }
         });
         lines.push('');
@@ -993,9 +1033,14 @@ export function formatTaskToMarkdown(task: {
         lines.push('#### Прочее / Без раздела');
       }
       unsectioned.forEach((item) => {
-        const formatted = formatChangeItemMarkdown(item.description, item.linkTitle, item.linkUrl);
+        const formatted = formatChangeItemMarkdown(
+          item.description,
+          item.linkTitle,
+          item.linkUrl,
+          item.isCollected
+        );
         if (formatted) {
-          lines.push(`- ${formatted}`);
+          lines.push(`- [${item.isCollected ? 'x' : ' '}] ${formatted}`);
         }
       });
       lines.push('');

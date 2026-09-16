@@ -21,6 +21,7 @@ interface ChangeItemRowProps {
   onDelete: (id: string) => void;
   onMoveUp: (id: string) => void;
   onMoveDown: (id: string) => void;
+  onToggleCollected?: (id: string) => void;
 }
 
 export const ChangeItemRow: React.FC<ChangeItemRowProps> = React.memo(({
@@ -31,27 +32,57 @@ export const ChangeItemRow: React.FC<ChangeItemRowProps> = React.memo(({
   onDelete,
   onMoveUp,
   onMoveDown,
+  onToggleCollected,
 }) => {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = () => {
-    const formatted = formatChangeItemMarkdown(item.description, item.linkTitle, item.linkUrl);
+    const formatted = formatChangeItemMarkdown(
+      item.description,
+      item.linkTitle,
+      item.linkUrl,
+      item.isCollected
+    );
     navigator.clipboard.writeText(formatted);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
   return (
-    <div className="group relative rounded-2xl border border-slate-200/90 bg-white p-3 hover:border-emerald-300 hover:shadow-xs transition-all space-y-2">
+    <div className={`group relative rounded-2xl border p-3 transition-all space-y-2 ${
+      item.isCollected
+        ? 'border-emerald-200/90 bg-emerald-50/20'
+        : 'border-slate-200/90 bg-white hover:border-emerald-300 hover:shadow-xs'
+    }`}>
       {/* Top Header: Index badge + Item label on left, Action buttons on right */}
       <div className="flex items-center justify-between gap-1.5 border-b border-slate-100 pb-2">
-        <div className="flex items-center gap-2 min-w-0">
+        <div className="flex items-center gap-1.5 min-w-0">
           <span className="flex-shrink-0 flex items-center justify-center w-5 h-5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-mono font-bold shadow-2xs">
             {index + 1}
           </span>
           <span className="text-[11px] font-bold text-slate-500 truncate">
             Пункт {index + 1}
           </span>
+
+          {onToggleCollected && (
+            <button
+              type="button"
+              onClick={() => onToggleCollected(item.id)}
+              title={
+                item.isCollected
+                  ? 'Объект собран. Нажмите, чтобы сбросить статус'
+                  : 'Нажмите, чтобы отметить как собранный'
+              }
+              className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-bold border transition-colors cursor-pointer ${
+                item.isCollected
+                  ? 'bg-emerald-100/90 text-emerald-800 border-emerald-300 hover:bg-emerald-200'
+                  : 'bg-slate-100 text-slate-500 border-slate-200 hover:bg-slate-200'
+              }`}
+            >
+              {item.isCollected && <Check className="w-3 h-3 text-emerald-700" />}
+              <span>{item.isCollected ? 'Собран' : 'Не собран'}</span>
+            </button>
+          )}
         </div>
 
         {/* Action Toolbar */}

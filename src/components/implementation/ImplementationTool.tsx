@@ -31,6 +31,8 @@ export const ImplementationTool: React.FC<ImplementationToolProps> = ({
     addChangeItem,
     updateChangeItem,
     deleteChangeItem,
+    toggleChangeItemCollected,
+    setAllChangeItemsCollected,
     reorderChangeItems,
     moveChangeItem,
     importTasks,
@@ -72,6 +74,8 @@ export const ImplementationTool: React.FC<ImplementationToolProps> = ({
           onAddChangeItem={addChangeItem}
           onUpdateChangeItem={updateChangeItem}
           onDeleteChangeItem={deleteChangeItem}
+          onToggleChangeItemCollected={toggleChangeItemCollected}
+          onSetAllChangeItemsCollected={setAllChangeItemsCollected}
           onReorderChangeItems={reorderChangeItems}
           onMoveChangeItem={moveChangeItem}
           onOpenImportExport={handleOpenImportExport}
