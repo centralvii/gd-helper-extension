@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import {
@@ -10,7 +10,10 @@ import {
     Calendar,
     Link as LinkIcon,
     ExternalLink,
+    Download,
+    Check,
 } from 'lucide-react';
+import { saveAs } from 'file-saver';
 import { FileRow } from '../../types';
 import { Badge } from '../ui/Badge';
 import { IconButton } from '../ui';
@@ -22,6 +25,7 @@ interface FileRowItemProps {
     isDuplicate: boolean;
     onEdit: (file: FileRow) => void;
     onDelete: (id: string) => void;
+    onDownload?: (file: FileRow) => void;
 }
 
 export const FileRowItem: React.FC<FileRowItemProps> = React.memo(({
@@ -30,6 +34,7 @@ export const FileRowItem: React.FC<FileRowItemProps> = React.memo(({
     isDuplicate,
     onEdit,
     onDelete,
+    onDownload,
 }) => {
     const {
         attributes,
@@ -45,6 +50,22 @@ export const FileRowItem: React.FC<FileRowItemProps> = React.memo(({
         transition,
         zIndex: isDragging ? 50 : undefined,
         opacity: isDragging ? 0.6 : 1,
+    };
+
+    const [isDownloaded, setIsDownloaded] = useState(false);
+
+    const handleDownload = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        let downloadName = file.newName || file.originalName;
+        if (!downloadName.toLowerCase().endsWith('.guf')) {
+            downloadName = `${downloadName}.guf`;
+        }
+        saveAs(file.file, downloadName);
+        if (onDownload) {
+            onDownload(file);
+        }
+        setIsDownloaded(true);
+        setTimeout(() => setIsDownloaded(false), 1500);
     };
 
     return (
@@ -148,6 +169,19 @@ export const FileRowItem: React.FC<FileRowItemProps> = React.memo(({
 
             {/* Actions */}
             <div className="flex flex-shrink-0 items-center gap-0.5">
+                <IconButton
+                    size="sm"
+                    variant="sky"
+                    icon={
+                        isDownloaded ? (
+                            <Check className="h-3.5 w-3.5 text-emerald-600" />
+                        ) : (
+                            <Download className="h-3.5 w-3.5" />
+                        )
+                    }
+                    onClick={handleDownload}
+                    title="Скачать этот GUF-файл"
+                />
                 <IconButton
                     size="sm"
                     variant="emerald"

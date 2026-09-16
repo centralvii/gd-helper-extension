@@ -25,6 +25,7 @@ interface FileTableProps {
     onEditFile: (file: FileRow) => void;
     onDeleteFile: (id: string) => void;
     onAddFiles: (files: File[]) => void;
+    onDownloadFile?: (file: FileRow) => void;
 }
 
 export const FileTable: React.FC<FileTableProps> = ({
@@ -34,6 +35,7 @@ export const FileTable: React.FC<FileTableProps> = ({
     onEditFile,
     onDeleteFile,
     onAddFiles,
+    onDownloadFile,
 }) => {
     const [searchQuery, setSearchQuery] = useState('');
 
@@ -123,6 +125,7 @@ export const FileTable: React.FC<FileTableProps> = ({
                                 )}
                                 onEdit={onEditFile}
                                 onDelete={onDeleteFile}
+                                onDownload={onDownloadFile}
                             />
                         ))}
                     </div>
