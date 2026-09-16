@@ -230,10 +230,12 @@ chrome.downloads.onCreated.addListener(async (item) => {
         }
       }
 
+      const sanitizedCardUrl = trimGreenDataUrl(activeTab.url);
+
       downloadMetaMap.set(item.id, {
         downloadId: item.id,
         tabId: activeTab.id,
-        tabUrl: trimGreenDataUrl(activeTab.url),
+        tabUrl: sanitizedCardUrl || undefined,
         pageName,
         createdAt: Date.now(),
       });
@@ -303,7 +305,8 @@ chrome.downloads.onChanged.addListener(async (delta) => {
         const tabs = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
         const activeTab = tabs[0] || (await chrome.tabs.query({ active: true, currentWindow: true }))[0];
         if (activeTab?.url && !activeTab.url.startsWith('chrome://') && !activeTab.url.startsWith('edge://')) {
-          tabUrl = trimGreenDataUrl(activeTab.url);
+          const trimmed = trimGreenDataUrl(activeTab.url);
+          tabUrl = trimmed || undefined;
         }
       } catch {
         // ignore

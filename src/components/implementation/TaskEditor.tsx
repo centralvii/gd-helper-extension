@@ -56,6 +56,7 @@ import {
   matchSectionForType,
   formatTitleInQuotes,
   isSameUrl,
+  extractCardIdFromUrl,
 } from '../../utils/tabUtils';
 
 interface TaskEditorProps {
@@ -278,8 +279,26 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
   };
 
   const linkedPackages = useMemo(() => {
-    return packages.filter((p) => p.taskId === task.id);
-  }, [task.id, packages]);
+    return packages.filter((p) => p.taskId === task.id || p.id === task.packageId);
+  }, [task.id, task.packageId, packages]);
+
+  const linkedFilesByCardId = useMemo(() => {
+    const map = new Map<string, { order: number; newName?: string; originalName: string; cardId?: string }>();
+    linkedPackages.forEach((pkg) => {
+      pkg.files.forEach((f) => {
+        const cId = f.cardId || extractCardIdFromUrl(f.sourceUrl);
+        if (cId) {
+          map.set(cId, {
+            order: f.order,
+            newName: f.newName,
+            originalName: f.originalName,
+            cardId: cId,
+          });
+        }
+      });
+    });
+    return map;
+  }, [linkedPackages]);
 
   const sections = useMemo(() => {
     const raw =
@@ -1028,19 +1047,24 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
                           </button>
                         </div>
                       ) : (
-                        items.map((item, idx) => (
-                          <ChangeItemRow
-                            key={item.id}
-                            item={item}
-                            index={idx}
-                            totalCount={items.length}
-                            onEdit={handleEditItem}
-                            onDelete={handleDeleteItem}
-                            onMoveUp={handleMoveUpItem}
-                            onMoveDown={handleMoveDownItem}
-                            onToggleCollected={(id) => onToggleChangeItemCollected?.(task.id, id)}
-                          />
-                        ))
+                        items.map((item, idx) => {
+                          const itemCardId = extractCardIdFromUrl(item.linkUrl);
+                          const matchingFile = itemCardId ? linkedFilesByCardId.get(itemCardId) : undefined;
+                          return (
+                            <ChangeItemRow
+                              key={item.id}
+                              item={item}
+                              index={idx}
+                              totalCount={items.length}
+                              onEdit={handleEditItem}
+                              onDelete={handleDeleteItem}
+                              onMoveUp={handleMoveUpItem}
+                              onMoveDown={handleMoveDownItem}
+                              onToggleCollected={(id) => onToggleChangeItemCollected?.(task.id, id)}
+                              matchingPackageFile={matchingFile}
+                            />
+                          );
+                        })
                       )}
                     </div>
                   )}
@@ -1079,19 +1103,24 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
 
                 {!collapsedSections['__unsectioned__'] && (
                   <div className="p-2 space-y-1.5 animate-slide-down">
-                    {unsectionedItems.map((item, idx) => (
-                      <ChangeItemRow
-                        key={item.id}
-                        item={item}
-                        index={idx}
-                        totalCount={unsectionedItems.length}
-                        onEdit={handleEditItem}
-                        onDelete={handleDeleteItem}
-                        onMoveUp={handleMoveUpItem}
-                        onMoveDown={handleMoveDownItem}
-                        onToggleCollected={(id) => onToggleChangeItemCollected?.(task.id, id)}
-                      />
-                    ))}
+                    {unsectionedItems.map((item, idx) => {
+                      const itemCardId = extractCardIdFromUrl(item.linkUrl);
+                      const matchingFile = itemCardId ? linkedFilesByCardId.get(itemCardId) : undefined;
+                      return (
+                        <ChangeItemRow
+                          key={item.id}
+                          item={item}
+                          index={idx}
+                          totalCount={unsectionedItems.length}
+                          onEdit={handleEditItem}
+                          onDelete={handleDeleteItem}
+                          onMoveUp={handleMoveUpItem}
+                          onMoveDown={handleMoveDownItem}
+                          onToggleCollected={(id) => onToggleChangeItemCollected?.(task.id, id)}
+                          matchingPackageFile={matchingFile}
+                        />
+                      );
+                    })}
                   </div>
                 )}
               </div>

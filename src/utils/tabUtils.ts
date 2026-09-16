@@ -150,8 +150,29 @@ export function formatTitleInQuotes(title: string): string {
 }
 
 /**
+ * Checks whether a URL is a valid GreenData card URL containing /card/<id>
+ */
+export function isValidGreenDataCardUrl(rawUrl?: string | null): boolean {
+  if (!rawUrl) return false;
+  const trimmed = rawUrl.trim();
+  return /(?:#\/card\/|\/card\/)[a-zA-Z0-9_-]+/i.test(trimmed);
+}
+
+/**
+ * Extracts card ID from a GreenData card URL (the value after /card/)
+ * e.g. "https://expo.greendatasoft.ru/#/card/9555317" -> "9555317"
+ * e.g. "https://expo.greendatasoft.ru/#/card/660409?_k=123" -> "660409"
+ */
+export function extractCardIdFromUrl(rawUrl?: string | null): string | null {
+  if (!rawUrl) return null;
+  const match = rawUrl.match(/(?:#\/card\/|\/card\/)([a-zA-Z0-9_-]+)/i);
+  return match ? match[1] : null;
+}
+
+/**
  * Trims a GreenData card URL to its base card route (e.g. https://expo.greendatasoft.ru/#/card/660409)
  * stripping subroutes, query params, or extra fragments after the card ID.
+ * Returns empty string if the URL does not contain a valid /card/ route.
  */
 export function trimGreenDataUrl(rawUrl?: string): string {
   if (!rawUrl) return '';
@@ -172,8 +193,8 @@ export function trimGreenDataUrl(rawUrl?: string): string {
     return pathCardMatch[1];
   }
 
-  // Fallback: strip query parameters and trailing slash
-  return trimmed.split('?')[0].replace(/\/+$/, '');
+  // If there is no "/card" in the URL (e.g. #/CreateUpdate?_k=...), do not attach it
+  return '';
 }
 
 /**

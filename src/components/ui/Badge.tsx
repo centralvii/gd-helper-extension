@@ -8,6 +8,7 @@ interface BadgeProps {
   size?: 'xs' | 'sm' | 'md';
   className?: string;
   dot?: boolean;
+  title?: string;
 }
 
 export const Badge: React.FC<BadgeProps> = ({
@@ -16,6 +17,7 @@ export const Badge: React.FC<BadgeProps> = ({
   size = 'md',
   className,
   dot = false,
+  title,
 }) => {
   const baseStyles =
     'inline-flex items-center font-semibold rounded-full border select-none transition-colors';
@@ -46,6 +48,7 @@ export const Badge: React.FC<BadgeProps> = ({
 
   return (
     <span
+      title={title}
       className={twMerge(clsx(baseStyles, variants[variant], sizes[size], className))}
     >
       {dot && (

@@ -10,7 +10,7 @@ import {
   Link as LinkIcon,
 } from 'lucide-react';
 import { ImplementationChangeItem } from '../../types';
-import { formatChangeItemMarkdown } from '../../utils/tabUtils';
+import { formatChangeItemMarkdown, extractCardIdFromUrl } from '../../utils/tabUtils';
 import { IconButton } from '../ui';
 
 interface ChangeItemRowProps {
@@ -22,6 +22,7 @@ interface ChangeItemRowProps {
   onMoveUp: (id: string) => void;
   onMoveDown: (id: string) => void;
   onToggleCollected?: (id: string) => void;
+  matchingPackageFile?: { order: number; newName?: string; originalName: string; cardId?: string };
 }
 
 export const ChangeItemRow: React.FC<ChangeItemRowProps> = React.memo(({
@@ -33,6 +34,7 @@ export const ChangeItemRow: React.FC<ChangeItemRowProps> = React.memo(({
   onMoveUp,
   onMoveDown,
   onToggleCollected,
+  matchingPackageFile,
 }) => {
   const [copied, setCopied] = useState(false);
 
@@ -56,7 +58,7 @@ export const ChangeItemRow: React.FC<ChangeItemRowProps> = React.memo(({
     }`}>
       {/* Top Header: Index badge + Item label on left, Action buttons on right */}
       <div className="flex items-center justify-between gap-1.5 border-b border-slate-100 pb-2">
-        <div className="flex items-center gap-1.5 min-w-0">
+        <div className="flex items-center gap-1.5 min-w-0 flex-wrap">
           <span className="flex-shrink-0 flex items-center justify-center w-5 h-5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-mono font-bold shadow-2xs">
             {index + 1}
           </span>
@@ -82,6 +84,15 @@ export const ChangeItemRow: React.FC<ChangeItemRowProps> = React.memo(({
               {item.isCollected && <Check className="w-3 h-3 text-emerald-700" />}
               <span>{item.isCollected ? 'Собран' : 'Не собран'}</span>
             </button>
+          )}
+
+          {matchingPackageFile && (
+            <span
+              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-sky-50 text-sky-800 border border-sky-200 shadow-2xs"
+              title={`Файл найден в связанном пакете сборки под номером #${matchingPackageFile.order}: ${matchingPackageFile.newName || matchingPackageFile.originalName}`}
+            >
+              📦 В пакете #{matchingPackageFile.order}
+            </span>
           )}
         </div>
 
@@ -138,7 +149,16 @@ export const ChangeItemRow: React.FC<ChangeItemRowProps> = React.memo(({
 
       {/* Attached Link (full width) */}
       {item.linkUrl && (
-        <div className="pt-0.5">
+        <div className="pt-0.5 flex items-center gap-1.5 flex-wrap">
+          {extractCardIdFromUrl(item.linkUrl) && (
+            <span
+              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-lg bg-slate-100 text-slate-700 border border-slate-200/90 font-mono text-[9.5px] font-bold shadow-2xs"
+              title={`ID карточки в GreenData: ${extractCardIdFromUrl(item.linkUrl)}`}
+            >
+              <span className="text-slate-400 font-normal">ID:</span>
+              {extractCardIdFromUrl(item.linkUrl)}
+            </span>
+          )}
           <a
             href={item.linkUrl}
             target="_blank"

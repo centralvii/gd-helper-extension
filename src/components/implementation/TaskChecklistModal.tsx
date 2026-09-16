@@ -19,7 +19,7 @@ import { ImplementationTask, ImplementationChangeItem } from '../../types';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
-import { formatTaskToMarkdown, DEFAULT_IMPLEMENTATION_SECTIONS } from '../../utils/tabUtils';
+import { formatTaskToMarkdown, DEFAULT_IMPLEMENTATION_SECTIONS, extractCardIdFromUrl } from '../../utils/tabUtils';
 
 interface TaskChecklistModalProps {
   isOpen: boolean;
@@ -27,7 +27,7 @@ interface TaskChecklistModalProps {
   task: ImplementationTask;
   onToggleItemCollected: (taskId: string, itemId: string) => void;
   onSetAllCollected: (taskId: string, isCollected: boolean) => void;
-  linkedPackages?: { name: string; files?: { newName?: string; originalName: string; order: number }[] }[];
+  linkedPackages?: { name: string; files?: { newName?: string; originalName: string; order: number; cardId?: string; sourceUrl?: string }[] }[];
 }
 
 export const TaskChecklistModal: React.FC<TaskChecklistModalProps> = ({
@@ -40,6 +40,24 @@ export const TaskChecklistModal: React.FC<TaskChecklistModalProps> = ({
 }) => {
   const [copiedMd, setCopiedMd] = useState(false);
   const prevCollectedCountRef = useRef(0);
+
+  const linkedFilesByCardId = useMemo(() => {
+    const map = new Map<string, { order: number; newName?: string; originalName: string; cardId?: string }>();
+    linkedPackages.forEach((pkg) => {
+      pkg.files?.forEach((f) => {
+        const cId = f.cardId || extractCardIdFromUrl(f.sourceUrl);
+        if (cId) {
+          map.set(cId, {
+            order: f.order,
+            newName: f.newName,
+            originalName: f.originalName,
+            cardId: cId,
+          });
+        }
+      });
+    });
+    return map;
+  }, [linkedPackages]);
 
   const totalCount = task.items.length;
   const collectedCount = useMemo(
@@ -330,6 +348,9 @@ export const TaskChecklistModal: React.FC<TaskChecklistModalProps> = ({
                     {items.map((item, idx) => {
                       const isCollected = Boolean(item.isCollected);
 
+                      const itemCardId = extractCardIdFromUrl(item.linkUrl);
+                      const matchingFile = itemCardId ? linkedFilesByCardId.get(itemCardId) : undefined;
+
                       return (
                         <div
                           key={item.id}
@@ -356,7 +377,7 @@ export const TaskChecklistModal: React.FC<TaskChecklistModalProps> = ({
                             </button>
 
                             <div className="min-w-0 flex-1 space-y-1">
-                              <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-2 flex-wrap">
                                 <span className="text-[10px] font-mono font-bold px-1.5 py-0.2 rounded bg-slate-100 text-slate-600 border border-slate-200">
                                   #{idx + 1}
                                 </span>
@@ -367,6 +388,14 @@ export const TaskChecklistModal: React.FC<TaskChecklistModalProps> = ({
                                 ) : (
                                   <span className="text-[10px] font-medium text-slate-400">
                                     Не собран
+                                  </span>
+                                )}
+                                {matchingFile && (
+                                  <span
+                                    className="inline-flex items-center gap-1 text-[10px] font-bold text-sky-800 bg-sky-100/90 px-1.5 py-0.5 rounded border border-sky-300"
+                                    title={`Файл найден в связанном пакете: #${matchingFile.order} ${matchingFile.newName || matchingFile.originalName}`}
+                                  >
+                                    📦 В пакете #{matchingFile.order}
                                   </span>
                                 )}
                                 {item.collectedAt && (
@@ -387,7 +416,16 @@ export const TaskChecklistModal: React.FC<TaskChecklistModalProps> = ({
 
                               {/* Attached Link info if present */}
                               {item.linkUrl && (
-                                <div className="pt-0.5">
+                                <div className="pt-0.5 flex items-center gap-1.5 flex-wrap">
+                                  {itemCardId && (
+                                    <span
+                                      className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-lg bg-slate-100 text-slate-700 border border-slate-200 font-mono text-[9.5px] font-bold"
+                                      title={`ID карточки в GreenData: ${itemCardId}`}
+                                    >
+                                      <span className="text-slate-400 font-normal">ID:</span>
+                                      {itemCardId}
+                                    </span>
+                                  )}
                                   <a
                                     href={item.linkUrl}
                                     target="_blank"
@@ -458,6 +496,9 @@ export const TaskChecklistModal: React.FC<TaskChecklistModalProps> = ({
                   {unsectionedItems.map((item, idx) => {
                     const isCollected = Boolean(item.isCollected);
 
+                    const itemCardId = extractCardIdFromUrl(item.linkUrl);
+                    const matchingFile = itemCardId ? linkedFilesByCardId.get(itemCardId) : undefined;
+
                     return (
                       <div
                         key={item.id}
@@ -482,7 +523,7 @@ export const TaskChecklistModal: React.FC<TaskChecklistModalProps> = ({
                           </button>
 
                           <div className="min-w-0 flex-1 space-y-1">
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 flex-wrap">
                               <span className="text-[10px] font-mono font-bold px-1.5 py-0.2 rounded bg-slate-100 text-slate-600 border border-slate-200">
                                 #{idx + 1}
                               </span>
@@ -493,6 +534,14 @@ export const TaskChecklistModal: React.FC<TaskChecklistModalProps> = ({
                               ) : (
                                 <span className="text-[10px] font-medium text-slate-400">
                                   Не собран
+                                </span>
+                              )}
+                              {matchingFile && (
+                                <span
+                                  className="inline-flex items-center gap-1 text-[10px] font-bold text-sky-800 bg-sky-100/90 px-1.5 py-0.5 rounded border border-sky-300"
+                                  title={`Файл найден в связанном пакете: #${matchingFile.order} ${matchingFile.newName || matchingFile.originalName}`}
+                                >
+                                  📦 В пакете #{matchingFile.order}
                                 </span>
                               )}
                               {item.collectedAt && (
@@ -512,7 +561,16 @@ export const TaskChecklistModal: React.FC<TaskChecklistModalProps> = ({
                             </p>
 
                             {item.linkUrl && (
-                              <div className="pt-0.5">
+                              <div className="pt-0.5 flex items-center gap-1.5 flex-wrap">
+                                {itemCardId && (
+                                  <span
+                                    className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-lg bg-slate-100 text-slate-700 border border-slate-200 font-mono text-[9.5px] font-bold"
+                                    title={`ID карточки в GreenData: ${itemCardId}`}
+                                  >
+                                    <span className="text-slate-400 font-normal">ID:</span>
+                                    {itemCardId}
+                                  </span>
+                                )}
                                 <a
                                   href={item.linkUrl}
                                   target="_blank"

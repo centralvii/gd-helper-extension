@@ -131,14 +131,15 @@ export function useAutoCollector({ onFileCollected }: UseAutoCollectorProps) {
     processedIdsRef.current.add(downloadId);
 
     try {
-      // Determine tab/source URL
-      let sourceUrl = tabUrl ? trimGreenDataUrl(tabUrl) : undefined;
+      // Determine tab/source URL (only URLs containing /card/ are allowed)
+      let sourceUrl = tabUrl ? trimGreenDataUrl(tabUrl) || undefined : undefined;
       if (!sourceUrl && typeof chrome !== 'undefined' && chrome.tabs) {
         try {
           const tabs = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
           const activeTab = tabs[0] || (await chrome.tabs.query({ active: true, currentWindow: true }))[0];
           if (activeTab?.url && !activeTab.url.startsWith('chrome://') && !activeTab.url.startsWith('edge://')) {
-            sourceUrl = trimGreenDataUrl(activeTab.url);
+            const trimmed = trimGreenDataUrl(activeTab.url);
+            sourceUrl = trimmed || undefined;
           }
         } catch {
           // ignore

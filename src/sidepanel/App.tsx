@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { UploadCloud, Zap, Check, X, SlidersHorizontal, Bookmark, FileEdit, Trash2 } from 'lucide-react';
 import { useAppState, getFormattedArchiveName } from '../hooks/useAppState';
 import { useGlobalFileDrop } from '../hooks/useGlobalFileDrop';
@@ -194,6 +194,15 @@ export const App: React.FC = () => {
             updateFileVariable(id, k, v);
         }
     };
+
+    const activePackageTask = useMemo(() => {
+        if (!activePackage) return null;
+        return (
+            implTasks.tasks.find(
+                (t) => t.id === activePackage.taskId || t.packageId === activePackage.id
+            ) || null
+        );
+    }, [activePackage, implTasks.tasks]);
 
     if (isLoading) {
         return (
@@ -400,6 +409,7 @@ export const App: React.FC = () => {
                             <FileTable
                                 files={files}
                                 validation={validation}
+                                taskItems={activePackageTask?.items}
                                 onReorder={reorderFiles}
                                 onEditFile={(file) => setEditingFile(file)}
                                 onDeleteFile={removeFile}
@@ -417,19 +427,11 @@ export const App: React.FC = () => {
                     validation={validation}
                     archiveName={getFormattedArchiveName(
                         activePackage,
-                        activePackage.taskId
-                            ? implTasks.tasks.find((t) => t.id === activePackage.taskId)
-                            : null
+                        activePackageTask
                     )}
                     isExporting={isExporting}
                     onSetArchiveName={setArchiveName}
-                    onExportZip={() =>
-                        exportZip(
-                            activePackage.taskId
-                                ? implTasks.tasks.find((t) => t.id === activePackage.taskId)
-                                : null
-                        )
-                    }
+                    onExportZip={() => exportZip(activePackageTask)}
                     onOpenValidation={() => setIsValidationOpen(true)}
                 />
             )}

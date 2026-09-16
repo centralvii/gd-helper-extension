@@ -23,6 +23,7 @@ interface FileRowItemProps {
     file: FileRow;
     hasError: boolean;
     isDuplicate: boolean;
+    isMatchedInTask?: boolean;
     onEdit: (file: FileRow) => void;
     onDelete: (id: string) => void;
     onDownload?: (file: FileRow) => void;
@@ -32,6 +33,7 @@ export const FileRowItem: React.FC<FileRowItemProps> = React.memo(({
     file,
     hasError,
     isDuplicate,
+    isMatchedInTask,
     onEdit,
     onDelete,
     onDownload,
@@ -127,6 +129,17 @@ export const FileRowItem: React.FC<FileRowItemProps> = React.memo(({
                         </Badge>
                     )}
 
+                    {isMatchedInTask && (
+                        <Badge
+                            variant="success"
+                            size="xs"
+                            className="flex-shrink-0"
+                            title="Объект найден в привязанной задаче реализации по ID карточки"
+                        >
+                            ✓ В задаче
+                        </Badge>
+                    )}
+
                     {hasError && !isDuplicate && (
                         <Badge
                             variant="warning"
@@ -163,21 +176,33 @@ export const FileRowItem: React.FC<FileRowItemProps> = React.memo(({
                     )}
                 </div>
 
-                {/* Attached Source URL */}
-                {file.sourceUrl && (
-                    <div className="mt-1">
-                        <a
-                            href={trimGreenDataUrl(file.sourceUrl)}
-                            target="_blank"
-                            rel="noreferrer"
-                            title={trimGreenDataUrl(file.sourceUrl)}
-                            onClick={(e) => e.stopPropagation()}
-                            className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-200/90 rounded-xl text-[10px] font-semibold transition-all max-w-full truncate shadow-2xs"
-                        >
-                            <LinkIcon className="w-2.5 h-2.5 flex-shrink-0 text-emerald-600" />
-                            <span className="truncate">{formatSourceUrlDisplay(file.sourceUrl)}</span>
-                            <ExternalLink className="w-2.5 h-2.5 flex-shrink-0 opacity-70 text-emerald-600" />
-                        </a>
+                {/* Attached Source URL and Card ID */}
+                {(file.sourceUrl || file.cardId) && (
+                    <div className="mt-1 flex items-center gap-1.5 flex-wrap">
+                        {file.cardId && (
+                            <span
+                                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-lg bg-slate-100 text-slate-700 border border-slate-200/90 font-mono text-[9.5px] font-bold shadow-2xs"
+                                title={`ID карточки в GreenData: ${file.cardId}`}
+                            >
+                                <span className="text-slate-400 font-normal">ID:</span>
+                                {file.cardId}
+                            </span>
+                        )}
+
+                        {file.sourceUrl && (
+                            <a
+                                href={trimGreenDataUrl(file.sourceUrl)}
+                                target="_blank"
+                                rel="noreferrer"
+                                title={trimGreenDataUrl(file.sourceUrl)}
+                                onClick={(e) => e.stopPropagation()}
+                                className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-200/90 rounded-xl text-[10px] font-semibold transition-all max-w-full truncate shadow-2xs"
+                            >
+                                <LinkIcon className="w-2.5 h-2.5 flex-shrink-0 text-emerald-600" />
+                                <span className="truncate">{formatSourceUrlDisplay(file.sourceUrl)}</span>
+                                <ExternalLink className="w-2.5 h-2.5 flex-shrink-0 opacity-70 text-emerald-600" />
+                            </a>
+                        )}
                     </div>
                 )}
             </div>

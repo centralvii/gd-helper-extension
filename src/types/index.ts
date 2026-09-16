@@ -12,6 +12,7 @@ export interface FileRow {
   newName: string;
   description: string;
   sourceUrl?: string; // URL вкладки/страницы GreenData, с которой скачан файл
+  cardId?: string; // ID объекта из URL карточки GreenData (/card/{cardId})
 }
 
 export interface VariableDefinition {

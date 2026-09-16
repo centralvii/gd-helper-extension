@@ -15,10 +15,11 @@ import {
   ListChecks,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
-import { ImplementationChangeItem } from '../types';
+import { ImplementationChangeItem, StoredPackageMeta } from '../types';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
-import { formatTaskToMarkdown, DEFAULT_IMPLEMENTATION_SECTIONS } from '../utils/tabUtils';
+import { formatTaskToMarkdown, DEFAULT_IMPLEMENTATION_SECTIONS, extractCardIdFromUrl } from '../utils/tabUtils';
+import { loadAppStateFromDB } from '../utils/indexedDB';
 import { useImplementationTasks } from '../hooks/useImplementationTasks';
 
 export const ChecklistPage: React.FC = () => {
@@ -47,6 +48,44 @@ export const ChecklistPage: React.FC = () => {
   }, [tasks, selectTask]);
 
   const task = activeTask;
+
+  const [storedPackages, setStoredPackages] = useState<StoredPackageMeta[]>([]);
+
+  useEffect(() => {
+    let isMounted = true;
+    loadAppStateFromDB()
+      .then((res) => {
+        if (isMounted && res?.state?.packages) {
+          setStoredPackages(res.state.packages);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const linkedFilesByCardId = useMemo(() => {
+    const map = new Map<string, { order: number; newName?: string; originalName: string; cardId?: string }>();
+    if (!task) return map;
+
+    const linkedPkgs = storedPackages.filter((p) => p.taskId === task.id || p.id === task.packageId);
+    linkedPkgs.forEach((pkg) => {
+      pkg.filesMeta?.forEach((f, idx) => {
+        const cId = f.cardId || extractCardIdFromUrl(f.sourceUrl);
+        if (cId && !map.has(cId)) {
+          map.set(cId, {
+            order: idx + 1,
+            newName: f.cleanName,
+            originalName: f.originalName,
+            cardId: cId,
+          });
+        }
+      });
+    });
+    return map;
+  }, [task, storedPackages]);
+
   const totalCount = task ? task.items.length : 0;
   const collectedCount = useMemo(
     () => (task ? task.items.filter((i) => i.isCollected).length : 0),
@@ -323,6 +362,8 @@ export const ChecklistPage: React.FC = () => {
                   <div className="p-3 space-y-2.5">
                     {items.map((item, idx) => {
                       const isCollected = Boolean(item.isCollected);
+                      const itemCardId = extractCardIdFromUrl(item.linkUrl);
+                      const matchingFile = itemCardId ? linkedFilesByCardId.get(itemCardId) : undefined;
 
                       return (
                         <div
@@ -348,7 +389,7 @@ export const ChecklistPage: React.FC = () => {
                             </button>
 
                             <div className="min-w-0 flex-1 space-y-1">
-                              <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-2 flex-wrap">
                                 <span className="text-[10px] font-mono font-bold px-1.5 py-0.2 rounded bg-slate-100 text-slate-600 border border-slate-200">
                                   #{idx + 1}
                                 </span>
@@ -359,6 +400,14 @@ export const ChecklistPage: React.FC = () => {
                                 ) : (
                                   <span className="text-[10px] font-medium text-slate-400">
                                     Не собран
+                                  </span>
+                                )}
+                                {matchingFile && (
+                                  <span
+                                    className="inline-flex items-center gap-1 text-[10px] font-bold text-sky-800 bg-sky-100/90 px-1.5 py-0.5 rounded border border-sky-300"
+                                    title={`Файл найден в связанном пакете: #${matchingFile.order} ${matchingFile.newName || matchingFile.originalName}`}
+                                  >
+                                    📦 В пакете #{matchingFile.order}
                                   </span>
                                 )}
                                 {item.collectedAt && (
@@ -374,7 +423,16 @@ export const ChecklistPage: React.FC = () => {
                               </p>
 
                               {item.linkUrl && (
-                                <div className="pt-0.5">
+                                <div className="pt-0.5 flex items-center gap-1.5 flex-wrap">
+                                  {itemCardId && (
+                                    <span
+                                      className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-lg bg-slate-100 text-slate-700 border border-slate-200 font-mono text-[9.5px] font-bold"
+                                      title={`ID карточки в GreenData: ${itemCardId}`}
+                                    >
+                                      <span className="text-slate-400 font-normal">ID:</span>
+                                      {itemCardId}
+                                    </span>
+                                  )}
                                   <a
                                     href={item.linkUrl}
                                     target="_blank"
@@ -443,6 +501,8 @@ export const ChecklistPage: React.FC = () => {
                 <div className="p-3 space-y-2.5">
                   {unsectionedItems.map((item, idx) => {
                     const isCollected = Boolean(item.isCollected);
+                    const itemCardId = extractCardIdFromUrl(item.linkUrl);
+                    const matchingFile = itemCardId ? linkedFilesByCardId.get(itemCardId) : undefined;
 
                     return (
                       <div
@@ -468,7 +528,7 @@ export const ChecklistPage: React.FC = () => {
                           </button>
 
                           <div className="min-w-0 flex-1 space-y-1">
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 flex-wrap">
                               <span className="text-[10px] font-mono font-bold px-1.5 py-0.2 rounded bg-slate-100 text-slate-600 border border-slate-200">
                                 #{idx + 1}
                               </span>
@@ -479,6 +539,14 @@ export const ChecklistPage: React.FC = () => {
                               ) : (
                                 <span className="text-[10px] font-medium text-slate-400">
                                   Не собран
+                                </span>
+                              )}
+                              {matchingFile && (
+                                <span
+                                  className="inline-flex items-center gap-1 text-[10px] font-bold text-sky-800 bg-sky-100/90 px-1.5 py-0.5 rounded border border-sky-300"
+                                  title={`Файл найден в связанном пакете: #${matchingFile.order} ${matchingFile.newName || matchingFile.originalName}`}
+                                >
+                                  📦 В пакете #{matchingFile.order}
                                 </span>
                               )}
                               {item.collectedAt && (
@@ -494,7 +562,16 @@ export const ChecklistPage: React.FC = () => {
                             </p>
 
                             {item.linkUrl && (
-                              <div className="pt-0.5">
+                              <div className="pt-0.5 flex items-center gap-1.5 flex-wrap">
+                                {itemCardId && (
+                                  <span
+                                    className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-lg bg-slate-100 text-slate-700 border border-slate-200 font-mono text-[9.5px] font-bold"
+                                    title={`ID карточки в GreenData: ${itemCardId}`}
+                                  >
+                                    <span className="text-slate-400 font-normal">ID:</span>
+                                    {itemCardId}
+                                  </span>
+                                )}
                                 <a
                                   href={item.linkUrl}
                                   target="_blank"

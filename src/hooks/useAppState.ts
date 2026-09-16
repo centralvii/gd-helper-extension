@@ -20,6 +20,7 @@ import {
   deleteBlobsFromDB,
   loadAppStateFromDB,
 } from '../utils/indexedDB';
+import { isValidGreenDataCardUrl, extractCardIdFromUrl } from '../utils/tabUtils';
 
 const PRESETS_STORAGE_KEY = 'gd-helper-template-presets';
 const PRIMARY_TEMPLATE_KEY = 'gd-helper-primary-template';
@@ -165,8 +166,12 @@ export function useAppState() {
             const restoredPackages: BuildPackage[] = state.packages.map((pkgMeta) => {
               const restoredFiles: FileRow[] = pkgMeta.filesMeta.map((meta) => {
                 const blob = blobs.get(meta.id) || new Blob();
+                const validSourceUrl = meta.sourceUrl && isValidGreenDataCardUrl(meta.sourceUrl) ? meta.sourceUrl : undefined;
+                const validCardId = validSourceUrl ? (meta.cardId || extractCardIdFromUrl(validSourceUrl) || undefined) : undefined;
                 return {
                   ...meta,
+                  sourceUrl: validSourceUrl,
+                  cardId: validCardId,
                   file: blob,
                 };
               });
@@ -606,8 +611,12 @@ export function useAppState() {
             if (extra?.cleanName) {
               row.cleanName = extra.cleanName;
             }
-            if (extra?.sourceUrl) {
+            if (extra?.sourceUrl && isValidGreenDataCardUrl(extra.sourceUrl)) {
               row.sourceUrl = extra.sourceUrl;
+              row.cardId = extractCardIdFromUrl(extra.sourceUrl) || undefined;
+            } else {
+              row.sourceUrl = undefined;
+              row.cardId = undefined;
             }
           }
         });
@@ -639,6 +648,11 @@ export function useAppState() {
 
         const parsed = parseFileName(newFile.name);
         const cleanName = meta?.cleanName || parsed.cleanName;
+
+        const candidateUrl = meta?.sourceUrl || oldRow.sourceUrl;
+        const validSourceUrl = candidateUrl && isValidGreenDataCardUrl(candidateUrl) ? candidateUrl : undefined;
+        const validCardId = validSourceUrl ? extractCardIdFromUrl(validSourceUrl) || undefined : undefined;
+
         const newRow: FileRow = {
           id: crypto.randomUUID(),
           order: oldRow.order,
@@ -652,7 +666,8 @@ export function useAppState() {
           variables: { ...oldRow.variables },
           newName: '',
           description: oldRow.description || '',
-          sourceUrl: meta?.sourceUrl || oldRow.sourceUrl,
+          sourceUrl: validSourceUrl,
+          cardId: validCardId,
         };
 
         saveBlobsToDB([{ id: newRow.id, blob: newRow.file }]);

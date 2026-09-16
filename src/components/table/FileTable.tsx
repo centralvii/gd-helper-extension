@@ -14,7 +14,8 @@ import {
     verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { Search } from 'lucide-react';
-import { FileRow, ValidationSummary } from '../../types';
+import { FileRow, ValidationSummary, ImplementationChangeItem } from '../../types';
+import { extractCardIdFromUrl } from '../../utils/tabUtils';
 import { FileRowItem } from './FileRowItem';
 import { FileUploader } from '../upload/FileUploader';
 
@@ -26,6 +27,7 @@ interface FileTableProps {
     onDeleteFile: (id: string) => void;
     onAddFiles: (files: File[]) => void;
     onDownloadFile?: (file: FileRow) => void;
+    taskItems?: ImplementationChangeItem[];
 }
 
 export const FileTable: React.FC<FileTableProps> = ({
@@ -36,8 +38,20 @@ export const FileTable: React.FC<FileTableProps> = ({
     onDeleteFile,
     onAddFiles,
     onDownloadFile,
+    taskItems,
 }) => {
     const [searchQuery, setSearchQuery] = useState('');
+
+    const taskCardIdsSet = useMemo(() => {
+        const set = new Set<string>();
+        if (taskItems) {
+            taskItems.forEach((item) => {
+                const cId = extractCardIdFromUrl(item.linkUrl);
+                if (cId) set.add(cId);
+            });
+        }
+        return set;
+    }, [taskItems]);
 
     const sensors = useSensors(
         useSensor(PointerSensor, {
@@ -126,6 +140,7 @@ export const FileTable: React.FC<FileTableProps> = ({
                                 onEdit={onEditFile}
                                 onDelete={onDeleteFile}
                                 onDownload={onDownloadFile}
+                                isMatchedInTask={Boolean(file.cardId && taskCardIdsSet.has(file.cardId))}
                             />
                         ))}
                     </div>
