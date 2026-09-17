@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback } from 'react';
-import { UploadCloud, Zap, Check, X, SlidersHorizontal, Bookmark, FileEdit, Trash2 } from 'lucide-react';
+import { UploadCloud, Zap, X, SlidersHorizontal, Bookmark, FileEdit, Trash2 } from 'lucide-react';
 import { useAppState, getFormattedArchiveName } from '../hooks/useAppState';
 import { useGlobalFileDrop } from '../hooks/useGlobalFileDrop';
 import { useAutoCollector } from '../hooks/useAutoCollector';
@@ -129,7 +129,7 @@ export const App: React.FC = () => {
         clearNotification,
     } = useAutoCollector({
         onFileCollected: (file, meta) => {
-            handleSelectTool('packer');
+            // Keep user on the current tool/tab (do not force-switch to 'packer')
 
             // Check if active package already contains a file with the exact same sourceUrl
             if (meta?.sourceUrl) {
@@ -261,37 +261,63 @@ export const App: React.FC = () => {
                 </div>
             )}
 
-            {/* Auto-Collect Toast */}
+            {/* Auto-Collect Top Toast Notification */}
             {autoCollectNotification && (
-                <div
-                    className="fixed top-3 right-3 z-50 max-w-xs p-3 rounded-xl shadow-xl flex items-start gap-2.5 animate-fade-in"
-                    style={{
-                        background: '#ffffff',
-                        border: '1.5px solid #22c55e',
-                        boxShadow: '0 4px 20px rgba(34,197,94,0.15)',
-                    }}
-                >
-                    <Zap className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: '#22c55e' }} />
-                    <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1.5 text-xs font-bold" style={{ color: '#111827' }}>
-                            <Check className="w-3 h-3" style={{ color: '#22c55e' }} />
-                            <span>Файл перехвачен</span>
-                            {autoCollectNotification.mode && (
-                                <span className="text-[9px] font-semibold px-1.5 py-0.2 rounded bg-emerald-100/90 text-emerald-800 border border-emerald-300/80">
-                                    {autoCollectNotification.mode === 'original' ? 'исходное имя' : 'со страницы'}
-                                </span>
-                            )}
+                <div className="fixed top-2 left-2 right-2 z-50 flex justify-center pointer-events-none animate-toast-in">
+                    <div className="pointer-events-auto w-full max-w-sm bg-white/95 backdrop-blur-md rounded-xl border border-emerald-300/90 shadow-gd-green px-2.5 py-2 flex items-center gap-2 select-none">
+                        {/* Icon badge */}
+                        <div className="w-6 h-6 rounded-lg bg-emerald-500 text-white flex items-center justify-center flex-shrink-0 shadow-2xs">
+                            <Zap className="w-3.5 h-3.5 text-white animate-icon-pop fill-current" />
                         </div>
-                        <p className="text-[11px] truncate mt-0.5 font-medium" style={{ color: '#16a34a' }}>
-                            {autoCollectNotification.fileName}
-                        </p>
-                        <p className="text-[10px] mt-0.5" style={{ color: '#6b7280' }}>
-                            → {activePackage.name}
-                        </p>
+
+                        {/* Text info */}
+                        <div className="flex-1 min-w-0 space-y-0.5">
+                            <div className="flex items-center gap-1.5 min-w-0">
+                                <span className="text-[11px] font-bold text-slate-800 flex-shrink-0">
+                                    Перехвачен .guf
+                                </span>
+
+                                {autoCollectNotification.cardId && (
+                                    <span
+                                        className="inline-flex items-center font-mono text-[9px] font-bold bg-emerald-100/90 text-emerald-800 px-1 py-0.2 rounded border border-emerald-200/90 flex-shrink-0"
+                                        title={`ID карточки в GreenData: ${autoCollectNotification.cardId}`}
+                                    >
+                                        ID: {autoCollectNotification.cardId}
+                                    </span>
+                                )}
+
+                                {autoCollectNotification.mode && (
+                                    <span className="text-[8.5px] font-semibold px-1 py-0.2 rounded bg-slate-100 text-slate-600 border border-slate-200/90 flex-shrink-0">
+                                        {autoCollectNotification.mode === 'original' ? 'исходный' : 'со страницы'}
+                                    </span>
+                                )}
+
+                                <span
+                                    className="text-[9px] text-slate-400 font-medium truncate ml-auto flex-shrink-0 max-w-[100px]"
+                                    title={`Добавлен в пакет: ${activePackage.name}`}
+                                >
+                                    → {activePackage.name}
+                                </span>
+                            </div>
+
+                            <p
+                                className="text-[10.5px] font-mono font-bold text-emerald-900 truncate leading-tight"
+                                title={autoCollectNotification.fileName}
+                            >
+                                {autoCollectNotification.fileName}
+                            </p>
+                        </div>
+
+                        {/* Close button */}
+                        <button
+                            type="button"
+                            onClick={clearNotification}
+                            className="w-5 h-5 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100 flex items-center justify-center transition-colors flex-shrink-0 cursor-pointer"
+                            title="Закрыть уведомление"
+                        >
+                            <X className="w-3 h-3" />
+                        </button>
                     </div>
-                    <button onClick={clearNotification} className="icon-btn p-0.5">
-                        <X className="w-3.5 h-3.5" />
-                    </button>
                 </div>
             )}
 

@@ -50,12 +50,17 @@ export default {
         'fade-in':    'fadeIn 0.18s ease-out forwards',
         'slide-up':   'slideUp 0.22s ease-out forwards',
         'slide-down': 'slideDown 0.2s ease-out forwards',
+        'toast-in':   'toastIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards',
         'icon-pop':   'iconPop 0.3s cubic-bezier(0.34,1.56,0.64,1) both',
         'icon-spin':  'iconSpin 0.4s ease-in-out both',
         'icon-shake': 'iconShake 0.4s ease both',
         'icon-bounce':'iconBounce 0.35s cubic-bezier(0.34,1.56,0.64,1) both',
       },
       keyframes: {
+        toastIn: {
+          '0%':   { opacity: '0', transform: 'translateY(-14px) scale(0.96)' },
+          '100%': { opacity: '1', transform: 'translateY(0) scale(1)' },
+        },
         fadeIn: {
           '0%':   { opacity: '0', transform: 'scale(0.97)' },
           '100%': { opacity: '1', transform: 'scale(1)' },

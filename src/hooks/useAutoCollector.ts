@@ -12,13 +12,22 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { sanitizeCleanName, getActiveGreenDataPageName, trimGreenDataUrl, isUpdateCreationPage } from '../utils/tabUtils';
+import { sanitizeCleanName, getActiveGreenDataPageName, trimGreenDataUrl, isUpdateCreationPage, extractCardIdFromUrl } from '../utils/tabUtils';
 import { parseFileName } from '../core/nameCleaner';
 import { AutoCollectNamingMode } from '../types';
 
 export const AUTO_COLLECT_STORAGE_KEY = 'gd-helper-auto-collect-enabled';
 export const AUTO_COLLECT_MODE_STORAGE_KEY = 'gd-helper-auto-collect-mode';
 const PENDING_DOWNLOADS_KEY = 'gd_pending_guf_downloads';
+
+export interface AutoCollectNotification {
+  id: string;
+  fileName: string;
+  mode?: AutoCollectNamingMode;
+  cardId?: string;
+  sourceUrl?: string;
+  timestamp: number;
+}
 
 export interface AutoCollectedMeta {
   cleanName?: string;
@@ -42,12 +51,7 @@ interface PendingDownload {
 export function useAutoCollector({ onFileCollected }: UseAutoCollectorProps) {
   const [isEnabled, setIsEnabled] = useState<boolean>(false);
   const [namingMode, setNamingModeState] = useState<AutoCollectNamingMode>('pageName');
-  const [notification, setNotification] = useState<{
-    id: string;
-    fileName: string;
-    mode?: AutoCollectNamingMode;
-    timestamp: number;
-  } | null>(null);
+  const [notification, setNotification] = useState<AutoCollectNotification | null>(null);
 
   const processedIdsRef = useRef<Set<number>>(new Set());
   const onFileCollectedRef = useRef(onFileCollected);
@@ -199,10 +203,14 @@ export function useAutoCollector({ onFileCollected }: UseAutoCollectorProps) {
           mode: currentMode,
         });
 
+        const cardId = sourceUrl ? extractCardIdFromUrl(sourceUrl) || undefined : undefined;
+
         setNotification({
           id: crypto.randomUUID(),
           fileName: `${cleanTargetName}.guf`,
           mode: currentMode,
+          cardId,
+          sourceUrl,
           timestamp: Date.now(),
         });
 
@@ -227,10 +235,14 @@ export function useAutoCollector({ onFileCollected }: UseAutoCollectorProps) {
           mode: 'original',
         });
 
+        const cardId = sourceUrl ? extractCardIdFromUrl(sourceUrl) || undefined : undefined;
+
         setNotification({
           id: crypto.randomUUID(),
           fileName: filename,
           mode: 'original',
+          cardId,
+          sourceUrl,
           timestamp: Date.now(),
         });
 
@@ -272,11 +284,14 @@ export function useAutoCollector({ onFileCollected }: UseAutoCollectorProps) {
       });
 
       const displayFileName = cleanTargetName ? `${cleanTargetName}.guf` : filename;
+      const cardId = sourceUrl ? extractCardIdFromUrl(sourceUrl) || undefined : undefined;
 
       setNotification({
         id: crypto.randomUUID(),
         fileName: displayFileName,
         mode: 'pageName',
+        cardId,
+        sourceUrl,
         timestamp: Date.now(),
       });
 
