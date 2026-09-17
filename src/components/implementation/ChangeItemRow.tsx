@@ -58,9 +58,9 @@ export const ChangeItemRow: React.FC<ChangeItemRowProps> = React.memo(({
         ? 'border-emerald-200/90 bg-emerald-50/20'
         : 'border-slate-200/90 bg-white hover:border-emerald-300 hover:shadow-xs'
     }`}>
-      {/* Top Header: Index badge + Status on left, Action buttons on right */}
-      <div className="flex items-center justify-between gap-1 border-b border-slate-100 pb-1.5">
-        <div className="flex items-center gap-1.5 min-w-0 flex-1">
+      {/* Top Header: Index badge + Status on left, Reorder & Action buttons on right */}
+      <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-1.5 min-w-0">
+        <div className="flex items-center gap-1.5 min-w-0 flex-shrink-0">
           <span className="flex-shrink-0 flex items-center justify-center w-5 h-5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-mono font-bold shadow-2xs">
             {index + 1}
           </span>
@@ -87,6 +87,91 @@ export const ChangeItemRow: React.FC<ChangeItemRowProps> = React.memo(({
               <span>{item.isCollected ? 'Собран' : 'Не собран'}</span>
             </button>
           )}
+        </div>
+
+        {/* Action Toolbar with clear separation */}
+        <div className="flex items-center gap-0.5 flex-shrink-0 ml-auto">
+          {/* Reorder Buttons */}
+          <div className="flex items-center gap-0.5">
+            <IconButton
+              size="xs"
+              variant="ghost"
+              onClick={() => onMoveUp(item.id)}
+              disabled={index === 0}
+              title="Переместить выше"
+              icon={<ChevronUp className="w-3.5 h-3.5" />}
+            />
+
+            <IconButton
+              size="xs"
+              variant="ghost"
+              onClick={() => onMoveDown(item.id)}
+              disabled={index === totalCount - 1}
+              title="Переместить ниже"
+              icon={<ChevronDown className="w-3.5 h-3.5" />}
+            />
+          </div>
+
+          {/* Separator */}
+          <div className="w-[1px] h-3.5 bg-slate-200 mx-0.5 flex-shrink-0" />
+
+          {/* Actions */}
+          <div className="flex items-center gap-0.5">
+            <IconButton
+              size="xs"
+              variant="emerald"
+              onClick={handleCopy}
+              title="Копировать пункт"
+              icon={copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+            />
+
+            <IconButton
+              size="xs"
+              variant="sky"
+              onClick={() => onEdit(item)}
+              title="Редактировать"
+              icon={<Edit2 className="w-3.5 h-3.5" />}
+            />
+
+            <IconButton
+              size="xs"
+              variant="danger"
+              onClick={() => onDelete(item.id)}
+              title="Удалить"
+              icon={<Trash2 className="w-3.5 h-3.5" />}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Full width Description */}
+      <p className="text-xs text-slate-900 leading-relaxed break-words font-medium">
+        {item.description}
+      </p>
+
+      {/* Attached Link, Card ID & Matched Package Badge */}
+      {(item.linkUrl || matchingPackageFile) && (
+        <div className="pt-0.5 flex items-center gap-1.5 min-w-0">
+          {item.linkUrl && (
+            <a
+              href={item.linkUrl}
+              target="_blank"
+              rel="noreferrer"
+              title={`Открыть в GreenData: ${item.linkTitle ? `${item.linkTitle} (${item.linkUrl})` : item.linkUrl}`}
+              className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-200/90 hover:border-emerald-300 rounded-lg text-[10.5px] font-medium transition-all max-w-full min-w-0 shadow-2xs group/link cursor-pointer flex-1"
+            >
+              <LinkIcon className="w-3 h-3 flex-shrink-0 text-emerald-600" />
+              {cardId && (
+                <span className="inline-flex items-center font-mono text-[9.5px] font-bold text-emerald-800 bg-emerald-100/90 px-1 py-0.2 rounded border border-emerald-200/80 flex-shrink-0">
+                  ID: {cardId}
+                </span>
+              )}
+              <span className="truncate font-semibold text-emerald-950 flex-1 min-w-0">
+                {item.linkTitle || item.linkUrl}
+              </span>
+              <ExternalLink className="w-2.5 h-2.5 flex-shrink-0 text-emerald-600 opacity-70 group-hover/link:opacity-100 transition-opacity" />
+            </a>
+          )}
 
           {matchingPackageFile && (
             <button
@@ -111,80 +196,6 @@ export const ChangeItemRow: React.FC<ChangeItemRowProps> = React.memo(({
               )}
             </button>
           )}
-        </div>
-
-        {/* Action Toolbar */}
-        <div className="flex items-center gap-0.5 flex-shrink-0">
-          <IconButton
-            size="xs"
-            variant="ghost"
-            onClick={() => onMoveUp(item.id)}
-            disabled={index === 0}
-            title="Переместить выше"
-            icon={<ChevronUp className="w-3.5 h-3.5" />}
-          />
-
-          <IconButton
-            size="xs"
-            variant="ghost"
-            onClick={() => onMoveDown(item.id)}
-            disabled={index === totalCount - 1}
-            title="Переместить ниже"
-            icon={<ChevronDown className="w-3.5 h-3.5" />}
-          />
-
-          <IconButton
-            size="xs"
-            variant="emerald"
-            onClick={handleCopy}
-            title="Копировать пункт"
-            icon={copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
-          />
-
-          <IconButton
-            size="xs"
-            variant="sky"
-            onClick={() => onEdit(item)}
-            title="Редактировать"
-            icon={<Edit2 className="w-3.5 h-3.5" />}
-          />
-
-          <IconButton
-            size="xs"
-            variant="danger"
-            onClick={() => onDelete(item.id)}
-            title="Удалить"
-            icon={<Trash2 className="w-3.5 h-3.5" />}
-          />
-        </div>
-      </div>
-
-      {/* Full width Description */}
-      <p className="text-xs text-slate-900 leading-relaxed break-words font-medium">
-        {item.description}
-      </p>
-
-      {/* Attached Link & Card ID (single unified compact pill) */}
-      {item.linkUrl && (
-        <div className="pt-0.5 flex items-center min-w-0">
-          <a
-            href={item.linkUrl}
-            target="_blank"
-            rel="noreferrer"
-            title={`Открыть в GreenData: ${item.linkTitle ? `${item.linkTitle} (${item.linkUrl})` : item.linkUrl}`}
-            className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-200/90 hover:border-emerald-300 rounded-lg text-[10.5px] font-medium transition-all max-w-full min-w-0 shadow-2xs group/link cursor-pointer"
-          >
-            <LinkIcon className="w-3 h-3 flex-shrink-0 text-emerald-600" />
-            {cardId && (
-              <span className="inline-flex items-center font-mono text-[9.5px] font-bold text-emerald-800 bg-emerald-100/90 px-1 py-0.2 rounded border border-emerald-200/80 flex-shrink-0">
-                ID: {cardId}
-              </span>
-            )}
-            <span className="truncate font-semibold text-emerald-950 flex-1 min-w-0">
-              {item.linkTitle || item.linkUrl}
-            </span>
-            <ExternalLink className="w-2.5 h-2.5 flex-shrink-0 text-emerald-600 opacity-70 group-hover/link:opacity-100 transition-opacity" />
-          </a>
         </div>
       )}
     </div>
