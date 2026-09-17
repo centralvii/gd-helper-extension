@@ -17,7 +17,7 @@ export const AutoCollectModeBar: React.FC<AutoCollectModeBarProps> = ({
   onToggleAutoCollect,
 }) => {
   return (
-    <div className="flex items-center justify-between gap-1.5 px-2.5 py-1.5 bg-white border border-slate-200/90 rounded-xl shadow-xs min-w-0">
+    <div className="flex items-center justify-between gap-1.5 px-2.5 py-1.5 bg-white border border-slate-200/90 rounded-2xl shadow-xs min-w-0">
       {/* Indicator & Label */}
       <button
         type="button"

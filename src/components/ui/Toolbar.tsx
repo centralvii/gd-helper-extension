@@ -16,7 +16,7 @@ export const Toolbar: React.FC<ToolbarProps> & {
   return (
     <div
       className={twMerge(
-        'flex items-center justify-between gap-1.5 p-1.5 bg-white border border-slate-200/90 rounded-xl shadow-xs',
+        'flex items-center justify-between gap-1.5 p-1.5 bg-white border border-slate-200/90 rounded-2xl shadow-xs',
         className
       )}
       {...props}

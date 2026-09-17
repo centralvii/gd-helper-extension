@@ -32,7 +32,7 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
   const isPrimary = template === primaryTemplate;
 
   return (
-    <div className="overflow-hidden rounded-xl border border-slate-200/90 bg-white shadow-xs transition-all">
+    <div className="overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-xs transition-all">
       {/* Header bar */}
       <div className="border-b border-slate-100 bg-slate-50/70 px-2.5 py-1.5">
         <div className="flex items-center justify-between gap-1.5 min-w-0">
