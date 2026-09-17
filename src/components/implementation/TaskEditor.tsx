@@ -628,7 +628,8 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
       <Toolbar className="animate-fade-in">
         <Toolbar.Title
           icon={<SlidersHorizontal className="w-3.5 h-3.5" />}
-          title="Инструменты"
+          title={<span className="hidden sm:inline">Инструменты</span>}
+          titleAttr="Инструменты"
           badge={
             task.releaseNumber ? (
               <span className="hidden xs:inline-flex px-1.5 py-0.5 rounded-md bg-emerald-50 text-emerald-800 text-[10px] font-bold border border-emerald-200/80">
@@ -649,22 +650,20 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
           </Toolbar.Button>
 
           <Toolbar.Button
-            icon={<Settings className="w-3 h-3 text-emerald-600" />}
+            icon={<Settings className="w-3.5 h-3.5 text-emerald-600" />}
             onClick={() => setIsSettingsModalOpen(true)}
             title="Параметры задачи (номер, релиз, название, пакеты, заметка)"
             dot={Boolean(task.summary?.trim())}
-          >
-            Настройки
-          </Toolbar.Button>
+            className="w-7 h-7 p-0 justify-center flex-shrink-0"
+          />
 
           {onOpenImportExport && (
             <Toolbar.Button
-              icon={<FileJson className="w-3 h-3 text-emerald-600" />}
+              icon={<FileJson className="w-3.5 h-3.5 text-emerald-600" />}
               onClick={() => onOpenImportExport('export')}
               title="Резервное копирование и экспорт в JSON"
-            >
-              Бэкап
-            </Toolbar.Button>
+              className="w-7 h-7 p-0 justify-center flex-shrink-0"
+            />
           )}
         </Toolbar.Actions>
       </Toolbar>

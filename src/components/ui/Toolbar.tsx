@@ -29,6 +29,7 @@ export const Toolbar: React.FC<ToolbarProps> & {
 interface ToolbarTitleProps {
   icon?: React.ReactNode;
   title: React.ReactNode;
+  titleAttr?: string;
   badge?: React.ReactNode;
   statusDot?: 'success' | 'warning' | 'danger' | 'offline';
   statusTitle?: string;
@@ -38,6 +39,7 @@ interface ToolbarTitleProps {
 export const ToolbarTitle: React.FC<ToolbarTitleProps> = ({
   icon,
   title,
+  titleAttr,
   badge,
   statusDot,
   statusTitle,
@@ -46,7 +48,10 @@ export const ToolbarTitle: React.FC<ToolbarTitleProps> = ({
   return (
     <div className={twMerge('flex items-center gap-2 pl-1.5 min-w-0', className)}>
       {icon && (
-        <div className="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center flex-shrink-0 font-bold shadow-2xs">
+        <div
+          title={titleAttr || (typeof title === 'string' ? title : undefined)}
+          className="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center flex-shrink-0 font-bold shadow-2xs"
+        >
           {icon}
         </div>
       )}
@@ -114,7 +119,10 @@ export const ToolbarButton: React.FC<ToolbarButtonProps> = ({
       {badge}
       {dot && (
         <span
-          className="w-1.5 h-1.5 rounded-full bg-emerald-500"
+          className={clsx(
+            'w-1.5 h-1.5 rounded-full bg-emerald-500',
+            !children ? 'absolute top-1 right-1' : ''
+          )}
           style={{ boxShadow: '0 0 4px rgba(34,197,94,0.7)' }}
         />
       )}

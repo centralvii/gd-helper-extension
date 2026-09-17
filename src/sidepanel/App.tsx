@@ -372,6 +372,7 @@ export const App: React.FC = () => {
                                 <Toolbar.Title
                                     icon={<SlidersHorizontal className="w-3.5 h-3.5" />}
                                     title={<span className="hidden sm:inline">Инструменты</span>}
+                                    titleAttr="Инструменты"
                                 />
 
                                 <Toolbar.Actions>
