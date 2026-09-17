@@ -312,7 +312,7 @@ export const AlgorithmIdGenerator: React.FC = () => {
       <Toolbar className="animate-fade-in">
         <Toolbar.Title
           icon={<SlidersHorizontal className="w-3.5 h-3.5" />}
-          title={<span className="hidden sm:inline">Инструменты</span>}
+          title={<span className="hidden xs:inline">Инструменты</span>}
           titleAttr="Инструменты"
         />
 
@@ -320,7 +320,7 @@ export const AlgorithmIdGenerator: React.FC = () => {
           <Toolbar.Button
             onClick={() => setIsHistoryOpen(true)}
             title="История генераций"
-            icon={<History className="w-3 h-3 text-emerald-600" />}
+            icon={<History className="w-3.5 h-3.5 text-emerald-600" />}
             badge={
               history.length > 0 ? (
                 <span className="px-1 py-0.2 rounded-md bg-emerald-100 text-emerald-800 text-[10px] font-mono font-bold">
@@ -328,24 +328,31 @@ export const AlgorithmIdGenerator: React.FC = () => {
                 </span>
               ) : undefined
             }
+            className={
+              history.length > 0
+                ? 'px-1.5 xs:px-2.5 flex-shrink-0'
+                : 'w-7 h-7 p-0 xs:w-auto xs:px-2.5 justify-center flex-shrink-0'
+            }
           >
-            История
+            <span className="hidden xs:inline">История</span>
           </Toolbar.Button>
 
           <Toolbar.Button
             onClick={() => setIsDictOpen(true)}
             title="Словарь терминов и сокращений"
-            icon={<BookA className="w-3 h-3 text-emerald-600" />}
+            icon={<BookA className="w-3.5 h-3.5 text-emerald-600" />}
+            className="w-7 h-7 p-0 xs:w-auto xs:px-2.5 justify-center flex-shrink-0"
           >
-            Словарь
+            <span className="hidden xs:inline">Словарь</span>
           </Toolbar.Button>
 
           <Toolbar.Button
             onClick={() => setIsRulesOpen(true)}
             title="Стандарты именования алгоритмов GreenData"
-            icon={<BookOpen className="w-3 h-3 text-emerald-600" />}
+            icon={<BookOpen className="w-3.5 h-3.5 text-emerald-600" />}
+            className="w-7 h-7 p-0 xs:w-auto xs:px-2.5 justify-center flex-shrink-0"
           >
-            Правила
+            <span className="hidden xs:inline">Правила</span>
           </Toolbar.Button>
 
           <Toolbar.Button
