@@ -312,7 +312,8 @@ export const AlgorithmIdGenerator: React.FC = () => {
       <Toolbar>
         <Toolbar.Title
           icon={<Wand2 className="w-3.5 h-3.5" />}
-          title="Генератор ID"
+          title={<span className="hidden sm:inline">Генератор ID</span>}
+          titleAttr="Генератор ID"
           statusDot={isAiConfigured() ? 'success' : 'warning'}
           statusTitle={
             isAiConfigured()
@@ -325,35 +326,33 @@ export const AlgorithmIdGenerator: React.FC = () => {
           <Toolbar.Button
             onClick={() => setIsHistoryOpen(true)}
             title="История генераций"
-            icon={<History className="w-3 h-3 text-slate-500" />}
+            icon={<History className="w-3.5 h-3.5 text-slate-500" />}
             badge={history.length > 0 ? history.length : undefined}
+            className="h-7 px-2 flex-shrink-0"
           >
-            <span className="hidden xs:inline">История</span>
+            <span className="hidden sm:inline">История</span>
           </Toolbar.Button>
 
           <Toolbar.Button
             onClick={() => setIsDictOpen(true)}
             title="Словарь терминов и сокращений"
-            icon={<BookA className="w-3 h-3 text-slate-500" />}
-          >
-            <span className="hidden xs:inline">Словарь</span>
-          </Toolbar.Button>
+            icon={<BookA className="w-3.5 h-3.5 text-slate-500" />}
+            className="w-7 h-7 p-0 justify-center flex-shrink-0"
+          />
 
           <Toolbar.Button
             onClick={() => setIsRulesOpen(true)}
             title="Стандарты именования алгоритмов GreenData"
-            icon={<BookOpen className="w-3 h-3 text-slate-500" />}
-          >
-            <span className="hidden xs:inline">Правила</span>
-          </Toolbar.Button>
+            icon={<BookOpen className="w-3.5 h-3.5 text-slate-500" />}
+            className="w-7 h-7 p-0 justify-center flex-shrink-0"
+          />
 
           <Toolbar.Button
             onClick={() => setIsAiSettingsOpen(true)}
             title="Параметры модели AI"
-            icon={<Settings className="w-3 h-3 text-slate-500" />}
-          >
-            <span className="hidden xs:inline">AI</span>
-          </Toolbar.Button>
+            icon={<Settings className="w-3.5 h-3.5 text-slate-500" />}
+            className="w-7 h-7 p-0 justify-center flex-shrink-0"
+          />
         </Toolbar.Actions>
       </Toolbar>
 
@@ -368,37 +367,35 @@ export const AlgorithmIdGenerator: React.FC = () => {
           onClear={() => handleSetInputText('')}
         />
 
-        {/* Controls row */}
-        <div className="flex items-center justify-between gap-2 flex-wrap text-xs">
-          <div className="flex items-center gap-1.5 flex-1 min-w-[170px]">
+        {/* Controls row: Postfix selector & AI Generation button */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+          <div className="flex items-center gap-1.5 flex-1 min-w-0">
             <span className="text-[11px] text-slate-500 font-medium flex-shrink-0">Постфикс:</span>
             <Select
               size="sm"
               value={postfix}
               onChange={(val) => handleSetPostfix(val)}
               options={POSTFIX_OPTIONS}
-              className="flex-1 text-xs"
+              className="flex-1 min-w-0 text-xs"
             />
           </div>
 
-          <div className="flex items-center gap-1.5 flex-shrink-0">
-            <Button
-              variant="emerald"
-              size="sm"
-              onClick={handleGenerateAi}
-              disabled={isAiLoading || !inputText.trim()}
-              className="h-8 px-3 text-xs font-semibold shadow-2xs cursor-pointer bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 hover:from-emerald-500 hover:to-teal-600 text-white"
-              leftIcon={
-                isAiLoading ? (
-                  <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin flex-shrink-0" />
-                ) : (
-                  <Sparkles className="w-3.5 h-3.5 text-amber-300 flex-shrink-0" />
-                )
-              }
-            >
-              <span>{isAiLoading ? 'AI думает...' : 'AI Генерация'}</span>
-            </Button>
-          </div>
+          <Button
+            variant="emerald"
+            size="sm"
+            onClick={handleGenerateAi}
+            disabled={isAiLoading || !inputText.trim()}
+            className="w-full sm:w-auto h-8 px-3 text-xs font-semibold shadow-2xs cursor-pointer bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 hover:from-emerald-500 hover:to-teal-600 text-white flex-shrink-0"
+            leftIcon={
+              isAiLoading ? (
+                <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin flex-shrink-0" />
+              ) : (
+                <Sparkles className="w-3.5 h-3.5 text-amber-300 flex-shrink-0" />
+              )
+            }
+          >
+            <span>{isAiLoading ? 'AI думает...' : 'AI Генерация'}</span>
+          </Button>
         </div>
 
         {/* Error notification */}
@@ -457,34 +454,56 @@ export const AlgorithmIdGenerator: React.FC = () => {
         <div className="p-3 space-y-2.5">
           {currentGeneratedId ? (
             <>
-              {/* Monospace ID block with inline copy button */}
-              <div className="flex items-center justify-between gap-2 p-2.5 rounded-xl border border-emerald-200/90 bg-emerald-50/50 shadow-2xs">
-                <div className="font-mono text-xs font-bold text-slate-900 break-all select-all leading-snug flex-1 min-w-0">
+              {/* Monospace ID block with full-width text and top-right copy icon */}
+              <div
+                onClick={() => handleCopy()}
+                title="Нажмите, чтобы скопировать"
+                className="group/id relative p-3 pr-10 rounded-xl border border-emerald-200/90 bg-emerald-50/50 hover:bg-emerald-50/80 transition-all cursor-pointer shadow-2xs"
+              >
+                <div className="font-mono text-xs font-bold text-emerald-950 break-all select-all leading-relaxed">
                   {currentGeneratedId}
                 </div>
                 <button
                   type="button"
-                  onClick={() => handleCopy()}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleCopy();
+                  }}
                   title="Скопировать идентификатор"
-                  className={`flex-shrink-0 inline-flex items-center justify-center gap-1.5 h-7 px-3 rounded-lg text-xs font-semibold shadow-2xs transition-all cursor-pointer ${
+                  className={`absolute top-2.5 right-2.5 h-7 w-7 rounded-lg flex items-center justify-center transition-all cursor-pointer shadow-2xs ${
                     copied && (!copiedId || copiedId === currentGeneratedId)
-                      ? 'bg-emerald-700 text-white'
-                      : 'bg-emerald-600 hover:bg-emerald-700 text-white active:scale-95'
+                      ? 'bg-emerald-600 text-white'
+                      : 'bg-white hover:bg-emerald-100 text-emerald-700 border border-emerald-300 hover:border-emerald-400 active:scale-95'
                   }`}
                 >
                   {copied && (!copiedId || copiedId === currentGeneratedId) ? (
-                    <>
-                      <Check className="w-3.5 h-3.5 flex-shrink-0" />
-                      <span>Скопировано</span>
-                    </>
+                    <Check className="w-3.5 h-3.5" />
                   ) : (
-                    <>
-                      <Copy className="w-3.5 h-3.5 flex-shrink-0" />
-                      <span>Копировать</span>
-                    </>
+                    <Copy className="w-3.5 h-3.5" />
                   )}
                 </button>
               </div>
+
+              {/* Dedicated Copy Button */}
+              <Button
+                variant="emerald"
+                size="sm"
+                onClick={() => handleCopy()}
+                className="w-full h-8 text-xs font-semibold shadow-2xs cursor-pointer"
+                leftIcon={
+                  copied && (!copiedId || copiedId === currentGeneratedId) ? (
+                    <Check className="w-3.5 h-3.5 flex-shrink-0" />
+                  ) : (
+                    <Copy className="w-3.5 h-3.5 flex-shrink-0" />
+                  )
+                }
+              >
+                <span>
+                  {copied && (!copiedId || copiedId === currentGeneratedId)
+                    ? 'Скопировано в буфер!'
+                    : 'Копировать идентификатор'}
+                </span>
+              </Button>
 
               {/* Semantic explanation note */}
               {activeSource === 'ai' && aiResult?.explanation && (
