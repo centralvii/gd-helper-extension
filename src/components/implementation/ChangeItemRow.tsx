@@ -50,19 +50,21 @@ export const ChangeItemRow: React.FC<ChangeItemRowProps> = React.memo(({
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const cardId = extractCardIdFromUrl(item.linkUrl);
+
   return (
-    <div className={`group relative rounded-xl border p-3 transition-all space-y-2 ${
+    <div className={`group relative rounded-xl border p-2.5 transition-all space-y-1.5 ${
       item.isCollected
         ? 'border-emerald-200/90 bg-emerald-50/20'
         : 'border-slate-200/90 bg-white hover:border-emerald-300 hover:shadow-xs'
     }`}>
-      {/* Top Header: Index badge + Item label on left, Action buttons on right */}
-      <div className="flex items-center justify-between gap-1.5 border-b border-slate-100 pb-2">
-        <div className="flex items-center gap-1.5 min-w-0 flex-wrap">
+      {/* Top Header: Index badge + Status on left, Action buttons on right */}
+      <div className="flex items-center justify-between gap-1 border-b border-slate-100 pb-1.5">
+        <div className="flex items-center gap-1.5 min-w-0 flex-1">
           <span className="flex-shrink-0 flex items-center justify-center w-5 h-5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-mono font-bold shadow-2xs">
             {index + 1}
           </span>
-          <span className="text-[11px] font-bold text-slate-500 truncate">
+          <span className="hidden sm:inline text-[11px] font-bold text-slate-500 truncate">
             Пункт {index + 1}
           </span>
 
@@ -75,38 +77,39 @@ export const ChangeItemRow: React.FC<ChangeItemRowProps> = React.memo(({
                   ? 'Объект собран. Нажмите, чтобы сбросить статус'
                   : 'Нажмите, чтобы отметить как собранный'
               }
-              className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-bold border transition-colors cursor-pointer ${
+              className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-bold border transition-colors cursor-pointer flex-shrink-0 ${
                 item.isCollected
                   ? 'bg-emerald-100/90 text-emerald-800 border-emerald-300 hover:bg-emerald-200'
                   : 'bg-slate-100 text-slate-500 border-slate-200 hover:bg-slate-200'
               }`}
             >
-              {item.isCollected && <Check className="w-3 h-3 text-emerald-700" />}
+              {item.isCollected && <Check className="w-2.5 h-2.5 text-emerald-700" />}
               <span>{item.isCollected ? 'Собран' : 'Не собран'}</span>
             </button>
           )}
 
           {matchingPackageFile && (
-            <div className="inline-flex items-center gap-1">
-              <span
-                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-sky-50 text-sky-800 border border-sky-200 shadow-2xs"
-                title={`Файл найден в связанном пакете сборки под номером #${matchingPackageFile.order}: ${matchingPackageFile.newName || matchingPackageFile.originalName}`}
-              >
-                📦 В пакете #{matchingPackageFile.order}
-              </span>
-
-              {!item.isCollected && onToggleCollected && (
-                <button
-                  type="button"
-                  onClick={() => onToggleCollected(item.id)}
-                  title="Файл уже есть в сборке. Нажмите, чтобы сразу отметить пункт собранным"
-                  className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-2xs cursor-pointer transition-colors"
-                >
-                  <Check className="w-3 h-3" />
-                  <span>Собрать</span>
-                </button>
+            <button
+              type="button"
+              onClick={() => {
+                if (!item.isCollected && onToggleCollected) {
+                  onToggleCollected(item.id);
+                }
+              }}
+              title={`Файл найден в связанном пакете сборки под номером #${matchingPackageFile.order}: ${matchingPackageFile.newName || matchingPackageFile.originalName}${!item.isCollected ? '. Нажмите, чтобы отметить собранным' : ''}`}
+              className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[9.5px] font-bold border transition-colors shadow-2xs flex-shrink-0 ${
+                item.isCollected
+                  ? 'bg-sky-50 text-sky-800 border-sky-200 cursor-default'
+                  : 'bg-sky-50 hover:bg-emerald-50 text-sky-800 hover:text-emerald-800 border-sky-200 hover:border-emerald-300 cursor-pointer'
+              }`}
+            >
+              <span>📦 #{matchingPackageFile.order}</span>
+              {!item.isCollected && (
+                <span className="text-[9px] text-emerald-600 font-semibold hidden xs:inline">
+                  (собрать)
+                </span>
               )}
-            </div>
+            </button>
           )}
         </div>
 
@@ -161,28 +164,26 @@ export const ChangeItemRow: React.FC<ChangeItemRowProps> = React.memo(({
         {item.description}
       </p>
 
-      {/* Attached Link (full width) */}
+      {/* Attached Link & Card ID (single unified compact pill) */}
       {item.linkUrl && (
-        <div className="pt-0.5 flex items-center gap-1.5 flex-wrap">
-          {extractCardIdFromUrl(item.linkUrl) && (
-            <span
-              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-lg bg-slate-100 text-slate-700 border border-slate-200/90 font-mono text-[9.5px] font-bold shadow-2xs"
-              title={`ID карточки в GreenData: ${extractCardIdFromUrl(item.linkUrl)}`}
-            >
-              <span className="text-slate-400 font-normal">ID:</span>
-              {extractCardIdFromUrl(item.linkUrl)}
-            </span>
-          )}
+        <div className="pt-0.5 flex items-center min-w-0">
           <a
             href={item.linkUrl}
             target="_blank"
             rel="noreferrer"
-            title={item.linkUrl}
-            className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-200/90 rounded-xl text-[11px] font-bold transition-all max-w-full truncate shadow-2xs"
+            title={`Открыть в GreenData: ${item.linkTitle ? `${item.linkTitle} (${item.linkUrl})` : item.linkUrl}`}
+            className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-200/90 hover:border-emerald-300 rounded-lg text-[10.5px] font-medium transition-all max-w-full min-w-0 shadow-2xs group/link cursor-pointer"
           >
             <LinkIcon className="w-3 h-3 flex-shrink-0 text-emerald-600" />
-            <span className="truncate">{item.linkTitle || item.linkUrl}</span>
-            <ExternalLink className="w-3 h-3 flex-shrink-0 opacity-70 text-emerald-600" />
+            {cardId && (
+              <span className="inline-flex items-center font-mono text-[9.5px] font-bold text-emerald-800 bg-emerald-100/90 px-1 py-0.2 rounded border border-emerald-200/80 flex-shrink-0">
+                ID: {cardId}
+              </span>
+            )}
+            <span className="truncate font-semibold text-emerald-950 flex-1 min-w-0">
+              {item.linkTitle || item.linkUrl}
+            </span>
+            <ExternalLink className="w-2.5 h-2.5 flex-shrink-0 text-emerald-600 opacity-70 group-hover/link:opacity-100 transition-opacity" />
           </a>
         </div>
       )}
