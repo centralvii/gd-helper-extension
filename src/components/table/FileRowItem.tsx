@@ -17,7 +17,7 @@ import { saveAs } from 'file-saver';
 import { FileRow } from '../../types';
 import { Badge } from '../ui/Badge';
 import { IconButton } from '../ui';
-import { formatSourceUrlDisplay, trimGreenDataUrl } from '../../utils/tabUtils';
+import { trimGreenDataUrl } from '../../utils/tabUtils';
 
 interface FileRowItemProps {
     file: FileRow;
@@ -89,7 +89,7 @@ export const FileRowItem: React.FC<FileRowItemProps> = React.memo(({
         <div
             ref={setNodeRef}
             style={style}
-            className={`group relative flex items-center gap-2 rounded-xl border p-2 transition-all duration-150 ${
+            className={`group relative flex items-start gap-2 rounded-xl border p-2 transition-all duration-150 ${
                 isDragging
                     ? 'border-emerald-500 bg-emerald-50/90 shadow-lg scale-[1.01]'
                     : hasError
@@ -103,139 +103,156 @@ export const FileRowItem: React.FC<FileRowItemProps> = React.memo(({
                 {...attributes}
                 {...listeners}
                 title="Перетащите для изменения порядка"
-                className="flex h-7 px-1.5 gap-0.5 flex-shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-slate-600 transition-colors hover:border-slate-300 hover:text-slate-900 cursor-grab active:cursor-grabbing shadow-2xs select-none"
+                className="flex h-6 px-1.5 gap-0.5 flex-shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 text-slate-600 transition-colors hover:border-slate-300 hover:text-slate-900 cursor-grab active:cursor-grabbing shadow-2xs select-none mt-0.5"
             >
                 <GripVertical className="h-3 w-3 text-slate-400" />
                 <span className="font-mono text-[10.5px] font-bold">#{file.order}</span>
             </button>
 
-            {/* File Info */}
-            <div className="min-w-0 flex-1">
-                <div className="flex min-w-0 items-center gap-1.5">
-                    <span
-                        className="truncate font-mono text-xs font-bold text-slate-900 min-w-0 flex-1"
-                        title={file.newName || file.originalName}
-                    >
-                        {file.newName || file.originalName}
-                    </span>
-
-                    {isDuplicate && (
-                        <Badge
-                            variant="danger"
-                            size="xs"
-                            className="flex-shrink-0"
-                        >
-                            Дубликат
-                        </Badge>
-                    )}
-
-                    {isMatchedInTask && (
-                        <Badge
-                            variant="success"
-                            size="xs"
-                            className="flex-shrink-0"
-                            title="Объект найден в привязанной задаче реализации по ID карточки"
-                        >
-                            ✓ В задаче
-                        </Badge>
-                    )}
-
-                    {hasError && !isDuplicate && (
-                        <Badge
-                            variant="warning"
-                            size="xs"
-                            className="flex-shrink-0"
-                        >
-                            <AlertTriangle className="h-2.5 w-2.5" />
-                        </Badge>
-                    )}
-
-                    {file.description && (
+            {/* File Info Body */}
+            <div className="min-w-0 flex-1 space-y-1">
+                {/* Line 1: Filename + Indicators + Actions */}
+                <div className="flex items-center justify-between gap-1.5 min-w-0">
+                    <div className="flex items-center gap-1.5 min-w-0 flex-1">
                         <span
-                            title={`README: ${file.description}`}
-                            className="flex-shrink-0 text-emerald-600"
+                            className="truncate font-mono text-xs font-bold text-slate-900 min-w-0"
+                            title={file.newName || file.originalName}
                         >
-                            <FileText className="h-3 w-3" />
+                            {file.newName || file.originalName}
                         </span>
-                    )}
+
+                        {isDuplicate && (
+                            <Badge
+                                variant="danger"
+                                size="xs"
+                                className="flex-shrink-0"
+                            >
+                                Дубликат
+                            </Badge>
+                        )}
+
+                        {hasError && !isDuplicate && (
+                            <span
+                                title="Ошибка валидации файла"
+                                className="flex-shrink-0 text-amber-500"
+                            >
+                                <AlertTriangle className="h-3 w-3" />
+                            </span>
+                        )}
+
+                        {file.description && (
+                            <span
+                                title={`README: ${file.description}`}
+                                className="flex-shrink-0 text-emerald-600"
+                            >
+                                <FileText className="h-3 w-3" />
+                            </span>
+                        )}
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex flex-shrink-0 items-center gap-0.5">
+                        <IconButton
+                            size="xs"
+                            variant="sky"
+                            icon={
+                                isDownloaded ? (
+                                    <Check className="h-3 w-3 text-emerald-600" />
+                                ) : (
+                                    <Download className="h-3 w-3" />
+                                )
+                            }
+                            onClick={handleDownload}
+                            title="Скачать этот GUF-файл"
+                        />
+                        <IconButton
+                            size="xs"
+                            variant="emerald"
+                            icon={<Edit3 className="h-3 w-3" />}
+                            onClick={() => onEdit(file)}
+                            title="Редактировать параметры файла"
+                        />
+                        <IconButton
+                            size="xs"
+                            variant="danger"
+                            icon={<Trash2 className="h-3 w-3" />}
+                            onClick={() => onDelete(file.id)}
+                            title="Удалить файл из пакета"
+                        />
+                    </div>
                 </div>
 
-                <div className="flex items-center gap-1.5 text-[10px] text-slate-400 min-w-0 mt-0.5">
-                    <span
-                        className="truncate min-w-0 flex-1"
-                        title={file.originalName}
-                    >
-                        исх: {file.originalName}
-                    </span>
+                {/* Line 2: Metadata row */}
+                <div className="flex items-center gap-1.5 text-[10px] text-slate-400 min-w-0 flex-wrap">
+                    {file.newName && file.newName !== file.originalName && (
+                        <span
+                            className="truncate min-w-0 text-slate-400 text-[10px]"
+                            title={`Исходное имя: ${file.originalName}`}
+                        >
+                            исх: {file.originalName}
+                        </span>
+                    )}
 
                     {file.detectedDate && (
-                        <span className="inline-flex items-center gap-0.5 px-1 py-0.2 rounded bg-slate-100 text-slate-500 text-[9.5px] font-mono flex-shrink-0 whitespace-nowrap">
+                        <span
+                            title={`Дата обнаружения / создания: ${file.detectedDate}`}
+                            className="inline-flex items-center gap-0.5 px-1 py-0.2 rounded bg-slate-100 text-slate-500 text-[9.5px] font-mono flex-shrink-0 whitespace-nowrap"
+                        >
                             <Calendar className="h-2.5 w-2.5 text-slate-400" />
                             {file.detectedDate}
                         </span>
                     )}
-                </div>
 
-                {/* Attached Source URL and Card ID */}
-                {(file.sourceUrl || file.cardId) && (
-                    <div className="mt-1 flex items-center gap-1.5 flex-wrap">
-                        {file.cardId && (
+                    {/* Compact Card ID & Link */}
+                    {file.cardId ? (
+                        file.sourceUrl ? (
+                            <a
+                                href={trimGreenDataUrl(file.sourceUrl)}
+                                target="_blank"
+                                rel="noreferrer"
+                                title={`Открыть карточку в GreenData: ${trimGreenDataUrl(file.sourceUrl)}`}
+                                onClick={(e) => e.stopPropagation()}
+                                className="inline-flex items-center gap-1 px-1.5 py-0.2 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-200/90 rounded-md font-mono text-[9.5px] font-bold transition-all shadow-2xs cursor-pointer flex-shrink-0"
+                            >
+                                <LinkIcon className="w-2.5 h-2.5 text-emerald-600 flex-shrink-0" />
+                                <span>ID: {file.cardId}</span>
+                                <ExternalLink className="w-2 h-2 text-emerald-600 opacity-60 flex-shrink-0" />
+                            </a>
+                        ) : (
                             <span
-                                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-lg bg-slate-100 text-slate-700 border border-slate-200/90 font-mono text-[9.5px] font-bold shadow-2xs"
+                                className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded-md bg-slate-100 text-slate-700 border border-slate-200/90 font-mono text-[9.5px] font-bold shadow-2xs flex-shrink-0"
                                 title={`ID карточки в GreenData: ${file.cardId}`}
                             >
                                 <span className="text-slate-400 font-normal">ID:</span>
                                 {file.cardId}
                             </span>
-                        )}
-
-                        {file.sourceUrl && (
-                            <a
-                                href={trimGreenDataUrl(file.sourceUrl)}
-                                target="_blank"
-                                rel="noreferrer"
-                                title={trimGreenDataUrl(file.sourceUrl)}
-                                onClick={(e) => e.stopPropagation()}
-                                className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-200/90 rounded-xl text-[10px] font-semibold transition-all max-w-full truncate shadow-2xs"
-                            >
-                                <LinkIcon className="w-2.5 h-2.5 flex-shrink-0 text-emerald-600" />
-                                <span className="truncate">{formatSourceUrlDisplay(file.sourceUrl)}</span>
-                                <ExternalLink className="w-2.5 h-2.5 flex-shrink-0 opacity-70 text-emerald-600" />
-                            </a>
-                        )}
-                    </div>
-                )}
-            </div>
-
-            {/* Actions */}
-            <div className="flex flex-shrink-0 items-center gap-0.5">
-                <IconButton
-                    size="sm"
-                    variant="sky"
-                    icon={
-                        isDownloaded ? (
-                            <Check className="h-3.5 w-3.5 text-emerald-600" />
-                        ) : (
-                            <Download className="h-3.5 w-3.5" />
                         )
-                    }
-                    onClick={handleDownload}
-                    title="Скачать этот GUF-файл"
-                />
-                <IconButton
-                    size="sm"
-                    variant="emerald"
-                    icon={<Edit3 className="h-3.5 w-3.5" />}
-                    onClick={() => onEdit(file)}
-                    title="Редактировать параметры файла"
-                />
-                <IconButton
-                    size="sm"
-                    variant="danger"
-                    icon={<Trash2 className="h-3.5 w-3.5" />}
-                    onClick={() => onDelete(file.id)}
-                    title="Удалить файл из пакета"
-                />
+                    ) : file.sourceUrl ? (
+                        <a
+                            href={trimGreenDataUrl(file.sourceUrl)}
+                            target="_blank"
+                            rel="noreferrer"
+                            title={trimGreenDataUrl(file.sourceUrl)}
+                            onClick={(e) => e.stopPropagation()}
+                            className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded-md bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-200/90 text-[9.5px] font-semibold transition-all shadow-2xs flex-shrink-0"
+                        >
+                            <LinkIcon className="w-2.5 h-2.5 text-emerald-600 flex-shrink-0" />
+                            <span>Карточка</span>
+                            <ExternalLink className="w-2 h-2 text-emerald-600 opacity-60 flex-shrink-0" />
+                        </a>
+                    ) : null}
+
+                    {/* Matched in Task Badge */}
+                    {isMatchedInTask && (
+                        <span
+                            title="Объект найден в привязанной задаче реализации по ID карточки"
+                            className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded-md bg-emerald-100/80 text-emerald-900 border border-emerald-300/80 text-[9.5px] font-bold shadow-2xs flex-shrink-0"
+                        >
+                            <Check className="w-2.5 h-2.5 text-emerald-700 flex-shrink-0" />
+                            <span className="hidden xs:inline">В задаче</span>
+                        </span>
+                    )}
+                </div>
             </div>
         </div>
     );
