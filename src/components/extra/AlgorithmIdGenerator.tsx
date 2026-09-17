@@ -4,9 +4,9 @@ import {
   Check,
   History,
   Trash2,
-  BookOpen,
+  Bookmark,
+  FileText,
   AlertCircle,
-  BookA,
   Plus,
   Sparkles,
   Zap,
@@ -312,7 +312,7 @@ export const AlgorithmIdGenerator: React.FC = () => {
       <Toolbar className="animate-fade-in">
         <Toolbar.Title
           icon={<SlidersHorizontal className="w-3.5 h-3.5" />}
-          title={<span className="hidden xs:inline">Инструменты</span>}
+          title={<span className="hidden sm:inline">Инструменты</span>}
           titleAttr="Инструменты"
         />
 
@@ -323,37 +323,28 @@ export const AlgorithmIdGenerator: React.FC = () => {
             icon={<History className="w-3.5 h-3.5 text-emerald-600" />}
             badge={
               history.length > 0 ? (
-                <span className="px-1 py-0.2 rounded-md bg-emerald-100 text-emerald-800 text-[10px] font-mono font-bold">
+                <span className="px-1.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800 text-[10px] font-mono font-bold">
                   {history.length}
                 </span>
               ) : undefined
             }
-            className={
-              history.length > 0
-                ? 'px-1.5 xs:px-2.5 flex-shrink-0'
-                : 'w-7 h-7 p-0 xs:w-auto xs:px-2.5 justify-center flex-shrink-0'
-            }
           >
-            <span className="hidden xs:inline">История</span>
+            История
           </Toolbar.Button>
 
           <Toolbar.Button
             onClick={() => setIsDictOpen(true)}
             title="Словарь терминов и сокращений"
-            icon={<BookA className="w-3.5 h-3.5 text-emerald-600" />}
-            className="w-7 h-7 p-0 xs:w-auto xs:px-2.5 justify-center flex-shrink-0"
-          >
-            <span className="hidden xs:inline">Словарь</span>
-          </Toolbar.Button>
+            icon={<Bookmark className="w-3.5 h-3.5 text-emerald-600" />}
+            className="w-7 h-7 p-0 rounded-lg justify-center flex-shrink-0"
+          />
 
           <Toolbar.Button
             onClick={() => setIsRulesOpen(true)}
             title="Стандарты именования алгоритмов GreenData"
-            icon={<BookOpen className="w-3.5 h-3.5 text-emerald-600" />}
-            className="w-7 h-7 p-0 xs:w-auto xs:px-2.5 justify-center flex-shrink-0"
-          >
-            <span className="hidden xs:inline">Правила</span>
-          </Toolbar.Button>
+            icon={<FileText className="w-3.5 h-3.5 text-emerald-600" />}
+            className="w-7 h-7 p-0 rounded-lg justify-center flex-shrink-0"
+          />
 
           <Toolbar.Button
             onClick={() => setIsAiSettingsOpen(true)}
@@ -364,7 +355,7 @@ export const AlgorithmIdGenerator: React.FC = () => {
             }
             icon={<Settings className="w-3.5 h-3.5 text-emerald-600" />}
             dot={isAiConfigured()}
-            className="w-7 h-7 p-0 justify-center flex-shrink-0"
+            className="w-7 h-7 p-0 rounded-lg justify-center flex-shrink-0"
           />
         </Toolbar.Actions>
       </Toolbar>
