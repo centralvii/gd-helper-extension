@@ -51,7 +51,7 @@ export const ChangeItemRow: React.FC<ChangeItemRowProps> = React.memo(({
   };
 
   return (
-    <div className={`group relative rounded-2xl border p-3 transition-all space-y-2 ${
+    <div className={`group relative rounded-xl border p-3 transition-all space-y-2 ${
       item.isCollected
         ? 'border-emerald-200/90 bg-emerald-50/20'
         : 'border-slate-200/90 bg-white hover:border-emerald-300 hover:shadow-xs'
@@ -87,12 +87,26 @@ export const ChangeItemRow: React.FC<ChangeItemRowProps> = React.memo(({
           )}
 
           {matchingPackageFile && (
-            <span
-              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-sky-50 text-sky-800 border border-sky-200 shadow-2xs"
-              title={`Файл найден в связанном пакете сборки под номером #${matchingPackageFile.order}: ${matchingPackageFile.newName || matchingPackageFile.originalName}`}
-            >
-              📦 В пакете #{matchingPackageFile.order}
-            </span>
+            <div className="inline-flex items-center gap-1">
+              <span
+                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-sky-50 text-sky-800 border border-sky-200 shadow-2xs"
+                title={`Файл найден в связанном пакете сборки под номером #${matchingPackageFile.order}: ${matchingPackageFile.newName || matchingPackageFile.originalName}`}
+              >
+                📦 В пакете #{matchingPackageFile.order}
+              </span>
+
+              {!item.isCollected && onToggleCollected && (
+                <button
+                  type="button"
+                  onClick={() => onToggleCollected(item.id)}
+                  title="Файл уже есть в сборке. Нажмите, чтобы сразу отметить пункт собранным"
+                  className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-2xs cursor-pointer transition-colors"
+                >
+                  <Check className="w-3 h-3" />
+                  <span>Собрать</span>
+                </button>
+              )}
+            </div>
           )}
         </div>
 

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { ImplementationTask, ImplementationChangeItem, ImplementationSection } from '../types';
-import { DEFAULT_IMPLEMENTATION_SECTIONS } from '../utils/tabUtils';
+import { DEFAULT_IMPLEMENTATION_SECTIONS, extractCardIdFromUrl } from '../utils/tabUtils';
 
 const STORAGE_KEY_TASKS = 'gd-helper-implementation-tasks';
 const STORAGE_KEY_ACTIVE_TASK = 'gd-helper-implementation-active-task-id';
@@ -384,6 +384,66 @@ export function useImplementationTasks() {
     );
   }, []);
 
+  // Batch mark specific items as collected by their IDs
+  const markItemsCollectedByIds = useCallback((taskId: string, itemIds: string[]) => {
+    if (itemIds.length === 0) return;
+    const targetSet = new Set(itemIds);
+    setTasks((prev) =>
+      prev.map((t) => {
+        if (t.id !== taskId) return t;
+        const now = Date.now();
+        let changed = false;
+        const updatedItems = t.items.map((i) => {
+          if (targetSet.has(i.id) && !i.isCollected) {
+            changed = true;
+            return {
+              ...i,
+              isCollected: true,
+              collectedAt: now,
+            };
+          }
+          return i;
+        });
+        if (!changed) return t;
+        return {
+          ...t,
+          items: updatedItems,
+          updatedAt: now,
+        };
+      })
+    );
+  }, []);
+
+  // Mark item as collected by matching cardId
+  const markItemCollectedByCardId = useCallback((taskId: string, cardId: string) => {
+    if (!cardId) return;
+    setTasks((prev) =>
+      prev.map((t) => {
+        if (t.id !== taskId) return t;
+        let changed = false;
+        const now = Date.now();
+        const updatedItems = t.items.map((i) => {
+          const itemCardId = extractCardIdFromUrl(i.linkUrl);
+          if (itemCardId === cardId && !i.isCollected) {
+            changed = true;
+            return {
+              ...i,
+              isCollected: true,
+              collectedAt: now,
+            };
+          }
+          return i;
+        });
+        if (!changed) return t;
+        return {
+          ...t,
+          items: updatedItems,
+          updatedAt: now,
+        };
+      })
+    );
+  }, []);
+
   // Delete change item
   const deleteChangeItem = useCallback((taskId: string, itemId: string) => {
     setTasks((prev) =>
@@ -569,6 +629,8 @@ export function useImplementationTasks() {
     deleteChangeItem,
     toggleChangeItemCollected,
     setAllChangeItemsCollected,
+    markItemsCollectedByIds,
+    markItemCollectedByCardId,
     reorderChangeItems,
     moveChangeItem,
     clearTaskItems,

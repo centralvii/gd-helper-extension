@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import {
   CheckSquare,
   Square,
@@ -13,6 +13,8 @@ import {
   Clock,
   Link as LinkIcon,
   Info,
+  ArrowDownUp,
+  Package,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { ImplementationTask, ImplementationChangeItem } from '../../types';
@@ -59,13 +61,32 @@ export const TaskChecklistModal: React.FC<TaskChecklistModalProps> = ({
     return map;
   }, [linkedPackages]);
 
+  const [filterStatus, setFilterStatus] = useState<'all' | 'uncollected' | 'collected'>('all');
+  const [sortOrder, setSortOrder] = useState<'default' | 'uncollected_first'>('default');
+
   const totalCount = task.items.length;
   const collectedCount = useMemo(
     () => task.items.filter((i) => i.isCollected).length,
     [task.items]
   );
+  const uncollectedCount = totalCount - collectedCount;
   const isAllCollected = totalCount > 0 && collectedCount === totalCount;
   const progressPercent = totalCount > 0 ? Math.round((collectedCount / totalCount) * 100) : 0;
+
+  // Items whose GUFs are already in the linked package, but not collected yet
+  const uncollectedInPackageItems = useMemo(() => {
+    return task.items.filter((item) => {
+      if (item.isCollected) return false;
+      const cId = extractCardIdFromUrl(item.linkUrl);
+      return Boolean(cId && linkedFilesByCardId.has(cId));
+    });
+  }, [task.items, linkedFilesByCardId]);
+
+  const handleCollectAllInPackage = () => {
+    uncollectedInPackageItems.forEach((item) => {
+      onToggleItemCollected(task.id, item.id);
+    });
+  };
 
   // Trigger confetti when transition to 100% collected occurs
   useEffect(() => {
@@ -106,6 +127,42 @@ export const TaskChecklistModal: React.FC<TaskChecklistModalProps> = ({
 
     return { groupedItems: map, unsectionedItems: unsectioned };
   }, [task.items, sections]);
+
+  // Filter & sort logic for displaying items
+  const processItems = useCallback(
+    (itemsList: ImplementationChangeItem[]) => {
+      let result = itemsList;
+
+      if (filterStatus === 'uncollected') {
+        result = result.filter((i) => !i.isCollected);
+      } else if (filterStatus === 'collected') {
+        result = result.filter((i) => i.isCollected);
+      }
+
+      if (sortOrder === 'uncollected_first') {
+        result = [...result].sort((a, b) => {
+          if (!a.isCollected && b.isCollected) return -1;
+          if (a.isCollected && !b.isCollected) return 1;
+          return 0;
+        });
+      }
+
+      return result;
+    },
+    [filterStatus, sortOrder]
+  );
+
+  const displayedGroupedItems = useMemo(() => {
+    const map = new Map<string, ImplementationChangeItem[]>();
+    groupedItems.forEach((list, secId) => {
+      map.set(secId, processItems(list));
+    });
+    return map;
+  }, [groupedItems, processItems]);
+
+  const displayedUnsectionedItems = useMemo(() => {
+    return processItems(unsectionedItems);
+  }, [unsectionedItems, processItems]);
 
   // Handle opening link and automatically collecting the item
   const handleOpenAndCollect = (item: ImplementationChangeItem) => {
@@ -194,7 +251,7 @@ export const TaskChecklistModal: React.FC<TaskChecklistModalProps> = ({
     >
       <div className="space-y-4 text-slate-800">
         {/* Task Info & Progress Card */}
-        <div className="p-3.5 bg-gradient-to-r from-emerald-50/90 via-teal-50/50 to-white border border-emerald-200/90 rounded-2xl shadow-2xs space-y-2.5">
+        <div className="p-3.5 bg-gradient-to-r from-emerald-50/90 via-teal-50/50 to-white border border-emerald-200/90 rounded-xl shadow-2xs space-y-2.5">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="min-w-0">
               <div className="flex items-center gap-2">
@@ -262,9 +319,21 @@ export const TaskChecklistModal: React.FC<TaskChecklistModalProps> = ({
           )}
         </div>
 
-        {/* Batch Actions Bar */}
+        {/* Batch Actions Bar & Package Quick Collect */}
         <div className="flex flex-wrap items-center justify-between gap-2 px-1">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
+            {uncollectedInPackageItems.length > 0 && (
+              <button
+                type="button"
+                onClick={handleCollectAllInPackage}
+                title="Отметить как собранные все объекты, которые уже есть в связанном пакете сборки"
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold text-sky-900 bg-sky-50 hover:bg-sky-100 border border-sky-300 rounded-xl transition-all shadow-2xs cursor-pointer animate-pulse-subtle"
+              >
+                <Package className="w-3.5 h-3.5 text-sky-600" />
+                <span>Собрать из пакета ({uncollectedInPackageItems.length})</span>
+              </button>
+            )}
+
             <button
               type="button"
               onClick={() => onSetAllCollected(task.id, true)}
@@ -288,14 +357,102 @@ export const TaskChecklistModal: React.FC<TaskChecklistModalProps> = ({
             </button>
           </div>
 
-          <div className="text-[11px] text-slate-500">
-            Осталось собрать: <span className="font-bold text-slate-800">{totalCount - collectedCount}</span>
+          <div className="text-[11px] text-slate-500 font-medium">
+            Осталось собрать: <span className="font-bold text-slate-800 font-mono">{uncollectedCount}</span>
           </div>
         </div>
 
+        {/* Filter & Sorting Controls Bar */}
+        {totalCount > 0 && (
+          <div className="flex flex-wrap items-center justify-between gap-2 p-1.5 bg-slate-50 border border-slate-200/90 rounded-xl shadow-2xs">
+            {/* Filter Tabs */}
+            <div className="flex items-center gap-1 bg-white p-0.5 rounded-lg border border-slate-200 shadow-2xs">
+              <button
+                type="button"
+                onClick={() => setFilterStatus('all')}
+                className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer ${
+                  filterStatus === 'all'
+                    ? 'bg-emerald-600 text-white shadow-2xs'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                }`}
+              >
+                Все ({totalCount})
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setFilterStatus('uncollected')}
+                className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+                  filterStatus === 'uncollected'
+                    ? 'bg-amber-600 text-white shadow-2xs'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                }`}
+              >
+                <span>Не собранные</span>
+                <span
+                  className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
+                    filterStatus === 'uncollected'
+                      ? 'bg-amber-700/90 text-white'
+                      : uncollectedCount > 0
+                      ? 'bg-amber-100 text-amber-900'
+                      : 'bg-slate-100 text-slate-500'
+                  }`}
+                >
+                  {uncollectedCount}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setFilterStatus('collected')}
+                className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+                  filterStatus === 'collected'
+                    ? 'bg-emerald-700 text-white shadow-2xs'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                }`}
+              >
+                <span>Собранные</span>
+                <span
+                  className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
+                    filterStatus === 'collected'
+                      ? 'bg-emerald-800/90 text-white'
+                      : 'bg-slate-100 text-slate-600'
+                  }`}
+                >
+                  {collectedCount}
+                </span>
+              </button>
+            </div>
+
+            {/* Sort Toggle */}
+            <button
+              type="button"
+              onClick={() =>
+                setSortOrder((prev) => (prev === 'uncollected_first' ? 'default' : 'uncollected_first'))
+              }
+              title={
+                sortOrder === 'uncollected_first'
+                  ? 'Сортировка: сначала не собранные (нажмите для сброса)'
+                  : 'Сортировать: сначала не собранные'
+              }
+              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-xs font-semibold transition-all cursor-pointer ${
+                sortOrder === 'uncollected_first'
+                  ? 'bg-amber-50 border-amber-300 text-amber-900 shadow-2xs font-bold'
+                  : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+              }`}
+            >
+              <ArrowDownUp className="w-3.5 h-3.5 text-amber-600" />
+              <span>Сначала не собранные</span>
+              {sortOrder === 'uncollected_first' && (
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+              )}
+            </button>
+          </div>
+        )}
+
         {/* Empty State */}
         {totalCount === 0 && (
-          <div className="py-8 px-4 text-center border-2 border-dashed border-slate-200 rounded-2xl bg-slate-50/50">
+          <div className="py-8 px-4 text-center border-2 border-dashed border-slate-200 rounded-xl bg-slate-50/50">
             <Info className="w-8 h-8 text-slate-400 mx-auto mb-2" />
             <p className="text-xs font-bold text-slate-800 mb-1">
               В задаче нет пунктов изменений
@@ -309,17 +466,51 @@ export const TaskChecklistModal: React.FC<TaskChecklistModalProps> = ({
         {/* Changes List Grouped by Sections */}
         {totalCount > 0 && (
           <div className="space-y-3.5 max-h-[58vh] overflow-y-auto pr-1">
-            {sections.map((sec) => {
-              const items = groupedItems.get(sec.id) || [];
-              if (items.length === 0) return null;
+            {/* Empty state by filter */}
+            {filterStatus === 'uncollected' && uncollectedCount === 0 && (
+              <div className="py-6 px-3 text-center bg-emerald-50/50 border border-emerald-200/80 rounded-xl space-y-1.5 animate-fade-in">
+                <CheckCircle2 className="w-6 h-6 text-emerald-600 mx-auto" />
+                <p className="text-xs font-bold text-emerald-950">Все объекты собраны!</p>
+                <p className="text-[11px] text-emerald-800">
+                  По фильтру «Не собранные» нет элементов.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setFilterStatus('all')}
+                  className="text-[11px] text-emerald-700 font-bold hover:underline cursor-pointer"
+                >
+                  Показать все ({totalCount})
+                </button>
+              </div>
+            )}
 
-              const secCollected = items.filter((i) => i.isCollected).length;
-              const secAllCollected = secCollected === items.length;
+            {filterStatus === 'collected' && collectedCount === 0 && (
+              <div className="py-6 px-3 text-center bg-slate-50/70 border border-slate-200 rounded-xl space-y-1.5 animate-fade-in">
+                <Info className="w-6 h-6 text-slate-400 mx-auto" />
+                <p className="text-xs font-bold text-slate-700">Пока нет собранных объектов</p>
+                <button
+                  type="button"
+                  onClick={() => setFilterStatus('all')}
+                  className="text-[11px] text-emerald-700 font-bold hover:underline cursor-pointer"
+                >
+                  Показать все ({totalCount})
+                </button>
+              </div>
+            )}
+
+            {sections.map((sec) => {
+              const allItems = groupedItems.get(sec.id) || [];
+              const items = displayedGroupedItems.get(sec.id) || [];
+              if (allItems.length === 0) return null;
+              if (filterStatus !== 'all' && items.length === 0) return null;
+
+              const secCollected = allItems.filter((i) => i.isCollected).length;
+              const secAllCollected = secCollected === allItems.length;
 
               return (
                 <div
                   key={sec.id}
-                  className="rounded-2xl border border-slate-200/90 bg-white shadow-xs overflow-hidden"
+                  className="rounded-xl border border-slate-200/90 bg-white shadow-xs overflow-hidden"
                 >
                   {/* Section Title Header */}
                   <div className="flex items-center justify-between gap-2 px-3 py-2 bg-gradient-to-r from-slate-50 to-white border-b border-slate-200/80">
@@ -338,7 +529,7 @@ export const TaskChecklistModal: React.FC<TaskChecklistModalProps> = ({
                             : 'bg-slate-100 text-slate-700 border-slate-200'
                         }`}
                       >
-                        {secCollected} / {items.length}
+                        {secCollected} / {allItems.length}
                       </span>
                     </div>
                   </div>
@@ -347,6 +538,8 @@ export const TaskChecklistModal: React.FC<TaskChecklistModalProps> = ({
                   <div className="p-2 space-y-2">
                     {items.map((item, idx) => {
                       const isCollected = Boolean(item.isCollected);
+                      const originalIdx = allItems.indexOf(item);
+                      const displayNum = originalIdx !== -1 ? originalIdx + 1 : idx + 1;
 
                       const itemCardId = extractCardIdFromUrl(item.linkUrl);
                       const matchingFile = itemCardId ? linkedFilesByCardId.get(itemCardId) : undefined;
@@ -379,7 +572,7 @@ export const TaskChecklistModal: React.FC<TaskChecklistModalProps> = ({
                             <div className="min-w-0 flex-1 space-y-1">
                               <div className="flex items-center gap-2 flex-wrap">
                                 <span className="text-[10px] font-mono font-bold px-1.5 py-0.2 rounded bg-slate-100 text-slate-600 border border-slate-200">
-                                  #{idx + 1}
+                                  #{displayNum}
                                 </span>
                                 {isCollected ? (
                                   <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-800 bg-emerald-100/90 px-1.5 py-0.5 rounded border border-emerald-300">
@@ -441,9 +634,20 @@ export const TaskChecklistModal: React.FC<TaskChecklistModalProps> = ({
                             </div>
                           </div>
 
-                          {/* Item Right Actions: "Открыть и собрать" button */}
+                          {/* Item Right Actions: "Собрать" or "Открыть и собрать" button */}
                           <div className="flex items-center gap-2 sm:self-center flex-shrink-0">
-                            {item.linkUrl ? (
+                            {matchingFile && !isCollected ? (
+                              <Button
+                                variant="emerald"
+                                size="sm"
+                                onClick={() => onToggleItemCollected(task.id, item.id)}
+                                leftIcon={<Check className="w-3.5 h-3.5" />}
+                                title={`Файл #${matchingFile.order} уже находится в пакете сборки! Нажмите, чтобы сразу отметить объект как собранный без перехода по ссылке`}
+                                className="text-xs px-2.5 py-1 whitespace-nowrap shadow-2xs font-bold"
+                              >
+                                Собрать
+                              </Button>
+                            ) : item.linkUrl ? (
                               <Button
                                 variant={isCollected ? 'secondary' : 'emerald'}
                                 size="sm"
@@ -477,8 +681,8 @@ export const TaskChecklistModal: React.FC<TaskChecklistModalProps> = ({
             })}
 
             {/* Unsectioned Items */}
-            {unsectionedItems.length > 0 && (
-              <div className="rounded-2xl border border-slate-200/90 bg-white shadow-xs overflow-hidden">
+            {displayedUnsectionedItems.length > 0 && (
+              <div className="rounded-xl border border-slate-200/90 bg-white shadow-xs overflow-hidden">
                 <div className="flex items-center justify-between gap-2 px-3 py-2 bg-gradient-to-r from-slate-50 to-white border-b border-slate-200/80">
                   <div className="flex items-center gap-2 min-w-0">
                     <Layers className="w-3.5 h-3.5 text-slate-500 flex-shrink-0" />
@@ -493,8 +697,10 @@ export const TaskChecklistModal: React.FC<TaskChecklistModalProps> = ({
                 </div>
 
                 <div className="p-2 space-y-2">
-                  {unsectionedItems.map((item, idx) => {
+                  {displayedUnsectionedItems.map((item, idx) => {
                     const isCollected = Boolean(item.isCollected);
+                    const originalIdx = unsectionedItems.indexOf(item);
+                    const displayNum = originalIdx !== -1 ? originalIdx + 1 : idx + 1;
 
                     const itemCardId = extractCardIdFromUrl(item.linkUrl);
                     const matchingFile = itemCardId ? linkedFilesByCardId.get(itemCardId) : undefined;
@@ -525,7 +731,7 @@ export const TaskChecklistModal: React.FC<TaskChecklistModalProps> = ({
                           <div className="min-w-0 flex-1 space-y-1">
                             <div className="flex items-center gap-2 flex-wrap">
                               <span className="text-[10px] font-mono font-bold px-1.5 py-0.2 rounded bg-slate-100 text-slate-600 border border-slate-200">
-                                #{idx + 1}
+                                #{displayNum}
                               </span>
                               {isCollected ? (
                                 <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-800 bg-emerald-100/90 px-1.5 py-0.5 rounded border border-emerald-300">
@@ -587,7 +793,18 @@ export const TaskChecklistModal: React.FC<TaskChecklistModalProps> = ({
                         </div>
 
                         <div className="flex items-center gap-2 sm:self-center flex-shrink-0">
-                          {item.linkUrl ? (
+                          {matchingFile && !isCollected ? (
+                            <Button
+                              variant="emerald"
+                              size="sm"
+                              onClick={() => onToggleItemCollected(task.id, item.id)}
+                              leftIcon={<Check className="w-3.5 h-3.5" />}
+                              title={`Файл #${matchingFile.order} уже находится в пакете сборки! Нажмите, чтобы сразу отметить объект как собранный без перехода по ссылке`}
+                              className="text-xs px-2.5 py-1 whitespace-nowrap shadow-2xs font-bold"
+                            >
+                              Собрать
+                            </Button>
+                          ) : item.linkUrl ? (
                             <Button
                               variant={isCollected ? 'secondary' : 'emerald'}
                               size="sm"

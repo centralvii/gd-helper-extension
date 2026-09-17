@@ -24,6 +24,7 @@ import {
   Link as LinkIcon,
   SlidersHorizontal,
   ListChecks,
+  Filter,
 } from 'lucide-react';
 import {
   ImplementationTask,
@@ -415,6 +416,13 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
     return { groupedItems: map, unsectionedItems: unsectioned };
   }, [task.items, sections]);
 
+  // Filter state: show all or only uncollected items
+  const [filterStatus, setFilterStatus] = useState<'all' | 'uncollected'>('all');
+  const uncollectedCount = useMemo(
+    () => task.items.filter((i) => !i.isCollected).length,
+    [task.items]
+  );
+
   const allSectionsCollapsed = useMemo(() => {
     if (sections.length === 0) return false;
     return sections.every((s) => collapsedSections[s.id]);
@@ -662,7 +670,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
       </Toolbar>
 
       {/* ── Algorithm Header Quick Action Card (Feature: Вставка комментария в алгоритм) ── */}
-      <div className="p-3 bg-gradient-to-r from-emerald-50 via-teal-50/60 to-emerald-50 border border-emerald-200/90 rounded-2xl shadow-2xs space-y-2">
+      <div className="p-3 bg-gradient-to-r from-emerald-50 via-teal-50/60 to-emerald-50 border border-emerald-200/90 rounded-xl shadow-2xs space-y-2">
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 min-w-0">
             <div className="p-1.5 rounded-xl bg-emerald-600 text-white shadow-2xs flex-shrink-0">
@@ -745,7 +753,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
       </div>
 
       {/* Changes Section Container */}
-      <div className="p-4 bg-white border border-slate-200/90 rounded-2xl space-y-3.5 shadow-xs">
+      <div className="p-4 bg-white border border-slate-200/90 rounded-xl space-y-3.5 shadow-xs">
         {/* Main Toolbar - Organized into 2 balanced rows to prevent any overflow */}
         <div className="space-y-2 border-b border-slate-100 pb-2.5">
           {/* Top Line: Header title on left, Primary add button on right */}
@@ -793,6 +801,33 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
                 )}
               </button>
 
+              {task.items.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setFilterStatus((prev) => (prev === 'all' ? 'uncollected' : 'all'))}
+                  title={filterStatus === 'uncollected' ? 'Показать все пункты' : 'Показать только не собранные'}
+                  className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-[10.5px] font-bold transition-all shadow-2xs cursor-pointer whitespace-nowrap border ${
+                    filterStatus === 'uncollected'
+                      ? 'bg-amber-100 text-amber-900 border-amber-300'
+                      : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200/90'
+                  }`}
+                >
+                  <Filter className="w-3.5 h-3.5 text-amber-600 flex-shrink-0" />
+                  <span>{filterStatus === 'uncollected' ? 'Не собранные' : 'Все'}</span>
+                  {uncollectedCount > 0 && (
+                    <span
+                      className={`px-1.5 py-0.2 rounded-md text-[10px] font-mono font-bold ${
+                        filterStatus === 'uncollected'
+                          ? 'bg-amber-200 text-amber-950'
+                          : 'bg-amber-100 text-amber-900'
+                      }`}
+                    >
+                      {uncollectedCount}
+                    </span>
+                  )}
+                </button>
+              )}
+
               {sections.length > 1 && (
                 <button
                   type="button"
@@ -833,7 +868,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
 
         {/* Changes List / Sections */}
         {task.items.length === 0 && sections.length === 0 ? (
-          <div className="py-6 px-3 text-center border-2 border-dashed border-slate-200 rounded-2xl bg-slate-50/50">
+          <div className="py-6 px-3 text-center border-2 border-dashed border-slate-200 rounded-xl bg-slate-50/50">
             <Info className="w-7 h-7 text-slate-400 mx-auto mb-1.5" />
             <p className="text-xs font-bold text-slate-800 mb-1">
               Список изменений пуст
@@ -867,20 +902,23 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
           <div className="space-y-3">
             {/* Render each section */}
             {sections.map((sec, secIdx) => {
-              const items = groupedItems.get(sec.id) || [];
+              const allSectionItems = groupedItems.get(sec.id) || [];
+              const items = filterStatus === 'uncollected'
+                ? allSectionItems.filter((i) => !i.isCollected)
+                : allSectionItems;
               const isCollapsed = !!collapsedSections[sec.id];
 
               return (
                 <div
                   key={sec.id}
-                  className={`rounded-2xl border border-slate-200/90 bg-white shadow-xs transition-all relative ${
+                  className={`rounded-xl border border-slate-200/90 bg-white shadow-xs transition-all relative ${
                     openSectionMenuId === sec.id ? 'z-30' : 'z-0'
                   }`}
                 >
                   {/* Section Header */}
                   <div
                     className={`flex items-center justify-between gap-1.5 px-3 py-2 bg-gradient-to-r from-slate-50/90 to-white cursor-pointer select-none transition-colors hover:bg-slate-100/70 ${
-                      isCollapsed ? 'rounded-2xl' : 'rounded-t-2xl border-b border-slate-200/80'
+                      isCollapsed ? 'rounded-xl' : 'rounded-t-xl border-b border-slate-200/80'
                     }`}
                     onClick={() => toggleSectionCollapse(sec.id)}
                   >
@@ -904,7 +942,9 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
                         {sec.name}
                       </span>
                       <span className="px-1.5 py-0.2 rounded-md bg-emerald-50 text-emerald-800 text-[10px] font-bold border border-emerald-200 flex-shrink-0 shadow-2xs">
-                        {items.length}
+                        {filterStatus === 'uncollected'
+                          ? `${items.length} из ${allSectionItems.length}`
+                          : allSectionItems.length}
                       </span>
                     </div>
 
@@ -966,7 +1006,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
                             }}
                           />
                           <div
-                            className="absolute right-0 top-full mt-1.5 z-50 bg-white border border-slate-200/90 rounded-2xl shadow-xl p-1.5 min-w-[175px] space-y-0.5 animate-fade-in text-xs"
+                            className="absolute right-0 top-full mt-1.5 z-50 bg-white border border-slate-200/90 rounded-xl shadow-xl p-1.5 min-w-[175px] space-y-0.5 animate-fade-in text-xs"
                             onClick={(e) => e.stopPropagation()}
                           >
                             {/* Up / Down visible in menu only on narrow screens */}
@@ -1035,7 +1075,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
                   {/* Section Items (when not collapsed) */}
                   {!isCollapsed && (
                     <div className="p-2 space-y-1.5 animate-slide-down">
-                      {items.length === 0 ? (
+                      {allSectionItems.length === 0 ? (
                         <div className="py-2.5 px-3 text-center text-slate-400 text-[11px] bg-slate-50/50 rounded-xl border border-dashed border-slate-200">
                           В этом разделе пока нет изменений.{' '}
                           <button
@@ -1045,6 +1085,10 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
                           >
                             + Добавить
                           </button>
+                        </div>
+                      ) : items.length === 0 && filterStatus === 'uncollected' ? (
+                        <div className="py-2.5 px-3 text-center text-emerald-800 text-[11px] bg-emerald-50/70 rounded-xl border border-emerald-200 font-medium">
+                          Все {allSectionItems.length} пунктов в этом разделе собраны ✅
                         </div>
                       ) : (
                         items.map((item, idx) => {
@@ -1074,7 +1118,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
 
             {/* Unsectioned Items */}
             {unsectionedItems.length > 0 && (
-              <div className="rounded-2xl border border-slate-200 bg-white shadow-xs overflow-hidden">
+              <div className="rounded-xl border border-slate-200 bg-white shadow-xs overflow-hidden">
                 <div
                   className="flex items-center justify-between gap-1.5 px-3 py-2 bg-slate-50/90 border-b border-slate-200 cursor-pointer select-none"
                   onClick={() => toggleSectionCollapse('__unsectioned__')}
@@ -1096,31 +1140,45 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
                     </button>
                     <span className="font-bold text-xs text-slate-800">Прочее / Без раздела</span>
                     <span className="px-1.5 py-0.2 rounded bg-slate-200 text-slate-700 text-[10px] font-bold">
-                      {unsectionedItems.length}
+                      {filterStatus === 'uncollected'
+                        ? `${unsectionedItems.filter((i) => !i.isCollected).length} из ${unsectionedItems.length}`
+                        : unsectionedItems.length}
                     </span>
                   </div>
                 </div>
 
                 {!collapsedSections['__unsectioned__'] && (
                   <div className="p-2 space-y-1.5 animate-slide-down">
-                    {unsectionedItems.map((item, idx) => {
-                      const itemCardId = extractCardIdFromUrl(item.linkUrl);
-                      const matchingFile = itemCardId ? linkedFilesByCardId.get(itemCardId) : undefined;
-                      return (
-                        <ChangeItemRow
-                          key={item.id}
-                          item={item}
-                          index={idx}
-                          totalCount={unsectionedItems.length}
-                          onEdit={handleEditItem}
-                          onDelete={handleDeleteItem}
-                          onMoveUp={handleMoveUpItem}
-                          onMoveDown={handleMoveDownItem}
-                          onToggleCollected={(id) => onToggleChangeItemCollected?.(task.id, id)}
-                          matchingPackageFile={matchingFile}
-                        />
-                      );
-                    })}
+                    {(filterStatus === 'uncollected'
+                      ? unsectionedItems.filter((i) => !i.isCollected)
+                      : unsectionedItems
+                    ).length === 0 && filterStatus === 'uncollected' ? (
+                      <div className="py-2.5 px-3 text-center text-emerald-800 text-[11px] bg-emerald-50/70 rounded-xl border border-emerald-200 font-medium">
+                        Все объекты без раздела собраны ✅
+                      </div>
+                    ) : (
+                      (filterStatus === 'uncollected'
+                        ? unsectionedItems.filter((i) => !i.isCollected)
+                        : unsectionedItems
+                      ).map((item, idx) => {
+                        const itemCardId = extractCardIdFromUrl(item.linkUrl);
+                        const matchingFile = itemCardId ? linkedFilesByCardId.get(itemCardId) : undefined;
+                        return (
+                          <ChangeItemRow
+                            key={item.id}
+                            item={item}
+                            index={idx}
+                            totalCount={unsectionedItems.length}
+                            onEdit={handleEditItem}
+                            onDelete={handleDeleteItem}
+                            onMoveUp={handleMoveUpItem}
+                            onMoveDown={handleMoveDownItem}
+                            onToggleCollected={(id) => onToggleChangeItemCollected?.(task.id, id)}
+                            matchingPackageFile={matchingFile}
+                          />
+                        );
+                      })
+                    )}
                   </div>
                 )}
               </div>
@@ -1378,7 +1436,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
       >
         {duplicateCandidate && (
           <div className="space-y-3 text-xs">
-            <div className="p-3 bg-amber-50 border border-amber-200/90 rounded-2xl flex items-start gap-2.5 text-amber-950 shadow-2xs">
+            <div className="p-3 bg-amber-50 border border-amber-200/90 rounded-xl flex items-start gap-2.5 text-amber-950 shadow-2xs">
               <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
               <div className="space-y-0.5 min-w-0 flex-1">
                 <span className="font-bold text-xs block">

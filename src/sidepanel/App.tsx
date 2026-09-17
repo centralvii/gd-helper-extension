@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { UploadCloud, Zap, Check, X, SlidersHorizontal, Bookmark, FileEdit, Trash2 } from 'lucide-react';
 import { useAppState, getFormattedArchiveName } from '../hooks/useAppState';
 import { useGlobalFileDrop } from '../hooks/useGlobalFileDrop';
@@ -20,7 +20,7 @@ import { ReadmeEditorModal } from '../components/readme/ReadmeEditorModal';
 import { ValidationPanel } from '../components/validation/ValidationPanel';
 import { FileEditModal } from '../components/table/FileEditModal';
 import { DuplicateAutoCollectModal } from '../components/template/DuplicateAutoCollectModal';
-import { isSameUrl } from '../utils/tabUtils';
+import { isSameUrl, extractCardIdFromUrl } from '../utils/tabUtils';
 import { AutoCollectedMeta } from '../hooks/useAutoCollector';
 import { Toolbar } from '../components/ui/Toolbar';
 import { FileRow, ActiveTool } from '../types';
@@ -95,6 +95,23 @@ export const App: React.FC = () => {
         }
     };
 
+    const activePackageTask = useMemo(() => {
+        if (!activePackage) return null;
+        return (
+            implTasks.tasks.find(
+                (t) => t.id === activePackage.taskId || t.packageId === activePackage.id
+            ) || null
+        );
+    }, [activePackage, implTasks.tasks]);
+
+    const autoMarkTaskItemCollected = useCallback((sourceUrl?: string) => {
+        if (!sourceUrl || !activePackageTask) return;
+        const cardId = extractCardIdFromUrl(sourceUrl);
+        if (cardId) {
+            implTasks.markItemCollectedByCardId(activePackageTask.id, cardId);
+        }
+    }, [activePackageTask, implTasks]);
+
     // Duplicate auto-collect resolution prompt
     const [duplicatePrompt, setDuplicatePrompt] = useState<{
         file: File;
@@ -135,6 +152,10 @@ export const App: React.FC = () => {
                 meta?.cleanName ? { [file.name]: meta.cleanName, '*': meta.cleanName } : undefined,
                 meta ? { '*': { cleanName: meta.cleanName, sourceUrl: meta.sourceUrl } } : undefined
             );
+
+            if (meta?.sourceUrl) {
+                autoMarkTaskItemCollected(meta.sourceUrl);
+            }
         },
     });
 
@@ -145,6 +166,9 @@ export const App: React.FC = () => {
             cleanName: meta?.cleanName,
             sourceUrl: meta?.sourceUrl,
         });
+        if (meta?.sourceUrl) {
+            autoMarkTaskItemCollected(meta.sourceUrl);
+        }
         setDuplicatePrompt(null);
     };
 
@@ -156,6 +180,9 @@ export const App: React.FC = () => {
             meta?.cleanName ? { [file.name]: meta.cleanName, '*': meta.cleanName } : undefined,
             meta ? { '*': { cleanName: meta.cleanName, sourceUrl: meta.sourceUrl } } : undefined
         );
+        if (meta?.sourceUrl) {
+            autoMarkTaskItemCollected(meta.sourceUrl);
+        }
         setDuplicatePrompt(null);
     };
 
@@ -194,15 +221,6 @@ export const App: React.FC = () => {
             updateFileVariable(id, k, v);
         }
     };
-
-    const activePackageTask = useMemo(() => {
-        if (!activePackage) return null;
-        return (
-            implTasks.tasks.find(
-                (t) => t.id === activePackage.taskId || t.packageId === activePackage.id
-            ) || null
-        );
-    }, [activePackage, implTasks.tasks]);
 
     if (isLoading) {
         return (
