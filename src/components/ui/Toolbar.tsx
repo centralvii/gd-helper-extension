@@ -16,7 +16,7 @@ export const Toolbar: React.FC<ToolbarProps> & {
   return (
     <div
       className={twMerge(
-        'flex items-center justify-between gap-1.5 p-1.5 bg-white border border-slate-200/90 rounded-2xl shadow-xs',
+        'flex items-center justify-between gap-1.5 p-1.5 bg-white border border-slate-200/90 rounded-xl shadow-xs',
         className
       )}
       {...props}
@@ -100,7 +100,7 @@ export const ToolbarButton: React.FC<ToolbarButtonProps> = ({
       type="button"
       className={twMerge(
         clsx(
-          'relative inline-flex items-center justify-center gap-1 h-7 px-2.5 rounded-xl text-[11px] font-semibold leading-none transition-all shadow-2xs cursor-pointer whitespace-nowrap select-none active:scale-[0.97]',
+          'relative inline-flex items-center justify-center gap-1 h-7 px-2 sm:px-2.5 rounded-xl text-[11px] font-semibold leading-none transition-all shadow-2xs cursor-pointer whitespace-nowrap select-none active:scale-[0.97]',
           isActive
             ? 'bg-emerald-50 text-emerald-800 border border-emerald-300 shadow-xs'
             : 'bg-slate-50 hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 border border-slate-200 hover:border-emerald-300'

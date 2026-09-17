@@ -17,7 +17,7 @@ export const AutoCollectModeBar: React.FC<AutoCollectModeBarProps> = ({
   onToggleAutoCollect,
 }) => {
   return (
-    <div className="flex items-center justify-between gap-2 px-3 py-1.5 bg-white border border-slate-200/90 rounded-2xl shadow-xs">
+    <div className="flex items-center justify-between gap-1.5 px-2.5 py-1.5 bg-white border border-slate-200/90 rounded-xl shadow-xs min-w-0">
       {/* Indicator & Label */}
       <button
         type="button"
@@ -27,7 +27,7 @@ export const AutoCollectModeBar: React.FC<AutoCollectModeBarProps> = ({
             ? 'Автосбор активен. Нажмите для паузы'
             : 'Автосбор на паузе. Нажмите для включения'
         }
-        className="flex items-center gap-1.5 text-left cursor-pointer group min-w-0"
+        className="flex items-center gap-1.5 text-left cursor-pointer group min-w-0 flex-shrink-0"
       >
         <div
           className={`w-2 h-2 rounded-full flex-shrink-0 transition-colors ${
@@ -37,7 +37,8 @@ export const AutoCollectModeBar: React.FC<AutoCollectModeBarProps> = ({
           }`}
         />
         <span className="font-bold text-[11px] text-slate-700 whitespace-nowrap">
-          Имя при автосборе:
+          <span className="hidden sm:inline">Имя при автосборе:</span>
+          <span className="sm:hidden">Автосбор:</span>
         </span>
       </button>
 
@@ -45,18 +46,18 @@ export const AutoCollectModeBar: React.FC<AutoCollectModeBarProps> = ({
       <SegmentedControl<AutoCollectNamingMode>
         value={namingMode}
         onChange={onChangeNamingMode}
-        size="sm"
+        size="xs"
         options={[
           {
             value: 'pageName',
             label: 'Со страницы',
-            icon: <Sparkles className="w-3 h-3 text-emerald-600 flex-shrink-0" />,
+            icon: <Sparkles className="w-2.5 h-2.5 text-emerald-600 flex-shrink-0" />,
             title: 'Называть файл по названию открытой страницы в GreenData',
           },
           {
             value: 'original',
             label: 'Исходное',
-            icon: <FileText className="w-3 h-3 text-slate-500 flex-shrink-0" />,
+            icon: <FileText className="w-2.5 h-2.5 text-slate-500 flex-shrink-0" />,
             title: 'Сохранять исходное имя скачиваемого файла',
           },
         ]}

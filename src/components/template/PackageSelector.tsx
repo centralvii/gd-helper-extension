@@ -103,7 +103,7 @@ export const PackageSelector: React.FC<PackageSelectorProps> = ({
 
   return (
     <>
-      <div className="relative flex items-center justify-between gap-1.5 p-1.5 bg-white border border-slate-200/90 rounded-2xl shadow-xs">
+      <div className="relative flex items-center justify-between gap-1.5 p-1.5 bg-white border border-slate-200/90 rounded-xl shadow-xs">
         {/* Active Package Selector Trigger */}
         <div className="flex-1 min-w-0">
           <button
@@ -159,7 +159,7 @@ export const PackageSelector: React.FC<PackageSelectorProps> = ({
               className="fixed inset-0 z-40"
               onClick={() => setIsOpenList(false)}
             />
-            <div className="absolute top-full left-0 right-0 mt-1.5 z-50 bg-white border border-slate-200/90 rounded-2xl shadow-xl overflow-hidden animate-fade-in flex flex-col w-full">
+            <div className="absolute top-full left-0 right-0 mt-1.5 z-50 bg-white border border-slate-200/90 rounded-xl shadow-xl overflow-hidden animate-fade-in flex flex-col w-full">
               {/* Search if more than 2 packages */}
               {packages.length > 2 && (
                 <div className="p-2 border-b border-gray-100 bg-gray-50/70">

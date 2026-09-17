@@ -89,7 +89,7 @@ export const FileRowItem: React.FC<FileRowItemProps> = React.memo(({
         <div
             ref={setNodeRef}
             style={style}
-            className={`group relative flex items-center gap-2 rounded-2xl border p-2 transition-all duration-150 ${
+            className={`group relative flex items-center gap-2 rounded-xl border p-2 transition-all duration-150 ${
                 isDragging
                     ? 'border-emerald-500 bg-emerald-50/90 shadow-lg scale-[1.01]'
                     : hasError

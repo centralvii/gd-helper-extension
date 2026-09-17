@@ -371,7 +371,7 @@ export const App: React.FC = () => {
                             <Toolbar className="animate-fade-in">
                                 <Toolbar.Title
                                     icon={<SlidersHorizontal className="w-3.5 h-3.5" />}
-                                    title="Инструменты"
+                                    title={<span className="hidden sm:inline">Инструменты</span>}
                                 />
 
                                 <Toolbar.Actions>
