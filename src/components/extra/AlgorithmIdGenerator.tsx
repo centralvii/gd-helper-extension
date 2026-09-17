@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import {
-  Wand2,
   Copy,
   Check,
   History,
@@ -12,6 +11,7 @@ import {
   Sparkles,
   Zap,
   Settings,
+  SlidersHorizontal,
 } from 'lucide-react';
 import {
   generateAlgorithmId,
@@ -309,48 +309,54 @@ export const AlgorithmIdGenerator: React.FC = () => {
   return (
     <div className="space-y-3">
       {/* ── Top Toolbar Bar (Project Standard Style) ── */}
-      <Toolbar>
+      <Toolbar className="animate-fade-in">
         <Toolbar.Title
-          icon={<Wand2 className="w-3.5 h-3.5" />}
-          title={<span className="hidden sm:inline">Генератор ID</span>}
-          titleAttr="Генератор ID"
-          statusDot={isAiConfigured() ? 'success' : 'warning'}
-          statusTitle={
-            isAiConfigured()
-              ? `AI подключен (${aiSettings.model || 'OpenAI'})`
-              : 'Требуется настройка подключения AI'
-          }
+          icon={<SlidersHorizontal className="w-3.5 h-3.5" />}
+          title={<span className="hidden sm:inline">Инструменты</span>}
+          titleAttr="Инструменты"
         />
 
         <Toolbar.Actions>
           <Toolbar.Button
             onClick={() => setIsHistoryOpen(true)}
             title="История генераций"
-            icon={<History className="w-3.5 h-3.5 text-slate-500" />}
-            badge={history.length > 0 ? history.length : undefined}
-            className="h-7 px-2 flex-shrink-0"
+            icon={<History className="w-3 h-3 text-emerald-600" />}
+            badge={
+              history.length > 0 ? (
+                <span className="px-1 py-0.2 rounded-md bg-emerald-100 text-emerald-800 text-[10px] font-mono font-bold">
+                  {history.length}
+                </span>
+              ) : undefined
+            }
           >
-            <span className="hidden sm:inline">История</span>
+            История
           </Toolbar.Button>
 
           <Toolbar.Button
             onClick={() => setIsDictOpen(true)}
             title="Словарь терминов и сокращений"
-            icon={<BookA className="w-3.5 h-3.5 text-slate-500" />}
-            className="w-7 h-7 p-0 justify-center flex-shrink-0"
-          />
+            icon={<BookA className="w-3 h-3 text-emerald-600" />}
+          >
+            Словарь
+          </Toolbar.Button>
 
           <Toolbar.Button
             onClick={() => setIsRulesOpen(true)}
             title="Стандарты именования алгоритмов GreenData"
-            icon={<BookOpen className="w-3.5 h-3.5 text-slate-500" />}
-            className="w-7 h-7 p-0 justify-center flex-shrink-0"
-          />
+            icon={<BookOpen className="w-3 h-3 text-emerald-600" />}
+          >
+            Правила
+          </Toolbar.Button>
 
           <Toolbar.Button
             onClick={() => setIsAiSettingsOpen(true)}
-            title="Параметры модели AI"
-            icon={<Settings className="w-3.5 h-3.5 text-slate-500" />}
+            title={
+              isAiConfigured()
+                ? `Параметры AI (${aiSettings.model || 'OpenAI'} подключен)`
+                : 'Настройка подключения AI'
+            }
+            icon={<Settings className="w-3.5 h-3.5 text-emerald-600" />}
+            dot={isAiConfigured()}
             className="w-7 h-7 p-0 justify-center flex-shrink-0"
           />
         </Toolbar.Actions>
