@@ -1049,60 +1049,150 @@ export function extractPackageFilesFromDom(): {
 }
 
 /**
- * Queries the GreenData tab (active or matching targetUrl) and parses the last/highest package GUF file number
+ * Queries the GreenData tab (active, open matching targetUrl, or newly created in background)
+ * and parses the last/highest package GUF file number from "Прикрепленные файлы"
  */
 export async function parseLastPackageFileNumberFromGreenData(
   targetUrl?: string
 ): Promise<GreenDataParsedPackageNumber> {
+  let cleanUrl = (targetUrl || '').trim();
+  if (cleanUrl) {
+    if (/^\d+$/.test(cleanUrl)) {
+      cleanUrl = `https://expo.greendatasoft.ru/#/card/${cleanUrl}`;
+    } else if (!/^https?:\/\//i.test(cleanUrl)) {
+      cleanUrl = `https://${cleanUrl}`;
+    }
+  }
+
   try {
     if (typeof chrome !== 'undefined' && chrome.tabs && chrome.scripting) {
-      let targetTab: chrome.tabs.Tab | undefined;
+      let targetTabId: number | undefined;
+      let targetTabUrl: string | undefined;
+      let isTemporaryTab = false;
 
-      // 1. If targetUrl or target cardId is specified, check open tabs for this card
-      const targetCardId = targetUrl ? extractCardIdFromUrl(targetUrl) : null;
+      // 1. Check if any tab is ALREADY open matching targetUrl or cardId
+      const targetCardId = cleanUrl ? extractCardIdFromUrl(cleanUrl) : null;
+      const allTabs = await chrome.tabs.query({});
+
       if (targetCardId) {
-        const allTabs = await chrome.tabs.query({});
-        targetTab = allTabs.find(
+        const matching = allTabs.find(
           (t) => t.url && (t.url.includes(`/card/${targetCardId}`) || t.url.includes(`#/card/${targetCardId}`))
         );
+        if (matching && matching.id) {
+          targetTabId = matching.id;
+          targetTabUrl = matching.url;
+        }
+      } else if (cleanUrl) {
+        const matching = allTabs.find((t) => t.url && t.url.startsWith(cleanUrl));
+        if (matching && matching.id) {
+          targetTabId = matching.id;
+          targetTabUrl = matching.url;
+        }
       }
 
-      // 2. If no tab found by cardId, use current active tab
-      if (!targetTab) {
+      // 2. If no tab found, but a cleanUrl was provided: open a background tab
+      if (!targetTabId && cleanUrl) {
+        try {
+          const createdTab = await chrome.tabs.create({ url: cleanUrl, active: false });
+          if (createdTab && createdTab.id) {
+            targetTabId = createdTab.id;
+            isTemporaryTab = true;
+            targetTabUrl = cleanUrl;
+
+            // Wait until tab completes loading (or max 12s)
+            await new Promise<void>((resolve) => {
+              const timeout = setTimeout(() => {
+                try {
+                  chrome.tabs.onUpdated.removeListener(listener);
+                } catch {
+                  // ignore
+                }
+                resolve();
+              }, 12000);
+
+              const listener = (tabId: number, changeInfo: chrome.tabs.TabChangeInfo) => {
+                if (tabId === createdTab.id && changeInfo.status === 'complete') {
+                  clearTimeout(timeout);
+                  try {
+                    chrome.tabs.onUpdated.removeListener(listener);
+                  } catch {
+                    // ignore
+                  }
+                  resolve();
+                }
+              };
+              chrome.tabs.onUpdated.addListener(listener);
+            });
+          }
+        } catch (tabCreateErr) {
+          console.warn('Could not create background tab for URL:', tabCreateErr);
+        }
+      }
+
+      // 3. If still no targetTabId and NO cleanUrl was provided: fallback to current active tab
+      if (!targetTabId) {
         const tabs = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
-        targetTab = tabs[0] || (await chrome.tabs.query({ active: true, currentWindow: true }))[0];
+        const activeTab = tabs[0] || (await chrome.tabs.query({ active: true, currentWindow: true }))[0];
+        if (activeTab && activeTab.id) {
+          targetTabId = activeTab.id;
+          targetTabUrl = activeTab.url;
+        }
       }
 
-      if (
-        targetTab &&
-        targetTab.id &&
-        targetTab.url &&
-        !targetTab.url.startsWith('chrome://') &&
-        !targetTab.url.startsWith('edge://')
-      ) {
-        const results = await chrome.scripting.executeScript({
-          target: { tabId: targetTab.id },
-          func: extractPackageFilesFromDom,
-        });
+      // 4. If we have a target tab: poll extractPackageFilesFromDom
+      if (targetTabId) {
+        try {
+          const maxAttempts = isTemporaryTab ? 16 : 8;
+          const intervalMs = 600;
+          let lastResult: ReturnType<typeof extractPackageFilesFromDom> | null = null;
 
-        if (results && results[0] && results[0].result) {
-          const res = results[0].result as ReturnType<typeof extractPackageFilesFromDom>;
-          if (res.found && res.lastNumber !== undefined) {
-            return {
-              success: true,
-              lastNumber: res.lastNumber,
-              lastNumberPadded: res.lastNumberPadded,
-              lastFileName: res.lastFileName,
-              totalGufFiles: res.totalGufFiles,
-              allFileNames: res.allFileNames,
-              sourceUrl: targetTab.url,
-            };
-          } else {
+          for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+            try {
+              const results = await chrome.scripting.executeScript({
+                target: { tabId: targetTabId },
+                func: extractPackageFilesFromDom,
+              });
+
+              if (results && results[0] && results[0].result) {
+                const res = results[0].result as ReturnType<typeof extractPackageFilesFromDom>;
+                lastResult = res;
+                if (res.found && res.lastNumber !== undefined) {
+                  return {
+                    success: true,
+                    lastNumber: res.lastNumber,
+                    lastNumberPadded: res.lastNumberPadded,
+                    lastFileName: res.lastFileName,
+                    totalGufFiles: res.totalGufFiles,
+                    allFileNames: res.allFileNames,
+                    sourceUrl: targetTabUrl || cleanUrl,
+                  };
+                }
+              }
+            } catch (execErr) {
+              // Tab might be navigating or initializing
+            }
+
+            // Wait before next attempt
+            if (attempt < maxAttempts) {
+              await new Promise((r) => setTimeout(r, intervalMs));
+            }
+          }
+
+          if (lastResult) {
             return {
               success: false,
-              error: res.error || 'В таблице открытой вкладки не найдены файлы .guf с номерами',
-              sourceUrl: targetTab.url,
+              error: lastResult.error || 'В таблице «Прикрепленные файлы» не найдены файлы .guf с номерами',
+              sourceUrl: targetTabUrl || cleanUrl,
             };
+          }
+        } finally {
+          // If we created a temporary background tab, clean it up
+          if (isTemporaryTab && targetTabId) {
+            try {
+              await chrome.tabs.remove(targetTabId);
+            } catch {
+              // Tab could already be closed
+            }
           }
         }
       }
@@ -1124,13 +1214,13 @@ export async function parseLastPackageFileNumberFromGreenData(
       lastFileName: '000380_CHR_REC_FINAPP-8241_Размер комиссии.guf',
       totalGufFiles: 1,
       allFileNames: ['000380_CHR_REC_FINAPP-8241_Размер комиссии.guf'],
-      sourceUrl: targetUrl || 'https://expo.greendatasoft.ru/#/card/9634532',
+      sourceUrl: cleanUrl || 'https://expo.greendatasoft.ru/#/card/9634532',
     };
   }
 
   return {
     success: false,
-    error: 'Вкладка с карточкой пакета GreenData не найдена. Откройте карточку пакета в браузере.',
+    error: 'Вкладка с карточкой пакета GreenData не найдена. Укажите корректную ссылку на карточку.',
   };
 }
 

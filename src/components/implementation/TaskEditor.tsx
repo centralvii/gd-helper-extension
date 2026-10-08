@@ -1313,6 +1313,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
         packages={packages}
         onUpdateTask={onUpdateTask}
         onNavigateToPackage={onNavigateToPackage}
+        onSetStartNumber={onSetStartNumber}
       />
 
       {/* Section Create / Edit Modal */}

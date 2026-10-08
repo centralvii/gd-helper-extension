@@ -54,6 +54,7 @@ export interface BuildPackage {
   files: FileRow[];
   template: string;
   startNumber: number;
+  releasePackageUrl?: string; // URL релизного пакета GreenData
   archiveName: string;
   readmeContent: string;
   variableValues: Record<string, string>;
@@ -166,6 +167,7 @@ export interface ImplementationTask {
   packageId?: string; // ID связанного пакета сборки .guf
   sections?: ImplementationSection[];
   items: ImplementationChangeItem[];
+  releasePackageUrl?: string; // URL релизного пакета GreenData для автопарсинга номера
   lastFileNumber?: number; // Последний спарсенный номер файла пакета
   lastFileName?: string; // Имя последнего спарсенного файла пакета
   isAutoParseNumberEnabled?: boolean; // Включен ли автопарсинг номера последнего файла

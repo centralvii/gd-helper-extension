@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Plus, Link as LinkIcon, Sparkles, Check, ExternalLink, Layers, FolderPlus, ChevronDown, ChevronUp, AlertTriangle } from 'lucide-react';
+import { Plus, Link as LinkIcon, Sparkles, Check, ExternalLink, Layers, FolderPlus, ChevronDown, ChevronUp, AlertTriangle, Package, Hash } from 'lucide-react';
 import { Modal, Button, Input, Select, Textarea } from '../ui';
-import { getActiveTabInfo, matchSectionForType, formatTitleInQuotes, isSameUrl, isGreenDataUpdatePackage } from '../../utils/tabUtils';
+import { getActiveTabInfo, matchSectionForType, formatTitleInQuotes, isSameUrl, isGreenDataUpdatePackage, parseLastPackageFileNumberFromGreenData } from '../../utils/tabUtils';
 import { ImplementationChangeItem, ImplementationSection } from '../../types';
 
 interface AddChangeItemModalProps {
@@ -38,6 +38,9 @@ export const AddChangeItemModal: React.FC<AddChangeItemModalProps> = ({
   const [isCreatingNewSection, setIsCreatingNewSection] = useState(false);
   const [newSectionName, setNewSectionName] = useState('');
   const [isUpdatePackage, setIsUpdatePackage] = useState(false);
+  const [parsedPackageNumber, setParsedPackageNumber] = useState<{ number: number; fileName?: string } | null>(null);
+  const [isParsingPackage, setIsParsingPackage] = useState(false);
+  const [packageParseError, setPackageParseError] = useState<string | null>(null);
 
   const duplicateItem = useMemo(() => {
     if (!linkUrl.trim()) return null;
@@ -61,6 +64,14 @@ export const AddChangeItemModal: React.FC<AddChangeItemModalProps> = ({
         setLinkTitle(initialItem.linkTitle || '');
         setLinkUrl(initialItem.linkUrl || '');
         setIsUpdatePackage(Boolean(initialItem.isUpdatePackage));
+        if (initialItem.lastFileNumber) {
+          setParsedPackageNumber({
+            number: initialItem.lastFileNumber,
+            fileName: initialItem.lastFileName,
+          });
+        } else {
+          setParsedPackageNumber(null);
+        }
         if (initialItem.sectionId) {
           const foundSec = sections.find((s) => s.id === initialItem.sectionId);
           if (foundSec) {
@@ -76,14 +87,46 @@ export const AddChangeItemModal: React.FC<AddChangeItemModalProps> = ({
         setLinkTitle('');
         setLinkUrl('');
         setIsUpdatePackage(false);
+        setParsedPackageNumber(null);
         setDetectedBadge(null);
       }
+      setIsParsingPackage(false);
+      setPackageParseError(null);
       setUnmatchedDetectedType(null);
       setTabLoadedMessage(null);
       setIsCreatingNewSection(false);
       setNewSectionName('');
     }
   }, [isOpen, initialItem, defaultSectionId, sections]);
+
+  const handleParsePackageFromUrl = async () => {
+    if (!linkUrl.trim()) return;
+    setIsParsingPackage(true);
+    setPackageParseError(null);
+    try {
+      const res = await parseLastPackageFileNumberFromGreenData(linkUrl.trim());
+      if (res.success && res.lastNumber !== undefined) {
+        setParsedPackageNumber({
+          number: res.lastNumber,
+          fileName: res.lastFileName,
+        });
+        setIsUpdatePackage(true);
+        if (!description.trim()) {
+          setDescription(`Релизный пакет ${res.lastNumber}`);
+        }
+        if (!linkTitle.trim()) {
+          setLinkTitle(`Релизный пакет ${res.lastNumber}`);
+        }
+      } else {
+        setPackageParseError(res.error || 'Не удалось найти файлы .guf в таблице пакета');
+      }
+    } catch (err) {
+      console.warn('Error parsing package in modal:', err);
+      setPackageParseError('Ошибка при обращении к вкладке пакета');
+    } finally {
+      setIsParsingPackage(false);
+    }
+  };
 
   const handleFetchActiveTab = async () => {
     setIsLoadingTab(true);
@@ -197,7 +240,11 @@ export const AddChangeItemModal: React.FC<AddChangeItemModalProps> = ({
     e.preventDefault();
     if (!description.trim()) return;
 
-    const isPkg = isUpdatePackage || isGreenDataUpdatePackage(description, linkUrl) || isGreenDataUpdatePackage(linkTitle, linkUrl);
+    const isPkg =
+      isUpdatePackage ||
+      Boolean(parsedPackageNumber) ||
+      isGreenDataUpdatePackage(description, linkUrl) ||
+      isGreenDataUpdatePackage(linkTitle, linkUrl);
 
     onAdd({
       sectionId: sectionId || undefined,
@@ -205,8 +252,8 @@ export const AddChangeItemModal: React.FC<AddChangeItemModalProps> = ({
       linkTitle: linkTitle.trim() || undefined,
       linkUrl: linkUrl.trim() || undefined,
       isUpdatePackage: isPkg || undefined,
-      lastFileNumber: initialItem?.lastFileNumber,
-      lastFileName: initialItem?.lastFileName,
+      lastFileNumber: parsedPackageNumber?.number ?? initialItem?.lastFileNumber,
+      lastFileName: parsedPackageNumber?.fileName ?? initialItem?.lastFileName,
     });
     onClose();
   };
@@ -442,6 +489,49 @@ export const AddChangeItemModal: React.FC<AddChangeItemModalProps> = ({
                 placeholder="https://app.greendata.ru/#/app/objects/..."
               />
             </div>
+
+            {/* Quick package parse action if linkUrl has value */}
+            {linkUrl.trim() && (
+              <div className="pt-1 flex flex-col gap-1.5 animate-fade-in">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-[10.5px] text-slate-500 font-semibold flex items-center gap-1">
+                    <Package className="w-3 h-3 text-emerald-600" />
+                    Релизный пакет:
+                  </span>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="xs"
+                    onClick={handleParsePackageFromUrl}
+                    disabled={isParsingPackage}
+                    leftIcon={<Hash className={`w-3 h-3 text-emerald-600 ${isParsingPackage ? 'animate-spin' : ''}`} />}
+                  >
+                    {isParsingPackage ? 'Парсинг...' : 'Спарсить № из ссылки'}
+                  </Button>
+                </div>
+
+                {parsedPackageNumber && (
+                  <div className="text-[11px] bg-emerald-50 text-emerald-900 border border-emerald-200 px-2.5 py-1.5 rounded-xl flex items-center gap-2">
+                    <Check className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
+                    <div className="min-w-0 flex-1">
+                      <span className="font-bold">Спарсен № {parsedPackageNumber.number}</span>
+                      {parsedPackageNumber.fileName && (
+                        <span className="text-emerald-700 ml-1.5 font-mono text-[10px] truncate block">
+                          {parsedPackageNumber.fileName}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {packageParseError && (
+                  <div className="text-[11px] bg-rose-50 text-rose-800 border border-rose-200 px-2.5 py-1.5 rounded-xl flex items-center gap-1.5">
+                    <AlertTriangle className="w-3.5 h-3.5 text-rose-600 flex-shrink-0" />
+                    <span className="truncate">{packageParseError}</span>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Duplicate Link Warning Banner */}

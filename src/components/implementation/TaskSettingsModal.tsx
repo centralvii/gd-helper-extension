@@ -1,11 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Package,
   ExternalLink,
   Check,
+  Hash,
 } from 'lucide-react';
 import { Modal, Button, Input, Textarea } from '../ui';
 import { ImplementationTask, BuildPackage } from '../../types';
+import { parseLastPackageFileNumberFromGreenData } from '../../utils/tabUtils';
 
 interface TaskSettingsModalProps {
   isOpen: boolean;
@@ -14,6 +16,7 @@ interface TaskSettingsModalProps {
   packages?: BuildPackage[];
   onUpdateTask: (id: string, updates: Partial<Omit<ImplementationTask, 'id' | 'createdAt'>>) => void;
   onNavigateToPackage?: (pkgId: string) => void;
+  onSetStartNumber?: (num: number) => void;
 }
 
 export const TaskSettingsModal: React.FC<TaskSettingsModalProps> = ({
@@ -23,8 +26,37 @@ export const TaskSettingsModal: React.FC<TaskSettingsModalProps> = ({
   packages = [],
   onUpdateTask,
   onNavigateToPackage,
+  onSetStartNumber,
 }) => {
   const linkedPackages = packages.filter((p) => p.taskId === task.id);
+  const [isParsingPackage, setIsParsingPackage] = useState(false);
+  const [parseFeedback, setParseFeedback] = useState<string | null>(null);
+
+  const handleParsePackageInSettings = async () => {
+    if (!task.releasePackageUrl?.trim()) return;
+    setIsParsingPackage(true);
+    setParseFeedback(null);
+    try {
+      const res = await parseLastPackageFileNumberFromGreenData(task.releasePackageUrl.trim());
+      if (res.success && res.lastNumber !== undefined) {
+        onUpdateTask(task.id, {
+          lastFileNumber: res.lastNumber,
+          lastFileName: res.lastFileName,
+        });
+        if (onSetStartNumber) {
+          onSetStartNumber(res.lastNumber);
+        }
+        setParseFeedback(`Спарсен № ${res.lastNumber}`);
+      } else {
+        setParseFeedback(res.error || 'Ошибка парсинга');
+      }
+    } catch {
+      setParseFeedback('Ошибка парсинга');
+    } finally {
+      setIsParsingPackage(false);
+      setTimeout(() => setParseFeedback(null), 4000);
+    }
+  };
 
   return (
     <Modal
@@ -81,6 +113,43 @@ export const TaskSettingsModal: React.FC<TaskSettingsModalProps> = ({
             onChange={(e) => onUpdateTask(task.id, { title: e.target.value })}
             placeholder="Например: Светофор ченджи"
           />
+        </div>
+
+        {/* Release Package Link */}
+        <div className="space-y-1">
+          <div className="flex items-center justify-between">
+            <label className="block text-[11px] font-bold text-slate-700">
+              Ссылка на релизный пакет GreenData
+            </label>
+            {task.lastFileNumber !== undefined && (
+              <span className="text-[10px] font-mono font-bold text-emerald-800 bg-emerald-100/90 px-1.5 py-0.5 rounded border border-emerald-200">
+                Спарсен № {task.lastFileNumber}
+              </span>
+            )}
+          </div>
+          <div className="flex items-center gap-1.5">
+            <div className="flex-1 min-w-0">
+              <Input
+                value={task.releasePackageUrl || ''}
+                onChange={(e) => onUpdateTask(task.id, { releasePackageUrl: e.target.value })}
+                placeholder="https://expo.greendatasoft.ru/#/card/9634532"
+              />
+            </div>
+            <Button
+              type="button"
+              variant="emerald"
+              size="sm"
+              onClick={handleParsePackageInSettings}
+              disabled={isParsingPackage || !task.releasePackageUrl?.trim()}
+              isLoading={isParsingPackage}
+              leftIcon={<Hash className="w-3.5 h-3.5" />}
+            >
+              Спарсить №
+            </Button>
+          </div>
+          {parseFeedback && (
+            <p className="text-[10.5px] font-medium text-emerald-700">{parseFeedback}</p>
+          )}
         </div>
 
         {/* ── Linked Packages Row (1 Task -> N Packages) ── */}

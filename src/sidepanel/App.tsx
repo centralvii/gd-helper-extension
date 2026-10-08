@@ -20,7 +20,7 @@ import { ReadmeEditorModal } from '../components/readme/ReadmeEditorModal';
 import { ValidationPanel } from '../components/validation/ValidationPanel';
 import { FileEditModal } from '../components/table/FileEditModal';
 import { DuplicateAutoCollectModal } from '../components/template/DuplicateAutoCollectModal';
-import { isSameUrl, extractCardIdFromUrl } from '../utils/tabUtils';
+import { isSameUrl, extractCardIdFromUrl, isGreenDataUpdatePackage } from '../utils/tabUtils';
 import { AutoCollectedMeta } from '../hooks/useAutoCollector';
 import { Toolbar } from '../components/ui/Toolbar';
 import { FileRow, ActiveTool } from '../types';
@@ -103,6 +103,16 @@ export const App: React.FC = () => {
             ) || null
         );
     }, [activePackage, implTasks.tasks]);
+
+    const linkedTaskPackageUrl = useMemo(() => {
+        if (activePackage.releasePackageUrl) return activePackage.releasePackageUrl;
+        if (!activePackageTask) return undefined;
+        if (activePackageTask.releasePackageUrl) return activePackageTask.releasePackageUrl;
+        const found = activePackageTask.items.find(
+            (i) => (i.isUpdatePackage || isGreenDataUpdatePackage(i.description, i.linkUrl)) && i.linkUrl
+        );
+        return found?.linkUrl;
+    }, [activePackage.releasePackageUrl, activePackageTask]);
 
     const autoMarkTaskItemCollected = useCallback((sourceUrl?: string) => {
         if (!sourceUrl || !activePackageTask) return;
@@ -496,6 +506,7 @@ export const App: React.FC = () => {
                                 startNumber={startNumber}
                                 variables={variables}
                                 firstFile={files[0]}
+                                initialPackageUrl={linkedTaskPackageUrl}
                                 onSetTemplate={setTemplate}
                                 onSetPrimaryTemplate={setPrimaryTemplate}
                                 onSetStartNumber={setStartNumber}
