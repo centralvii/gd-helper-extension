@@ -8,9 +8,17 @@ import {
   Copy,
   Check,
   Link as LinkIcon,
+  Package,
+  Lock,
+  Hash,
 } from 'lucide-react';
 import { ImplementationChangeItem } from '../../types';
-import { formatChangeItemMarkdown, extractCardIdFromUrl } from '../../utils/tabUtils';
+import {
+  formatChangeItemMarkdown,
+  extractCardIdFromUrl,
+  isGreenDataUpdatePackage,
+  parseLastPackageFileNumberFromGreenData,
+} from '../../utils/tabUtils';
 import { IconButton } from '../ui';
 
 interface ChangeItemRowProps {
@@ -23,6 +31,7 @@ interface ChangeItemRowProps {
   onMoveDown: (id: string) => void;
   onToggleCollected?: (id: string) => void;
   matchingPackageFile?: { order: number; newName?: string; originalName: string; cardId?: string };
+  onApplyPackageNumber?: (item: ImplementationChangeItem, number: number, fileName?: string) => void;
 }
 
 export const ChangeItemRow: React.FC<ChangeItemRowProps> = React.memo(({
@@ -35,8 +44,44 @@ export const ChangeItemRow: React.FC<ChangeItemRowProps> = React.memo(({
   onMoveDown,
   onToggleCollected,
   matchingPackageFile,
+  onApplyPackageNumber,
 }) => {
   const [copied, setCopied] = useState(false);
+  const [isParsingNumber, setIsParsingNumber] = useState(false);
+  const [parseFeedback, setParseFeedback] = useState<{ message: string; isError?: boolean } | null>(null);
+
+  const isUpdatePackage = Boolean(
+    item.isUpdatePackage ||
+    isGreenDataUpdatePackage(item.description, item.linkUrl) ||
+    isGreenDataUpdatePackage(item.linkTitle, item.linkUrl)
+  );
+
+  const handleAutoParseNumber = async () => {
+    setIsParsingNumber(true);
+    setParseFeedback(null);
+    try {
+      const result = await parseLastPackageFileNumberFromGreenData(item.linkUrl);
+      if (result.success && result.lastNumber !== undefined) {
+        onApplyPackageNumber?.(item, result.lastNumber, result.lastFileName);
+        setParseFeedback({
+          message: `Спарсен № ${result.lastNumber}: ${result.lastFileName || ''}`,
+        });
+      } else {
+        setParseFeedback({
+          message: result.error || 'Не удалось спарсить номер файла из GreenData',
+          isError: true,
+        });
+      }
+    } catch {
+      setParseFeedback({
+        message: 'Ошибка при парсинге номера файла',
+        isError: true,
+      });
+    } finally {
+      setIsParsingNumber(false);
+      setTimeout(() => setParseFeedback(null), 4000);
+    }
+  };
 
   const handleCopy = () => {
     const formatted = formatChangeItemMarkdown(
@@ -125,13 +170,22 @@ export const ChangeItemRow: React.FC<ChangeItemRowProps> = React.memo(({
               icon={copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
             />
 
-            <IconButton
-              size="xs"
-              variant="sky"
-              onClick={() => onEdit(item)}
-              title="Редактировать"
-              icon={<Edit2 className="w-3.5 h-3.5" />}
-            />
+            {isUpdatePackage ? (
+              <div
+                title="Релизный пакет GreenData защищен от редактирования в расширении"
+                className="w-6 h-6 flex items-center justify-center rounded-lg bg-amber-50 text-amber-600 border border-amber-200/80 cursor-not-allowed select-none"
+              >
+                <Lock className="w-3.5 h-3.5 text-amber-600" />
+              </div>
+            ) : (
+              <IconButton
+                size="xs"
+                variant="sky"
+                onClick={() => onEdit(item)}
+                title="Редактировать"
+                icon={<Edit2 className="w-3.5 h-3.5" />}
+              />
+            )}
 
             <IconButton
               size="xs"
@@ -149,9 +203,9 @@ export const ChangeItemRow: React.FC<ChangeItemRowProps> = React.memo(({
         {item.description}
       </p>
 
-      {/* Attached Link, Card ID & Matched Package Badge */}
-      {(item.linkUrl || matchingPackageFile) && (
-        <div className="pt-0.5 flex items-center gap-1.5 min-w-0">
+      {/* Attached Link, Card ID, Update Package & Matched Package Badge */}
+      {(item.linkUrl || matchingPackageFile || isUpdatePackage) && (
+        <div className="pt-0.5 flex flex-wrap items-center gap-1.5 min-w-0">
           {item.linkUrl && (
             <a
               href={item.linkUrl}
@@ -171,6 +225,42 @@ export const ChangeItemRow: React.FC<ChangeItemRowProps> = React.memo(({
               </span>
               <ExternalLink className="w-2.5 h-2.5 flex-shrink-0 text-emerald-600 opacity-70 group-hover/link:opacity-100 transition-opacity" />
             </a>
+          )}
+
+          {/* Update package badge */}
+          {isUpdatePackage && (
+            <span
+              title="Пакет обновления GreenData (только для чтения)"
+              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-amber-50 text-amber-800 border border-amber-200/80 text-[9.5px] font-bold shadow-2xs flex-shrink-0 select-none"
+            >
+              <Package className="w-2.5 h-2.5 text-amber-600 flex-shrink-0" />
+              <span>Релизный пакет</span>
+            </span>
+          )}
+
+          {/* Auto-parse button for last file number */}
+          {(isUpdatePackage || item.linkUrl) && (
+            <button
+              type="button"
+              onClick={handleAutoParseNumber}
+              disabled={isParsingNumber}
+              title="Автопарсинг номера последнего файла из таблицы «Прикрепленные файлы» в GreenData"
+              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-emerald-50 hover:bg-emerald-100/90 text-emerald-900 border border-emerald-300/80 text-[10px] font-bold shadow-2xs transition-all cursor-pointer disabled:opacity-60 flex-shrink-0"
+            >
+              <Hash className={`w-3 h-3 text-emerald-700 flex-shrink-0 ${isParsingNumber ? 'animate-spin' : ''}`} />
+              <span>{isParsingNumber ? 'Парсинг...' : 'Автопарсинг №'}</span>
+            </button>
+          )}
+
+          {/* Parsed last file number badge */}
+          {item.lastFileNumber !== undefined && (
+            <span
+              title={`Спарсенный номер последнего файла: ${item.lastFileName || item.lastFileNumber}`}
+              className="inline-flex items-center gap-1 font-mono text-[9.5px] font-bold text-emerald-800 bg-emerald-100/90 px-1.5 py-0.5 rounded-md border border-emerald-200/90 shadow-2xs flex-shrink-0"
+            >
+              <Check className="w-2.5 h-2.5 text-emerald-600" />
+              <span>№ {item.lastFileNumber}</span>
+            </span>
           )}
 
           {matchingPackageFile && (
@@ -196,6 +286,19 @@ export const ChangeItemRow: React.FC<ChangeItemRowProps> = React.memo(({
               )}
             </button>
           )}
+        </div>
+      )}
+
+      {/* Parse Feedback message banner */}
+      {parseFeedback && (
+        <div
+          className={`text-[10px] px-2 py-1 rounded-lg border font-mono animate-fade-in ${
+            parseFeedback.isError
+              ? 'bg-rose-50 border-rose-200 text-rose-700'
+              : 'bg-emerald-50 border-emerald-200 text-emerald-800 font-bold'
+          }`}
+        >
+          {parseFeedback.message}
         </div>
       )}
     </div>

@@ -152,6 +152,9 @@ export interface ImplementationChangeItem {
   linkUrl?: string;
   isCollected?: boolean; // Статус "Собран" для чеклиста сбора объектов
   collectedAt?: number; // Таймстемп момента сбора объекта
+  isUpdatePackage?: boolean; // Является ли релизным пакетом обновления GreenData
+  lastFileNumber?: number; // Спарсенный номер последнего файла пакета
+  lastFileName?: string; // Спарсенное имя последнего файла пакета
 }
 
 export interface ImplementationTask {
@@ -163,8 +166,22 @@ export interface ImplementationTask {
   packageId?: string; // ID связанного пакета сборки .guf
   sections?: ImplementationSection[];
   items: ImplementationChangeItem[];
+  lastFileNumber?: number; // Последний спарсенный номер файла пакета
+  lastFileName?: string; // Имя последнего спарсенного файла пакета
+  isAutoParseNumberEnabled?: boolean; // Включен ли автопарсинг номера последнего файла
   createdAt: number;
   updatedAt: number;
+}
+
+export interface GreenDataParsedPackageNumber {
+  success: boolean;
+  lastNumber?: number;
+  lastNumberPadded?: string;
+  lastFileName?: string;
+  totalGufFiles?: number;
+  allFileNames?: string[];
+  error?: string;
+  sourceUrl?: string;
 }
 
 export interface AlgorithmHeaderSettings {

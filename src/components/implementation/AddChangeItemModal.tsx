@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Plus, Link as LinkIcon, Sparkles, Check, ExternalLink, Layers, FolderPlus, ChevronDown, ChevronUp, AlertTriangle } from 'lucide-react';
 import { Modal, Button, Input, Select, Textarea } from '../ui';
-import { getActiveTabInfo, matchSectionForType, formatTitleInQuotes, isSameUrl } from '../../utils/tabUtils';
+import { getActiveTabInfo, matchSectionForType, formatTitleInQuotes, isSameUrl, isGreenDataUpdatePackage } from '../../utils/tabUtils';
 import { ImplementationChangeItem, ImplementationSection } from '../../types';
 
 interface AddChangeItemModalProps {
@@ -37,6 +37,7 @@ export const AddChangeItemModal: React.FC<AddChangeItemModalProps> = ({
 
   const [isCreatingNewSection, setIsCreatingNewSection] = useState(false);
   const [newSectionName, setNewSectionName] = useState('');
+  const [isUpdatePackage, setIsUpdatePackage] = useState(false);
 
   const duplicateItem = useMemo(() => {
     if (!linkUrl.trim()) return null;
@@ -59,6 +60,7 @@ export const AddChangeItemModal: React.FC<AddChangeItemModalProps> = ({
         setSectionId(initialItem.sectionId || '');
         setLinkTitle(initialItem.linkTitle || '');
         setLinkUrl(initialItem.linkUrl || '');
+        setIsUpdatePackage(Boolean(initialItem.isUpdatePackage));
         if (initialItem.sectionId) {
           const foundSec = sections.find((s) => s.id === initialItem.sectionId);
           if (foundSec) {
@@ -73,6 +75,7 @@ export const AddChangeItemModal: React.FC<AddChangeItemModalProps> = ({
         setSectionId(defaultSectionId || (sections[0]?.id ?? ''));
         setLinkTitle('');
         setLinkUrl('');
+        setIsUpdatePackage(false);
         setDetectedBadge(null);
       }
       setUnmatchedDetectedType(null);
@@ -91,6 +94,9 @@ export const AddChangeItemModal: React.FC<AddChangeItemModalProps> = ({
       if (tabInfo) {
         setLinkUrl(tabInfo.url);
         const rawName = tabInfo.cleanTitle || tabInfo.title;
+        if (isGreenDataUpdatePackage(rawName, tabInfo.url)) {
+          setIsUpdatePackage(true);
+        }
         // If description is empty, prefill with clean tab title in quotes
         if (!description.trim()) {
           setDescription(formatTitleInQuotes(rawName));
@@ -191,11 +197,16 @@ export const AddChangeItemModal: React.FC<AddChangeItemModalProps> = ({
     e.preventDefault();
     if (!description.trim()) return;
 
+    const isPkg = isUpdatePackage || isGreenDataUpdatePackage(description, linkUrl) || isGreenDataUpdatePackage(linkTitle, linkUrl);
+
     onAdd({
       sectionId: sectionId || undefined,
       description: description.trim(),
       linkTitle: linkTitle.trim() || undefined,
       linkUrl: linkUrl.trim() || undefined,
+      isUpdatePackage: isPkg || undefined,
+      lastFileNumber: initialItem?.lastFileNumber,
+      lastFileName: initialItem?.lastFileName,
     });
     onClose();
   };

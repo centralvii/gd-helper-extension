@@ -58,6 +58,7 @@ import {
   formatTitleInQuotes,
   isSameUrl,
   extractCardIdFromUrl,
+  isGreenDataUpdatePackage,
 } from '../../utils/tabUtils';
 
 interface TaskEditorProps {
@@ -77,6 +78,8 @@ interface TaskEditorProps {
   onReorderChangeItems: (taskId: string, fromIndex: number, toIndex: number) => void;
   onMoveChangeItem: (taskId: string, itemId: string, targetSectionId?: string, targetIndex?: number) => void;
   onOpenImportExport?: (defaultTab?: 'export' | 'import') => void;
+  onSetStartNumber?: (num: number) => void;
+  onShowToast?: (notification: { fileName: string; number: number }) => void;
 }
 
 export const TaskEditor: React.FC<TaskEditorProps> = ({
@@ -95,10 +98,32 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
   onSetAllChangeItemsCollected,
   onReorderChangeItems,
   onOpenImportExport,
+  onSetStartNumber,
+  onShowToast,
 }) => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<ImplementationChangeItem | null>(null);
   const [targetSectionId, setTargetSectionId] = useState<string | undefined>(undefined);
+
+  const handleApplyPackageNumber = useCallback(
+    (item: ImplementationChangeItem, num: number, fileName?: string) => {
+      onUpdateChangeItem(task.id, item.id, {
+        lastFileNumber: num,
+        lastFileName: fileName,
+      });
+      onUpdateTask(task.id, {
+        lastFileNumber: num,
+        lastFileName: fileName,
+      });
+      if (onSetStartNumber) {
+        onSetStartNumber(num);
+      }
+      if (onShowToast) {
+        onShowToast({ fileName: fileName || `Пакет № ${num}`, number: num });
+      }
+    },
+    [task.id, onUpdateChangeItem, onUpdateTask, onSetStartNumber, onShowToast]
+  );
 
   // Duplicate URL candidate state when a link already exists in the task
   const [duplicateCandidate, setDuplicateCandidate] = useState<{
@@ -516,6 +541,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
           }
         }
 
+        const isPkg = isGreenDataUpdatePackage(rawName, tabInfo.url);
         setTargetSectionId(assignedSec);
         setEditingItem({
           id: '',
@@ -523,6 +549,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
           description: formatTitleInQuotes(rawName),
           linkTitle: rawName,
           linkUrl: tabInfo.url,
+          isUpdatePackage: isPkg || undefined,
         });
         setIsAddModalOpen(true);
       } else {
@@ -1105,6 +1132,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
                               onMoveDown={handleMoveDownItem}
                               onToggleCollected={(id) => onToggleChangeItemCollected?.(task.id, id)}
                               matchingPackageFile={matchingFile}
+                              onApplyPackageNumber={handleApplyPackageNumber}
                             />
                           );
                         })
@@ -1174,6 +1202,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
                             onMoveDown={handleMoveDownItem}
                             onToggleCollected={(id) => onToggleChangeItemCollected?.(task.id, id)}
                             matchingPackageFile={matchingFile}
+                            onApplyPackageNumber={handleApplyPackageNumber}
                           />
                         );
                       })

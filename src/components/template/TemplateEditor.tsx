@@ -1,11 +1,13 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   Sparkles,
   RotateCcw,
   Star,
   Wand2,
+  Hash,
 } from 'lucide-react';
 import { FileRow, VariableDefinition } from '../../types';
+import { parseLastPackageFileNumberFromGreenData } from '../../utils/tabUtils';
 
 interface TemplateEditorProps {
   template: string;
@@ -17,6 +19,7 @@ interface TemplateEditorProps {
   onSetPrimaryTemplate: (template: string) => void;
   onSetStartNumber: (num: number) => void;
   onResetTemplate: () => void;
+  onShowToast?: (notification: { fileName: string; number: number }) => void;
 }
 
 export const TemplateEditor: React.FC<TemplateEditorProps> = ({
@@ -27,9 +30,31 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
   onSetPrimaryTemplate,
   onSetStartNumber,
   onResetTemplate,
+  onShowToast,
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const isPrimary = template === primaryTemplate;
+  const [isParsing, setIsParsing] = useState(false);
+
+  const handleAutoParseNumber = async () => {
+    setIsParsing(true);
+    try {
+      const res = await parseLastPackageFileNumberFromGreenData();
+      if (res.success && res.lastNumber !== undefined) {
+        onSetStartNumber(res.lastNumber);
+        if (onShowToast) {
+          onShowToast({
+            fileName: res.lastFileName || `Пакет № ${res.lastNumber}`,
+            number: res.lastNumber,
+          });
+        }
+      }
+    } catch (err) {
+      console.warn('Error auto-parsing package number:', err);
+    } finally {
+      setIsParsing(false);
+    }
+  };
 
   return (
     <div className="overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-xs transition-all">
@@ -77,6 +102,15 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
               title="Стартовый номер"
               className="w-11 rounded-lg border border-slate-200 bg-slate-50 px-1 py-0.5 text-center text-xs font-bold text-slate-900 outline-none transition-colors focus:border-emerald-500 focus:bg-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
             />
+            <button
+              type="button"
+              onClick={handleAutoParseNumber}
+              disabled={isParsing}
+              title="Автопарсинг номера последнего файла из таблицы «Прикрепленные файлы» в GreenData"
+              className="rounded-lg p-0.5 text-emerald-600 transition-colors hover:bg-emerald-50 hover:text-emerald-700 cursor-pointer flex-shrink-0 disabled:opacity-50"
+            >
+              <Hash className={`h-3.5 w-3.5 ${isParsing ? 'animate-spin' : ''}`} />
+            </button>
             <button
               type="button"
               onClick={onResetTemplate}

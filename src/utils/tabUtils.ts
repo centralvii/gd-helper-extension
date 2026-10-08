@@ -1,4 +1,4 @@
-import { ImplementationSection, ImplementationChangeItem } from '../types';
+import { ImplementationSection, ImplementationChangeItem, GreenDataParsedPackageNumber } from '../types';
 
 export interface TabInfo {
   url: string;
@@ -82,7 +82,29 @@ export const SECTION_SEMANTIC_GROUPS = {
       'api', 'rest', 'soap', 'сервис', 'веб-сервис', 'внешняя система'
     ],
   },
+  updatePackages: {
+    canonical: 'Пакеты обновления',
+    keywords: [
+      'пакет обновления', 'пакеты обновления', 'пакет обновлений', 'пакеты обновлений',
+      'релизный пакет', 'релизные пакеты', 'релизный', 'пакет', 'пакеты', 'update package', 'release package'
+    ],
+  },
 };
+
+/**
+ * Detects if a title, description, or URL corresponds to a GreenData update package / release package
+ */
+export function isGreenDataUpdatePackage(titleOrDescription?: string | null, url?: string | null): boolean {
+  if (!titleOrDescription && !url) return false;
+  const combined = `${titleOrDescription || ''} ${url || ''}`.toLowerCase().trim();
+  return (
+    combined.includes('релизный пакет') ||
+    combined.includes('пакет обновления') ||
+    combined.includes('пакет обновлений') ||
+    (combined.includes('пакет') && combined.includes('релиз')) ||
+    isUpdateCreationPage(titleOrDescription)
+  );
+}
 
 /**
  * Clean up tab title by removing common website suffix/prefixes
@@ -947,6 +969,169 @@ export async function getActiveGreenDataPageName(): Promise<string | null> {
     console.warn('Could not extract GreenData page name from active tab:', err);
   }
   return null;
+}
+
+/**
+ * Injected DOM extractor function to parse GUF file names and numbers from GreenData attachments table ("Прикрепленные файлы")
+ * Target selector: td[data-cell="Наименование"]
+ * Example: <td class="e-rowcell e-gridtooltip" data-cell="Наименование" ... title="  000380_CHR_REC_FINAPP-8241_Размер комиссии.guf  ">000380_CHR_REC_FINAPP-8241_Размер комиссии.guf</td>
+ */
+export function extractPackageFilesFromDom(): {
+  found: boolean;
+  lastNumber?: number;
+  lastNumberPadded?: string;
+  lastFileName?: string;
+  totalGufFiles?: number;
+  allFileNames?: string[];
+  error?: string;
+} {
+  // Query all candidate cells in GreenData attachments grid
+  const cells = document.querySelectorAll(
+    'td[data-cell="Наименование"], td.e-rowcell[data-cell="Наименование"], [data-cell="Наименование"], td.e-rowcell'
+  );
+
+  const fileMap = new Map<string, { rawName: string; number: number; padded: string }>();
+
+  const processText = (rawText: string) => {
+    if (!rawText) return;
+    const cleaned = rawText.replace(/\s+/g, ' ').trim();
+    if (!/\.guf(?:\s|$)/i.test(cleaned)) return;
+
+    // Match leading digits e.g. "000380_CHR_REC..." or "000380.guf"
+    const match = cleaned.match(/^(\d+)[_\-\s.]/);
+    if (match) {
+      const num = parseInt(match[1], 10);
+      if (!isNaN(num) && !fileMap.has(cleaned)) {
+        fileMap.set(cleaned, {
+          rawName: cleaned,
+          number: num,
+          padded: match[1],
+        });
+      }
+    }
+  };
+
+  cells.forEach((cell) => {
+    const titleAttr = cell.getAttribute('title')?.trim();
+    if (titleAttr) processText(titleAttr);
+    const text = cell.textContent?.trim();
+    if (text) processText(text);
+  });
+
+  // Fallback: search all table rows and text containing .guf if no data-cell was populated
+  if (fileMap.size === 0) {
+    const tableNodes = document.querySelectorAll('.e-row, tr, [role="row"], a[href*=".guf"], span');
+    tableNodes.forEach((node) => {
+      const titleAttr = node.getAttribute('title')?.trim();
+      if (titleAttr) processText(titleAttr);
+      const text = node.textContent?.trim();
+      if (text) processText(text);
+    });
+  }
+
+  const files = Array.from(fileMap.values());
+  if (files.length === 0) {
+    return { found: false, error: 'Файлы .guf в таблице «Прикрепленные файлы» не найдены' };
+  }
+
+  // Sort by number ascending to find the maximum/last file
+  files.sort((a, b) => a.number - b.number);
+  const lastItem = files[files.length - 1];
+
+  return {
+    found: true,
+    lastNumber: lastItem.number,
+    lastNumberPadded: lastItem.padded,
+    lastFileName: lastItem.rawName,
+    totalGufFiles: files.length,
+    allFileNames: files.map((f) => f.rawName),
+  };
+}
+
+/**
+ * Queries the GreenData tab (active or matching targetUrl) and parses the last/highest package GUF file number
+ */
+export async function parseLastPackageFileNumberFromGreenData(
+  targetUrl?: string
+): Promise<GreenDataParsedPackageNumber> {
+  try {
+    if (typeof chrome !== 'undefined' && chrome.tabs && chrome.scripting) {
+      let targetTab: chrome.tabs.Tab | undefined;
+
+      // 1. If targetUrl or target cardId is specified, check open tabs for this card
+      const targetCardId = targetUrl ? extractCardIdFromUrl(targetUrl) : null;
+      if (targetCardId) {
+        const allTabs = await chrome.tabs.query({});
+        targetTab = allTabs.find(
+          (t) => t.url && (t.url.includes(`/card/${targetCardId}`) || t.url.includes(`#/card/${targetCardId}`))
+        );
+      }
+
+      // 2. If no tab found by cardId, use current active tab
+      if (!targetTab) {
+        const tabs = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
+        targetTab = tabs[0] || (await chrome.tabs.query({ active: true, currentWindow: true }))[0];
+      }
+
+      if (
+        targetTab &&
+        targetTab.id &&
+        targetTab.url &&
+        !targetTab.url.startsWith('chrome://') &&
+        !targetTab.url.startsWith('edge://')
+      ) {
+        const results = await chrome.scripting.executeScript({
+          target: { tabId: targetTab.id },
+          func: extractPackageFilesFromDom,
+        });
+
+        if (results && results[0] && results[0].result) {
+          const res = results[0].result as ReturnType<typeof extractPackageFilesFromDom>;
+          if (res.found && res.lastNumber !== undefined) {
+            return {
+              success: true,
+              lastNumber: res.lastNumber,
+              lastNumberPadded: res.lastNumberPadded,
+              lastFileName: res.lastFileName,
+              totalGufFiles: res.totalGufFiles,
+              allFileNames: res.allFileNames,
+              sourceUrl: targetTab.url,
+            };
+          } else {
+            return {
+              success: false,
+              error: res.error || 'В таблице открытой вкладки не найдены файлы .guf с номерами',
+              sourceUrl: targetTab.url,
+            };
+          }
+        }
+      }
+    }
+  } catch (err) {
+    console.warn('Could not parse package file numbers from GreenData tab:', err);
+    return {
+      success: false,
+      error: 'Ошибка обращения к вкладке браузера: ' + (err instanceof Error ? err.message : String(err)),
+    };
+  }
+
+  // Fallback for mock/development environment
+  if (typeof chrome === 'undefined' || !chrome.tabs) {
+    return {
+      success: true,
+      lastNumber: 380,
+      lastNumberPadded: '000380',
+      lastFileName: '000380_CHR_REC_FINAPP-8241_Размер комиссии.guf',
+      totalGufFiles: 1,
+      allFileNames: ['000380_CHR_REC_FINAPP-8241_Размер комиссии.guf'],
+      sourceUrl: targetUrl || 'https://expo.greendatasoft.ru/#/card/9634532',
+    };
+  }
+
+  return {
+    success: false,
+    error: 'Вкладка с карточкой пакета GreenData не найдена. Откройте карточку пакета в браузере.',
+  };
 }
 
 /**

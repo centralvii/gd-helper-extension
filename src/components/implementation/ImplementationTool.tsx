@@ -9,12 +9,16 @@ interface ImplementationToolProps {
   packages?: BuildPackage[];
   tasksState: ReturnType<typeof useImplementationTasks>;
   onNavigateToPackage?: (pkgId: string) => void;
+  onSetStartNumber?: (num: number) => void;
+  onShowToast?: (notification: { fileName: string; number: number }) => void;
 }
 
 export const ImplementationTool: React.FC<ImplementationToolProps> = ({
   packages = [],
   tasksState,
   onNavigateToPackage,
+  onSetStartNumber,
+  onShowToast,
 }) => {
   const {
     tasks,
@@ -79,6 +83,8 @@ export const ImplementationTool: React.FC<ImplementationToolProps> = ({
           onReorderChangeItems={reorderChangeItems}
           onMoveChangeItem={moveChangeItem}
           onOpenImportExport={handleOpenImportExport}
+          onSetStartNumber={onSetStartNumber}
+          onShowToast={onShowToast}
         />
       )}
 
