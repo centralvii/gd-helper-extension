@@ -7,6 +7,7 @@ import { useImplementationTasks } from '../hooks/useImplementationTasks';
 import { Header } from '../components/layout/Header';
 import { Footer } from '../components/layout/Footer';
 import { ImplementationTool } from '../components/implementation/ImplementationTool';
+import { YouTrackTool } from '../components/youtrack/YouTrackTool';
 import { ExtraContainer } from '../components/extra/ExtraContainer';
 import { AiChatContainer } from '../components/ai/AiChatContainer';
 import { PackageSelector } from '../components/template/PackageSelector';
@@ -23,7 +24,7 @@ import { DuplicateAutoCollectModal } from '../components/template/DuplicateAutoC
 import { isSameUrl, extractCardIdFromUrl, isGreenDataUpdatePackage } from '../utils/tabUtils';
 import { AutoCollectedMeta } from '../hooks/useAutoCollector';
 import { Toolbar } from '../components/ui/Toolbar';
-import { FileRow, ActiveTool } from '../types';
+import { FileRow, ActiveTool, YouTrackIssue } from '../types';
 
 export const App: React.FC = () => {
     const {
@@ -77,7 +78,7 @@ export const App: React.FC = () => {
     const [activeTool, setActiveTool] = useState<ActiveTool>(() => {
         try {
             const saved = localStorage.getItem('gd-helper-active-tool');
-            if (saved === 'packer' || saved === 'implementation' || saved === 'extra' || saved === 'ai') {
+            if (saved === 'packer' || saved === 'implementation' || saved === 'youtrack' || saved === 'extra' || saved === 'ai') {
                 return saved;
             }
         } catch {
@@ -94,6 +95,19 @@ export const App: React.FC = () => {
             // ignore
         }
     };
+
+    const handleTransferYouTrackToImplementation = useCallback(
+        (issue: YouTrackIssue) => {
+            const taskId = implTasks.createTask(issue.id, issue.summary);
+            if (issue.description) {
+                implTasks.updateTask(taskId, {
+                    summary: issue.description,
+                });
+            }
+            handleSelectTool('implementation');
+        },
+        [implTasks]
+    );
 
     const activePackageTask = useMemo(() => {
         if (!activePackage) return null;
@@ -417,6 +431,13 @@ export const App: React.FC = () => {
                         }}
                         onSetStartNumber={setStartNumber}
                         onShowToast={showPackageNumberToast}
+                    />
+                </div>
+
+                {/* YouTrack Tool View */}
+                <div className={activeTool === 'youtrack' ? 'space-y-3' : 'hidden'}>
+                    <YouTrackTool
+                        onTransferToImplementation={handleTransferYouTrackToImplementation}
                     />
                 </div>
 

@@ -91,7 +91,37 @@ export interface StoredAppState {
   updatedAt?: number;
 }
 
-export type ActiveTool = 'packer' | 'implementation' | 'extra' | 'ai';
+export type ActiveTool = 'packer' | 'implementation' | 'youtrack' | 'extra' | 'ai';
+
+export interface YouTrackIssue {
+  id: string; // e.g. "REZ_FIN-8241"
+  summary: string; // Название задачи
+  description?: string; // Описание задачи
+  state?: string; // Статус (e.g. "В работе", "Открыта", "Решена")
+  priority?: string; // Приоритет (e.g. "Обычный", "Критический")
+  type?: string; // Тип (e.g. "Доработка", "Ошибка", "Задача")
+  project?: string; // Проект (e.g. "РЭЦ_Fin")
+  assignee?: string; // Исполнитель (e.g. "Кучин Владимир Валерьевич")
+  url: string; // Ссылка на задачу
+  updatedAt?: number;
+  created?: number;
+  rawFields?: Record<string, string>;
+}
+
+export interface YouTrackCacheData {
+  issues: YouTrackIssue[];
+  lastSyncedAt: number;
+  targetUrl: string;
+}
+
+export interface YouTrackParsedResult {
+  success: boolean;
+  issues: YouTrackIssue[];
+  count: number;
+  source: 'api' | 'dom' | 'cache' | 'mock';
+  error?: string;
+  syncedAt: number;
+}
 
 export interface AiChatMessage {
   id: string;

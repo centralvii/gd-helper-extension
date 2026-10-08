@@ -5,6 +5,7 @@ import {
     Zap,
     Maximize2,
     Bot,
+    CheckSquare,
 } from 'lucide-react';
 import { ActiveTool } from '../../types';
 
@@ -39,6 +40,12 @@ export const Header: React.FC<HeaderProps> = ({
             label: 'Реализация',
             icon: <FileText className="w-3.5 h-3.5" />,
             title: 'Инструмент описания реализации',
+        },
+        {
+            id: 'youtrack',
+            label: 'YouTrack',
+            icon: <CheckSquare className="w-3.5 h-3.5" />,
+            title: 'Задачи YouTrack (РЭЦ_Fin)',
         },
         {
             id: 'extra',
