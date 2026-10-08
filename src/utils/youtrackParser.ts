@@ -116,17 +116,65 @@ export async function executeInTabYouTrackExtraction(queryStr: string): Promise<
   error?: string;
   source: 'api' | 'dom';
 }> {
-  // 1. Try In-Tab Fetch to REST API (same-origin, cookies attached)
+  // Check if tab redirected to login/auth page
+  const currentHref = window.location.href;
+  if (currentHref.includes('/auth') || currentHref.includes('/login')) {
+    return {
+      success: false,
+      issues: [],
+      error: 'Вы находитесь на странице входа в YouTrack. Пожалуйста, выполните вход в аккаунт.',
+      source: 'api',
+    };
+  }
+
+  // 1. Look for Bearer tokens in localStorage / sessionStorage
+  let bearerToken = '';
+  try {
+    const storages = [window.localStorage, window.sessionStorage];
+    for (const st of storages) {
+      if (!st) continue;
+      for (let i = 0; i < st.length; i++) {
+        const k = (st.key(i) || '').toLowerCase();
+        const v = st.getItem(st.key(i) || '') || '';
+        if (k.includes('token') || k.includes('auth') || k.includes('hub') || k.includes('yt-user')) {
+          try {
+            const parsed = JSON.parse(v);
+            if (parsed && typeof parsed === 'object') {
+              if (parsed.accessToken) bearerToken = parsed.accessToken;
+              else if (parsed.access_token) bearerToken = parsed.access_token;
+              else if (parsed.token) bearerToken = parsed.token;
+              else if (parsed.id_token) bearerToken = parsed.id_token;
+            }
+          } catch {
+            if (v.length > 25 && !v.includes(' ') && !v.includes('{')) {
+              bearerToken = v;
+            }
+          }
+        }
+        if (bearerToken) break;
+      }
+      if (bearerToken) break;
+    }
+  } catch (e) {}
+
+  // 2. Try In-Tab Fetch to REST API with all necessary headers
   try {
     const fields =
       'id,idReadable,summary,description,resolved,created,updated,project(name,shortName),customFields(name,value(name,text,presentation))';
     const apiUrl = `/api/issues?query=${encodeURIComponent(queryStr)}&fields=${fields}&$top=150`;
 
+    const headers: Record<string, string> = {
+      Accept: 'application/json',
+      'X-Requested-With': 'XMLHttpRequest', // Crucial for YouTrack CSRF filter
+    };
+    if (bearerToken) {
+      headers['Authorization'] = `Bearer ${bearerToken}`;
+    }
+
     const resp = await window.fetch(apiUrl, {
       method: 'GET',
-      headers: {
-        Accept: 'application/json',
-      },
+      headers,
+      credentials: 'same-origin',
     });
 
     if (resp.ok) {
@@ -138,19 +186,32 @@ export async function executeInTabYouTrackExtraction(queryStr: string): Promise<
           source: 'api',
         };
       }
-    } else if (resp.status === 401 || resp.status === 403) {
-      return {
-        success: false,
-        issues: [],
-        error: `Требуется авторизация в YouTrack (HTTP ${resp.status}). Пожалуйста, войдите в систему на https://youtrack.greendatasoft.ru`,
-        source: 'api',
-      };
+    } else {
+      // If full fields failed, try minimal fields
+      try {
+        const minApiUrl = `/api/issues?query=${encodeURIComponent(queryStr)}&fields=id,idReadable,summary,description&$top=100`;
+        const minResp = await window.fetch(minApiUrl, {
+          method: 'GET',
+          headers,
+          credentials: 'same-origin',
+        });
+        if (minResp.ok) {
+          const minData = await minResp.json();
+          if (Array.isArray(minData) && minData.length > 0) {
+            return {
+              success: true,
+              issues: minData,
+              source: 'api',
+            };
+          }
+        }
+      } catch (minErr) {}
     }
   } catch (err: any) {
-    // Continue to DOM extraction if API threw
+    // If API threw, continue directly to DOM extraction below
   }
 
-  // 2. Fallback: Parse DOM of current page
+  // 3. Fallback: Parse DOM of current page (if tab is viewing the search list)
   try {
     const issuesMap = new Map<string, any>();
     const issueLinkRegex = /\/issue\/([a-zA-Zа-яА-Я0-9_-]+-\d+)/i;
@@ -235,60 +296,39 @@ export async function parseYouTrackIssues(
   const query = extractQueryFromYouTrackUrl(targetUrl);
   const now = Date.now();
 
-  // 1. First, try Direct Fetch from Extension context with credentials
-  try {
-    const fields =
-      'id,idReadable,summary,description,resolved,created,updated,project(name,shortName),customFields(name,value(name,text,presentation))';
-    const apiUrl = `https://youtrack.greendatasoft.ru/api/issues?query=${encodeURIComponent(
-      query
-    )}&fields=${fields}&$top=150`;
-
-    const res = await fetch(apiUrl, {
-      method: 'GET',
-      headers: {
-        Accept: 'application/json',
-      },
-      credentials: 'include',
-    });
-
-    if (res.ok) {
-      const data = await res.json();
-      if (Array.isArray(data) && data.length > 0) {
-        const issues: YouTrackIssue[] = data.map(normalizeApiIssue);
-        saveYouTrackCache({
-          issues,
-          lastSyncedAt: now,
-          targetUrl,
-        });
-        return {
-          success: true,
-          issues,
-          count: issues.length,
-          source: 'api',
-          syncedAt: now,
-        };
+  // 1. Diagnostic: Check cookies for greendatasoft.ru
+  let hasCookies = true;
+  if (typeof chrome !== 'undefined' && chrome.cookies) {
+    try {
+      const cookies = await chrome.cookies.getAll({ domain: 'greendatasoft.ru' });
+      if (cookies.length === 0) {
+        hasCookies = false;
       }
-    }
-  } catch (directErr) {
-    // Cross-origin cookie stripping may occur, proceed to In-Tab execution
+    } catch {}
   }
 
-  // 2. In-Tab Execution (guaranteed same-origin cookies and session)
+  // 2. In-Tab Execution (same-origin context with cookies and local tokens)
   if (typeof chrome !== 'undefined' && chrome.tabs && chrome.scripting) {
     let targetTabId: number | undefined;
     let isTemporaryTab = false;
 
     try {
-      // Find an existing tab on youtrack.greendatasoft.ru
+      // Priority A: Check if a tab with the EXACT issues search URL or /issues is already open!
       const allTabs = await chrome.tabs.query({});
-      const existingTab = allTabs.find(
+      
+      const searchTab = allTabs.find(
+        (t) => t.url && t.url.includes('youtrack.greendatasoft.ru/issues')
+      );
+      const anyYouTrackTab = allTabs.find(
         (t) => t.url && t.url.includes('youtrack.greendatasoft.ru')
       );
 
-      if (existingTab && existingTab.id) {
-        targetTabId = existingTab.id;
+      const tabToUse = searchTab || anyYouTrackTab;
+
+      if (tabToUse && tabToUse.id) {
+        targetTabId = tabToUse.id;
       } else {
-        // Create a background tab to establish origin session
+        // Create a background tab to load the issues search page
         const createdTab = await chrome.tabs.create({ url: targetUrl, active: false });
         if (createdTab && createdTab.id) {
           targetTabId = createdTab.id;
@@ -321,42 +361,49 @@ export async function parseYouTrackIssues(
             };
             chrome.tabs.onUpdated.addListener(listener);
           });
-
-          // Brief delay for SPA bootstrap
-          await new Promise((r) => setTimeout(r, 1200));
         }
       }
 
       if (targetTabId) {
-        const results = await chrome.scripting.executeScript({
-          target: { tabId: targetTabId },
-          func: executeInTabYouTrackExtraction,
-          args: [query],
-        });
-
-        if (results && results[0] && results[0].result) {
-          const res = results[0].result as Awaited<
-            ReturnType<typeof executeInTabYouTrackExtraction>
-          >;
-
-          if (res.success && Array.isArray(res.issues) && res.issues.length > 0) {
-            const issues: YouTrackIssue[] = res.issues.map(normalizeApiIssue);
-
-            saveYouTrackCache({
-              issues,
-              lastSyncedAt: now,
-              targetUrl,
+        // Poll up to 10 attempts (each 700ms) to allow YouTrack SPA to initialize and load issues
+        const maxAttempts = isTemporaryTab ? 10 : 3;
+        for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+          try {
+            const results = await chrome.scripting.executeScript({
+              target: { tabId: targetTabId },
+              func: executeInTabYouTrackExtraction,
+              args: [query],
             });
 
-            return {
-              success: true,
-              issues,
-              count: issues.length,
-              source: res.source,
-              syncedAt: now,
-            };
-          } else if (res.error) {
-            console.warn('In-Tab extraction reported error:', res.error);
+            if (results && results[0] && results[0].result) {
+              const res = results[0].result as Awaited<
+                ReturnType<typeof executeInTabYouTrackExtraction>
+              >;
+
+              if (res.success && Array.isArray(res.issues) && res.issues.length > 0) {
+                const issues: YouTrackIssue[] = res.issues.map(normalizeApiIssue);
+
+                saveYouTrackCache({
+                  issues,
+                  lastSyncedAt: now,
+                  targetUrl,
+                });
+
+                return {
+                  success: true,
+                  issues,
+                  count: issues.length,
+                  source: res.source,
+                  syncedAt: now,
+                };
+              }
+            }
+          } catch (execErr) {
+            // tab might still be navigating or refreshing
+          }
+
+          if (attempt < maxAttempts) {
+            await new Promise((r) => setTimeout(r, 700));
           }
         }
       }
@@ -385,7 +432,19 @@ export async function parseYouTrackIssues(
     };
   }
 
-  // 4. Strict Real-Data Error: NEVER return mock data!
+  // 4. Detailed error message
+  if (!hasCookies) {
+    return {
+      success: false,
+      issues: [],
+      count: 0,
+      source: 'api',
+      syncedAt: now,
+      error:
+        'Вы не авторизованы в YouTrack. Нажмите «Войти в YouTrack», выполните вход в браузере, а затем нажмите «Обновить».',
+    };
+  }
+
   return {
     success: false,
     issues: [],
@@ -393,6 +452,6 @@ export async function parseYouTrackIssues(
     source: 'api',
     syncedAt: now,
     error:
-      'Не удалось загрузить задачи из YouTrack. Убедитесь, что вы авторизованы на https://youtrack.greendatasoft.ru и подключены к корпоративному контуру (VPN).',
+      'Не удалось загрузить задачи из YouTrack (HTTP 401 / нет доступа). Убедитесь, что вы авторизованы на https://youtrack.greendatasoft.ru и подключены к корпоративному контуру (VPN).',
   };
 }
