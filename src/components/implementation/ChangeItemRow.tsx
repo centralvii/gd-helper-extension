@@ -73,8 +73,9 @@ export const ChangeItemRow: React.FC<ChangeItemRowProps> = React.memo(({
           isUpdatePackage: true,
         };
         onApplyPackageNumber?.(updatedItem, result.lastNumber, result.lastFileName);
+        const currentInfo = result.currentLastNumber ? ` (в пакете: ${result.currentLastNumber})` : '';
         setParseFeedback({
-          message: `Спарсен № ${result.lastNumber}: ${result.lastFileName || ''}`,
+          message: `Спарсен след. № ${result.lastNumber}${currentInfo}: ${result.lastFileName || ''}`,
           isError: false,
         });
         setIsEditingUrl(false);

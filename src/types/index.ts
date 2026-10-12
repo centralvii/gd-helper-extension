@@ -207,8 +207,12 @@ export interface ImplementationTask {
 
 export interface GreenDataParsedPackageNumber {
   success: boolean;
-  lastNumber?: number;
+  lastNumber?: number; // Последующий номер для сборки пакета (+1 от максимального в таблице)
   lastNumberPadded?: string;
+  nextNumber?: number; // Последующий номер для сборки пакета (+1)
+  nextNumberPadded?: string;
+  currentLastNumber?: number; // Исходный номер последнего файла, найденный в пакете
+  currentLastNumberPadded?: string;
   lastFileName?: string;
   totalGufFiles?: number;
   allFileNames?: string[];

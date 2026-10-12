@@ -368,7 +368,7 @@ export const App: React.FC = () => {
                         <div className="flex-1 min-w-0 space-y-0.5">
                             <div className="flex items-center gap-1.5 min-w-0">
                                 <span className="text-[11px] font-bold text-slate-800 flex-shrink-0">
-                                    Спарсен номер пакета
+                                    Спарсен след. номер пакета
                                 </span>
                                 <span className="inline-flex items-center font-mono text-[9.5px] font-bold bg-emerald-100/90 text-emerald-800 px-1 py-0.2 rounded border border-emerald-200 flex-shrink-0">
                                     № {packageNumberNotification.number}

@@ -514,7 +514,7 @@ export const AddChangeItemModal: React.FC<AddChangeItemModalProps> = ({
                   <div className="text-[11px] bg-emerald-50 text-emerald-900 border border-emerald-200 px-2.5 py-1.5 rounded-xl flex items-center gap-2">
                     <Check className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
                     <div className="min-w-0 flex-1">
-                      <span className="font-bold">Спарсен № {parsedPackageNumber.number}</span>
+                      <span className="font-bold">Спарсен след. № {parsedPackageNumber.number}</span>
                       {parsedPackageNumber.fileName && (
                         <span className="text-emerald-700 ml-1.5 font-mono text-[10px] truncate block">
                           {parsedPackageNumber.fileName}

@@ -81,9 +81,10 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
             number: res.lastNumber,
           });
         }
+        const currentInfo = res.currentLastNumber ? ` (в пакете: ${res.currentLastNumber})` : '';
         setParseFeedback({
           type: 'success',
-          text: `Спарсен № ${res.lastNumber}: ${res.lastFileName || ''}`,
+          text: `Спарсен след. № ${res.lastNumber}${currentInfo}: ${res.lastFileName || ''}`,
         });
         if (target) {
           try {

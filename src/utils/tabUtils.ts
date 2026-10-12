@@ -980,6 +980,10 @@ export function extractPackageFilesFromDom(): {
   found: boolean;
   lastNumber?: number;
   lastNumberPadded?: string;
+  nextNumber?: number;
+  nextNumberPadded?: string;
+  currentLastNumber?: number;
+  currentLastNumberPadded?: string;
   lastFileName?: string;
   totalGufFiles?: number;
   allFileNames?: string[];
@@ -1037,11 +1041,19 @@ export function extractPackageFilesFromDom(): {
   // Sort by number ascending to find the maximum/last file
   files.sort((a, b) => a.number - b.number);
   const lastItem = files[files.length - 1];
+  const currentMax = lastItem.number;
+  const nextNum = currentMax + 1;
+  const padLength = lastItem.padded ? lastItem.padded.length : 6;
+  const nextPadded = String(nextNum).padStart(padLength, '0');
 
   return {
     found: true,
-    lastNumber: lastItem.number,
-    lastNumberPadded: lastItem.padded,
+    lastNumber: nextNum, // Сразу возвращаем последующее число (+1) для подстановки в стартовый номер
+    lastNumberPadded: nextPadded,
+    nextNumber: nextNum,
+    nextNumberPadded: nextPadded,
+    currentLastNumber: currentMax,
+    currentLastNumberPadded: lastItem.padded,
     lastFileName: lastItem.rawName,
     totalGufFiles: files.length,
     allFileNames: files.map((f) => f.rawName),
@@ -1161,6 +1173,10 @@ export async function parseLastPackageFileNumberFromGreenData(
                     success: true,
                     lastNumber: res.lastNumber,
                     lastNumberPadded: res.lastNumberPadded,
+                    nextNumber: res.nextNumber,
+                    nextNumberPadded: res.nextNumberPadded,
+                    currentLastNumber: res.currentLastNumber,
+                    currentLastNumberPadded: res.currentLastNumberPadded,
                     lastFileName: res.lastFileName,
                     totalGufFiles: res.totalGufFiles,
                     allFileNames: res.allFileNames,
@@ -1209,8 +1225,12 @@ export async function parseLastPackageFileNumberFromGreenData(
   if (typeof chrome === 'undefined' || !chrome.tabs) {
     return {
       success: true,
-      lastNumber: 380,
-      lastNumberPadded: '000380',
+      lastNumber: 381,
+      lastNumberPadded: '000381',
+      nextNumber: 381,
+      nextNumberPadded: '000381',
+      currentLastNumber: 380,
+      currentLastNumberPadded: '000380',
       lastFileName: '000380_CHR_REC_FINAPP-8241_Размер комиссии.guf',
       totalGufFiles: 1,
       allFileNames: ['000380_CHR_REC_FINAPP-8241_Размер комиссии.guf'],

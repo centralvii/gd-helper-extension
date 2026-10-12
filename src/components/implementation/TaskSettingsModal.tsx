@@ -46,7 +46,8 @@ export const TaskSettingsModal: React.FC<TaskSettingsModalProps> = ({
         if (onSetStartNumber) {
           onSetStartNumber(res.lastNumber);
         }
-        setParseFeedback(`Спарсен № ${res.lastNumber}`);
+        const currentInfo = res.currentLastNumber ? ` (в пакете: ${res.currentLastNumber})` : '';
+        setParseFeedback(`Спарсен след. № ${res.lastNumber}${currentInfo}`);
       } else {
         setParseFeedback(res.error || 'Ошибка парсинга');
       }
