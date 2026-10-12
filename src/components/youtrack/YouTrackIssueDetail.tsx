@@ -81,6 +81,7 @@ export const YouTrackIssueDetail: React.FC<YouTrackIssueDetailProps> = ({
     const s = state.toLowerCase();
     if (s.includes('решен') || s.includes('готов') || s.includes('закрыт') || s.includes('fixed')) return 'success';
     if (s.includes('работ') || s.includes('progress')) return 'info';
+    if (s.includes('открыт') || s.includes('open')) return 'warning';
     if (s.includes('тест') || s.includes('test') || s.includes('проверк')) return 'warning';
     if (s.includes('пакет') || s.includes('ревью') || s.includes('review')) return 'purple';
     return 'default';

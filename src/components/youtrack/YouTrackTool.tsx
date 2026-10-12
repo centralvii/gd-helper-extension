@@ -198,10 +198,18 @@ export const YouTrackTool: React.FC<YouTrackToolProps> = ({
         issue.summary.toLowerCase().includes(q) ||
         (issue.description && issue.description.toLowerCase().includes(q));
 
-      const matchesState =
-        selectedStateFilter === 'all' || issue.state === selectedStateFilter;
+      const isStateMatching = () => {
+        if (selectedStateFilter === 'all') return true;
+        if (issue.state === selectedStateFilter) return true;
+        const normFilter = selectedStateFilter.toLowerCase();
+        const normState = (issue.state || '').toLowerCase();
+        if (normFilter === 'открыта' || normFilter === 'open') {
+          return normState === 'открыта' || normState === 'open' || normState === '#open';
+        }
+        return false;
+      };
 
-      return matchesSearch && matchesState;
+      return matchesSearch && isStateMatching();
     });
   }, [issues, searchQuery, selectedStateFilter]);
 

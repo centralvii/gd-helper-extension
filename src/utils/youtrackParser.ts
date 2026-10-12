@@ -6,6 +6,63 @@ export const DEFAULT_YOUTRACK_URL =
 export const YOUTRACK_CACHE_KEY = 'gd_youtrack_issues_cache';
 
 /**
+ * Normalizes issue state name to Russian terminology.
+ * In particular, YouTrack's English state 'Open' / '#open' -> 'Открыта'.
+ */
+export function normalizeIssueState(state?: string): string {
+  if (!state) return 'Открыта';
+  const trimmed = state.trim();
+  const low = trimmed.toLowerCase();
+  if (
+    low === 'open' ||
+    low === '#open' ||
+    low === 'открыт' ||
+    low === 'открыта' ||
+    low === 'открыто' ||
+    low === 'opened'
+  ) {
+    return 'Открыта';
+  }
+  if (
+    low === 'in progress' ||
+    low === 'in_progress' ||
+    low === 'в работе' ||
+    low === 'work in progress'
+  ) {
+    return 'В работе';
+  }
+  if (
+    low === 'resolved' ||
+    low === 'closed' ||
+    low === 'решена' ||
+    low === 'закрыта' ||
+    low === 'готов' ||
+    low === 'готово'
+  ) {
+    return 'Решена';
+  }
+  return trimmed;
+}
+
+/**
+ * Normalizes YouTrack search query parameters.
+ * Replaces 'open' / '#open' with Russian localized filter '#Открыта' / 'Состояние: Открыта'.
+ */
+export function normalizeYouTrackQuery(query: string): string {
+  if (!query) return query;
+  return query
+    .replace(/(?:#|\bstate:\s*|\bсостояние:\s*|\bстатус:\s*)open\b/gi, (match) => {
+      if (match.startsWith('#')) return '#Открыта';
+      if (/^статус/i.test(match)) return 'Статус: Открыта';
+      return 'Состояние: Открыта';
+    })
+    .replace(/\b#Open\b/g, '#Открыта')
+    .replace(/\b#open\b/g, '#Открыта')
+    .replace(/\b#открыт\b/gi, '#Открыта')
+    .replace(/\b#открыто\b/gi, '#Открыта');
+}
+
+/**
  * Loads cached issues from localStorage
  */
 export function loadYouTrackCache(): YouTrackCacheData | null {
@@ -14,6 +71,11 @@ export function loadYouTrackCache(): YouTrackCacheData | null {
     if (!raw) return null;
     const parsed = JSON.parse(raw) as YouTrackCacheData;
     if (parsed && Array.isArray(parsed.issues) && parsed.issues.length > 0) {
+      // Normalize states for any cached issues (e.g., Open -> Открыта)
+      parsed.issues = parsed.issues.map((issue) => ({
+        ...issue,
+        state: normalizeIssueState(issue.state),
+      }));
       return parsed;
     }
   } catch (e) {
@@ -40,15 +102,19 @@ export function saveYouTrackCache(data: YouTrackCacheData): void {
  * Extracts query parameter from YouTrack issues URL
  */
 export function extractQueryFromYouTrackUrl(url: string): string {
+  let rawQuery = '';
   try {
     const parsed = new URL(url);
     const q = parsed.searchParams.get('q');
-    if (q) return q.trim();
+    if (q) rawQuery = q.trim();
   } catch {
     const match = url.match(/[?&]q=([^&#]+)/);
-    if (match) return decodeURIComponent(match[1]).trim();
+    if (match) rawQuery = decodeURIComponent(match[1]).trim();
   }
-  return 'Исполнитель: Кучин_Владимир_Валерьевич проект: РЭЦ_Fin';
+  if (!rawQuery) {
+    rawQuery = 'Исполнитель: Кучин_Владимир_Валерьевич проект: РЭЦ_Fin';
+  }
+  return normalizeYouTrackQuery(rawQuery);
 }
 
 /**
@@ -93,7 +159,7 @@ export function normalizeApiIssue(item: any): YouTrackIssue {
     id,
     summary: item.summary || id,
     description: typeof item.description === 'string' ? item.description : undefined,
-    state: state || (item.resolved ? 'Решена' : 'В работе'),
+    state: normalizeIssueState(state || (item.resolved ? 'Решена' : 'Открыта')),
     priority: priority || 'Обычный',
     type: type || 'Доработка',
     project: item.project?.name || item.project?.shortName || 'РЭЦ_Fin',
@@ -255,6 +321,10 @@ export async function executeInTabYouTrackExtraction(queryStr: string): Promise<
         );
         state = stateEl?.textContent?.trim() || '';
       }
+      const normState =
+        state && state.toLowerCase() !== 'open' && state.toLowerCase() !== '#open'
+          ? state
+          : 'Открыта';
 
       const fullUrl = href.startsWith('http') ? href : `https://youtrack.greendatasoft.ru/issue/${id}`;
 
@@ -262,7 +332,7 @@ export async function executeInTabYouTrackExtraction(queryStr: string): Promise<
         idReadable: id,
         id,
         summary: summary || id,
-        state: state || 'В работе',
+        state: normState,
         project: { name: 'РЭЦ_Fin' },
         url: fullUrl,
       });
