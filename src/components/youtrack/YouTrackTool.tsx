@@ -16,6 +16,10 @@ import {
   loadYouTrackCache,
   parseYouTrackIssues,
 } from '../../utils/youtrackParser';
+import {
+  checkGreenDataTaskModalActive,
+  injectYouTrackIntoGreenDataTask,
+} from '../../utils/greenDataTaskFormInjector';
 import { YouTrackIssueTile } from './YouTrackIssueTile';
 import { YouTrackIssueDetail } from './YouTrackIssueDetail';
 import { Button } from '../ui/Button';
@@ -50,6 +54,72 @@ export const YouTrackTool: React.FC<YouTrackToolProps> = ({
   const [lastSyncSource, setLastSyncSource] = useState<'api' | 'dom' | 'cache'>('api');
   const [syncNotice, setSyncNotice] = useState<string | null>(null);
   const [hasSyncError, setHasSyncError] = useState(false);
+  const [isGreenDataModalActive, setIsGreenDataModalActive] = useState<boolean>(false);
+
+  // Monitor GreenData task creation modal state in active browser tab
+  useEffect(() => {
+    let isMounted = true;
+
+    const checkModal = async () => {
+      try {
+        const active = await checkGreenDataTaskModalActive();
+        if (isMounted) {
+          setIsGreenDataModalActive(active);
+        }
+      } catch {
+        if (isMounted) {
+          setIsGreenDataModalActive(false);
+        }
+      }
+    };
+
+    checkModal();
+    const intervalId = setInterval(checkModal, 1500);
+
+    const onTabEvent = () => {
+      checkModal();
+    };
+
+    if (typeof chrome !== 'undefined' && chrome.tabs) {
+      chrome.tabs.onActivated?.addListener(onTabEvent);
+      chrome.tabs.onUpdated?.addListener(onTabEvent);
+    }
+    window.addEventListener('focus', onTabEvent);
+
+    return () => {
+      isMounted = false;
+      clearInterval(intervalId);
+      if (typeof chrome !== 'undefined' && chrome.tabs) {
+        chrome.tabs.onActivated?.removeListener(onTabEvent);
+        chrome.tabs.onUpdated?.removeListener(onTabEvent);
+      }
+      window.removeEventListener('focus', onTabEvent);
+    };
+  }, []);
+
+  // Transfer issue fields directly into active GreenData task modal
+  const handleTransferToGreenData = useCallback(
+    async (issue: YouTrackIssue) => {
+      try {
+        const result = await injectYouTrackIntoGreenDataTask(issue);
+        if (result.success) {
+          setSyncNotice(result.message);
+          setHasSyncError(false);
+          onShowToast?.(result.message);
+        } else {
+          setSyncNotice(result.message);
+          setHasSyncError(true);
+          onShowToast?.(result.message);
+        }
+      } catch (err: any) {
+        const msg = err?.message || 'Ошибка переноса данных в GreenData';
+        setSyncNotice(msg);
+        setHasSyncError(true);
+        onShowToast?.(msg);
+      }
+    },
+    [onShowToast]
+  );
 
   // Handler for parsing YouTrack link
   const handleRefresh = useCallback(async () => {
@@ -157,6 +227,8 @@ export const YouTrackTool: React.FC<YouTrackToolProps> = ({
         issue={selectedIssue}
         onBack={() => setSelectedIssue(null)}
         onTransferToImplementation={onTransferToImplementation}
+        isGreenDataModalActive={isGreenDataModalActive}
+        onTransferToGreenData={handleTransferToGreenData}
       />
     );
   }
@@ -181,7 +253,7 @@ export const YouTrackTool: React.FC<YouTrackToolProps> = ({
                   </span>
                 )}
               </div>
-              <div className="flex items-center gap-1.5 text-[10px] text-slate-400">
+              <div className="flex items-center gap-1.5 text-[10px] text-slate-400 flex-wrap">
                 <Database className="w-2.5 h-2.5 text-slate-400" />
                 <span>{formattedSyncTime}</span>
                 {lastSyncedAt && (
@@ -193,6 +265,25 @@ export const YouTrackTool: React.FC<YouTrackToolProps> = ({
                       : 'Кэш'}
                   </span>
                 )}
+                <span
+                  className={`inline-flex items-center gap-1 text-[9px] px-1.5 py-0.2 rounded font-medium border select-none transition-colors ${
+                    isGreenDataModalActive
+                      ? 'bg-emerald-50 text-emerald-800 border-emerald-300 font-semibold'
+                      : 'bg-slate-100 text-slate-500 border-slate-200'
+                  }`}
+                  title={
+                    isGreenDataModalActive
+                      ? 'Окно создания задачи GreenData открыто — перенос доступен'
+                      : 'Откройте модальное окно создания задачи в GreenData для автозаполнения полей'
+                  }
+                >
+                  <span
+                    className={`w-1.5 h-1.5 rounded-full ${
+                      isGreenDataModalActive ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'
+                    }`}
+                  />
+                  <span>{isGreenDataModalActive ? 'Окно GD активно' : 'Окно GD не активно'}</span>
+                </span>
               </div>
             </div>
           </div>
@@ -338,6 +429,8 @@ export const YouTrackTool: React.FC<YouTrackToolProps> = ({
               issue={issue}
               onSelect={setSelectedIssue}
               onTransferToImplementation={onTransferToImplementation}
+              isGreenDataModalActive={isGreenDataModalActive}
+              onTransferToGreenData={handleTransferToGreenData}
             />
           ))}
         </div>

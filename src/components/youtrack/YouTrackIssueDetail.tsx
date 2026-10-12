@@ -9,26 +9,42 @@ import {
   Clock,
   FileText,
   ArrowRightCircle,
+  ArrowDownToLine,
   Share2,
 } from 'lucide-react';
 import { YouTrackIssue } from '../../types';
 import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
+import { extractTfsNumberFromSummary } from '../../utils/greenDataTaskFormInjector';
 
 interface YouTrackIssueDetailProps {
   issue: YouTrackIssue;
   onBack: () => void;
   onTransferToImplementation?: (issue: YouTrackIssue) => void;
+  isGreenDataModalActive?: boolean;
+  onTransferToGreenData?: (issue: YouTrackIssue) => void;
 }
 
 export const YouTrackIssueDetail: React.FC<YouTrackIssueDetailProps> = ({
   issue,
   onBack,
   onTransferToImplementation,
+  isGreenDataModalActive = false,
+  onTransferToGreenData,
 }) => {
   const [copiedId, setCopiedId] = useState(false);
   const [copiedSummary, setCopiedSummary] = useState(false);
   const [copiedMd, setCopiedMd] = useState(false);
+  const [justTransferred, setJustTransferred] = useState(false);
+
+  const tfsNumber = extractTfsNumberFromSummary(issue.summary);
+
+  const handleTransferToGreenData = () => {
+    if (!isGreenDataModalActive) return;
+    onTransferToGreenData?.(issue);
+    setJustTransferred(true);
+    setTimeout(() => setJustTransferred(false), 2000);
+  };
 
   const handleCopyId = () => {
     navigator.clipboard.writeText(issue.id);
@@ -117,10 +133,33 @@ export const YouTrackIssueDetail: React.FC<YouTrackIssueDetailProps> = ({
             В YouTrack
           </Button>
 
+          {onTransferToGreenData && (
+            <Button
+              size="xs"
+              variant={isGreenDataModalActive ? 'primary' : 'secondary'}
+              disabled={!isGreenDataModalActive}
+              onClick={handleTransferToGreenData}
+              leftIcon={
+                justTransferred ? (
+                  <Check className="w-3.5 h-3.5 text-white" />
+                ) : (
+                  <ArrowDownToLine className="w-3.5 h-3.5" />
+                )
+              }
+              title={
+                isGreenDataModalActive
+                  ? 'Заполнить TFS (US/BP), YT/Git и Наименование задачи в активном модальном окне GreenData'
+                  : 'Откройте модальное окно создания задачи в GreenData для переноса'
+              }
+            >
+              {justTransferred ? 'Перенесено!' : 'Перенести в задачу'}
+            </Button>
+          )}
+
           {onTransferToImplementation && (
             <Button
               size="xs"
-              variant="primary"
+              variant="ghost"
               onClick={() => onTransferToImplementation(issue)}
               leftIcon={<ArrowRightCircle className="w-3.5 h-3.5" />}
               title="Создать задачу в Реализации с этим ID и названием"
@@ -132,13 +171,22 @@ export const YouTrackIssueDetail: React.FC<YouTrackIssueDetailProps> = ({
       </div>
 
       {/* Main Issue Card */}
-      <div className="bg-white border border-slate-200/90 rounded-2xl p-3.5 shadow-xs space-y-3">
+      <div className="bg-white border border-slate-200/90 rounded-xl p-3.5 shadow-xs space-y-3">
         {/* Issue ID and Badges */}
         <div className="flex items-center justify-between gap-2 flex-wrap">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <span className="font-mono text-sm font-bold px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 shadow-2xs select-all">
               {issue.id}
             </span>
+
+            {tfsNumber && (
+              <span
+                className="font-mono text-xs font-bold px-2 py-0.5 rounded-md bg-sky-50 text-sky-800 border border-sky-200 select-all"
+                title={`Номер TFS (US/BP): ${tfsNumber}`}
+              >
+                TFS: {tfsNumber}
+              </span>
+            )}
 
             {issue.state && (
               <Badge variant={getStateVariant(issue.state)} size="sm">
@@ -230,6 +278,70 @@ export const YouTrackIssueDetail: React.FC<YouTrackIssueDetailProps> = ({
               </div>
             </div>
           )}
+        </div>
+
+        {/* GreenData Transfer Block */}
+        <div className="p-3 bg-emerald-50/30 border border-emerald-200/80 rounded-xl space-y-2">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-1.5 text-xs font-bold text-gray-900">
+              <ArrowDownToLine className="w-3.5 h-3.5 text-emerald-600" />
+              <span>Перенос в задачу GreenData</span>
+            </div>
+            <span
+              className={`inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-semibold rounded-full border ${
+                isGreenDataModalActive
+                  ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                  : 'bg-gray-100 text-gray-500 border-gray-200'
+              }`}
+            >
+              <span
+                className={`w-1.5 h-1.5 rounded-full ${
+                  isGreenDataModalActive ? 'bg-emerald-500 animate-pulse' : 'bg-gray-400'
+                }`}
+              />
+              {isGreenDataModalActive ? 'Форма активна' : 'Окно не активно'}
+            </span>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2 text-[11px] pt-0.5">
+            <div className="bg-white p-2 rounded-lg border border-emerald-100/90 space-y-0.5 shadow-2xs">
+              <span className="text-[10px] uppercase font-bold text-gray-400">TFS (US/BP) *</span>
+              <div className="font-mono font-bold text-emerald-800 truncate">
+                {tfsNumber || <span className="text-gray-400 font-normal italic">не найден в названии</span>}
+              </div>
+            </div>
+            <div className="bg-white p-2 rounded-lg border border-emerald-100/90 space-y-0.5 shadow-2xs">
+              <span className="text-[10px] uppercase font-bold text-gray-400">YT/Git</span>
+              <div className="font-mono font-bold text-emerald-800 truncate">{issue.id}</div>
+            </div>
+            <div className="col-span-2 bg-white p-2 rounded-lg border border-emerald-100/90 space-y-0.5 shadow-2xs">
+              <span className="text-[10px] uppercase font-bold text-gray-400">Наименование задачи *</span>
+              <div className="font-medium text-gray-800 text-[11px] line-clamp-2">{issue.summary}</div>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between gap-2 pt-1 border-t border-emerald-100">
+            <span className="text-[10px] text-gray-500">
+              Поля GUF, Направление и Модуль остаются для ручного ввода
+            </span>
+            {onTransferToGreenData && (
+              <Button
+                size="xs"
+                variant={isGreenDataModalActive ? 'primary' : 'secondary'}
+                disabled={!isGreenDataModalActive}
+                onClick={handleTransferToGreenData}
+                leftIcon={
+                  justTransferred ? (
+                    <Check className="w-3 h-3 text-white" />
+                  ) : (
+                    <ArrowDownToLine className="w-3 h-3" />
+                  )
+                }
+              >
+                {justTransferred ? 'Перенесено!' : 'Перенести в GD'}
+              </Button>
+            )}
+          </div>
         </div>
 
         {/* Description Section */}
