@@ -112,9 +112,9 @@ export const YouTrackIssueDetail: React.FC<YouTrackIssueDetailProps> = ({
   };
 
   return (
-    <div className="space-y-3 animate-in fade-in duration-150">
+    <div className="space-y-3 animate-fade-in">
       {/* Navigation Header */}
-      <div className="flex items-center justify-between gap-1.5 flex-wrap bg-white p-2 border border-slate-200/90 rounded-xl shadow-2xs">
+      <div className="flex items-center justify-between gap-1.5 flex-wrap bg-white p-1.5 border border-slate-200 rounded-xl shadow-sm">
         <button
           type="button"
           onClick={onBack}
@@ -172,7 +172,7 @@ export const YouTrackIssueDetail: React.FC<YouTrackIssueDetailProps> = ({
       </div>
 
       {/* Main Issue Card */}
-      <div className="bg-white border border-slate-200/90 rounded-xl p-3.5 shadow-xs space-y-3">
+      <div className="bg-white border border-slate-200 rounded-xl p-3 shadow-sm space-y-3">
         {/* Issue ID and Badges */}
         <div className="flex items-center justify-between gap-2 flex-wrap">
           <div className="flex items-center gap-2 flex-wrap">
@@ -250,7 +250,7 @@ export const YouTrackIssueDetail: React.FC<YouTrackIssueDetailProps> = ({
         </div>
 
         {/* Metadata Grid */}
-        <div className="grid grid-cols-2 gap-2 p-2.5 bg-slate-50/80 border border-slate-200/70 rounded-xl text-xs">
+        <div className="grid grid-cols-2 gap-2 p-2.5 bg-slate-50/80 border border-slate-200 rounded-xl text-xs">
           <div className="space-y-0.5">
             <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider flex items-center gap-1">
               <Tag className="w-2.5 h-2.5" /> Проект
@@ -284,7 +284,7 @@ export const YouTrackIssueDetail: React.FC<YouTrackIssueDetailProps> = ({
         {/* GreenData Transfer Block */}
         <div className="p-3 bg-emerald-50/30 border border-emerald-200/80 rounded-xl space-y-2">
           <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-1.5 text-xs font-bold text-gray-900">
+            <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900">
               <ArrowDownToLine className="w-3.5 h-3.5 text-emerald-600" />
               <span>Перенос в задачу GreenData</span>
             </div>
@@ -292,12 +292,12 @@ export const YouTrackIssueDetail: React.FC<YouTrackIssueDetailProps> = ({
               className={`inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-semibold rounded-full border ${
                 isGreenDataModalActive
                   ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
-                  : 'bg-gray-100 text-gray-500 border-gray-200'
+                  : 'bg-slate-100 text-slate-500 border-slate-200'
               }`}
             >
               <span
                 className={`w-1.5 h-1.5 rounded-full ${
-                  isGreenDataModalActive ? 'bg-emerald-500 animate-pulse' : 'bg-gray-400'
+                  isGreenDataModalActive ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'
                 }`}
               />
               {isGreenDataModalActive ? 'Форма активна' : 'Окно не активно'}
@@ -306,23 +306,23 @@ export const YouTrackIssueDetail: React.FC<YouTrackIssueDetailProps> = ({
 
           <div className="grid grid-cols-2 gap-2 text-[11px] pt-0.5">
             <div className="bg-white p-2 rounded-lg border border-emerald-100/90 space-y-0.5 shadow-2xs">
-              <span className="text-[10px] uppercase font-bold text-gray-400">TFS (US/BP) *</span>
+              <span className="text-[10px] uppercase font-bold text-slate-400">TFS (US/BP) *</span>
               <div className="font-mono font-bold text-emerald-800 truncate">
-                {tfsNumber || <span className="text-gray-400 font-normal italic">не найден в названии</span>}
+                {tfsNumber || <span className="text-slate-400 font-normal italic">не найден в названии</span>}
               </div>
             </div>
             <div className="bg-white p-2 rounded-lg border border-emerald-100/90 space-y-0.5 shadow-2xs">
-              <span className="text-[10px] uppercase font-bold text-gray-400">YT/Git</span>
+              <span className="text-[10px] uppercase font-bold text-slate-400">YT/Git</span>
               <div className="font-mono font-bold text-emerald-800 truncate">{issue.id}</div>
             </div>
             <div className="col-span-2 bg-white p-2 rounded-lg border border-emerald-100/90 space-y-0.5 shadow-2xs">
-              <span className="text-[10px] uppercase font-bold text-gray-400">Наименование задачи *</span>
-              <div className="font-medium text-gray-800 text-[11px] line-clamp-2">{issue.summary}</div>
+              <span className="text-[10px] uppercase font-bold text-slate-400">Наименование задачи *</span>
+              <div className="font-medium text-slate-800 text-[11px] line-clamp-2">{issue.summary}</div>
             </div>
           </div>
 
           <div className="flex items-center justify-between gap-2 pt-1 border-t border-emerald-100">
-            <span className="text-[10px] text-gray-500">
+            <span className="text-[10px] text-slate-500">
               Поля GUF, Направление и Модуль остаются для ручного ввода
             </span>
             {onTransferToGreenData && (
@@ -352,7 +352,7 @@ export const YouTrackIssueDetail: React.FC<YouTrackIssueDetailProps> = ({
             <span>Описание задачи</span>
           </div>
 
-          <div className="bg-slate-50/90 border border-slate-200/80 rounded-xl p-3 text-xs text-slate-700 leading-relaxed whitespace-pre-wrap break-words max-h-[360px] overflow-y-auto font-sans select-text">
+          <div className="bg-slate-50/90 border border-slate-200 rounded-xl p-3 text-xs text-slate-700 leading-relaxed whitespace-pre-wrap break-words max-h-[360px] overflow-y-auto font-sans select-text">
             {issue.description ? (
               issue.description
             ) : (

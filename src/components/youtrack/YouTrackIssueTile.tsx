@@ -102,7 +102,7 @@ export const YouTrackIssueTile: React.FC<YouTrackIssueTileProps> = ({
           >
             <span>{issue.id}</span>
             {copied ? (
-              <Check className="w-3 h-3 text-emerald-600 animate-in fade-in" />
+              <Check className="w-3 h-3 text-emerald-600 animate-fade-in" />
             ) : (
               <Copy className="w-2.5 h-2.5 text-emerald-500 opacity-60 group-hover:opacity-100" />
             )}
@@ -124,7 +124,7 @@ export const YouTrackIssueTile: React.FC<YouTrackIssueTileProps> = ({
 
           {/* Type badge */}
           {issue.type && (
-            <span className="text-[10px] text-slate-500 bg-slate-100 px-1.5 py-0.2 rounded border border-slate-200/80">
+            <span className="text-[10px] text-slate-500 bg-slate-100 px-1.5 py-px rounded border border-slate-200">
               {issue.type}
             </span>
           )}
@@ -156,7 +156,7 @@ export const YouTrackIssueTile: React.FC<YouTrackIssueTileProps> = ({
                 justTransferred
                   ? 'bg-emerald-700 text-white border border-emerald-700 scale-95 cursor-default'
                   : isGreenDataModalActive
-                  ? 'bg-emerald-600 hover:bg-emerald-700 text-white border border-emerald-600 hover:border-emerald-700 active:scale-95 animate-in fade-in cursor-pointer'
+                  ? 'bg-emerald-600 hover:bg-emerald-700 text-white border border-emerald-600 hover:border-emerald-700 active:scale-95 animate-fade-in cursor-pointer'
                   : 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed opacity-60'
               }`}
             >

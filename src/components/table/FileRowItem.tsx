@@ -94,7 +94,7 @@ export const FileRowItem: React.FC<FileRowItemProps> = React.memo(({
                     ? 'border-emerald-500 bg-emerald-50/90 shadow-lg scale-[1.01]'
                     : hasError
                       ? 'border-rose-300 bg-rose-50/50 hover:border-rose-400 shadow-2xs'
-                      : 'border-slate-200/90 bg-white hover:border-emerald-300 hover:shadow-xs'
+                      : 'border-slate-200 bg-white hover:border-emerald-300 hover:shadow-xs'
             }`}
         >
             {/* Combined Drag Handle + Order Number */}
@@ -196,7 +196,7 @@ export const FileRowItem: React.FC<FileRowItemProps> = React.memo(({
                     {file.detectedDate && (
                         <span
                             title={`Дата обнаружения / создания: ${file.detectedDate}`}
-                            className="inline-flex items-center gap-0.5 px-1 py-0.2 rounded bg-slate-100 text-slate-500 text-[9.5px] font-mono flex-shrink-0 whitespace-nowrap"
+                            className="inline-flex items-center gap-0.5 px-1 py-px rounded bg-slate-100 text-slate-500 text-[9.5px] font-mono flex-shrink-0 whitespace-nowrap"
                         >
                             <Calendar className="h-2.5 w-2.5 text-slate-400" />
                             {file.detectedDate}
@@ -212,7 +212,7 @@ export const FileRowItem: React.FC<FileRowItemProps> = React.memo(({
                                 rel="noreferrer"
                                 title={`Открыть карточку в GreenData: ${trimGreenDataUrl(file.sourceUrl)}`}
                                 onClick={(e) => e.stopPropagation()}
-                                className="inline-flex items-center gap-1 px-1.5 py-0.2 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-200/90 rounded-md font-mono text-[9.5px] font-bold transition-all shadow-2xs cursor-pointer flex-shrink-0"
+                                className="inline-flex items-center gap-1 px-1.5 py-px bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-200/90 rounded-md font-mono text-[9.5px] font-bold transition-all shadow-2xs cursor-pointer flex-shrink-0"
                             >
                                 <LinkIcon className="w-2.5 h-2.5 text-emerald-600 flex-shrink-0" />
                                 <span>ID: {file.cardId}</span>
@@ -220,7 +220,7 @@ export const FileRowItem: React.FC<FileRowItemProps> = React.memo(({
                             </a>
                         ) : (
                             <span
-                                className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded-md bg-slate-100 text-slate-700 border border-slate-200/90 font-mono text-[9.5px] font-bold shadow-2xs flex-shrink-0"
+                                className="inline-flex items-center gap-1 px-1.5 py-px rounded-md bg-slate-100 text-slate-700 border border-slate-200 font-mono text-[9.5px] font-bold shadow-2xs flex-shrink-0"
                                 title={`ID карточки в GreenData: ${file.cardId}`}
                             >
                                 <span className="text-slate-400 font-normal">ID:</span>
@@ -234,7 +234,7 @@ export const FileRowItem: React.FC<FileRowItemProps> = React.memo(({
                             rel="noreferrer"
                             title={trimGreenDataUrl(file.sourceUrl)}
                             onClick={(e) => e.stopPropagation()}
-                            className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded-md bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-200/90 text-[9.5px] font-semibold transition-all shadow-2xs flex-shrink-0"
+                            className="inline-flex items-center gap-1 px-1.5 py-px rounded-md bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-200/90 text-[9.5px] font-semibold transition-all shadow-2xs flex-shrink-0"
                         >
                             <LinkIcon className="w-2.5 h-2.5 text-emerald-600 flex-shrink-0" />
                             <span>Карточка</span>
@@ -246,7 +246,7 @@ export const FileRowItem: React.FC<FileRowItemProps> = React.memo(({
                     {isMatchedInTask && (
                         <span
                             title="Объект найден в привязанной задаче реализации по ID карточки"
-                            className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded-md bg-emerald-100/80 text-emerald-900 border border-emerald-300/80 text-[9.5px] font-bold shadow-2xs flex-shrink-0"
+                            className="inline-flex items-center gap-0.5 px-1.5 py-px rounded-md bg-emerald-100/80 text-emerald-900 border border-emerald-300/80 text-[9.5px] font-bold shadow-2xs flex-shrink-0"
                         >
                             <Check className="w-2.5 h-2.5 text-emerald-700 flex-shrink-0" />
                             <span className="hidden xs:inline">В задаче</span>

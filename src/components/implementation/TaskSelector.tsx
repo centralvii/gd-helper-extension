@@ -4,6 +4,7 @@ import { ImplementationTask } from '../../types';
 import { Button } from '../ui/Button';
 import { Modal } from '../ui/Modal';
 import { Input } from '../ui/Input';
+import { pluralizeRu, CHANGE_FORMS } from '../../utils/pluralize';
 
 interface TaskSelectorProps {
   tasks: ImplementationTask[];
@@ -66,13 +67,13 @@ export const TaskSelector: React.FC<TaskSelectorProps> = ({
 
   return (
     <>
-      <div className="relative flex items-center justify-between gap-1.5 p-1.5 bg-white border border-slate-200/90 rounded-2xl shadow-xs">
+      <div className="relative flex items-center justify-between gap-1.5 p-1.5 bg-white border border-slate-200 rounded-xl shadow-sm">
         {/* Active Task Trigger */}
         <div className="flex-1 min-w-0">
           <button
             type="button"
             onClick={() => setIsOpenList(!isOpenList)}
-            className="w-full flex items-center justify-between gap-2 px-3 py-2 bg-slate-50/90 hover:bg-slate-100/90 text-left border border-slate-200/90 rounded-xl transition-all group shadow-2xs cursor-pointer min-w-0"
+            className="w-full flex items-center justify-between gap-2 px-3 py-2 bg-slate-50/90 hover:bg-slate-100/90 text-left border border-slate-200 rounded-xl transition-all group shadow-2xs cursor-pointer min-w-0"
           >
             <div className="flex items-center gap-2 min-w-0 flex-1 mr-1">
               <div className="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center flex-shrink-0 font-bold shadow-2xs">
@@ -108,23 +109,23 @@ export const TaskSelector: React.FC<TaskSelectorProps> = ({
               className="fixed inset-0 z-40"
               onClick={() => setIsOpenList(false)}
             />
-            <div className="absolute top-full left-0 right-0 mt-1.5 z-50 bg-white border border-slate-200/90 rounded-2xl shadow-xl overflow-hidden animate-fade-in flex flex-col w-full">
+            <div className="absolute top-full left-0 right-0 mt-1.5 z-50 bg-white border border-slate-200 rounded-xl shadow-xl overflow-hidden animate-fade-in flex flex-col w-full">
               {/* Search if more than 2 tasks */}
               {tasks.length > 2 && (
-                <div className="p-2 border-b border-gray-100 bg-gray-50/70">
+                <div className="p-2 border-b border-slate-100 bg-slate-50/70">
                   <input
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Поиск по номеру или названию..."
-                    className="w-full px-2.5 py-1 bg-white border border-gray-200 rounded-lg text-xs text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-emerald-500"
+                    className="w-full px-2.5 py-1 bg-white border border-slate-200 rounded-lg text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-emerald-500"
                     autoFocus
                   />
                 </div>
               )}
 
               {/* Header title */}
-              <div className="px-3 pt-2 pb-1 text-[10px] font-bold uppercase tracking-wider text-gray-400 flex items-center justify-between">
+              <div className="px-3 pt-2 pb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center justify-between">
                 <span>Задачи реализации ({tasks.length})</span>
               </div>
 
@@ -142,14 +143,14 @@ export const TaskSelector: React.FC<TaskSelectorProps> = ({
                       className={`group/row flex items-center justify-between gap-2 px-2.5 py-2 rounded-xl text-xs transition-all cursor-pointer ${
                         isActive
                           ? 'bg-emerald-50/70 text-emerald-950 font-semibold border border-emerald-200/80 shadow-2xs'
-                          : 'hover:bg-gray-50 text-gray-800 border border-transparent'
+                          : 'hover:bg-slate-50 text-slate-800 border border-transparent'
                       }`}
                     >
                       {/* Left: Indicator & Title */}
                       <div className="flex items-center gap-2 min-w-0 flex-1">
                         <div
                           className={`w-2 h-2 rounded-full flex-shrink-0 ${
-                            isActive ? 'bg-emerald-500 ring-2 ring-emerald-200' : 'bg-gray-300'
+                            isActive ? 'bg-emerald-500 ring-2 ring-emerald-200' : 'bg-slate-300'
                           }`}
                         />
                         <div className="min-w-0 flex-1">
@@ -158,12 +159,12 @@ export const TaskSelector: React.FC<TaskSelectorProps> = ({
                               {t.taskNumber}
                             </span>
                             <span className="text-slate-400 text-[10px] flex-shrink-0">•</span>
-                            <span className="truncate text-xs text-gray-900 font-medium min-w-0">
+                            <span className="truncate text-xs text-slate-900 font-medium min-w-0">
                               {t.title}
                             </span>
                           </div>
-                          <span className="block text-[10px] text-gray-400 font-normal">
-                            {t.items.length} {t.items.length === 1 ? 'изменение' : 'изменений'}
+                          <span className="block text-[10px] text-slate-400 font-normal">
+                            {t.items.length} {pluralizeRu(t.items.length, CHANGE_FORMS)}
                           </span>
                         </div>
                       </div>
@@ -184,7 +185,7 @@ export const TaskSelector: React.FC<TaskSelectorProps> = ({
                             setIsOpenList(false);
                           }}
                           title="Дублировать задачу"
-                          className="icon-btn p-1 text-gray-400 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors cursor-pointer"
+                          className="icon-btn p-1 text-slate-400 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors cursor-pointer"
                         >
                           <Copy className="w-3.5 h-3.5" />
                         </button>
@@ -196,7 +197,7 @@ export const TaskSelector: React.FC<TaskSelectorProps> = ({
                             setIsOpenList(false);
                           }}
                           title="Редактировать номер/название"
-                          className="icon-btn p-1 text-gray-400 hover:text-sky-600 hover:bg-sky-50 rounded-lg transition-colors cursor-pointer"
+                          className="icon-btn p-1 text-slate-400 hover:text-sky-600 hover:bg-sky-50 rounded-lg transition-colors cursor-pointer"
                         >
                           <Edit2 className="w-3.5 h-3.5" />
                         </button>
@@ -209,7 +210,7 @@ export const TaskSelector: React.FC<TaskSelectorProps> = ({
                               setIsOpenList(false);
                             }}
                             title="Удалить задачу"
-                            className="icon-btn icon-btn--danger p-1 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                            className="icon-btn icon-btn--danger p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
@@ -321,9 +322,9 @@ export const TaskSelector: React.FC<TaskSelectorProps> = ({
           </>
         }
       >
-        <p className="text-xs text-gray-700">
+        <p className="text-xs text-slate-700">
           Вы уверены, что хотите удалить задачу{' '}
-          <strong className="text-gray-900">"{taskToDelete?.taskNumber}"</strong> (
+          <strong className="text-slate-900">"{taskToDelete?.taskNumber}"</strong> (
           {taskToDelete?.title}) и все записанные в ней изменения ({taskToDelete?.items.length} шт.)?
         </p>
       </Modal>
@@ -355,7 +356,7 @@ export const TaskSelector: React.FC<TaskSelectorProps> = ({
       >
         <form onSubmit={handleConfirmRename} className="space-y-3">
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">
+            <label className="block text-xs font-medium text-slate-700 mb-1">
               Номер задачи (Jira / Task ID):
             </label>
             <Input
@@ -366,7 +367,7 @@ export const TaskSelector: React.FC<TaskSelectorProps> = ({
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">
+            <label className="block text-xs font-medium text-slate-700 mb-1">
               Название задачи:
             </label>
             <Input

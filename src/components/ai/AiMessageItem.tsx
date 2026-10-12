@@ -174,16 +174,16 @@ export const AiMessageItem: React.FC<AiMessageItemProps> = React.memo(({ message
             return (
               <div
                 key={pIdx}
-                className="my-2.5 rounded-xl overflow-hidden border border-slate-800 bg-[#0d1117] text-slate-100 shadow-xs font-mono text-[11px]"
+                className="my-2.5 rounded-xl overflow-hidden border border-slate-200 bg-slate-50/80 text-slate-800 shadow-xs font-mono text-[11px]"
               >
                 {/* Header */}
-                <div className="flex items-center justify-between px-3 py-1.5 bg-[#161b22] border-b border-slate-800 select-none">
+                <div className="flex items-center justify-between px-3 py-1.5 bg-white border-b border-slate-200 select-none">
                   <div className="flex items-center gap-1.5 min-w-0">
-                    <Terminal className="w-3 h-3 text-emerald-400 flex-shrink-0" />
-                    <span className="text-emerald-400 font-bold uppercase tracking-wider text-[10px] truncate">
+                    <Terminal className="w-3 h-3 text-emerald-600 flex-shrink-0" />
+                    <span className="text-emerald-700 font-bold uppercase tracking-wider text-[10px] truncate">
                       {language}
                     </span>
-                    <span className="text-slate-500 text-[10px] hidden xs:inline">
+                    <span className="text-slate-400 text-[10px] hidden xs:inline">
                       ({lineCount} стр.)
                     </span>
                   </div>
@@ -194,7 +194,7 @@ export const AiMessageItem: React.FC<AiMessageItemProps> = React.memo(({ message
                       onClick={() => toggleWrapCode(currentIdx)}
                       title={isWrapped ? 'Отключить перенос' : 'Включить перенос'}
                       className={`p-1 rounded transition-colors cursor-pointer ${
-                        isWrapped ? 'bg-emerald-950 text-emerald-300 border border-emerald-800' : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                        isWrapped ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'text-slate-400 hover:text-emerald-700 hover:bg-emerald-50'
                       }`}
                     >
                       <WrapText className="w-3 h-3" />
@@ -203,12 +203,12 @@ export const AiMessageItem: React.FC<AiMessageItemProps> = React.memo(({ message
                     <button
                       type="button"
                       onClick={() => handleCopyCode(code, currentIdx)}
-                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-all text-[10.5px] font-sans font-medium cursor-pointer"
+                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md border border-slate-200 bg-white hover:bg-emerald-50 hover:border-emerald-300 text-slate-600 hover:text-emerald-800 transition-all text-[10.5px] font-sans font-medium cursor-pointer"
                     >
                       {copiedCodeIdx === currentIdx ? (
                         <>
-                          <Check className="w-3 h-3 text-emerald-400" />
-                          <span className="text-emerald-400 font-bold">Скопировано</span>
+                          <Check className="w-3 h-3 text-emerald-600" />
+                          <span className="text-emerald-700 font-bold">Скопировано</span>
                         </>
                       ) : (
                         <>
@@ -222,7 +222,7 @@ export const AiMessageItem: React.FC<AiMessageItemProps> = React.memo(({ message
 
                 {/* Body */}
                 <pre
-                  className={`p-3 leading-relaxed text-[#e6edf3] bg-[#0d1117] font-mono scrollbar-thin select-all ${
+                  className={`p-3 leading-relaxed text-slate-800 bg-transparent font-mono scrollbar-thin select-all ${
                     isWrapped ? 'whitespace-pre-wrap break-words' : 'overflow-x-auto whitespace-pre'
                   }`}
                 >
@@ -386,7 +386,7 @@ export const AiMessageItem: React.FC<AiMessageItemProps> = React.memo(({ message
       >
         {isUser ? (
           /* User Message: Clean Emerald Pill */
-          <div className="relative rounded-2xl rounded-tr-xs px-3.5 py-2.5 bg-emerald-600 text-white shadow-xs">
+          <div className="relative rounded-xl rounded-tr-sm px-3.5 py-2.5 bg-emerald-600 text-white shadow-xs">
             <div className="text-xs leading-relaxed whitespace-pre-wrap select-text font-normal text-white">
               {message.content}
             </div>
@@ -481,7 +481,7 @@ export const AiMessageItem: React.FC<AiMessageItemProps> = React.memo(({ message
             {/* Footer Toolbar */}
             <div className="flex items-center gap-2 pt-0.5 text-[10px] text-slate-400 select-none">
               {message.model && (
-                <span className="px-1 py-0.2 rounded bg-slate-100 text-slate-600 font-mono text-[8.5px] font-bold border border-slate-200">
+                <span className="px-1 py-px rounded bg-slate-100 text-slate-600 font-mono text-[8.5px] font-bold border border-slate-200">
                   {message.model}
                 </span>
               )}

@@ -20,10 +20,10 @@ export const Badge: React.FC<BadgeProps> = ({
   title,
 }) => {
   const baseStyles =
-    'inline-flex items-center font-semibold rounded-full border select-none transition-colors';
+    'inline-flex items-center font-semibold rounded-full border select-none transition-colors whitespace-nowrap';
 
   const variants = {
-    default: 'bg-slate-100/80 text-slate-700 border-slate-200/90',
+    default: 'bg-slate-100/80 text-slate-700 border-slate-200',
     success: 'bg-emerald-50 text-emerald-800 border-emerald-200/90',
     warning: 'bg-amber-50 text-amber-900 border-amber-300/90',
     danger: 'bg-rose-50 text-rose-800 border-rose-200/90',
@@ -41,7 +41,7 @@ export const Badge: React.FC<BadgeProps> = ({
   };
 
   const sizes = {
-    xs: 'text-[9.5px] px-1.5 py-0.2 gap-1',
+    xs: 'text-[9.5px] px-1.5 py-px gap-1 leading-tight',
     sm: 'text-[10.5px] px-2 py-0.5 gap-1',
     md: 'text-xs px-2.5 py-0.5 gap-1.5',
   };

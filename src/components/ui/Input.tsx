@@ -40,7 +40,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
             {label}
           </label>
         )}
-        <div className="relative rounded-xl shadow-2xs">
+        <div className="relative">
           {leftElement && (
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
               {leftElement}
@@ -51,10 +51,10 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
             id={inputId}
             className={twMerge(
               clsx(
-                'block w-full bg-white border border-slate-200 text-xs text-slate-900 placeholder-slate-400 transition-all focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15 focus:outline-none disabled:opacity-50 disabled:bg-slate-50 font-normal',
+                'block w-full bg-white border border-slate-200 shadow-2xs text-xs text-slate-900 placeholder-slate-400 transition-all hover:border-slate-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15 focus:outline-none disabled:opacity-50 disabled:bg-slate-50 font-normal',
                 sizeClasses[size],
-                leftElement && 'pl-8.5',
-                rightElement && 'pr-8.5',
+                leftElement && 'pl-8',
+                rightElement && 'pr-8',
                 error && 'border-rose-400 focus:border-rose-500 focus:ring-rose-500/15',
                 className
               )

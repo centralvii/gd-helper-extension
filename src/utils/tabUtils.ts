@@ -1,4 +1,5 @@
 import { ImplementationSection, ImplementationChangeItem, GreenDataParsedPackageNumber } from '../types';
+import { pluralizeRu, FILE_FORMS } from './pluralize';
 
 export interface TabInfo {
   url: string;
@@ -1307,7 +1308,7 @@ export function formatTaskToMarkdown(task: {
         : totalItems > 0 && collectedItems > 0
         ? ` — ⚠️ **В процессе сбора (${collectedItems}/${totalItems})**`
         : '';
-      lines.push(`- **Пакет:** \`${pkg.name}\` (${count} ${count === 1 ? 'файл' : 'файлов'})${pkgStatus}`);
+      lines.push(`- **Пакет:** \`${pkg.name}\` (${count} ${pluralizeRu(count, FILE_FORMS)})${pkgStatus}`);
       if (pkg.files && pkg.files.length > 0) {
         pkg.files.forEach((file) => {
           const fileName = file.newName || file.originalName;

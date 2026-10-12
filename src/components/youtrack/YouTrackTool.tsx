@@ -23,6 +23,7 @@ import {
 import { YouTrackIssueTile } from './YouTrackIssueTile';
 import { YouTrackIssueDetail } from './YouTrackIssueDetail';
 import { Button } from '../ui/Button';
+import { getErrorMessage } from '../../utils/errorUtils';
 
 interface YouTrackToolProps {
   onTransferToImplementation?: (issue: YouTrackIssue) => void;
@@ -111,8 +112,8 @@ export const YouTrackTool: React.FC<YouTrackToolProps> = ({
           setHasSyncError(true);
           onShowToast?.(result.message);
         }
-      } catch (err: any) {
-        const msg = err?.message || 'Ошибка переноса данных в GreenData';
+      } catch (err) {
+        const msg = getErrorMessage(err, 'Ошибка переноса данных в GreenData');
         setSyncNotice(msg);
         setHasSyncError(true);
         onShowToast?.(msg);
@@ -149,8 +150,8 @@ export const YouTrackTool: React.FC<YouTrackToolProps> = ({
         setHasSyncError(true);
         onShowToast?.(errorMsg);
       }
-    } catch (e: any) {
-      const errorMsg = e?.message || 'Ошибка парсинга YouTrack';
+    } catch (e) {
+      const errorMsg = getErrorMessage(e, 'Ошибка парсинга YouTrack');
       setSyncNotice(errorMsg);
       setHasSyncError(true);
       onShowToast?.(errorMsg);
@@ -244,7 +245,7 @@ export const YouTrackTool: React.FC<YouTrackToolProps> = ({
   return (
     <div className="space-y-3">
       {/* Top Header Card */}
-      <div className="bg-white border border-slate-200/90 rounded-xl p-3 shadow-2xs space-y-2.5">
+      <div className="bg-white border border-slate-200 rounded-xl p-3 shadow-sm space-y-3">
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 min-w-0">
             <div className="w-7 h-7 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center flex-shrink-0 font-bold shadow-2xs">
@@ -256,7 +257,7 @@ export const YouTrackTool: React.FC<YouTrackToolProps> = ({
                   Задачи YouTrack (РЭЦ_Fin)
                 </h3>
                 {issues.length > 0 && (
-                  <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                  <span className="text-[10px] font-bold px-1.5 py-px rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
                     {filteredIssues.length}
                   </span>
                 )}
@@ -265,7 +266,7 @@ export const YouTrackTool: React.FC<YouTrackToolProps> = ({
                 <Database className="w-2.5 h-2.5 text-slate-400" />
                 <span>{formattedSyncTime}</span>
                 {lastSyncedAt && (
-                  <span className="text-[9px] px-1.5 py-0.2 rounded font-mono font-medium bg-slate-100 text-slate-600 border border-slate-200">
+                  <span className="text-[9px] px-1.5 py-px rounded font-mono font-medium bg-slate-100 text-slate-600 border border-slate-200">
                     {lastSyncSource === 'api'
                       ? 'API'
                       : lastSyncSource === 'dom'
@@ -274,7 +275,7 @@ export const YouTrackTool: React.FC<YouTrackToolProps> = ({
                   </span>
                 )}
                 <span
-                  className={`inline-flex items-center gap-1 text-[9px] px-1.5 py-0.2 rounded font-medium border select-none transition-colors ${
+                  className={`inline-flex items-center gap-1 text-[9px] px-1.5 py-px rounded font-medium border select-none transition-colors ${
                     isGreenDataModalActive
                       ? 'bg-emerald-50 text-emerald-800 border-emerald-300 font-semibold'
                       : 'bg-slate-100 text-slate-500 border-slate-200'
@@ -324,7 +325,7 @@ export const YouTrackTool: React.FC<YouTrackToolProps> = ({
         {/* Sync message banner */}
         {syncNotice && (
           <div
-            className={`flex items-center justify-between text-[11px] px-2.5 py-1.5 rounded-lg border animate-in fade-in ${
+            className={`flex items-center justify-between text-[11px] px-2.5 py-1.5 rounded-lg border animate-fade-in ${
               hasSyncError
                 ? 'bg-amber-50 text-amber-900 border-amber-200'
                 : 'bg-emerald-50 text-emerald-800 border-emerald-200'
@@ -378,7 +379,7 @@ export const YouTrackTool: React.FC<YouTrackToolProps> = ({
                   onClick={() => setSelectedStateFilter('all')}
                   className={`text-[10px] font-semibold px-2 py-0.5 rounded-lg transition-colors cursor-pointer select-none whitespace-nowrap ${
                     selectedStateFilter === 'all'
-                      ? 'bg-slate-900 text-white shadow-2xs'
+                      ? 'bg-emerald-600 text-white shadow-2xs'
                       : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                   }`}
                 >
@@ -411,7 +412,7 @@ export const YouTrackTool: React.FC<YouTrackToolProps> = ({
 
       {/* Loading state when no issues loaded yet */}
       {isLoading && issues.length === 0 ? (
-        <div className="bg-white border border-slate-200/90 rounded-xl p-8 text-center space-y-3 shadow-2xs">
+        <div className="bg-white border border-slate-200 rounded-xl p-8 text-center space-y-3 shadow-sm">
           <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto">
             <RefreshCw className="w-5 h-5 animate-spin" />
           </div>
@@ -444,7 +445,7 @@ export const YouTrackTool: React.FC<YouTrackToolProps> = ({
         </div>
       ) : (
         /* Empty / Not logged in State */
-        <div className="bg-white border border-slate-200/90 rounded-xl p-6 text-center space-y-3 shadow-2xs">
+        <div className="bg-white border border-slate-200 rounded-xl p-6 text-center space-y-3 shadow-sm">
           <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center mx-auto">
             <CheckSquare className="w-5 h-5" />
           </div>

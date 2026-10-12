@@ -110,7 +110,7 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
   };
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-xs transition-all">
+    <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition-all">
       {/* Header bar */}
       <div className="border-b border-slate-100 bg-slate-50/70 px-2.5 py-1.5">
         <div className="flex items-center justify-between gap-1.5 min-w-0">
@@ -141,7 +141,7 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
             )}
           </div>
 
-          <div className="flex items-center gap-1 rounded-xl border border-slate-200/90 bg-white px-1.5 py-0.5 shadow-2xs flex-shrink-0">
+          <div className="flex items-center gap-1 rounded-xl border border-slate-200 bg-white px-1.5 py-0.5 shadow-2xs flex-shrink-0">
             <span className="text-[11px] font-bold text-slate-400 select-none" title="Стартовый номер">
               №
             </span>

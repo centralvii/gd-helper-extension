@@ -16,6 +16,7 @@ import { Button } from '../ui/Button';
 import { Modal } from '../ui/Modal';
 import { Input } from '../ui/Input';
 import { Select } from '../ui/Select';
+import { pluralizeRu, FILE_FORMS } from '../../utils/pluralize';
 
 interface PackageSelectorProps {
   packages: BuildPackage[];
@@ -103,13 +104,13 @@ export const PackageSelector: React.FC<PackageSelectorProps> = ({
 
   return (
     <>
-      <div className="relative flex items-center justify-between gap-1.5 p-1.5 bg-white border border-slate-200/90 rounded-2xl shadow-xs">
+      <div className="relative flex items-center justify-between gap-1.5 p-1.5 bg-white border border-slate-200 rounded-xl shadow-sm">
         {/* Active Package Selector Trigger */}
         <div className="flex-1 min-w-0">
           <button
             type="button"
             onClick={() => setIsOpenList(!isOpenList)}
-            className="w-full flex items-center justify-between gap-1.5 px-3 py-2 bg-slate-50/90 hover:bg-slate-100/90 text-left border border-slate-200/90 rounded-xl transition-all group shadow-2xs cursor-pointer min-w-0 overflow-hidden"
+            className="w-full flex items-center justify-between gap-1.5 px-3 py-2 bg-slate-50/90 hover:bg-slate-100/90 text-left border border-slate-200 rounded-xl transition-all group shadow-2xs cursor-pointer min-w-0 overflow-hidden"
           >
             <div className="flex items-center gap-2 min-w-0 flex-1 mr-1">
               <div className="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center flex-shrink-0 font-bold shadow-2xs">
@@ -133,7 +134,7 @@ export const PackageSelector: React.FC<PackageSelectorProps> = ({
                       }
                     }}
                     title={`Привязан к задаче "${activeLinkedTask.taskNumber}: ${activeLinkedTask.title}". Нажмите для перехода.`}
-                    className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded bg-emerald-100/80 hover:bg-emerald-200 text-emerald-900 text-[10px] font-bold border border-emerald-300/80 transition-colors flex-shrink-0 shadow-2xs cursor-pointer whitespace-nowrap"
+                    className="inline-flex items-center gap-1 px-1.5 py-px rounded bg-emerald-100/80 hover:bg-emerald-200 text-emerald-900 text-[10px] font-bold border border-emerald-300/80 transition-colors flex-shrink-0 shadow-2xs cursor-pointer whitespace-nowrap"
                   >
                     <FileCode className="w-2.5 h-2.5 text-emerald-700" />
                     <span>{activeLinkedTask.taskNumber}</span>
@@ -159,23 +160,23 @@ export const PackageSelector: React.FC<PackageSelectorProps> = ({
               className="fixed inset-0 z-40"
               onClick={() => setIsOpenList(false)}
             />
-            <div className="absolute top-full left-0 right-0 mt-1.5 z-50 bg-white border border-slate-200/90 rounded-2xl shadow-xl overflow-hidden animate-fade-in flex flex-col w-full">
+            <div className="absolute top-full left-0 right-0 mt-1.5 z-50 bg-white border border-slate-200 rounded-xl shadow-xl overflow-hidden animate-fade-in flex flex-col w-full">
               {/* Search if more than 2 packages */}
               {packages.length > 2 && (
-                <div className="p-2 border-b border-gray-100 bg-gray-50/70">
+                <div className="p-2 border-b border-slate-100 bg-slate-50/70">
                   <input
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Поиск по названию или задаче..."
-                    className="w-full px-2.5 py-1 bg-white border border-gray-200 rounded-lg text-xs text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-emerald-500"
+                    className="w-full px-2.5 py-1 bg-white border border-slate-200 rounded-lg text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-emerald-500"
                     autoFocus
                   />
                 </div>
               )}
 
               {/* Header title in popover */}
-              <div className="px-3 pt-2 pb-1 text-[10px] font-bold uppercase tracking-wider text-gray-400 flex items-center justify-between">
+              <div className="px-3 pt-2 pb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center justify-between">
                 <span>Пакеты сборки ({packages.length})</span>
               </div>
 
@@ -194,14 +195,14 @@ export const PackageSelector: React.FC<PackageSelectorProps> = ({
                       className={`group/row flex items-center justify-between gap-2 px-2.5 py-2 rounded-xl text-xs transition-all cursor-pointer ${
                         isActive
                           ? 'bg-emerald-50/70 text-emerald-950 font-semibold border border-emerald-200/80 shadow-2xs'
-                          : 'hover:bg-gray-50 text-gray-800 border border-transparent'
+                          : 'hover:bg-slate-50 text-slate-800 border border-transparent'
                       }`}
                     >
                       {/* Left: Indicator & Name */}
                       <div className="flex items-center gap-2 min-w-0 flex-1">
                         <div
                           className={`w-2 h-2 rounded-full flex-shrink-0 ${
-                            isActive ? 'bg-emerald-500 ring-2 ring-emerald-200' : 'bg-gray-300'
+                            isActive ? 'bg-emerald-500 ring-2 ring-emerald-200' : 'bg-slate-300'
                           }`}
                         />
                         <div className="min-w-0 flex-1">
@@ -210,13 +211,13 @@ export const PackageSelector: React.FC<PackageSelectorProps> = ({
                               {pkg.name}
                             </span>
                             {linkedTask && (
-                              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800 text-[9.5px] font-mono border border-emerald-200 flex-shrink-0 whitespace-nowrap">
+                              <span className="inline-flex items-center gap-0.5 px-1.5 py-px rounded bg-emerald-100 text-emerald-800 text-[9.5px] font-mono border border-emerald-200 flex-shrink-0 whitespace-nowrap">
                                 {linkedTask.taskNumber}
                               </span>
                             )}
                           </div>
-                          <span className="block text-[10px] text-gray-400 font-normal truncate">
-                            {pkg.files.length} {pkg.files.length === 1 ? 'файл' : 'файлов'}
+                          <span className="block text-[10px] text-slate-400 font-normal truncate">
+                            {pkg.files.length} {pluralizeRu(pkg.files.length, FILE_FORMS)}
                             {linkedTask ? ` • ${linkedTask.title}` : ''}
                           </span>
                         </div>
@@ -238,7 +239,7 @@ export const PackageSelector: React.FC<PackageSelectorProps> = ({
                             setIsOpenList(false);
                           }}
                           title="Дублировать пакет"
-                          className="icon-btn p-1 text-gray-400 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors cursor-pointer"
+                          className="icon-btn p-1 text-slate-400 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors cursor-pointer"
                         >
                           <Copy className="w-3.5 h-3.5" />
                         </button>
@@ -250,7 +251,7 @@ export const PackageSelector: React.FC<PackageSelectorProps> = ({
                             setIsOpenList(false);
                           }}
                           title="Редактировать параметры пакета"
-                          className="icon-btn p-1 text-gray-400 hover:text-sky-600 hover:bg-sky-50 rounded-lg transition-colors cursor-pointer"
+                          className="icon-btn p-1 text-slate-400 hover:text-sky-600 hover:bg-sky-50 rounded-lg transition-colors cursor-pointer"
                         >
                           <Edit2 className="w-3.5 h-3.5" />
                         </button>
@@ -263,7 +264,7 @@ export const PackageSelector: React.FC<PackageSelectorProps> = ({
                               setIsOpenList(false);
                             }}
                             title="Удалить пакет"
-                            className="icon-btn icon-btn--danger p-1 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                            className="icon-btn icon-btn--danger p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
@@ -304,7 +305,7 @@ export const PackageSelector: React.FC<PackageSelectorProps> = ({
               'icon-btn p-1.5 rounded-lg transition-colors cursor-pointer',
               isAutoCollectEnabled
                 ? 'text-emerald-600 bg-emerald-50 hover:bg-emerald-100 hover:text-emerald-700'
-                : 'text-gray-400 hover:text-emerald-600 hover:bg-emerald-50',
+                : 'text-slate-400 hover:text-emerald-600 hover:bg-emerald-50',
             ].join(' ')}
           >
             <Zap
@@ -353,9 +354,9 @@ export const PackageSelector: React.FC<PackageSelectorProps> = ({
           </>
         }
       >
-        <p className="text-xs text-gray-700">
+        <p className="text-xs text-slate-700">
           Вы уверены, что хотите удалить пакет сборки{' '}
-          <strong className="text-gray-900">"{packageToDelete?.name}"</strong> (
+          <strong className="text-slate-900">"{packageToDelete?.name}"</strong> (
           {packageToDelete?.files.length} файлов в очереди)?
         </p>
       </Modal>
@@ -389,7 +390,7 @@ export const PackageSelector: React.FC<PackageSelectorProps> = ({
       >
         <form onSubmit={handleConfirmCreate} className="space-y-3">
           <div>
-            <label className="block text-xs font-semibold text-gray-700 mb-1">
+            <label className="block text-xs font-semibold text-slate-700 mb-1">
               Название пакета: <span className="text-rose-500">*</span>
             </label>
             <Input
@@ -401,7 +402,7 @@ export const PackageSelector: React.FC<PackageSelectorProps> = ({
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-gray-700 mb-1 flex items-center gap-1.5">
+            <label className="block text-xs font-semibold text-slate-700 mb-1 flex items-center gap-1.5">
               <FileCode className="w-3.5 h-3.5 text-emerald-600" />
               <span>Привязать к задаче реализации (опционально):</span>
             </label>
@@ -417,7 +418,7 @@ export const PackageSelector: React.FC<PackageSelectorProps> = ({
               ]}
               placeholder="— Без привязки к задаче —"
             />
-            <span className="text-[10px] text-gray-400 mt-1 block">
+            <span className="text-[10px] text-slate-400 mt-1 block">
               💡 К одной задаче реализации можно привязать несколько разных пакетов обновлений
             </span>
           </div>
@@ -452,7 +453,7 @@ export const PackageSelector: React.FC<PackageSelectorProps> = ({
       >
         <form onSubmit={handleConfirmRename} className="space-y-3">
           <div>
-            <label className="block text-xs font-semibold text-gray-700 mb-1">
+            <label className="block text-xs font-semibold text-slate-700 mb-1">
               Название пакета сборки:
             </label>
             <Input
@@ -464,7 +465,7 @@ export const PackageSelector: React.FC<PackageSelectorProps> = ({
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-gray-700 mb-1 flex items-center gap-1.5">
+            <label className="block text-xs font-semibold text-slate-700 mb-1 flex items-center gap-1.5">
               <FileCode className="w-3.5 h-3.5 text-emerald-600" />
               <span>Привязанная задача реализации:</span>
             </label>

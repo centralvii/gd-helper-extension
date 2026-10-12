@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { AiChatMessage, AiSettings } from '../types';
 import { AI_AGENTS, DEFAULT_AGENT } from '../constants/aiAgents';
+import { getErrorMessage, isAbortError } from '../utils/errorUtils';
 
 export const DEFAULT_AI_SETTINGS: AiSettings = {
   baseUrl: 'https://api.openai.com/v1',
@@ -237,11 +238,11 @@ export function useAiChat() {
         }
 
         return { ok: false, message: `Ошибка сервера: ${errDetail}`, latencyMs };
-      } catch (err: any) {
+      } catch (err) {
         const latencyMs = Date.now() - startTime;
         return {
           ok: false,
-          message: `Ошибка сети / CORS: ${err.message || 'Сервер недоступен по указанному адресу'}`,
+          message: `Ошибка сети / CORS: ${getErrorMessage(err, 'Сервер недоступен по указанному адресу')}`,
           latencyMs,
         };
       }
@@ -443,8 +444,8 @@ export function useAiChat() {
           );
           persistMessages(finalMessages);
         }
-      } catch (err: any) {
-        if (err.name === 'AbortError') {
+      } catch (err) {
+        if (isAbortError(err)) {
           // User aborted manually
           setMessages((prev) =>
             prev.map((msg) =>
@@ -452,7 +453,7 @@ export function useAiChat() {
             )
           );
         } else {
-          const errText = err.message || 'Не удалось получить ответ от ИИ';
+          const errText = getErrorMessage(err, 'Не удалось получить ответ от ИИ');
           setError(errText);
           const errorMessages = updatedMessages.map((msg) =>
             msg.id === assistantMessageId

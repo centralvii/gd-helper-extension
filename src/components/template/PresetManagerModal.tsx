@@ -53,10 +53,10 @@ export const PresetManagerModal: React.FC<PresetManagerModalProps> = ({
           {presets.map((preset) => (
             <div
               key={preset.id}
-              className={`flex items-center justify-between gap-3 p-2.5 rounded-2xl border transition-colors shadow-2xs ${
+              className={`flex items-center justify-between gap-3 p-2.5 rounded-xl border transition-colors shadow-2xs ${
                 preset.isPrimary
                   ? 'bg-amber-50/80 border-amber-300'
-                  : 'bg-white border-slate-200/90 hover:border-emerald-300'
+                  : 'bg-white border-slate-200 hover:border-emerald-300'
               }`}
             >
               <div className="min-w-0 flex-1">
@@ -110,8 +110,8 @@ export const PresetManagerModal: React.FC<PresetManagerModalProps> = ({
         </div>
 
         {/* Save Current Template */}
-        <form onSubmit={handleSave} className="pt-3 border-t border-gray-100 space-y-2.5">
-          <div className="text-xs font-semibold text-gray-800 flex items-center gap-1.5">
+        <form onSubmit={handleSave} className="pt-3 border-t border-slate-100 space-y-2.5">
+          <div className="text-xs font-semibold text-slate-800 flex items-center gap-1.5">
             <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
             <span>Сохранить текущий шаблон как пресет</span>
           </div>
@@ -134,15 +134,15 @@ export const PresetManagerModal: React.FC<PresetManagerModalProps> = ({
             </Button>
           </div>
           <div className="flex items-center justify-between text-[11px]">
-            <span className="font-mono text-gray-500 truncate max-w-[240px]">
+            <span className="font-mono text-slate-500 truncate max-w-[240px]">
               Текущий: {currentTemplate}
             </span>
-            <label className="flex items-center gap-1.5 text-gray-700 cursor-pointer">
+            <label className="flex items-center gap-1.5 text-slate-700 cursor-pointer">
               <input
                 type="checkbox"
                 checked={setAsPrimary}
                 onChange={(e) => setSetAsPrimary(e.target.checked)}
-                className="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                className="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
               />
               <span>Сделать основным</span>
             </label>

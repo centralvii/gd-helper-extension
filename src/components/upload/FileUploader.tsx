@@ -70,7 +70,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
     }
 
     return (
-        <div className="relative overflow-hidden rounded-2xl border-2 border-dashed border-emerald-300/80 bg-white p-7 shadow-xs hover:border-emerald-500 hover:shadow-md transition-all group">
+        <div className="relative overflow-hidden rounded-xl border-2 border-dashed border-emerald-300/80 bg-white p-7 shadow-xs hover:border-emerald-500 hover:shadow-md transition-all group">
             <div className="relative flex flex-col items-center justify-center text-center">
                 <input
                     ref={zipInputRef}
@@ -88,7 +88,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
                     onChange={handleGufChange}
                 />
 
-                <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-500 text-white shadow-md shadow-emerald-500/25 transition-transform group-hover:scale-105">
+                <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-500 text-white shadow-md shadow-emerald-500/25 transition-transform group-hover:scale-105">
                     <UploadCloud className="h-8 w-8" />
                 </div>
 

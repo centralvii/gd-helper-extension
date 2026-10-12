@@ -260,13 +260,12 @@ export const App: React.FC = () => {
 
     if (isLoading) {
         return (
-            <div className="flex flex-col items-center justify-center min-h-screen gap-3"
-                style={{ background: '#f0f4f0' }}>
-                <svg className="animate-spin w-7 h-7" style={{ color: '#22c55e' }} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <div className="flex flex-col items-center justify-center min-h-screen gap-3">
+                <svg className="animate-spin w-7 h-7 text-gd-green" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                 </svg>
-                <span className="text-sm font-medium" style={{ color: '#6b7280' }}>Загрузка GDHelper...</span>
+                <span className="text-sm font-medium text-gd-muted">Загрузка GD Helper...</span>
             </div>
         );
     }
@@ -276,22 +275,17 @@ export const App: React.FC = () => {
             className={`flex flex-col relative ${
                 activeTool === 'ai' ? 'h-screen overflow-hidden' : 'min-h-screen'
             }`}
-            style={{ background: '#f0f4f0', color: '#111827' }}
         >
             {/* Global Drag Overlay */}
             {isDraggingOver && (
-                <div
-                    className="fixed inset-0 z-50 flex flex-col items-center justify-center p-6 text-center pointer-events-none animate-fade-in"
-                    style={{
-                        background: 'rgba(240,244,240,0.95)',
-                        border: '3px dashed #22c55e',
-                    }}
-                >
-                    <UploadCloud className="w-14 h-14 animate-bounce mb-3" style={{ color: '#22c55e' }} />
-                    <h2 className="text-base font-bold mb-1" style={{ color: '#111827' }}>
+                <div className="fixed inset-2 z-50 flex flex-col items-center justify-center p-6 text-center pointer-events-none animate-fade-in rounded-xl border-2 border-dashed border-emerald-400 bg-emerald-50/90 backdrop-blur-sm">
+                    <div className="w-16 h-16 mb-3 rounded-xl bg-white border border-emerald-200 shadow-gd-green flex items-center justify-center">
+                        <UploadCloud className="w-8 h-8 text-emerald-600 animate-bounce" />
+                    </div>
+                    <h2 className="text-base font-bold mb-1 text-slate-900">
                         Отпустите файлы здесь
                     </h2>
-                    <p className="text-xs" style={{ color: '#6b7280' }}>
+                    <p className="text-xs text-slate-500">
                         ZIP-архив или пачка .guf файлов будет импортирована
                     </p>
                 </div>
@@ -315,7 +309,7 @@ export const App: React.FC = () => {
 
                                 {autoCollectNotification.cardId && (
                                     <span
-                                        className="inline-flex items-center font-mono text-[9px] font-bold bg-emerald-100/90 text-emerald-800 px-1 py-0.2 rounded border border-emerald-200/90 flex-shrink-0"
+                                        className="inline-flex items-center font-mono text-[9px] font-bold bg-emerald-100/90 text-emerald-800 px-1 py-px rounded border border-emerald-200/90 flex-shrink-0"
                                         title={`ID карточки в GreenData: ${autoCollectNotification.cardId}`}
                                     >
                                         ID: {autoCollectNotification.cardId}
@@ -323,7 +317,7 @@ export const App: React.FC = () => {
                                 )}
 
                                 {autoCollectNotification.mode && (
-                                    <span className="text-[8.5px] font-semibold px-1 py-0.2 rounded bg-slate-100 text-slate-600 border border-slate-200/90 flex-shrink-0">
+                                    <span className="text-[8.5px] font-semibold px-1 py-px rounded bg-slate-100 text-slate-600 border border-slate-200 flex-shrink-0">
                                         {autoCollectNotification.mode === 'original' ? 'исходный' : 'со страницы'}
                                     </span>
                                 )}
@@ -370,7 +364,7 @@ export const App: React.FC = () => {
                                 <span className="text-[11px] font-bold text-slate-800 flex-shrink-0">
                                     Спарсен след. номер пакета
                                 </span>
-                                <span className="inline-flex items-center font-mono text-[9.5px] font-bold bg-emerald-100/90 text-emerald-800 px-1 py-0.2 rounded border border-emerald-200 flex-shrink-0">
+                                <span className="inline-flex items-center font-mono text-[9.5px] font-bold bg-emerald-100/90 text-emerald-800 px-1 py-px rounded border border-emerald-200 flex-shrink-0">
                                     № {packageNumberNotification.number}
                                 </span>
                             </div>
@@ -416,12 +410,12 @@ export const App: React.FC = () => {
                 </div>
 
                 {/* Extra Tools View */}
-                <div className={activeTool === 'extra' ? 'space-y-3' : 'hidden'}>
+                <div className={activeTool === 'extra' ? 'space-y-3 animate-fade-in' : 'hidden'}>
                     <ExtraContainer />
                 </div>
 
                 {/* Implementation Tool View */}
-                <div className={activeTool === 'implementation' ? 'space-y-3' : 'hidden'}>
+                <div className={activeTool === 'implementation' ? 'space-y-3 animate-fade-in' : 'hidden'}>
                     <ImplementationTool
                         packages={packages}
                         tasksState={implTasks}
@@ -435,14 +429,14 @@ export const App: React.FC = () => {
                 </div>
 
                 {/* YouTrack Tool View */}
-                <div className={activeTool === 'youtrack' ? 'space-y-3' : 'hidden'}>
+                <div className={activeTool === 'youtrack' ? 'space-y-3 animate-fade-in' : 'hidden'}>
                     <YouTrackTool
                         onTransferToImplementation={handleTransferYouTrackToImplementation}
                     />
                 </div>
 
                 {/* Packer View */}
-                <div className={activeTool === 'packer' ? 'space-y-3' : 'hidden'}>
+                <div className={activeTool === 'packer' ? 'space-y-3 animate-fade-in' : 'hidden'}>
                     {/* Package Selector / Session Switcher */}
                     <PackageSelector
                         packages={packages}

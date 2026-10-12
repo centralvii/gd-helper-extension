@@ -114,7 +114,7 @@ export const MassActionsModal: React.FC<MassActionsModalProps> = ({
       <div className="space-y-4 text-xs">
         {/* Template & Quick Tag Insertion */}
         {template !== undefined && onSetTemplate && (
-          <div className="rounded-2xl border border-slate-200/90 bg-white p-3 space-y-2.5 shadow-2xs">
+          <div className="rounded-xl border border-slate-200 bg-white p-3 space-y-2.5 shadow-2xs">
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-bold text-slate-800 flex items-center gap-1.5">
                 <Wand2 className="w-3.5 h-3.5 text-emerald-600" />
@@ -170,7 +170,7 @@ export const MassActionsModal: React.FC<MassActionsModalProps> = ({
           </div>
         )}
 
-        <div className="rounded-2xl border border-emerald-200/90 bg-emerald-50/60 p-3 shadow-2xs">
+        <div className="rounded-xl border border-emerald-200/90 bg-emerald-50/60 p-3 shadow-2xs">
           <p className="text-emerald-950 text-[11px] leading-relaxed font-medium">
             Значения тегов автоматически подставляются в шаблон имени файлов (например,{' '}
             <span className="font-mono font-bold text-emerald-900 bg-white px-1.5 py-0.5 rounded border border-emerald-300">{'{type}'}</span>,{' '}
@@ -191,7 +191,7 @@ export const MassActionsModal: React.FC<MassActionsModalProps> = ({
             return (
               <div
                 key={v.key}
-                className="flex flex-col sm:flex-row sm:items-center gap-2.5 p-3 rounded-2xl bg-white border border-slate-200/90 shadow-2xs hover:border-emerald-300 transition-all"
+                className="flex flex-col sm:flex-row sm:items-center gap-2.5 p-3 rounded-xl bg-white border border-slate-200 shadow-2xs hover:border-emerald-300 transition-all"
               >
                 {/* Left label & quick buttons */}
                 <div className="sm:w-36 flex-shrink-0 flex items-center justify-between sm:block">
@@ -256,7 +256,7 @@ export const MassActionsModal: React.FC<MassActionsModalProps> = ({
         </div>
 
         {/* Add custom tag section */}
-        <div className="p-3.5 rounded-2xl bg-slate-50/90 border border-slate-200/90 space-y-2.5 shadow-2xs">
+        <div className="p-3.5 rounded-xl bg-slate-50/90 border border-slate-200 space-y-2.5 shadow-2xs">
           <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">
             + Добавить свой тег (переменную):
           </span>

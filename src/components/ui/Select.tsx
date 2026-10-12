@@ -112,7 +112,7 @@ export const Select: React.FC<SelectProps> = ({
               {selectedOption.icon && <span className="flex-shrink-0">{selectedOption.icon}</span>}
               <span className="truncate">{selectedOption.label}</span>
               {selectedOption.badge && (
-                <span className="px-1.5 py-0.2 rounded-md bg-emerald-50 text-emerald-800 text-[10px] font-bold border border-emerald-200 flex-shrink-0 ml-1">
+                <span className="px-1.5 py-px rounded-md bg-emerald-50 text-emerald-800 text-[10px] font-bold border border-emerald-200 flex-shrink-0 ml-1">
                   {selectedOption.badge}
                 </span>
               )}
@@ -133,7 +133,7 @@ export const Select: React.FC<SelectProps> = ({
       {/* Dropdown Menu */}
       {isOpen && (
         <div
-          className={`absolute left-0 right-0 z-50 mt-1 bg-white border border-slate-200/90 rounded-xl shadow-lg py-1 overflow-y-auto max-h-60 animate-slide-down ${dropdownClassName}`}
+          className={`absolute left-0 right-0 z-50 mt-1 bg-white border border-slate-200 rounded-xl shadow-lg shadow-slate-900/10 p-1 overflow-y-auto max-h-60 animate-slide-down ${dropdownClassName}`}
         >
           {options.length === 0 ? (
             <div className="px-3 py-2 text-center text-slate-400 text-[11px]">
@@ -148,7 +148,7 @@ export const Select: React.FC<SelectProps> = ({
                   type="button"
                   disabled={opt.disabled}
                   onClick={() => handleSelect(opt.value, opt.disabled)}
-                  className={`w-full flex items-center justify-between gap-2 px-3 py-1.5 text-left text-xs transition-colors cursor-pointer ${
+                  className={`w-full flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-lg text-left text-xs transition-colors cursor-pointer ${
                     opt.disabled
                       ? 'opacity-40 cursor-not-allowed bg-slate-50'
                       : opt.isAction
@@ -162,7 +162,7 @@ export const Select: React.FC<SelectProps> = ({
                     {opt.icon && <span className="flex-shrink-0">{opt.icon}</span>}
                     <span className="truncate">{opt.label}</span>
                     {opt.badge && (
-                      <span className="px-1.5 py-0.2 rounded-md bg-emerald-50 text-emerald-800 text-[10px] font-bold border border-emerald-200 flex-shrink-0">
+                      <span className="px-1.5 py-px rounded-md bg-emerald-50 text-emerald-800 text-[10px] font-bold border border-emerald-200 flex-shrink-0">
                         {opt.badge}
                       </span>
                     )}

@@ -283,7 +283,7 @@ export const AddChangeItemModal: React.FC<AddChangeItemModalProps> = ({
     >
       <form onSubmit={handleSubmit} className="space-y-3.5 text-xs">
         {/* Section Picker */}
-        <div className="space-y-2 p-3 bg-slate-50/90 border border-slate-200/90 rounded-2xl shadow-2xs">
+        <div className="space-y-2 p-3 bg-slate-50/90 border border-slate-200 rounded-xl shadow-2xs">
           <div className="flex items-center justify-between gap-2 flex-wrap">
             <label className="font-bold text-slate-800 flex items-center gap-1.5">
               <Layers className="w-3.5 h-3.5 text-emerald-600" />
@@ -445,7 +445,7 @@ export const AddChangeItemModal: React.FC<AddChangeItemModalProps> = ({
         />
 
         {/* Browser tab insertion bar */}
-        <div className="p-3 bg-slate-50/90 border border-slate-200/90 rounded-2xl space-y-2.5 shadow-2xs">
+        <div className="p-3 bg-slate-50/90 border border-slate-200 rounded-xl space-y-2.5 shadow-2xs">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-1.5 text-slate-700 font-semibold min-w-0">
               <LinkIcon className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
@@ -563,7 +563,7 @@ export const AddChangeItemModal: React.FC<AddChangeItemModalProps> = ({
 
         {/* Live Preview */}
         {description.trim() && (
-          <div className="p-3 bg-slate-50 border border-slate-200/80 rounded-2xl space-y-1 shadow-2xs">
+          <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-1 shadow-2xs">
             <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
               Предпросмотр записи:
             </div>

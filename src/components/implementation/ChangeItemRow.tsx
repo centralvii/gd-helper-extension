@@ -114,7 +114,7 @@ export const ChangeItemRow: React.FC<ChangeItemRowProps> = React.memo(({
     <div className={`group relative rounded-xl border p-2.5 transition-all space-y-1.5 ${
       item.isCollected
         ? 'border-emerald-200/90 bg-emerald-50/20'
-        : 'border-slate-200/90 bg-white hover:border-emerald-300 hover:shadow-xs'
+        : 'border-slate-200 bg-white hover:border-emerald-300 hover:shadow-xs'
     }`}>
       {/* Top Header: Index badge + Status on left, Reorder & Action buttons on right */}
       <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-1.5 min-w-0">
@@ -273,7 +273,7 @@ export const ChangeItemRow: React.FC<ChangeItemRowProps> = React.memo(({
                   >
                     <LinkIcon className="w-3 h-3 flex-shrink-0 text-emerald-600" />
                     {cardId && (
-                      <span className="inline-flex items-center font-mono text-[9.5px] font-bold text-emerald-800 bg-emerald-100/90 px-1 py-0.2 rounded border border-emerald-200/80 flex-shrink-0">
+                      <span className="inline-flex items-center font-mono text-[9.5px] font-bold text-emerald-800 bg-emerald-100/90 px-1 py-px rounded border border-emerald-200/80 flex-shrink-0">
                         ID: {cardId}
                       </span>
                     )}

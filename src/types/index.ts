@@ -108,6 +108,27 @@ export interface YouTrackIssue {
   rawFields?: Record<string, string>;
 }
 
+/** Значение кастомного поля задачи из REST API YouTrack */
+export interface YouTrackApiCustomField {
+  name?: string;
+  value?: string | { name?: string; presentation?: string; text?: string } | null;
+}
+
+/** Сырая задача из REST API YouTrack или DOM-парсера страницы поиска */
+export interface YouTrackApiIssue {
+  id?: string;
+  idReadable?: string;
+  summary?: string;
+  description?: string | null;
+  resolved?: number | null;
+  created?: number;
+  updated?: number;
+  state?: string; // Заполняется DOM-парсером (в REST API статус приходит в customFields)
+  url?: string;
+  project?: { name?: string; shortName?: string };
+  customFields?: YouTrackApiCustomField[];
+}
+
 export interface YouTrackCacheData {
   issues: YouTrackIssue[];
   lastSyncedAt: number;
@@ -276,3 +297,26 @@ export interface AiAlgorithmIdResult {
   source: 'ai' | 'local';
 }
 
+
+/** Сырой JSON-ответ LLM при генерации ID алгоритма (поля не гарантированы) */
+export interface AiAlgorithmRawResponse {
+  primaryId?: string;
+  id?: string;
+  detectedType?: string;
+  explanation?: string;
+  variants?: Array<{ id: string; desc?: string }>;
+}
+
+/** Минимальный интерфейс поля MathQuill на странице GreenData */
+export interface MathQuillField {
+  moveToLeftEnd?: () => void;
+  typedText?: (text: string) => void;
+  write?: (latex: string) => void;
+}
+
+type MathQuillFactory = (el: HTMLElement) => MathQuillField | null;
+
+/** window страницы GreenData с глобальным MathQuill */
+export interface MathQuillWindow {
+  MathQuill?: MathQuillFactory & { getInterface?: (version: number) => MathQuillFactory };
+}

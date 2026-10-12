@@ -94,7 +94,7 @@ export const FileTable: React.FC<FileTableProps> = ({
     return (
         <div className="space-y-3">
             {/* Toolbar with Search and Add files button */}
-            <div className="flex items-center justify-between gap-2 p-1.5 bg-white border border-slate-200/90 rounded-2xl shadow-xs">
+            <div className="flex items-center justify-between gap-2 p-1.5 bg-white border border-slate-200 rounded-xl shadow-sm">
                 <div className="relative flex-1">
                     <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
                     <input

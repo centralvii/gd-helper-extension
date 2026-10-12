@@ -187,7 +187,7 @@ export const AiChatContainer: React.FC = () => {
   return (
     <div className="flex flex-col h-full w-full min-h-0 flex-1 bg-white overflow-hidden relative font-sans">
       {/* ── Top Bar with Agent Switcher ── */}
-      <div className="flex items-center justify-between px-2.5 py-1.5 bg-white/95 backdrop-blur-md border-b border-slate-200/80 flex-shrink-0 z-20">
+      <div className="flex items-center justify-between px-2.5 py-1.5 bg-white/95 backdrop-blur-md border-b border-slate-200 flex-shrink-0 z-20">
         {/* Agent Switcher Dropdown Button */}
         <div className="relative min-w-0">
           <button
@@ -210,7 +210,7 @@ export const AiChatContainer: React.FC = () => {
                 className="fixed inset-0 z-30"
                 onClick={() => setIsAgentMenuOpen(false)}
               />
-              <div className="absolute top-full mt-1.5 left-0 w-64 bg-white border border-slate-200 rounded-2xl shadow-2xl p-1.5 space-y-1 z-40 animate-slide-down">
+              <div className="absolute top-full mt-1.5 left-0 w-64 bg-white border border-slate-200 rounded-xl shadow-2xl p-1.5 space-y-1 z-40 animate-slide-down">
                 <div className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
                   Выборка ИИ-агентов
                 </div>
@@ -266,7 +266,7 @@ export const AiChatContainer: React.FC = () => {
           <button
             type="button"
             onClick={() => setIsSettingsOpen(true)}
-            className="inline-flex items-center gap-1.5 h-7 px-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 text-[10px] font-mono font-semibold border border-slate-200/90 transition-all cursor-pointer max-w-[120px] truncate shadow-2xs"
+            className="inline-flex items-center gap-1.5 h-7 px-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 text-[10px] font-mono font-semibold border border-slate-200 transition-all cursor-pointer max-w-[120px] truncate shadow-2xs"
             title={`Модель: ${settings.model || 'gpt-4o-mini'}`}
           >
             <span
@@ -324,7 +324,7 @@ export const AiChatContainer: React.FC = () => {
             {/* Agent Hero */}
             <div className="space-y-2">
               <div
-                className={`w-11 h-11 rounded-2xl text-white flex items-center justify-center mx-auto shadow-md ${
+                className={`w-11 h-11 rounded-xl text-white flex items-center justify-center mx-auto shadow-md ${
                   activeAgent.badgeColor === 'emerald'
                     ? 'bg-gradient-to-tr from-emerald-600 via-teal-600 to-emerald-500 shadow-emerald-600/20'
                     : activeAgent.badgeColor === 'indigo'
@@ -359,7 +359,7 @@ export const AiChatContainer: React.FC = () => {
                     onClick={() => selectAgent(agent.id)}
                     className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${
                       agent.id === activeAgent.id
-                        ? 'bg-slate-900 text-white shadow-2xs'
+                        ? 'bg-emerald-600 text-white border border-emerald-600 shadow-2xs'
                         : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
                     }`}
                   >
@@ -408,7 +408,7 @@ export const AiChatContainer: React.FC = () => {
                       setInputVal(item.prompt);
                       textareaRef.current?.focus();
                     }}
-                    className="p-2.5 rounded-xl bg-white border border-slate-200/90 hover:border-emerald-400 hover:bg-emerald-50/30 text-left transition-all flex items-start gap-2.5 group cursor-pointer shadow-2xs"
+                    className="p-2.5 rounded-xl bg-white border border-slate-200 hover:border-emerald-400 hover:bg-emerald-50/30 text-left transition-all flex items-start gap-2.5 group cursor-pointer shadow-2xs"
                   >
                     <div className="p-1.5 rounded-lg bg-slate-100 group-hover:bg-white transition-colors flex-shrink-0 mt-0.5">
                       {getAgentIcon(activeAgent.avatarIcon, 'w-3 h-3 text-emerald-600')}
@@ -449,7 +449,7 @@ export const AiChatContainer: React.FC = () => {
         <button
           type="button"
           onClick={() => scrollToBottom('smooth')}
-          className="absolute bottom-22 right-3 z-20 p-1.5 rounded-full bg-white text-emerald-700 hover:text-emerald-800 shadow-md border border-slate-200 transition-all hover:scale-105 cursor-pointer"
+          className="absolute bottom-[88px] right-3 z-20 p-1.5 rounded-full bg-white text-emerald-700 hover:text-emerald-800 shadow-md border border-slate-200 transition-all hover:scale-105 cursor-pointer"
           title="Прокрутить вниз"
         >
           <ArrowDown className="w-3.5 h-3.5" />
@@ -458,7 +458,7 @@ export const AiChatContainer: React.FC = () => {
 
       {/* ── Floating Composer Bar ── */}
       <div className="p-2 sm:p-2.5 bg-white border-t border-slate-200 flex-shrink-0 z-10">
-        <div className="relative rounded-2xl bg-white border border-slate-300 focus-within:border-emerald-500 focus-within:ring-2 focus-within:ring-emerald-500/15 shadow-sm transition-all p-2.5 space-y-1.5">
+        <div className="relative rounded-xl bg-white border border-slate-300 focus-within:border-emerald-500 focus-within:ring-2 focus-within:ring-emerald-500/15 shadow-sm transition-all p-2.5 space-y-1.5">
           {/* Quick Prompt Templates Popover */}
           {showQuickMenu && (
             <>
@@ -576,7 +576,7 @@ export const AiChatContainer: React.FC = () => {
                   title="Отправить (Enter)"
                   className={`w-7 h-7 rounded-full flex items-center justify-center transition-all shadow-xs ${
                     (inputVal.trim() || attachedContext) && !isLoading
-                      ? 'bg-slate-900 hover:bg-emerald-600 text-white hover:scale-105 cursor-pointer'
+                      ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/30 hover:scale-105 cursor-pointer'
                       : 'bg-slate-100 text-slate-400 cursor-not-allowed'
                   }`}
                 >

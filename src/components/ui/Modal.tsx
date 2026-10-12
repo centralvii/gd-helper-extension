@@ -109,7 +109,7 @@ export const Modal: React.FC<ModalProps> = ({
     <div className="fixed inset-0 z-50 overflow-hidden pointer-events-none">
       {/* Backdrop */}
       <div
-        className={`fixed inset-0 bg-slate-900/60 pointer-events-auto modal-backdrop ${
+        className={`fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] pointer-events-auto modal-backdrop ${
           isClosing ? 'modal-backdrop-out' : 'modal-backdrop-in'
         }`}
         onClick={() => {
@@ -121,26 +121,29 @@ export const Modal: React.FC<ModalProps> = ({
       <div className="fixed inset-x-0 bottom-0 z-50 flex justify-center pointer-events-none">
         <div
           ref={contentRef}
-          className={`w-full ${maxWidthClasses[maxWidth]} bg-white border-t border-x border-slate-200/90 shadow-2xl
-            flex flex-col max-h-[92vh] rounded-t-3xl pointer-events-auto modal-sheet ${
+          className={`w-full ${maxWidthClasses[maxWidth]} bg-white border-t border-x border-slate-200 shadow-2xl shadow-slate-900/20
+            flex flex-col max-h-[92vh] rounded-t-2xl pointer-events-auto modal-sheet ${
               isClosing ? 'modal-sheet-out' : 'modal-sheet-in'
             }`}
         >
           {/* Mobile / Sheet Pull Handle Indicator */}
-          <div className="w-full flex justify-center pt-2.5 pb-1 bg-white rounded-t-3xl flex-shrink-0">
-            <div className="w-10 h-1 bg-slate-300 rounded-full" />
+          <div className="w-full flex justify-center pt-2.5 pb-1 bg-white rounded-t-2xl flex-shrink-0">
+            <div className="w-10 h-1 bg-slate-200 rounded-full" />
           </div>
 
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3.5 border-b border-slate-100 bg-white flex-shrink-0">
-            <h3 className="text-sm font-bold text-slate-900 tracking-tight">
-              {renderedTitle}
+            <h3 className="flex items-center gap-2 text-sm font-bold text-slate-900 tracking-tight min-w-0">
+              <span className="w-1 h-4 rounded-full bg-gradient-to-b from-emerald-400 to-emerald-600 flex-shrink-0" />
+              <span className="truncate">{renderedTitle}</span>
             </h3>
             <button
+              type="button"
               onClick={() => {
                 if (!isClosing) onClose();
               }}
-              className="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors flex-shrink-0 cursor-pointer"
+              title="Закрыть (Esc)"
+              className="icon-btn vk-icon-spin"
             >
               <X className="w-4 h-4" />
             </button>

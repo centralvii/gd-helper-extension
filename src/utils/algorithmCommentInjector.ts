@@ -1,3 +1,6 @@
+import { getErrorMessage } from './errorUtils';
+import type { MathQuillWindow } from '../types';
+
 /**
  * GreenData Algorithm Comment Header Injector
  * Injects comment header (e.g. "//07.09.2026. Кучин В.В. FINAPP-5638. 11-2026.")
@@ -105,7 +108,7 @@ export async function injectAlgorithmComment(
           if (!hasExistingCursor) {
             // Attempt A: MathQuill JS API if present on window
             try {
-              const win = window as any;
+              const win = window as unknown as MathQuillWindow;
               const MQ = win.MathQuill?.getInterface ? win.MathQuill.getInterface(2) : win.MathQuill;
               if (typeof MQ === 'function') {
                 const mqField = MQ(target);
@@ -188,7 +191,7 @@ export async function injectAlgorithmComment(
 
           // Technique 3: MathQuill API typedText or write
           try {
-            const win = window as any;
+            const win = window as unknown as MathQuillWindow;
             const MQ = win.MathQuill?.getInterface ? win.MathQuill.getInterface(2) : win.MathQuill;
             if (typeof MQ === 'function') {
               const mqField = MQ(target);
@@ -281,14 +284,14 @@ export async function injectAlgorithmComment(
         ? 'Редактор алгоритма на странице не найден, но комментарий скопирован в буфер обмена!'
         : 'Редактор формулы/алгоритма не найден на открытой странице.',
     };
-  } catch (err: any) {
+  } catch (err) {
     return {
       success: copiedToClipboard,
       editorFound: false,
       copiedToClipboard,
       message: copiedToClipboard
-        ? `Скопировано в буфер (ошибка страницы: ${err.message || 'нет доступа'})`
-        : `Ошибка: ${err.message || 'Не удалось вставить комментарий'}`,
+        ? `Скопировано в буфер (ошибка страницы: ${getErrorMessage(err, 'нет доступа')})`
+        : `Ошибка: ${getErrorMessage(err, 'Не удалось вставить комментарий')}`,
     };
   }
 }

@@ -22,24 +22,24 @@ export const Button: React.FC<ButtonProps> = ({
   ...props
 }) => {
   const base =
-    'inline-flex items-center justify-center font-semibold rounded-xl transition-all duration-150 focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed select-none will-change-transform active:scale-[0.97] active:transition-none cursor-pointer whitespace-nowrap';
+    'inline-flex items-center justify-center font-semibold rounded-xl transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 disabled:opacity-40 disabled:shadow-none disabled:cursor-not-allowed select-none will-change-transform active:scale-[0.97] active:transition-none cursor-pointer whitespace-nowrap';
 
   const canonicalPrimary =
-    'bg-gradient-to-b from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white border border-emerald-600/90 shadow-sm shadow-emerald-600/25 hover:shadow-md hover:shadow-emerald-600/35 focus:ring-2 focus:ring-emerald-500/30';
+    'bg-gradient-to-b from-emerald-500 to-emerald-600 hover:from-emerald-500 hover:to-emerald-700 text-white border border-emerald-600/90 shadow-sm shadow-emerald-600/25 hover:shadow-md hover:shadow-emerald-600/35 hover:-translate-y-px focus-visible:ring-emerald-500/40';
 
   const variants = {
     primary: canonicalPrimary,
     emerald: canonicalPrimary,
     secondary:
-      'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 hover:border-slate-300 hover:text-slate-900 shadow-2xs focus:ring-2 focus:ring-slate-200',
+      'bg-white text-slate-700 border border-slate-200 hover:bg-emerald-50/40 hover:border-emerald-300 hover:text-emerald-800 shadow-xs focus-visible:ring-emerald-500/30',
     danger:
-      'bg-rose-600 hover:bg-rose-700 text-white border border-rose-600 shadow-xs hover:shadow-md hover:shadow-rose-600/20 focus:ring-2 focus:ring-rose-400/30',
+      'bg-gradient-to-b from-rose-500 to-rose-600 hover:to-rose-700 text-white border border-rose-600 shadow-sm shadow-rose-600/20 hover:shadow-md hover:shadow-rose-600/30 focus-visible:ring-rose-400/40',
     ghost:
-      'bg-transparent text-slate-600 hover:bg-emerald-50 hover:text-emerald-800 focus:ring-2 focus:ring-emerald-500/20',
+      'bg-transparent text-slate-600 hover:bg-emerald-50 hover:text-emerald-800 focus-visible:ring-emerald-500/30',
     outline:
-      'bg-transparent text-emerald-700 border border-emerald-300 hover:bg-emerald-50 hover:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20',
+      'bg-transparent text-emerald-700 border border-emerald-300 hover:bg-emerald-50 hover:border-emerald-400 focus-visible:ring-emerald-500/30',
     toolbar:
-      'bg-slate-50 hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 border border-slate-200 hover:border-emerald-300 shadow-2xs font-semibold',
+      'bg-slate-50 hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 border border-slate-200 hover:border-emerald-300 shadow-2xs font-semibold focus-visible:ring-emerald-500/30',
   };
 
   const sizes = {

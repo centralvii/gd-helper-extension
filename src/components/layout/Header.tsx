@@ -60,10 +60,12 @@ export const Header: React.FC<HeaderProps> = ({
     ];
 
     return (
-        <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
+        <header className="sticky top-0 z-30 bg-white/85 backdrop-blur-md border-b border-slate-200 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
+            {/* Фирменная акцентная линия GreenData */}
+            <div className="h-0.5 bg-gradient-to-r from-emerald-400 via-emerald-500 to-teal-400" />
             <div className="flex items-center justify-between gap-1.5 px-2.5 py-1.5 min-h-[44px]">
                 {/* ── Navigation tabs pill ── */}
-                <div className="flex items-center gap-0.5 rounded-xl p-0.5 bg-slate-100/90 border border-slate-200/80 shadow-2xs">
+                <div className="flex items-center gap-0.5 min-w-0 rounded-xl p-0.5 bg-slate-100/90 border border-slate-200 shadow-2xs">
                     {navTabs.map((tab) => {
                         const isActive = activeTool === tab.id;
                         return (
@@ -77,15 +79,17 @@ export const Header: React.FC<HeaderProps> = ({
                                 }`}
                             >
                                 {tab.icon}
-                                {tab.label && <span>{tab.label}</span>}
+                                {/* На узкой панели подпись видна только у активной вкладки */}
+                                {tab.label && (
+                                    <span className={isActive ? '' : 'hidden xs:inline'}>{tab.label}</span>
+                                )}
                                 {tab.id === 'packer' && fileCount > 0 && (
                                     <span
-                                        className="rounded-full px-1.5 text-[9px] font-bold leading-none py-0.5 flex-shrink-0 transition-all shadow-2xs"
-                                        style={{
-                                            background: isActive ? '#059669' : '#dcfce7',
-                                            color:      isActive ? '#ffffff' : '#047857',
-                                            boxShadow:  isActive ? '0 0 6px rgba(5,150,105,0.4)' : undefined,
-                                        }}
+                                        className={`rounded-full px-1.5 py-0.5 text-[9px] font-bold leading-none tabular-nums flex-shrink-0 transition-all ${
+                                            isActive
+                                                ? 'bg-emerald-600 text-white shadow-[0_0_6px_rgba(5,150,105,0.4)]'
+                                                : 'bg-emerald-100 text-emerald-700'
+                                        }`}
                                     >
                                         {fileCount}
                                     </span>
@@ -97,9 +101,10 @@ export const Header: React.FC<HeaderProps> = ({
 
                 {/* ── Right: Fullscreen Action ── */}
                 <button
+                    type="button"
                     onClick={handleOpenFullscreen}
                     title="Открыть во весь экран (в новой вкладке)"
-                    className="w-7 h-7 flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-colors flex-shrink-0 cursor-pointer"
+                    className="icon-btn vk-icon-pop"
                 >
                     <Maximize2 className="w-3.5 h-3.5" />
                 </button>

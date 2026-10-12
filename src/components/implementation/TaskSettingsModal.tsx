@@ -154,7 +154,7 @@ export const TaskSettingsModal: React.FC<TaskSettingsModalProps> = ({
         </div>
 
         {/* ── Linked Packages Row (1 Task -> N Packages) ── */}
-        <div className="p-2.5 bg-emerald-50/60 border border-emerald-200/80 rounded-2xl text-xs shadow-2xs space-y-1.5">
+        <div className="p-2.5 bg-emerald-50/60 border border-emerald-200/80 rounded-xl text-xs shadow-2xs space-y-1.5">
           <div className="flex items-center justify-between gap-1.5 font-bold text-emerald-950 text-[11px] min-w-0">
             <div className="flex items-center gap-1.5 min-w-0">
               <Package className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />

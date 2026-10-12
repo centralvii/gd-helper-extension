@@ -69,7 +69,7 @@ export const DuplicateAutoCollectModal: React.FC<DuplicateAutoCollectModalProps>
     >
       <div className="space-y-3 py-1">
         {/* Warning Banner */}
-        <div className="flex items-start gap-2.5 p-3 rounded-2xl bg-amber-50/90 border border-amber-200/90 text-amber-900 shadow-2xs">
+        <div className="flex items-start gap-2.5 p-3 rounded-xl bg-amber-50/90 border border-amber-200/90 text-amber-900 shadow-2xs">
           <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
           <div className="text-xs">
             <p className="font-bold text-amber-950">
@@ -102,7 +102,7 @@ export const DuplicateAutoCollectModal: React.FC<DuplicateAutoCollectModalProps>
         {/* Comparison grid */}
         <div className="grid grid-cols-2 gap-2 text-xs pt-1">
           {/* Existing file */}
-          <div className="p-2.5 rounded-xl border border-slate-200/90 bg-slate-50/70 space-y-1">
+          <div className="p-2.5 rounded-xl border border-slate-200 bg-slate-50/70 space-y-1">
             <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">
               В пакете (позиция #{existingFile.order})
             </span>

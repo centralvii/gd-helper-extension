@@ -219,7 +219,7 @@ export const ChecklistPage: React.FC = () => {
 
   if (!task) {
     return (
-      <div className="min-h-screen bg-[#f0f4f0] flex items-center justify-center p-4">
+      <div className="min-h-screen flex items-center justify-center p-4">
         <div className="bg-white rounded-xl border border-slate-200 p-6 max-w-md text-center shadow-sm">
           <Info className="w-10 h-10 text-slate-400 mx-auto mb-2" />
           <h2 className="text-base font-bold text-slate-900 mb-1">Задача не найдена</h2>
@@ -232,7 +232,7 @@ export const ChecklistPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#f0f4f0] text-slate-900 pb-12 font-sans">
+    <div className="min-h-screen text-slate-900 pb-12 font-sans">
       {/* Top Header Bar */}
       <header className="sticky top-0 z-20 bg-white/95 backdrop-blur-sm border-b border-slate-200 shadow-2xs">
         <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
@@ -300,7 +300,7 @@ export const ChecklistPage: React.FC = () => {
       {/* Main Container */}
       <main className="max-w-4xl mx-auto px-4 pt-6 space-y-4">
         {/* Progress Card */}
-        <div className="p-4 bg-white border border-slate-200/90 rounded-xl shadow-xs space-y-3">
+        <div className="p-4 bg-white border border-slate-200 rounded-xl shadow-sm space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
               <h2 className="text-sm font-bold text-slate-900">Прогресс сбора объектов</h2>
@@ -317,7 +317,7 @@ export const ChecklistPage: React.FC = () => {
           </div>
 
           {/* Progress Bar */}
-          <div className="w-full bg-slate-100 rounded-full h-3 overflow-hidden border border-slate-200/90 shadow-inner">
+          <div className="w-full bg-slate-100 rounded-full h-3 overflow-hidden border border-slate-200 shadow-inner">
             <div
               className="bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 h-full rounded-full transition-all duration-300"
               style={{ width: `${progressPercent}%` }}
@@ -388,7 +388,7 @@ export const ChecklistPage: React.FC = () => {
 
         {/* Filter & Sorting Controls Bar */}
         {totalCount > 0 && (
-          <div className="flex flex-wrap items-center justify-between gap-2 p-2 bg-white border border-slate-200/90 rounded-xl shadow-2xs">
+          <div className="flex flex-wrap items-center justify-between gap-2 p-1.5 bg-white border border-slate-200 rounded-xl shadow-sm">
             {/* Filter Tabs */}
             <div className="flex items-center gap-1 bg-slate-50 p-1 rounded-lg border border-slate-200 shadow-2xs">
               <button
@@ -414,7 +414,7 @@ export const ChecklistPage: React.FC = () => {
               >
                 <span>Не собранные</span>
                 <span
-                  className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
+                  className={`px-1.5 py-px rounded-full text-[10px] font-bold ${
                     filterStatus === 'uncollected'
                       ? 'bg-amber-700/90 text-white'
                       : uncollectedCount > 0
@@ -437,7 +437,7 @@ export const ChecklistPage: React.FC = () => {
               >
                 <span>Собранные</span>
                 <span
-                  className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
+                  className={`px-1.5 py-px rounded-full text-[10px] font-bold ${
                     filterStatus === 'collected'
                       ? 'bg-emerald-800/90 text-white'
                       : 'bg-slate-100 text-slate-600'
@@ -504,9 +504,9 @@ export const ChecklistPage: React.FC = () => {
               return (
                 <div
                   key={sec.id}
-                  className="bg-white rounded-xl border border-slate-200/90 shadow-xs overflow-hidden"
+                  className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden"
                 >
-                  <div className="flex items-center justify-between gap-2 px-4 py-2.5 bg-gradient-to-r from-slate-50 to-white border-b border-slate-200/80">
+                  <div className="flex items-center justify-between gap-2 px-4 py-2.5 bg-gradient-to-r from-slate-50 to-white border-b border-slate-200">
                     <div className="flex items-center gap-2 min-w-0">
                       <Layers className="w-4 h-4 text-emerald-600 flex-shrink-0" />
                       <h3 className="font-bold text-xs text-slate-900 truncate">
@@ -539,7 +539,7 @@ export const ChecklistPage: React.FC = () => {
                           className={`rounded-xl border p-3 transition-all flex flex-col md:flex-row md:items-center justify-between gap-3 ${
                             isCollected
                               ? 'bg-emerald-50/30 border-emerald-200/90'
-                              : 'bg-white border-slate-200/90 hover:border-slate-300'
+                              : 'bg-white border-slate-200 hover:border-slate-300'
                           }`}
                         >
                           <div className="flex items-start gap-3 min-w-0 flex-1">
@@ -558,7 +558,7 @@ export const ChecklistPage: React.FC = () => {
 
                             <div className="min-w-0 flex-1 space-y-1">
                               <div className="flex items-center gap-2 flex-wrap">
-                                <span className="text-[10px] font-mono font-bold px-1.5 py-0.2 rounded bg-slate-100 text-slate-600 border border-slate-200">
+                                <span className="text-[10px] font-mono font-bold px-1.5 py-px rounded bg-slate-100 text-slate-600 border border-slate-200">
                                   #{displayNum}
                                 </span>
                                 {isCollected ? (
@@ -663,8 +663,8 @@ export const ChecklistPage: React.FC = () => {
 
             {/* Unsectioned */}
             {unsectionedItems.length > 0 && displayedUnsectionedItems.length > 0 && (
-              <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs overflow-hidden">
-                <div className="flex items-center justify-between gap-2 px-4 py-2.5 bg-gradient-to-r from-slate-50 to-white border-b border-slate-200/80">
+              <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                <div className="flex items-center justify-between gap-2 px-4 py-2.5 bg-gradient-to-r from-slate-50 to-white border-b border-slate-200">
                   <div className="flex items-center gap-2 min-w-0">
                     <Layers className="w-4 h-4 text-slate-500 flex-shrink-0" />
                     <h3 className="font-bold text-xs text-slate-800 truncate">
@@ -691,7 +691,7 @@ export const ChecklistPage: React.FC = () => {
                         className={`rounded-xl border p-3 transition-all flex flex-col md:flex-row md:items-center justify-between gap-3 ${
                           isCollected
                             ? 'bg-emerald-50/30 border-emerald-200/90'
-                            : 'bg-white border-slate-200/90 hover:border-slate-300'
+                            : 'bg-white border-slate-200 hover:border-slate-300'
                         }`}
                       >
                         <div className="flex items-start gap-3 min-w-0 flex-1">
@@ -710,7 +710,7 @@ export const ChecklistPage: React.FC = () => {
 
                           <div className="min-w-0 flex-1 space-y-1">
                             <div className="flex items-center gap-2 flex-wrap">
-                              <span className="text-[10px] font-mono font-bold px-1.5 py-0.2 rounded bg-slate-100 text-slate-600 border border-slate-200">
+                              <span className="text-[10px] font-mono font-bold px-1.5 py-px rounded bg-slate-100 text-slate-600 border border-slate-200">
                                 #{displayNum}
                               </span>
                               {isCollected ? (

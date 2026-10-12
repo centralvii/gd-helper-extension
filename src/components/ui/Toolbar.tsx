@@ -16,7 +16,7 @@ export const Toolbar: React.FC<ToolbarProps> & {
   return (
     <div
       className={twMerge(
-        'flex items-center justify-between gap-1.5 p-1.5 bg-white border border-slate-200/90 rounded-2xl shadow-xs',
+        'flex items-center justify-between gap-1.5 p-1.5 bg-white border border-slate-200 rounded-xl shadow-sm',
         className
       )}
       {...props}
@@ -50,7 +50,7 @@ export const ToolbarTitle: React.FC<ToolbarTitleProps> = ({
       {icon && (
         <div
           title={titleAttr || (typeof title === 'string' ? title : undefined)}
-          className="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center flex-shrink-0 font-bold shadow-2xs"
+          className="w-6 h-6 rounded-lg bg-gradient-to-br from-emerald-50 to-emerald-100 text-emerald-700 ring-1 ring-inset ring-emerald-200/80 flex items-center justify-center flex-shrink-0 font-bold"
         >
           {icon}
         </div>
@@ -120,10 +120,9 @@ export const ToolbarButton: React.FC<ToolbarButtonProps> = ({
       {dot && (
         <span
           className={clsx(
-            'w-1.5 h-1.5 rounded-full bg-emerald-500',
+            'w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_4px_rgba(16,185,129,0.7)]',
             !children ? 'absolute top-1 right-1' : ''
           )}
-          style={{ boxShadow: '0 0 4px rgba(34,197,94,0.7)' }}
         />
       )}
     </button>

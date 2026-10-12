@@ -10,6 +10,7 @@ import confetti from 'canvas-confetti';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
 import { ValidationSummary } from '../../types';
+import { pluralizeRu, FILE_FORMS, ERROR_FORMS } from '../../utils/pluralize';
 
 interface FooterProps {
     fileCount: number;
@@ -59,11 +60,11 @@ export const Footer: React.FC<FooterProps> = ({
     if (fileCount === 0) return null;
 
     return (
-        <footer className="sticky bottom-0 z-30 p-3 bg-white/95 backdrop-blur-md border-t border-slate-200/90 shadow-[0_-4px_16px_rgba(0,0,0,0.04)]">
+        <footer className="sticky bottom-0 z-30 p-3 bg-white/85 backdrop-blur-md border-t border-slate-200 shadow-[0_-4px_16px_rgba(15,23,42,0.05)]">
             {/* Archive name + validation status bar */}
-            <div className="flex items-center gap-2 mb-2.5 px-3 py-2 rounded-xl bg-slate-50/90 border border-slate-200/80 shadow-2xs">
+            <div className="flex items-center gap-2 mb-2.5 px-3 py-2 rounded-xl bg-slate-50/90 border border-slate-200 shadow-2xs">
                 {/* Archive icon */}
-                <div className="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center flex-shrink-0 shadow-2xs font-bold">
+                <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-emerald-50 to-emerald-100 text-emerald-700 ring-1 ring-inset ring-emerald-200/80 flex items-center justify-center flex-shrink-0 font-bold">
                     <Archive className="w-3.5 h-3.5" />
                 </div>
 
@@ -94,7 +95,7 @@ export const Footer: React.FC<FooterProps> = ({
                 )}
 
                 <span className="text-[10.5px] font-semibold text-slate-500 hidden xs:inline">
-                    {fileCount} {fileCount === 1 ? 'файл' : 'файлов'}
+                    {fileCount} {pluralizeRu(fileCount, FILE_FORMS)}
                 </span>
 
                 {/* Validation Status Badge */}
@@ -106,7 +107,7 @@ export const Footer: React.FC<FooterProps> = ({
                         >
                             <Badge variant="danger" size="xs" dot className="gap-1 shadow-2xs">
                                 <AlertTriangle className="w-2.5 h-2.5" />
-                                {validation.errors.length} {validation.errors.length === 1 ? 'ошибка' : 'ошибок'}
+                                {validation.errors.length} {pluralizeRu(validation.errors.length, ERROR_FORMS)}
                             </Badge>
                         </button>
                     ) : (
@@ -128,7 +129,7 @@ export const Footer: React.FC<FooterProps> = ({
                 onClick={handleExport}
                 leftIcon={<Download className="w-4 h-4" />}
             >
-                {isExporting ? 'Создание архива...' : `Экспорт ZIP (${fileCount} ${fileCount === 1 ? 'файл' : 'файлов'})`}
+                {isExporting ? 'Создание архива...' : `Экспорт ZIP (${fileCount} ${pluralizeRu(fileCount, FILE_FORMS)})`}
             </Button>
         </footer>
     );

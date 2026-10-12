@@ -34,7 +34,7 @@ export function SegmentedControl<T extends string = string>({
   return (
     <div
       className={twMerge(
-        'inline-flex items-center p-0.5 bg-slate-100/90 border border-slate-200/90 rounded-xl shadow-2xs flex-shrink-0 select-none',
+        'inline-flex items-center p-0.5 bg-slate-100/90 border border-slate-200 rounded-xl shadow-2xs flex-shrink-0 select-none',
         className
       )}
     >
@@ -51,7 +51,7 @@ export function SegmentedControl<T extends string = string>({
                 'inline-flex items-center justify-center gap-1.5 rounded-lg font-semibold leading-none transition-all duration-150 cursor-pointer',
                 sizeClasses[size],
                 isActive
-                  ? 'bg-white text-emerald-800 shadow-2xs'
+                  ? 'bg-white text-emerald-800 shadow-xs ring-1 ring-emerald-200/70'
                   : 'text-slate-500 hover:text-slate-800 bg-transparent'
               )
             )}

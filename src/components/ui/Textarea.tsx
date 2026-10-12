@@ -37,14 +37,14 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
             {label}
           </label>
         )}
-        <div className="relative rounded-xl shadow-2xs">
+        <div className="relative">
           <textarea
             ref={ref}
             id={inputId}
             value={value}
             className={twMerge(
               clsx(
-                'w-full rounded-xl border border-slate-200 bg-slate-50/70 p-2.5 text-xs font-medium text-slate-900 placeholder:text-slate-400 outline-none transition-all focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-500/10 shadow-2xs resize-none',
+                'block w-full rounded-xl border border-slate-200 bg-slate-50/70 p-2.5 text-xs font-medium text-slate-900 placeholder:text-slate-400 outline-none transition-all hover:border-slate-300 focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-500/10 shadow-2xs resize-none',
                 showClear && hasValue && 'pr-7',
                 error && 'border-rose-400 focus:border-rose-500 focus:ring-rose-500/15',
                 className

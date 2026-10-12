@@ -60,6 +60,7 @@ import {
   extractCardIdFromUrl,
   isGreenDataUpdatePackage,
 } from '../../utils/tabUtils';
+import { getErrorMessage } from '../../utils/errorUtils';
 
 interface TaskEditorProps {
   task: ImplementationTask;
@@ -221,10 +222,10 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
         setCopiedHeader(true);
         setTimeout(() => setCopiedHeader(false), 2500);
       }
-    } catch (err: any) {
+    } catch (err) {
       setInjectResult({
         success: false,
-        message: err.message || 'Ошибка вставки комментария',
+        message: getErrorMessage(err, 'Ошибка вставки комментария'),
       });
     } finally {
       setIsInjecting(false);
@@ -779,7 +780,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
       </div>
 
       {/* Changes Section Container */}
-      <div className="p-3 sm:p-4 bg-white border border-slate-200/90 rounded-xl space-y-3.5 shadow-xs">
+      <div className="p-3 bg-white border border-slate-200 rounded-xl space-y-3 shadow-sm">
         {/* Main Toolbar - Optimized 2 compact rows to prevent any overflow on narrow sidepanel */}
         <div className="space-y-2 border-b border-slate-100 pb-2.5">
           {/* Row 1: Header title on left, Creation actions (Add, Tab, Section) on right */}
@@ -789,7 +790,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
               <h3 className="font-bold text-xs text-slate-900 tracking-tight truncate">
                 Внесённые изменения
               </h3>
-              <span className="px-1.5 py-0.2 rounded-md bg-emerald-50 text-emerald-800 text-[10.5px] font-bold border border-emerald-200 flex-shrink-0 shadow-2xs">
+              <span className="px-1.5 py-px rounded-md bg-emerald-50 text-emerald-800 text-[10.5px] font-bold border border-emerald-200 flex-shrink-0 shadow-2xs">
                 {task.items.length}
               </span>
             </div>
@@ -810,7 +811,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
                 onClick={() => handleOpenAddWithTab()}
                 disabled={isTabFetching}
                 title="Добавить пункт и автоматически подставить ссылку на открытую вкладку"
-                className="inline-flex items-center gap-1 px-2 py-1 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200/90 rounded-xl text-[10.5px] font-bold transition-all shadow-2xs cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                className="inline-flex items-center gap-1 px-2 py-1 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-xl text-[10.5px] font-bold transition-all shadow-2xs cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 <Sparkles className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
                 <span className="hidden xs:inline">С вкладки</span>
@@ -820,7 +821,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
                 type="button"
                 onClick={handleOpenCreateSection}
                 title="Создать новый раздел (категорию)"
-                className="inline-flex items-center gap-1 px-2 py-1 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200/90 rounded-xl text-[10.5px] font-bold transition-all shadow-2xs cursor-pointer"
+                className="inline-flex items-center gap-1 px-2 py-1 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-xl text-[10.5px] font-bold transition-all shadow-2xs cursor-pointer"
               >
                 <FolderPlus className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
                 <span className="hidden xs:inline">Раздел</span>
@@ -844,7 +845,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
                 <ListChecks className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
                 <span>Чеклист</span>
                 {task.items.length > 0 && (
-                  <span className="px-1.5 py-0.2 rounded-md bg-white/90 text-emerald-900 text-[10px] font-mono font-bold border border-emerald-200/60">
+                  <span className="px-1.5 py-px rounded-md bg-white/90 text-emerald-900 text-[10px] font-mono font-bold border border-emerald-200/60">
                     {collectedCount}/{task.items.length}
                   </span>
                 )}
@@ -858,14 +859,14 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
                   className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-[10.5px] font-bold transition-all shadow-2xs cursor-pointer whitespace-nowrap border ${
                     filterStatus === 'uncollected'
                       ? 'bg-amber-100 text-amber-900 border-amber-300'
-                      : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200/90'
+                      : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200'
                   }`}
                 >
                   <Filter className="w-3.5 h-3.5 text-amber-600 flex-shrink-0" />
                   <span>{filterStatus === 'uncollected' ? 'Все' : 'Не собранные'}</span>
                   {uncollectedCount > 0 && (
                     <span
-                      className={`px-1.5 py-0.2 rounded-md text-[10px] font-mono font-bold ${
+                      className={`px-1.5 py-px rounded-md text-[10px] font-mono font-bold ${
                         filterStatus === 'uncollected'
                           ? 'bg-amber-200 text-amber-950'
                           : 'bg-amber-100 text-amber-900'
@@ -883,7 +884,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
                 type="button"
                 onClick={toggleCollapseAll}
                 title={allSectionsCollapsed ? 'Развернуть все разделы' : 'Свернуть все разделы'}
-                className="inline-flex items-center gap-1 px-2 py-1 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200/90 rounded-xl text-[10.5px] font-bold transition-all shadow-2xs cursor-pointer whitespace-nowrap flex-shrink-0"
+                className="inline-flex items-center gap-1 px-2 py-1 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-xl text-[10.5px] font-bold transition-all shadow-2xs cursor-pointer whitespace-nowrap flex-shrink-0"
               >
                 <ChevronsUpDown className="w-3.5 h-3.5 text-slate-500 flex-shrink-0" />
                 <span className="hidden xs:inline">{allSectionsCollapsed ? 'Развернуть' : 'Свернуть'}</span>
@@ -937,14 +938,14 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
               return (
                 <div
                   key={sec.id}
-                  className={`rounded-xl border border-slate-200/90 bg-white shadow-xs transition-all relative ${
+                  className={`rounded-xl border border-slate-200 bg-white shadow-xs transition-all relative ${
                     openSectionMenuId === sec.id ? 'z-30' : 'z-0'
                   }`}
                 >
                   {/* Section Header */}
                   <div
                     className={`flex items-center justify-between gap-1.5 px-3 py-2 bg-gradient-to-r from-slate-50/90 to-white cursor-pointer select-none transition-colors hover:bg-slate-100/70 ${
-                      isCollapsed ? 'rounded-xl' : 'rounded-t-xl border-b border-slate-200/80'
+                      isCollapsed ? 'rounded-xl' : 'rounded-t-xl border-b border-slate-200'
                     }`}
                     onClick={() => toggleSectionCollapse(sec.id)}
                   >
@@ -967,7 +968,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
                       <span className="font-bold text-xs text-slate-900 truncate min-w-0" title={sec.name}>
                         {sec.name}
                       </span>
-                      <span className="px-1.5 py-0.2 rounded-md bg-emerald-50 text-emerald-800 text-[10px] font-bold border border-emerald-200 flex-shrink-0 shadow-2xs">
+                      <span className="px-1.5 py-px rounded-md bg-emerald-50 text-emerald-800 text-[10px] font-bold border border-emerald-200 flex-shrink-0 shadow-2xs">
                         {filterStatus === 'uncollected'
                           ? `${items.length} из ${allSectionItems.length}`
                           : allSectionItems.length}
@@ -1032,7 +1033,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
                             }}
                           />
                           <div
-                            className="absolute right-0 top-full mt-1.5 z-50 bg-white border border-slate-200/90 rounded-xl shadow-xl p-1.5 min-w-[175px] space-y-0.5 animate-fade-in text-xs"
+                            className="absolute right-0 top-full mt-1.5 z-50 bg-white border border-slate-200 rounded-xl shadow-xl p-1.5 min-w-[175px] space-y-0.5 animate-fade-in text-xs"
                             onClick={(e) => e.stopPropagation()}
                           >
                             {/* Up / Down visible in menu only on narrow screens */}
@@ -1145,7 +1146,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
 
             {/* Unsectioned Items */}
             {unsectionedItems.length > 0 && (
-              <div className="rounded-xl border border-slate-200 bg-white shadow-xs overflow-hidden">
+              <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
                 <div
                   className="flex items-center justify-between gap-1.5 px-3 py-2 bg-slate-50/90 border-b border-slate-200 cursor-pointer select-none"
                   onClick={() => toggleSectionCollapse('__unsectioned__')}
@@ -1166,7 +1167,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
                       )}
                     </button>
                     <span className="font-bold text-xs text-slate-800">Прочее / Без раздела</span>
-                    <span className="px-1.5 py-0.2 rounded bg-slate-200 text-slate-700 text-[10px] font-bold">
+                    <span className="px-1.5 py-px rounded bg-slate-200 text-slate-700 text-[10px] font-bold">
                       {filterStatus === 'uncollected'
                         ? `${unsectionedItems.filter((i) => !i.isCollected).length} из ${unsectionedItems.length}`
                         : unsectionedItems.length}
@@ -1218,7 +1219,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
         <div className="flex flex-wrap items-center justify-between gap-2.5 pt-3 border-t border-slate-100">
           <div className="flex items-center gap-1.5 text-xs text-slate-500 min-w-0">
             <span>Всего изменений:</span>
-            <span className="font-bold text-slate-900 bg-slate-100 px-2 py-0.5 rounded-lg border border-slate-200/80 text-[11px]">
+            <span className="font-bold text-slate-900 bg-slate-100 px-2 py-0.5 rounded-lg border border-slate-200 text-[11px]">
               {task.items.length}
             </span>
           </div>
@@ -1345,7 +1346,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
       >
         <form onSubmit={handleSaveSection} className="space-y-3">
           <div>
-            <label className="block text-xs font-semibold text-gray-700 mb-1">
+            <label className="block text-xs font-semibold text-slate-700 mb-1">
               Название раздела <span className="text-rose-500">*</span>
             </label>
             <Input
@@ -1356,7 +1357,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
             />
           </div>
           <div className="flex flex-wrap gap-1.5 pt-1">
-            <span className="text-[10px] text-gray-400 block w-full">
+            <span className="text-[10px] text-slate-400 block w-full">
               Быстрые варианты:
             </span>
             {['Типы объекта', 'Алгоритмы', 'Визуалы', 'Бизнес-процессы', 'Печатные формы'].map((opt) => (
@@ -1364,7 +1365,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
                 key={opt}
                 type="button"
                 onClick={() => setSectionNameInput(opt)}
-                className="px-2 py-0.5 rounded bg-gray-100 hover:bg-emerald-50 hover:text-emerald-700 text-[10px] font-medium text-gray-600 transition-colors border border-gray-200"
+                className="px-2 py-0.5 rounded bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 text-[10px] font-medium text-slate-600 transition-colors border border-slate-200"
               >
                 {opt}
               </button>
@@ -1404,9 +1405,9 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
           </>
         }
       >
-        <p className="text-xs text-gray-700">
+        <p className="text-xs text-slate-700">
           Вы уверены, что хотите удалить раздел{' '}
-          <strong className="text-gray-900">"{sectionToDelete?.name}"</strong>?
+          <strong className="text-slate-900">"{sectionToDelete?.name}"</strong>?
           Пункты из этого раздела не удалятся, а переместятся в список «Без раздела».
         </p>
       </Modal>
@@ -1478,7 +1479,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
             </div>
 
             {/* Existing Item Card */}
-            <div className="p-2.5 rounded-xl bg-slate-50/90 border border-slate-200/90 space-y-1.5 shadow-2xs">
+            <div className="p-2.5 rounded-xl bg-slate-50/90 border border-slate-200 space-y-1.5 shadow-2xs">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
                   <Layers className="w-3 h-3 text-slate-400" />
@@ -1490,7 +1491,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
                   </span>
                 )}
               </div>
-              <p className="font-semibold text-slate-800 text-xs line-clamp-2 bg-white p-2 rounded-lg border border-slate-200/70">
+              <p className="font-semibold text-slate-800 text-xs line-clamp-2 bg-white p-2 rounded-lg border border-slate-200">
                 {duplicateCandidate.existingItem.description}
               </p>
               {duplicateCandidate.existingItem.linkUrl && (
