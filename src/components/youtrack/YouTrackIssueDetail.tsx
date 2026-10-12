@@ -15,6 +15,7 @@ import {
 import { YouTrackIssue } from '../../types';
 import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
+import { IconButton } from '../ui/IconButton';
 import { extractTfsNumberFromSummary } from '../../utils/greenDataTaskFormInjector';
 
 interface YouTrackIssueDetailProps {
@@ -112,27 +113,18 @@ export const YouTrackIssueDetail: React.FC<YouTrackIssueDetailProps> = ({
   return (
     <div className="space-y-3 animate-in fade-in duration-150">
       {/* Navigation Header */}
-      <div className="flex items-center justify-between gap-2 bg-white p-2 border border-slate-200/90 rounded-xl shadow-2xs">
+      <div className="flex items-center justify-between gap-1.5 flex-wrap bg-white p-2 border border-slate-200/90 rounded-xl shadow-2xs">
         <button
           type="button"
           onClick={onBack}
-          className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold text-slate-700 hover:text-emerald-700 bg-slate-50 hover:bg-emerald-50 border border-slate-200 hover:border-emerald-300 rounded-lg transition-colors cursor-pointer"
+          className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold text-slate-700 hover:text-emerald-700 bg-slate-50 hover:bg-emerald-50 border border-slate-200 hover:border-emerald-300 rounded-lg transition-colors cursor-pointer flex-shrink-0 whitespace-nowrap select-none"
+          title="Вернуться к списку задач"
         >
-          <ArrowLeft className="w-3.5 h-3.5" />
-          <span>К списку задач</span>
+          <ArrowLeft className="w-3.5 h-3.5 flex-shrink-0" />
+          <span>К списку</span>
         </button>
 
-        <div className="flex items-center gap-1">
-          <Button
-            size="xs"
-            variant="secondary"
-            onClick={handleOpenExternal}
-            leftIcon={<ExternalLink className="w-3 h-3" />}
-            title="Открыть в браузере"
-          >
-            В YouTrack
-          </Button>
-
+        <div className="flex items-center gap-1 flex-shrink-0 min-w-0">
           {onTransferToGreenData && (
             <Button
               size="xs"
@@ -152,21 +144,29 @@ export const YouTrackIssueDetail: React.FC<YouTrackIssueDetailProps> = ({
                   : 'Откройте модальное окно создания задачи в GreenData для переноса'
               }
             >
-              {justTransferred ? 'Перенесено!' : 'Перенести в задачу'}
+              {justTransferred ? 'Перенесено!' : 'Перенести'}
             </Button>
           )}
 
           {onTransferToImplementation && (
             <Button
               size="xs"
-              variant="ghost"
+              variant="secondary"
               onClick={() => onTransferToImplementation(issue)}
-              leftIcon={<ArrowRightCircle className="w-3.5 h-3.5" />}
+              leftIcon={<ArrowRightCircle className="w-3.5 h-3.5 text-slate-500" />}
               title="Создать задачу в Реализации с этим ID и названием"
             >
-              В Реализацию
+              В реализацию
             </Button>
           )}
+
+          <IconButton
+            icon={<ExternalLink className="w-3.5 h-3.5" />}
+            size="xs"
+            variant="secondary"
+            title="Открыть задачу в YouTrack (в новой вкладке)"
+            onClick={handleOpenExternal}
+          />
         </div>
       </div>
 
