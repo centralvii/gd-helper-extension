@@ -8,3 +8,4 @@ export * from './Card';
 export * from './Toolbar';
 export * from './IconButton';
 export * from './SegmentedControl';
+export * from './ToolRow';

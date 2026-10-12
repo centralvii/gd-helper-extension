@@ -33,7 +33,7 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
     return (
       <div className="w-full space-y-1">
         {label && (
-          <label htmlFor={inputId} className="block text-xs font-bold text-slate-800">
+          <label htmlFor={inputId} className="block px-1 text-[12px] font-medium text-slate-500">
             {label}
           </label>
         )}
@@ -44,9 +44,9 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
             value={value}
             className={twMerge(
               clsx(
-                'block w-full rounded-xl border border-slate-200 bg-slate-50/70 p-2.5 text-xs font-medium text-slate-900 placeholder:text-slate-400 outline-none transition-all hover:border-slate-300 focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-500/10 shadow-2xs resize-none',
+                'block w-full rounded-[10px] border border-transparent bg-gd-fill p-2.5 text-[13px] text-slate-900 placeholder:text-slate-400 outline-none transition-all focus:border-gd-green focus:bg-white focus:ring-4 focus:ring-emerald-500/15 resize-none',
                 showClear && hasValue && 'pr-7',
-                error && 'border-rose-400 focus:border-rose-500 focus:ring-rose-500/15',
+                error && 'border-[#ff3b30]/60 focus:border-[#ff3b30] focus:ring-[#ff3b30]/15',
                 className
               )
             )}
@@ -56,17 +56,17 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
             <button
               type="button"
               onClick={onClear}
-              className="absolute top-2.5 right-2 text-slate-400 hover:text-slate-600 p-0.5 rounded-md hover:bg-slate-200/60 transition-colors cursor-pointer"
+              className="absolute top-2.5 right-2 w-5 h-5 grid place-items-center rounded-full bg-slate-400 text-white hover:bg-slate-500 transition-colors cursor-pointer"
               title="Очистить"
             >
-              <X className="w-3.5 h-3.5" />
+              <X className="w-3 h-3" strokeWidth={3} />
             </button>
           )}
         </div>
         {error ? (
-          <p className="text-[10.5px] font-medium text-rose-600">{error}</p>
+          <p className="px-1 text-[11px] font-medium text-[#d70015]">{error}</p>
         ) : helperText ? (
-          <p className="text-[10.5px] text-slate-500">{helperText}</p>
+          <p className="px-1 text-[11px] text-slate-500">{helperText}</p>
         ) : null}
       </div>
     );

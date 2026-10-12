@@ -1,7 +1,11 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { App } from './App';
+import '@fontsource-variable/inter';
 import '../index.css';
+import { installIconTapAnimation } from '../utils/iconTapAnimation';
+
+installIconTapAnimation();
 
 const rootElement = document.getElementById('root');
 

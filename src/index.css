@@ -2,45 +2,97 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ════════════════════════════════════════════════════════════
+   GD Helper — дизайн-система в стиле iOS
+   Строгая монохромная база (системные серые iOS) + один акцент GreenData.
+   Единый источник токенов: эти CSS-переменные. Tailwind (`gd-*`, `slate-*`)
+   ссылается на них через tailwind.config.js.
+   ════════════════════════════════════════════════════════════ */
+
 @layer base {
     :root {
-        --gd-bg:           #f8faf9;
-        --gd-surface:      #ffffff;
+        /* Фоны */
+        --gd-bg:           #f2f2f7;   /* systemGroupedBackground */
+        --gd-surface:      #ffffff;   /* secondarySystemGroupedBackground */
         --gd-card:         #ffffff;
-        --gd-sidebar:      #f3f6f4;
+        --gd-sidebar:      #f2f2f7;
+        --gd-fill:         rgba(120, 120, 128, 0.12);  /* tertiarySystemFill */
+        --gd-fill-2:       rgba(120, 120, 128, 0.08);  /* quaternarySystemFill */
+
+        /* Акцент GreenData */
         --gd-green:        #059669;
         --gd-green-dark:   #047857;
-        --gd-green-light:  #ecfdf5;
-        --gd-border:       #e5e9e6;
-        --gd-border-subtle: rgba(0, 0, 0, 0.06);
+        --gd-green-light:  rgba(5, 150, 105, 0.12);    /* tinted fill */
         --gd-border-green: rgba(5, 150, 105, 0.28);
-        --gd-text:         #0f172a;
-        --gd-muted:        #64748b;
-        --gd-faint:        #94a3b8;
+
+        /* Текст */
+        --gd-text:         #1c1c1e;                    /* label */
+        --gd-muted:        rgba(60, 60, 67, 0.62);     /* secondaryLabel */
+        --gd-faint:        rgba(60, 60, 67, 0.32);     /* tertiaryLabel */
+
+        /* Линии */
+        --gd-border:       rgba(60, 60, 67, 0.14);     /* separator */
+        --gd-border-subtle: rgba(60, 60, 67, 0.08);
+
+        /* Системные статусы iOS */
+        --gd-red:          #ff3b30;
+        --gd-orange:       #ff9500;
+        --gd-switch:       #34c759;
+
+        /* Движение */
+        --ease-spring:     cubic-bezier(0.34, 1.56, 0.64, 1);
+        --ease-out:        cubic-bezier(0.16, 1, 0.3, 1);
+        --ease-in:         cubic-bezier(0.32, 0, 0.67, 0);
+
+        /* Высота нижнего таб-бара (используется футером, ИИ-чатом и отступами) */
+        --tabbar-h:        58px;
     }
 
+    /* Прокручивается #root, а не окно: так шторка может «утопить» страницу
+       (transform на #root), не ломая fixed-элементы (таб-бар, тосты). */
+    html, body {
+        height: 100%;
+        overflow: hidden;
+    }
     html {
         background: var(--gd-bg);
     }
 
-    /* Фон: мягкое зелёное свечение сверху поверх светлой базы GreenData */
     body {
-        min-height: 100vh;
-        background:
-            radial-gradient(120% 60% at 50% -10%, rgba(16, 185, 129, 0.10) 0%, rgba(16, 185, 129, 0) 60%),
-            var(--gd-bg);
-        background-attachment: fixed;
+        background: var(--gd-bg);
         color: var(--gd-text);
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", system-ui, sans-serif;
+        font-family: "Inter Variable", "Inter", -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, system-ui, sans-serif;
         font-size: 13px;
+        letter-spacing: -0.006em;
+        font-feature-settings: "cv11", "ss01";
         -webkit-text-size-adjust: 100%;
         text-size-adjust: 100%;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
         text-rendering: optimizeLegibility;
+        -webkit-tap-highlight-color: transparent;
     }
 
-    /* ── Скрытие нативных скроллбаров для чистого современного UI ── */
+    /* Корень приложения — «карта», которая уезжает вглубь, когда открыта шторка */
+    #root {
+        height: 100%;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        background: var(--gd-bg);
+        transform-origin: 50% 0;
+        transition: transform 0.42s var(--ease-out), border-radius 0.42s var(--ease-out), filter 0.42s var(--ease-out);
+    }
+    body.gd-sheet-open {
+        background: #000;
+    }
+    body.gd-sheet-open #root {
+        transform: scale(0.94) translateY(10px);
+        border-radius: 14px;
+        overflow: hidden;
+        filter: saturate(0.9);
+    }
+
+    /* ── Скрытие нативных скроллбаров ── */
     html, body, * {
         scrollbar-width: none;
         -ms-overflow-style: none;
@@ -56,8 +108,8 @@
     }
 
     ::selection {
-        background: #d1fae5;
-        color: #064e3b;
+        background: rgba(5, 150, 105, 0.2);
+        color: inherit;
     }
 
     /* Доступный фокус для клавиатурной навигации (мышь не затрагивает) */
@@ -69,19 +121,38 @@
         outline-offset: 2px;
     }
 
+    /* ── Нажатие: всё интерактивное «вдавливается» и возвращается пружиной.
+       Используется отдельное свойство `scale`, чтобы не конфликтовать
+       с Tailwind-трансформациями (translate/rotate) на тех же кнопках. ── */
+    button:not(:disabled),
+    [role="button"],
+    .gd-press {
+        transition-property: color, background-color, border-color, box-shadow, opacity, transform, scale;
+        transition-duration: 0.18s, 0.18s, 0.18s, 0.18s, 0.18s, 0.18s, 0.45s;
+        transition-timing-function: ease, ease, ease, ease, ease, ease, var(--ease-spring);
+    }
+    button:not(:disabled):active,
+    [role="button"]:active,
+    .gd-press:active {
+        scale: 0.96;
+        transition-duration: 0.18s, 0.18s, 0.18s, 0.18s, 0.18s, 0.18s, 0.08s;
+    }
+
     @media (prefers-reduced-motion: reduce) {
         *, *::before, *::after {
             animation-duration: 0.01ms !important;
             animation-iteration-count: 1 !important;
             transition-duration: 0.01ms !important;
         }
+        body.gd-sheet-open #root { transform: none; }
+        button:active, [role="button"]:active, .gd-press:active { scale: 1; }
     }
 }
 
 @layer components {
 
     /* ────────────────────────────────────────
-       ICON BUTTON (icon-btn)
+       ICON BUTTON — круглая кнопка-иконка iOS
     ──────────────────────────────────────── */
     .icon-btn {
         display: inline-flex;
@@ -89,319 +160,322 @@
         justify-content: center;
         width: 30px;
         height: 30px;
-        border-radius: 9px;
-        color: var(--gd-muted);
-        background: transparent;
+        border-radius: 9999px;
+        color: var(--gd-text);
+        background: var(--gd-fill);
         border: none;
         cursor: pointer;
         flex-shrink: 0;
-        will-change: transform;
-        transition: color 0.14s ease, background-color 0.14s ease, transform 0.14s ease, box-shadow 0.14s ease;
-    }
-    .icon-btn > svg,
-    .icon-btn > * {
-        transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
     .icon-btn:hover {
-        color: var(--gd-green-dark);
+        color: var(--gd-green);
         background: var(--gd-green-light);
     }
-    .icon-btn:hover > svg,
-    .icon-btn:hover > * {
-        transform: scale(1.12);
+    .icon-btn--plain {
+        background: transparent;
+        color: var(--gd-muted);
     }
-    .icon-btn:active {
-        background: rgba(5, 150, 105, 0.16);
-        transform: scale(0.92);
-    }
-
-    /* Danger variant */
     .icon-btn--danger:hover {
-        color: #e11d48;
-        background: #ffe4e6;
-    }
-    .icon-btn--danger:active {
-        background: #fecdd3;
+        color: var(--gd-red);
+        background: rgba(255, 59, 48, 0.12);
     }
 
     /* ────────────────────────────────────────
-       GREEN DATA MODERN CARDS
+       КАРТОЧКИ И СПИСКИ (inset grouped)
     ──────────────────────────────────────── */
     .gd-card {
         background: var(--gd-surface);
-        border: 1px solid var(--gd-border);
         border-radius: 12px;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.03), 0 4px 12px rgba(0,0,0,0.02);
-        transition: border-color 0.16s ease, box-shadow 0.16s ease, transform 0.16s ease;
-    }
-    .gd-card:hover {
-        border-color: rgba(5, 150, 105, 0.3);
-        box-shadow: 0 3px 10px rgba(5, 150, 105, 0.05), 0 8px 24px rgba(0,0,0,0.03);
     }
 
-    /* ────────────────────────────────────────
-       VK-STYLE ICON MICRO-INTERACTIONS
-       Добавляются к .icon-btn / кнопкам: анимируется вложенная иконка
-    ──────────────────────────────────────── */
-    .vk-icon-pop:hover > svg    { animation: iconPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
-    .vk-icon-spin:hover > svg   { animation: iconSpin 0.4s ease-in-out both; }
-    .vk-icon-shake:hover > svg  { animation: iconShake 0.4s ease both; }
-    .vk-icon-bounce:hover > svg { animation: iconBounce 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+    /* Группа (inset grouped list): белый блок со скруглением 12px */
+    .gd-group {
+        background: var(--gd-surface);
+        border-radius: 12px;
+        overflow: hidden;
+    }
+    /* Строка группы; соседние строки разделены волосяной линией с отступом под иконку */
+    .gd-row {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-height: 44px;
+        padding: 6px 14px;
+    }
+    .gd-row + .gd-row::before,
+    .gd-group > * + .gd-row::before,
+    .gd-sep-top::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        right: 0;
+        left: var(--gd-sep-inset, 14px);
+        height: 0.5px;
+        background: var(--gd-border);
+    }
+    .gd-group--icons { --gd-sep-inset: 54px; }
+    .gd-row--tap { cursor: pointer; transition: background-color 0.15s ease; }
+    .gd-row--tap:hover { background: var(--gd-fill-2); }
+    .gd-row--tap:active { background: var(--gd-fill); }
 
-    /* ────────────────────────────────────────
-       SECTION LABEL — подписи секций
-    ──────────────────────────────────────── */
+    /* Квадратная иконка строки (как в «Настройках» iOS) */
+    .gd-row-icon {
+        width: 28px;
+        height: 28px;
+        border-radius: 7px;
+        display: grid;
+        place-items: center;
+        flex-shrink: 0;
+        background: var(--gd-fill);
+        color: var(--gd-text);
+    }
+    .gd-row-icon > svg { width: 16px; height: 16px; }
+    .gd-row-icon--accent { background: var(--gd-green); color: #fff; }
+
+    /* Тело шторки: серый фон iOS, белые карточки внутри выглядят как группы,
+       рамки карточек приглушены до волосяных */
+    .gd-sheet-body {
+        background: var(--gd-bg);
+    }
+    .gd-sheet-body :is(.border-slate-200, .border-slate-100, .border-slate-300) {
+        border-color: var(--gd-border-subtle);
+    }
+    /* Поля прямо на сером фоне шторки — белые; внутри белых карточек — с серой заливкой */
+    .gd-sheet-body :is(input, textarea, .gd-select-trigger, .gd-field):not(:focus):is(.bg-gd-fill, .gd-field) {
+        background: #fff;
+        border-color: var(--gd-border-subtle);
+    }
+    .gd-sheet-body .bg-white :is(input, textarea, .gd-select-trigger, .gd-field):not(:focus):is(.bg-gd-fill, .gd-field) {
+        background: var(--gd-fill);
+        border-color: transparent;
+    }
+
+    /* Заголовок секции над группой */
+    .gd-section-title {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 8px;
+        padding: 0 14px 6px;
+        font-size: 11.5px;
+        font-weight: 600;
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+        color: var(--gd-muted);
+    }
+
+    /* Поле ввода с заливкой (iOS search field) */
+    .gd-field {
+        width: 100%;
+        background: var(--gd-fill);
+        border: 1px solid transparent;
+        border-radius: 10px;
+        color: var(--gd-text);
+        font-size: 13px;
+        padding: 7px 10px;
+        outline: none;
+        transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    .gd-field::placeholder { color: var(--gd-faint); }
+    .gd-field:focus {
+        background: #fff;
+        border-color: var(--gd-green);
+        box-shadow: 0 0 0 4px rgba(5, 150, 105, 0.15);
+    }
+
+    /* Всплывающее меню (UIMenu): стекло, крупное скругление, «парящая» тень */
+    .gd-menu {
+        background: rgba(255, 255, 255, 0.92);
+        -webkit-backdrop-filter: saturate(180%) blur(24px);
+        backdrop-filter: saturate(180%) blur(24px);
+        border-radius: 14px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.16), 0 0 0 0.5px rgba(0, 0, 0, 0.06);
+        transform-origin: top center;
+        animation: slideDown 0.24s var(--ease-out) both;
+    }
+
+    /* Подпись секции над группой: «ШАБЛОН ИМЕНИ» */
     .gd-label {
-        font-size: 10px;
-        font-weight: 700;
-        letter-spacing: 0.06em;
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.04em;
         text-transform: uppercase;
         color: var(--gd-muted);
     }
 
     /* ────────────────────────────────────────
-       HEADER TABS (Segmented Pill)
+       ПЕРЕКЛЮЧАТЕЛЬ iOS
     ──────────────────────────────────────── */
-    .header-tab {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 5px;
-        height: 28px;
-        padding: 0 10px;
-        border-radius: 9px;
-        font-size: 12px;
-        font-weight: 600;
-        color: #475569;
-        background: transparent;
-        border: 1px solid transparent;
-        cursor: pointer;
-        white-space: nowrap;
-        will-change: transform;
-        transition: color 0.14s ease, background-color 0.14s ease, border-color 0.14s ease, transform 0.12s ease;
-        line-height: 1;
-    }
-    .header-tab--icon-only {
-        width: 28px;
-        padding: 0;
-    }
-    .header-tab > svg {
-        flex-shrink: 0;
-        transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
-    }
-    .header-tab:hover {
-        color: #0f172a;
-        background: rgba(255, 255, 255, 0.8);
-    }
-    .header-tab:hover > svg {
-        transform: scale(1.1);
-    }
-    .header-tab:active {
-        transform: scale(0.96);
-    }
-    .header-tab--active {
-        color: #065f46;
-        background: linear-gradient(180deg, #ffffff 0%, #f6fdf9 100%);
-        border-color: rgba(5, 150, 105, 0.28);
-        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06), 0 2px 8px rgba(5, 150, 105, 0.10);
-    }
-    .header-tab--active > svg {
-        color: #059669;
-    }
-
-    /* ────────────────────────────────────────
-       INPUTS (GD Modern Form Inputs)
-    ──────────────────────────────────────── */
-    .input-gd {
-        background: var(--gd-surface);
-        border: 1px solid var(--gd-border);
-        border-radius: 11px;
-        color: var(--gd-text);
-        font-size: 12px;
-        padding: 7px 11px;
-        transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
-        outline: none;
-        width: 100%;
-        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
-    }
-    .input-gd::placeholder { color: var(--gd-faint); }
-    .input-gd:hover { border-color: #cbd5e1; }
-    .input-gd:focus {
-        border-color: var(--gd-green);
-        box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.12);
-        background: #ffffff;
-    }
-
-    /* ────────────────────────────────────────
-       TOGGLE SWITCH
-    ──────────────────────────────────────── */
-    .gd-toggle {
+    .gd-switch {
         position: relative;
         display: inline-flex;
-        width: 36px;
-        height: 20px;
+        width: 42px;
+        height: 26px;
         border-radius: 9999px;
-        border: 2px solid transparent;
+        background: rgba(120, 120, 128, 0.16);
         cursor: pointer;
         flex-shrink: 0;
-        will-change: background-color;
-        transition: background-color 0.2s ease;
-        background-color: #cbd5e1;
+        transition: background-color 0.25s ease;
     }
-    .gd-toggle[aria-checked="true"] {
-        background-color: #059669;
-    }
-    .gd-toggle__thumb {
-        pointer-events: none;
-        display: block;
-        width: 16px;
-        height: 16px;
+    .gd-switch::after {
+        content: "";
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        width: 22px;
+        height: 22px;
         border-radius: 9999px;
-        background: #ffffff;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.25);
-        will-change: transform;
-        transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-        transform: translateX(0);
+        background: #fff;
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15), 0 1px 1px rgba(0, 0, 0, 0.16);
+        transition: transform 0.32s var(--ease-spring);
     }
-    .gd-toggle[aria-checked="true"] .gd-toggle__thumb {
+    .gd-switch[aria-checked="true"] {
+        background: var(--gd-switch);
+    }
+    .gd-switch[aria-checked="true"]::after {
         transform: translateX(16px);
     }
-    .gd-toggle:focus {
-        outline: none;
-        box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.25);
-    }
+
+    /* ────────────────────────────────────────
+       VK/iOS ICON MICRO-INTERACTIONS (hover)
+    ──────────────────────────────────────── */
+    .vk-icon-pop:hover > svg    { animation: iconPop 0.3s var(--ease-spring) both; }
+    .vk-icon-spin:hover > svg   { animation: iconSpin 0.45s ease-in-out both; }
+    .vk-icon-shake:hover > svg  { animation: iconShake 0.4s ease both; }
+    .vk-icon-bounce:hover > svg { animation: iconBounce 0.4s var(--ease-spring) both; }
 }
 
-/* ────────────────────────────────────────
-   KEYFRAMES & ANIMATIONS
-──────────────────────────────────────── */
+/* ════════════════════════════════════════
+   KEYFRAMES
+════════════════════════════════════════ */
 
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(4px); }
     to   { opacity: 1; transform: translateY(0); }
 }
-
 @keyframes slideUp {
     from { opacity: 0; transform: translateY(12px); }
     to   { opacity: 1; transform: translateY(0); }
 }
-
 @keyframes slideDown {
-    from { opacity: 0; transform: translateY(-10px); }
+    from { opacity: 0; transform: translateY(-8px) scale(0.98); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+/* Смена экрана — как push в UINavigationController */
+@keyframes screenIn {
+    from { opacity: 0; transform: translateX(18px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes screenBack {
+    from { opacity: 0; transform: translateX(-18px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+/* Каскадное появление элементов списка */
+@keyframes itemIn {
+    from { opacity: 0; transform: translateY(6px); }
     to   { opacity: 1; transform: translateY(0); }
 }
+@keyframes popIn {
+    0%   { opacity: 0; transform: scale(0.92); }
+    100% { opacity: 1; transform: scale(1); }
+}
 
-/* Иконочные keyframes: используются .vk-icon-* и animate-icon-* (tailwind.config.js) */
+/* Иконки: используются .vk-icon-*, animate-icon-* и анимацией нажатия (.gd-icon-tap-*) */
 @keyframes iconPop {
     0%   { transform: scale(1); }
-    60%  { transform: scale(1.22); }
-    100% { transform: scale(1.12); }
+    40%  { transform: scale(0.82); }
+    75%  { transform: scale(1.18); }
+    100% { transform: scale(1); }
 }
 @keyframes iconSpin {
-    0%   { transform: rotate(0deg) scale(1); }
-    50%  { transform: rotate(20deg) scale(1.12); }
-    100% { transform: rotate(0deg) scale(1); }
+    0%   { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
 @keyframes iconShake {
     0%, 100% { transform: rotate(0deg); }
-    20% { transform: rotate(-12deg); }
+    20% { transform: rotate(-14deg); }
     40% { transform: rotate(12deg); }
     60% { transform: rotate(-8deg); }
-    80% { transform: rotate(8deg); }
+    80% { transform: rotate(5deg); }
 }
 @keyframes iconBounce {
-    0%   { transform: scale(1) translateY(0); }
-    40%  { transform: scale(1.18) translateY(-3px); }
-    70%  { transform: scale(0.96) translateY(0); }
-    100% { transform: scale(1) translateY(0); }
+    0%   { transform: translateY(0) scale(1); }
+    35%  { transform: translateY(-4px) scale(1.12); }
+    65%  { transform: translateY(1px) scale(0.96); }
+    100% { transform: translateY(0) scale(1); }
+}
+@keyframes iconWiggle {
+    0%, 100% { transform: rotate(0deg) scale(1); }
+    30% { transform: rotate(-10deg) scale(1.1); }
+    60% { transform: rotate(8deg) scale(1.05); }
 }
 
 @keyframes pulseGreen {
     0%, 100% { opacity: 1; }
-    50%      { opacity: 0.5; }
+    50%      { opacity: 0.45; }
 }
-
 @keyframes zapPulse {
     0%   { transform: scale(1);    filter: drop-shadow(0 0 2px rgba(5,150,105,0.4)); }
     50%  { transform: scale(1.18); filter: drop-shadow(0 0 7px rgba(16,185,129,0.85)); }
     100% { transform: scale(1);    filter: drop-shadow(0 0 2px rgba(5,150,105,0.4)); }
 }
 
-@keyframes modalSlideUpIn {
-    0% {
-        opacity: 0;
-        transform: translateY(100%);
-    }
-    100% {
-        opacity: 1;
-        transform: translateY(0);
-    }
+@keyframes sheetIn {
+    from { transform: translateY(100%); }
+    to   { transform: translateY(0); }
 }
-
-@keyframes modalSlideDownOut {
-    0% {
-        opacity: 1;
-        transform: translateY(0);
-    }
-    100% {
-        opacity: 0;
-        transform: translateY(100%);
-    }
+@keyframes sheetOut {
+    from { transform: translateY(var(--sheet-drag, 0px)); }
+    to   { transform: translateY(100%); }
 }
-
 @keyframes backdropFadeIn {
-    0% { opacity: 0; }
-    100% { opacity: 1; }
+    from { opacity: 0; }
+    to   { opacity: 1; }
 }
-
 @keyframes backdropFadeOut {
-    0% { opacity: 1; }
-    100% { opacity: 0; }
+    from { opacity: 1; }
+    to   { opacity: 0; }
 }
 
 @layer utilities {
-    .animate-fade-in     { animation: fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-    .animate-slide-up    { animation: slideUp 0.24s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-    .animate-slide-down  { animation: slideDown 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    .animate-fade-in     { animation: fadeIn 0.28s var(--ease-out) both; }
+    .animate-slide-up    { animation: slideUp 0.32s var(--ease-out) both; }
+    .animate-slide-down  { animation: slideDown 0.22s var(--ease-out) both; }
+    .animate-screen-in   { animation: screenIn 0.36s var(--ease-out) both; }
+    .animate-screen-back { animation: screenBack 0.36s var(--ease-out) both; }
+    .animate-pop-in      { animation: popIn 0.32s var(--ease-spring) both; }
     .animate-pulse-green { animation: pulseGreen 1.5s ease-in-out infinite; }
 
-    /* Modal Backdrop */
-    .modal-backdrop {
-        opacity: 0;
-        will-change: opacity;
-    }
-    .modal-backdrop-in {
-        animation: backdropFadeIn 0.26s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        will-change: opacity;
-    }
-    .modal-backdrop-out {
-        animation: backdropFadeOut 0.22s cubic-bezier(0.32, 0, 0.67, 0) forwards;
-        will-change: opacity;
-    }
+    /* Каскад: прямые потомки появляются по очереди */
+    /* backwards: после анимации transform не удерживается (не мешает dnd-kit) */
+    .gd-stagger > * { animation: itemIn 0.38s var(--ease-out) backwards; }
+    .gd-stagger > *:nth-child(1) { animation-delay: 0ms; }
+    .gd-stagger > *:nth-child(2) { animation-delay: 30ms; }
+    .gd-stagger > *:nth-child(3) { animation-delay: 60ms; }
+    .gd-stagger > *:nth-child(4) { animation-delay: 90ms; }
+    .gd-stagger > *:nth-child(5) { animation-delay: 120ms; }
+    .gd-stagger > *:nth-child(6) { animation-delay: 150ms; }
+    .gd-stagger > *:nth-child(n+7) { animation-delay: 180ms; }
 
-    /* Modal Bottom Sheet — base style starts translated 100% off-screen down, eliminating FOUC / top jerks */
-    .modal-sheet {
-        transform: translateY(100%);
-        opacity: 0;
-        will-change: transform, opacity;
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
-        text-rendering: optimizeLegibility;
-    }
-    .modal-sheet-in,
-    .modal-content-in {
-        animation: modalSlideUpIn 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        will-change: transform, opacity;
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
-        text-rendering: optimizeLegibility;
-    }
-    .modal-sheet-out,
-    .modal-content-out {
-        animation: modalSlideDownOut 0.22s cubic-bezier(0.32, 0, 0.67, 0) forwards;
-        will-change: transform, opacity;
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
+    /* Анимация иконки при нажатии — класс ставит src/utils/iconTapAnimation.ts */
+    .gd-icon-tap-pop    { animation: iconPop 0.42s var(--ease-spring) both; }
+    .gd-icon-tap-spin   { animation: iconSpin 0.55s var(--ease-out) both; }
+    .gd-icon-tap-shake  { animation: iconShake 0.45s ease both; }
+    .gd-icon-tap-bounce { animation: iconBounce 0.45s var(--ease-spring) both; }
+    .gd-icon-tap-wiggle { animation: iconWiggle 0.45s var(--ease-spring) both; }
+
+    /* Шторка (Modal) */
+    .modal-backdrop-in  { animation: backdropFadeIn 0.3s var(--ease-out) both; }
+    .modal-backdrop-out { animation: backdropFadeOut 0.26s var(--ease-in) both; }
+    .modal-sheet-in     { animation: sheetIn 0.48s cubic-bezier(0.2, 0.9, 0.25, 1.04) both; }
+    .modal-sheet-out    { animation: sheetOut 0.26s var(--ease-in) both; }
+
+    /* Стекло (navigation bar / tab bar) */
+    .gd-glass {
+        background: rgba(249, 249, 251, 0.88);
+        -webkit-backdrop-filter: saturate(180%) blur(20px);
+        backdrop-filter: saturate(180%) blur(20px);
     }
 
     .zap-pulse {
@@ -409,4 +483,6 @@
         transform-origin: center;
         will-change: transform, filter;
     }
+
+    .tabular-nums { font-variant-numeric: tabular-nums; }
 }

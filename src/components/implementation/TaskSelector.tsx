@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Trash2, Copy, ChevronDown, Check, FileCode, Edit2, ArrowDownUp } from 'lucide-react';
+import { Plus, Trash2, Copy, Check, Edit2, ArrowDownUp, ChevronLeft, ChevronRight, Search } from 'lucide-react';
 import { ImplementationTask } from '../../types';
 import { Button } from '../ui/Button';
 import { Modal } from '../ui/Modal';
@@ -15,6 +15,9 @@ interface TaskSelectorProps {
   onDeleteTask: (id: string) => void;
   onUpdateTask?: (id: string, updates: Partial<Omit<ImplementationTask, 'id' | 'createdAt'>>) => void;
   onOpenImportExport?: (defaultTab?: 'export' | 'import') => void;
+  /** 'detail' — строка «‹ Задачи» над открытой задачей; 'list' — экран списка задач */
+  view: 'detail' | 'list';
+  onChangeView: (view: 'detail' | 'list') => void;
 }
 
 export const TaskSelector: React.FC<TaskSelectorProps> = ({
@@ -26,8 +29,9 @@ export const TaskSelector: React.FC<TaskSelectorProps> = ({
   onDeleteTask,
   onUpdateTask,
   onOpenImportExport,
+  view,
+  onChangeView,
 }) => {
-  const [isOpenList, setIsOpenList] = useState(false);
   const [taskToDelete, setTaskToDelete] = useState<ImplementationTask | null>(null);
   const [taskToRename, setTaskToRename] = useState<ImplementationTask | null>(null);
   const [renameTaskNumber, setRenameTaskNumber] = useState('');
@@ -65,231 +69,158 @@ export const TaskSelector: React.FC<TaskSelectorProps> = ({
     );
   });
 
+  const collectedOf = (t: ImplementationTask) => t.items.filter((i) => i.isCollected).length;
+
   return (
     <>
-      <div className="relative flex items-center justify-between gap-1.5 p-1.5 bg-white border border-slate-200 rounded-xl shadow-sm">
-        {/* Active Task Trigger */}
-        <div className="flex-1 min-w-0">
+      {view === 'detail' ? (
+        /* Навигационная строка над задачей: назад к списку + действия */
+        <div className="flex items-center justify-between gap-2 -mt-1">
           <button
             type="button"
-            onClick={() => setIsOpenList(!isOpenList)}
-            className="w-full flex items-center justify-between gap-2 px-3 py-2 bg-slate-50/90 hover:bg-slate-100/90 text-left border border-slate-200 rounded-xl transition-all group shadow-2xs cursor-pointer min-w-0"
+            onClick={() => onChangeView('list')}
+            className="inline-flex items-center gap-0.5 -ml-1.5 pl-0.5 pr-2 h-8 rounded-full text-[15px] font-medium text-gd-green hover:bg-gd-green-light cursor-pointer"
+            title="Все задачи реализации"
           >
-            <div className="flex items-center gap-2 min-w-0 flex-1 mr-1">
-              <div className="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center flex-shrink-0 font-bold shadow-2xs">
-                <FileCode className="w-3.5 h-3.5" />
-              </div>
-              <div className="flex items-center gap-1.5 min-w-0 flex-1">
-                <span className="text-[11px] font-bold text-slate-600 whitespace-nowrap flex-shrink-0">
-                  {activeTask?.taskNumber || 'Задача'}:
-                </span>
-                <span className="text-xs text-slate-900 font-bold truncate min-w-0">
-                  {activeTask?.title || 'Без названия'}
-                </span>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-1.5 flex-shrink-0">
-              <span className="px-1.5 py-0.5 rounded-md bg-white border border-slate-200 text-[10px] font-bold text-slate-600 shadow-2xs whitespace-nowrap">
-                {activeTask?.items.length || 0} изм.
-              </span>
-              <ChevronDown
-                className={`w-3.5 h-3.5 text-slate-400 group-hover:text-slate-700 transition-transform flex-shrink-0 ${
-                  isOpenList ? 'rotate-180' : ''
-                }`}
-              />
-            </div>
+            <ChevronLeft className="w-5 h-5" strokeWidth={2.5} />
+            Задачи
+            <span className="ml-1 text-[12px] font-semibold text-gd-muted tabular-nums">{tasks.length}</span>
           </button>
+          <div className="flex items-center gap-1.5">
+            <button type="button" onClick={onCreateTask} title="Создать новую задачу" className="icon-btn !bg-gd-green-light !text-gd-green">
+              <Plus className="w-4 h-4" strokeWidth={2.5} />
+            </button>
+            {activeTask && (
+              <button
+                type="button"
+                onClick={() => handleOpenRename(activeTask)}
+                title="Изменить номер и название задачи"
+                className="icon-btn"
+              >
+                <Edit2 className="w-3.5 h-3.5" />
+              </button>
+            )}
+            {activeTask && tasks.length > 1 && (
+              <button
+                type="button"
+                onClick={() => setTaskToDelete(activeTask)}
+                title="Удалить задачу"
+                className="icon-btn icon-btn--danger"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
         </div>
-
-        {/* Task Dropdown Menu - Spans full card width */}
-        {isOpenList && (
-          <>
-            <div
-              className="fixed inset-0 z-40"
-              onClick={() => setIsOpenList(false)}
+      ) : (
+        /* Экран списка задач */
+        <div className="space-y-4 animate-screen-back">
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gd-faint" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Поиск по номеру или названию"
+              className="gd-field !pl-8 !bg-[rgba(118,118,128,0.12)]"
             />
-            <div className="absolute top-full left-0 right-0 mt-1.5 z-50 bg-white border border-slate-200 rounded-xl shadow-xl overflow-hidden animate-fade-in flex flex-col w-full">
-              {/* Search if more than 2 tasks */}
-              {tasks.length > 2 && (
-                <div className="p-2 border-b border-slate-100 bg-slate-50/70">
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Поиск по номеру или названию..."
-                    className="w-full px-2.5 py-1 bg-white border border-slate-200 rounded-lg text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-emerald-500"
-                    autoFocus
-                  />
-                </div>
-              )}
+          </div>
 
-              {/* Header title */}
-              <div className="px-3 pt-2 pb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center justify-between">
-                <span>Задачи реализации ({tasks.length})</span>
-              </div>
-
-              {/* List */}
-              <div className="overflow-y-auto max-h-56 p-1.5 space-y-1">
-                {filteredTasks.map((t) => {
-                  const isActive = t.id === activeTask?.id;
-                  return (
-                    <div
-                      key={t.id}
-                      onClick={() => {
-                        onSelectTask(t.id);
-                        setIsOpenList(false);
-                      }}
-                      className={`group/row flex items-center justify-between gap-2 px-2.5 py-2 rounded-xl text-xs transition-all cursor-pointer ${
-                        isActive
-                          ? 'bg-emerald-50/70 text-emerald-950 font-semibold border border-emerald-200/80 shadow-2xs'
-                          : 'hover:bg-slate-50 text-slate-800 border border-transparent'
-                      }`}
-                    >
-                      {/* Left: Indicator & Title */}
-                      <div className="flex items-center gap-2 min-w-0 flex-1">
-                        <div
-                          className={`w-2 h-2 rounded-full flex-shrink-0 ${
-                            isActive ? 'bg-emerald-500 ring-2 ring-emerald-200' : 'bg-slate-300'
-                          }`}
-                        />
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-1.5 min-w-0">
-                            <span className="font-bold text-emerald-800 text-[11px] whitespace-nowrap flex-shrink-0">
-                              {t.taskNumber}
-                            </span>
-                            <span className="text-slate-400 text-[10px] flex-shrink-0">•</span>
-                            <span className="truncate text-xs text-slate-900 font-medium min-w-0">
-                              {t.title}
-                            </span>
-                          </div>
-                          <span className="block text-[10px] text-slate-400 font-normal">
-                            {t.items.length} {pluralizeRu(t.items.length, CHANGE_FORMS)}
-                          </span>
-                        </div>
+          <div>
+            <div className="gd-section-title">
+              <span>Задачи реализации · {tasks.length}</span>
+            </div>
+            <div className="gd-group gd-stagger">
+              {filteredTasks.map((t) => {
+                const isActive = t.id === activeTask?.id;
+                const done = collectedOf(t);
+                const total = t.items.length;
+                return (
+                  <div
+                    key={t.id}
+                    role="button"
+                    onClick={() => {
+                      onSelectTask(t.id);
+                      onChangeView('detail');
+                    }}
+                    className="gd-row gd-row--tap group/row !py-2.5"
+                  >
+                    <span className="w-5 flex justify-center flex-shrink-0">
+                      {isActive && <Check className="w-4 h-4 text-gd-green" strokeWidth={2.75} />}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-baseline gap-1.5 min-w-0">
+                        <span className="text-[13px] font-semibold text-slate-900 whitespace-nowrap flex-shrink-0">
+                          {t.taskNumber}
+                        </span>
+                        <span className="truncate text-[13.5px] text-slate-900 min-w-0">{t.title}</span>
                       </div>
-
-                      {/* Right: Actions */}
-                      <div
-                        className="flex items-center gap-0.5 flex-shrink-0"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        {isActive && (
-                          <Check className="w-4 h-4 text-emerald-600 mr-1 flex-shrink-0" />
-                        )}
-
-                        <button
-                          type="button"
-                          onClick={() => {
-                            onDuplicateTask(t.id);
-                            setIsOpenList(false);
-                          }}
-                          title="Дублировать задачу"
-                          className="icon-btn p-1 text-slate-400 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors cursor-pointer"
-                        >
-                          <Copy className="w-3.5 h-3.5" />
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() => {
-                            handleOpenRename(t);
-                            setIsOpenList(false);
-                          }}
-                          title="Редактировать номер/название"
-                          className="icon-btn p-1 text-slate-400 hover:text-sky-600 hover:bg-sky-50 rounded-lg transition-colors cursor-pointer"
-                        >
-                          <Edit2 className="w-3.5 h-3.5" />
-                        </button>
-
-                        {tasks.length > 1 && (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setTaskToDelete(t);
-                              setIsOpenList(false);
-                            }}
-                            title="Удалить задачу"
-                            className="icon-btn icon-btn--danger p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        )}
+                      <div className="mt-1 flex items-center gap-2">
+                        <div className="h-1 w-16 rounded-full bg-gd-fill overflow-hidden flex-shrink-0">
+                          <div
+                            className="h-full rounded-full bg-gd-green transition-[width] duration-500"
+                            style={{ width: total ? `${Math.round((done / total) * 100)}%` : '0%' }}
+                          />
+                        </div>
+                        <span className="text-[11.5px] text-gd-muted tabular-nums truncate">
+                          {total} {pluralizeRu(total, CHANGE_FORMS)}
+                          {total > 0 ? ` · собрано ${done}` : ''}
+                        </span>
                       </div>
                     </div>
-                  );
-                })}
-              </div>
-
-              {/* Footer: Create Task & Import/Export Buttons */}
-              <div className="p-2 border-t border-slate-100 bg-slate-50/70 flex items-center gap-1.5">
-                <button
-                  type="button"
-                  onClick={() => {
-                    onCreateTask();
-                    setIsOpenList(false);
-                  }}
-                  className="flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2.5 text-xs text-emerald-700 hover:text-emerald-800 bg-white hover:bg-emerald-50 border border-emerald-200/80 rounded-xl transition-all font-semibold shadow-2xs cursor-pointer whitespace-nowrap"
-                >
-                  <Plus className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
-                  <span>Новая задача</span>
-                </button>
-
-                {onOpenImportExport && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      onOpenImportExport('export');
-                      setIsOpenList(false);
-                    }}
-                    title="Резервное копирование, экспорт и импорт в формате JSON"
-                    className="flex items-center justify-center gap-1.5 py-1.5 px-2.5 text-xs text-slate-700 hover:text-emerald-800 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl transition-all font-medium shadow-2xs cursor-pointer whitespace-nowrap flex-shrink-0"
-                  >
-                    <ArrowDownUp className="w-3.5 h-3.5 text-slate-500 flex-shrink-0" />
-                    <span>Импорт / Экспорт</span>
-                  </button>
-                )}
-              </div>
+                    <div className="flex items-center gap-0.5 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+                      <button type="button" onClick={() => onDuplicateTask(t.id)} title="Дублировать задачу" className="icon-btn icon-btn--plain w-7 h-7">
+                        <Copy className="w-3.5 h-3.5" />
+                      </button>
+                      <button type="button" onClick={() => handleOpenRename(t)} title="Редактировать номер/название" className="icon-btn icon-btn--plain w-7 h-7">
+                        <Edit2 className="w-3.5 h-3.5" />
+                      </button>
+                      {tasks.length > 1 && (
+                        <button type="button" onClick={() => setTaskToDelete(t)} title="Удалить задачу" className="icon-btn icon-btn--plain icon-btn--danger w-7 h-7">
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+              {filteredTasks.length === 0 && (
+                <div className="gd-row justify-center text-[13px] text-gd-muted">Ничего не найдено</div>
+              )}
             </div>
-          </>
-        )}
+          </div>
 
-        {/* Task Actions Toolbar */}
-        <div className="flex items-center gap-0.5 flex-shrink-0">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onCreateTask}
-            title="Создать новую задачу"
-            leftIcon={<Plus className="w-3.5 h-3.5 text-emerald-600" />}
-            className="hidden sm:inline-flex"
-          >
-            Создать
-          </Button>
-
-          {onOpenImportExport && (
+          <div className="gd-group gd-group--icons">
             <button
               type="button"
-              onClick={() => onOpenImportExport('export')}
-              title="Резервное копирование, экспорт и импорт в формате JSON"
-              className="icon-btn p-1.5 text-slate-500 hover:text-emerald-700 hover:bg-emerald-50 rounded-xl transition-colors cursor-pointer"
+              onClick={() => {
+                onCreateTask();
+                onChangeView('detail');
+              }}
+              className="gd-row gd-row--tap w-full text-left"
             >
-              <ArrowDownUp className="w-3.5 h-3.5" />
+              <span className="gd-row-icon gd-row-icon--accent">
+                <Plus />
+              </span>
+              <span className="flex-1 text-[14px] font-medium text-gd-green">Новая задача</span>
             </button>
-          )}
-
-          {activeTask && tasks.length > 1 && (
-            <button
-              type="button"
-              onClick={() => setTaskToDelete(activeTask)}
-              title="Удалить задачу"
-              className="icon-btn icon-btn--danger p-1.5 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors cursor-pointer"
-            >
-              <Trash2 className="w-3.5 h-3.5" />
-            </button>
-          )}
+            {onOpenImportExport && (
+              <button
+                type="button"
+                onClick={() => onOpenImportExport('export')}
+                title="Резервное копирование, экспорт и импорт в формате JSON"
+                className="gd-row gd-row--tap w-full text-left"
+              >
+                <span className="gd-row-icon">
+                  <ArrowDownUp />
+                </span>
+                <span className="flex-1 text-[14px] text-slate-900">Импорт и экспорт</span>
+                <ChevronRight className="w-4 h-4 text-gd-faint" />
+              </button>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Delete Confirmation Modal */}
       <Modal

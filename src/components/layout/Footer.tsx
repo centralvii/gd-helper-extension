@@ -60,13 +60,13 @@ export const Footer: React.FC<FooterProps> = ({
     if (fileCount === 0) return null;
 
     return (
-        <footer className="sticky bottom-0 z-30 p-3 bg-white/85 backdrop-blur-md border-t border-slate-200 shadow-[0_-4px_16px_rgba(15,23,42,0.05)]">
-            {/* Archive name + validation status bar */}
-            <div className="flex items-center gap-2 mb-2.5 px-3 py-2 rounded-xl bg-slate-50/90 border border-slate-200 shadow-2xs">
-                {/* Archive icon */}
-                <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-emerald-50 to-emerald-100 text-emerald-700 ring-1 ring-inset ring-emerald-200/80 flex items-center justify-center flex-shrink-0 font-bold">
-                    <Archive className="w-3.5 h-3.5" />
-                </div>
+        <footer
+            className="sticky z-30 mt-3 px-4 pt-2.5 pb-3 gd-glass border-t border-gd-border"
+            style={{ bottom: 'var(--tabbar-h)' }}
+        >
+            {/* Имя архива + статус валидации */}
+            <div className="flex items-center gap-2 mb-2 px-1 min-h-[24px]">
+                <Archive className="w-3.5 h-3.5 text-gd-muted flex-shrink-0" />
 
                 {isEditingName ? (
                     <input
@@ -79,57 +79,53 @@ export const Footer: React.FC<FooterProps> = ({
                             if (e.key === 'Escape') setIsEditingName(false);
                         }}
                         autoFocus
-                        className="flex-1 bg-white border border-emerald-400 rounded-lg px-2 py-0.5 text-xs outline-none font-bold text-slate-900 shadow-2xs"
+                        className="flex-1 min-w-0 bg-white rounded-lg px-2 py-0.5 text-[12.5px] outline-none font-semibold text-slate-900 ring-2 ring-emerald-500/40"
                     />
                 ) : (
                     <button
+                        type="button"
                         onClick={() => { setTempName(archiveName); setIsEditingName(true); }}
-                        className="group flex flex-1 items-center gap-1.5 text-left truncate cursor-pointer"
+                        className="group flex flex-1 min-w-0 items-center gap-1 text-left cursor-pointer"
                         title="Нажмите для изменения имени архива"
                     >
-                        <span className="text-xs font-bold truncate text-slate-900 group-hover:text-emerald-700 transition-colors">
+                        <span className="text-[12.5px] font-medium truncate text-gd-muted group-hover:text-gd-green transition-colors">
                             {archiveName}
                         </span>
-                        <PenLine className="w-3 h-3 text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
+                        <PenLine className="w-3 h-3 text-gd-faint group-hover:text-gd-green transition-colors flex-shrink-0" />
                     </button>
                 )}
 
-                <span className="text-[10.5px] font-semibold text-slate-500 hidden xs:inline">
-                    {fileCount} {pluralizeRu(fileCount, FILE_FORMS)}
-                </span>
-
-                {/* Validation Status Badge */}
-                <div className="ml-auto flex-shrink-0">
-                    {validation.hasErrors ? (
-                        <button
-                            onClick={onOpenValidation}
-                            className="hover:opacity-80 transition-opacity cursor-pointer"
-                        >
-                            <Badge variant="danger" size="xs" dot className="gap-1 shadow-2xs">
-                                <AlertTriangle className="w-2.5 h-2.5" />
-                                {validation.errors.length} {pluralizeRu(validation.errors.length, ERROR_FORMS)}
-                            </Badge>
-                        </button>
-                    ) : (
-                        <Badge variant="success" size="xs" dot className="gap-1 shadow-2xs">
-                            <CheckCircle2 className="w-2.5 h-2.5 text-emerald-600" />
-                            Готово к экспорту
+                {validation.hasErrors ? (
+                    <button
+                        type="button"
+                        onClick={onOpenValidation}
+                        className="flex-shrink-0 cursor-pointer"
+                        data-icon-anim="shake"
+                    >
+                        <Badge variant="danger" size="sm" className="gap-1">
+                            <AlertTriangle className="w-3 h-3" />
+                            {validation.errors.length} {pluralizeRu(validation.errors.length, ERROR_FORMS)}
                         </Badge>
-                    )}
-                </div>
+                    </button>
+                ) : (
+                    <Badge variant="success" size="sm" className="gap-1 flex-shrink-0">
+                        <CheckCircle2 className="w-3 h-3" />
+                        Готово
+                    </Badge>
+                )}
             </div>
 
-            {/* Export ZIP Button */}
+            {/* Экспорт */}
             <Button
-                variant="emerald"
-                size="md"
-                className="w-full font-bold shadow-md shadow-emerald-600/20"
+                variant="primary"
+                size="lg"
+                className="w-full shadow-gd-green"
                 isLoading={isExporting}
                 disabled={validation.hasErrors || fileCount === 0}
                 onClick={handleExport}
-                leftIcon={<Download className="w-4 h-4" />}
+                leftIcon={<Download className="w-[18px] h-[18px]" />}
             >
-                {isExporting ? 'Создание архива...' : `Экспорт ZIP (${fileCount} ${pluralizeRu(fileCount, FILE_FORMS)})`}
+                {isExporting ? 'Создание архива…' : `Экспорт ZIP · ${fileCount} ${pluralizeRu(fileCount, FILE_FORMS)}`}
             </Button>
         </footer>
     );

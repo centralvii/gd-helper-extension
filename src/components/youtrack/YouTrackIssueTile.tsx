@@ -88,151 +88,127 @@ export const YouTrackIssueTile: React.FC<YouTrackIssueTileProps> = ({
   return (
     <div
       onClick={() => onSelect(issue)}
-      className="group relative bg-white hover:bg-slate-50/70 border border-slate-200 hover:border-emerald-400/80 rounded-xl p-3 shadow-2xs hover:shadow-sm transition-all duration-150 cursor-pointer flex flex-col gap-2"
+      role="button"
+      className="group gd-group !overflow-visible p-3.5 cursor-pointer flex flex-col gap-2 transition-shadow hover:shadow-md"
     >
-      {/* Top row: ID, Badges, and Quick Actions */}
-      <div className="flex items-center justify-between gap-1.5 min-w-0">
-        <div className="flex items-center gap-1.5 flex-wrap min-w-0">
-          {/* Issue ID badge */}
-          <button
-            type="button"
-            onClick={handleCopyId}
-            title="Нажмите, чтобы скопировать ID задачи"
-            className="inline-flex items-center gap-1 px-2 py-0.5 font-mono text-[11px] font-bold rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200/90 hover:bg-emerald-100 hover:border-emerald-300 transition-colors shadow-2xs cursor-pointer select-none"
+      {/* ID, статус, приоритет */}
+      <div className="flex items-center gap-1.5 min-w-0">
+        <button
+          type="button"
+          onClick={handleCopyId}
+          title="Нажмите, чтобы скопировать ID задачи"
+          className="inline-flex items-center gap-1 font-mono text-[12px] font-semibold text-gd-green hover:underline cursor-pointer select-none flex-shrink-0"
+        >
+          {issue.id}
+          {copied ? (
+            <Check className="w-3 h-3 animate-pop-in" strokeWidth={2.75} />
+          ) : (
+            <Copy className="w-3 h-3 opacity-0 group-hover:opacity-60 transition-opacity" />
+          )}
+        </button>
+        {tfsNumber && (
+          <span
+            className="font-mono text-[11px] text-gd-muted truncate"
+            title={`Номер TFS (US/BP), извлечённый из названия задачи: ${tfsNumber}`}
           >
-            <span>{issue.id}</span>
-            {copied ? (
-              <Check className="w-3 h-3 text-emerald-600 animate-fade-in" />
-            ) : (
-              <Copy className="w-2.5 h-2.5 text-emerald-500 opacity-60 group-hover:opacity-100" />
-            )}
-          </button>
-
-          {/* State badge */}
-          {issue.state && (
-            <Badge variant={getStateVariant(issue.state)} size="xs">
-              {issue.state}
-            </Badge>
-          )}
-
-          {/* Priority badge */}
-          {issue.priority && (
-            <Badge variant={getPriorityVariant(issue.priority)} size="xs">
-              {issue.priority}
-            </Badge>
-          )}
-
-          {/* Type badge */}
-          {issue.type && (
-            <span className="text-[10px] text-slate-500 bg-slate-100 px-1.5 py-px rounded border border-slate-200">
-              {issue.type}
-            </span>
-          )}
-
-          {/* TFS Number badge if extracted from title */}
-          {tfsNumber && (
-            <span
-              className="inline-flex items-center px-1.5 py-0.5 font-mono text-[10px] font-bold rounded-lg bg-sky-50 text-sky-800 border border-sky-200/90 shadow-2xs select-none"
-              title={`Номер TFS (US/BP), извлечённый из названия задачи: ${tfsNumber}`}
-            >
-              TFS: {tfsNumber}
-            </span>
-          )}
-        </div>
-
-        {/* Right side buttons */}
-        <div className="flex items-center gap-1 flex-shrink-0">
-          {onTransferToGreenData && (
-            <button
-              type="button"
-              disabled={!isGreenDataModalActive}
-              onClick={handleTransferToGreenData}
-              title={
-                isGreenDataModalActive
-                  ? `Перенести в форму создания задачи GreenData:\n• TFS: ${tfsNumber || '—'}\n• YT: ${issue.id}\n• Название: ${issue.summary}`
-                  : 'Откройте модальное окно создания задачи в GreenData, чтобы перенести данные'
-              }
-              className={`px-2 py-0.5 rounded-lg text-[10.5px] font-bold transition-all shadow-2xs flex items-center gap-1 select-none ${
-                justTransferred
-                  ? 'bg-emerald-700 text-white border border-emerald-700 scale-95 cursor-default'
-                  : isGreenDataModalActive
-                  ? 'bg-emerald-600 hover:bg-emerald-700 text-white border border-emerald-600 hover:border-emerald-700 active:scale-95 animate-fade-in cursor-pointer'
-                  : 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed opacity-60'
-              }`}
-            >
-              {justTransferred ? (
-                <>
-                  <Check className="w-3 h-3 text-white" />
-                  <span>Перенесено!</span>
-                </>
-              ) : (
-                <>
-                  <ArrowDownToLine className="w-3 h-3" />
-                  <span>Перенести</span>
-                </>
-              )}
-            </button>
-          )}
-
-          {onTransferToImplementation && (
-            <button
-              type="button"
-              onClick={handleTransfer}
-              title="Создать или привязать задачу в Реализации"
-              className="px-1.5 py-0.5 rounded-lg text-[10px] font-semibold bg-slate-100 hover:bg-emerald-50 text-slate-600 hover:text-emerald-700 border border-slate-200 hover:border-emerald-300 transition-colors shadow-2xs flex items-center gap-1 cursor-pointer"
-            >
-              <span className="hidden sm:inline">В реализацию</span>
-              <ArrowRight className="w-2.5 h-2.5" />
-            </button>
-          )}
-
-          <IconButton
-            icon={<ExternalLink className="w-3 h-3" />}
-            size="xs"
-            variant="ghost"
-            title="Открыть задачу в YouTrack (новой вкладке)"
-            onClick={handleOpenExternal}
-          />
-        </div>
+            · {tfsNumber}
+          </span>
+        )}
+        <span className="flex-1" />
+        {issue.priority && (
+          <Badge variant={getPriorityVariant(issue.priority)} size="xs" className="flex-shrink-0">
+            {issue.priority}
+          </Badge>
+        )}
+        {issue.state && (
+          <Badge variant={getStateVariant(issue.state)} size="xs" className="flex-shrink-0">
+            {issue.state}
+          </Badge>
+        )}
       </div>
 
-      {/* Summary (Название задачи) */}
-      <div className="min-w-0">
-        <h4 className="text-xs font-semibold text-slate-900 group-hover:text-emerald-950 leading-snug line-clamp-2">
-          {issue.summary || 'Без названия'}
-        </h4>
-      </div>
-
-      {/* Description preview if exists */}
+      {/* Название и описание */}
+      <h4 className="text-[14.5px] font-semibold tracking-[-0.01em] text-slate-900 leading-snug line-clamp-2">
+        {issue.summary || 'Без названия'}
+      </h4>
       {issue.description && (
-        <p className="text-[11px] text-slate-500 leading-normal line-clamp-2">
-          {issue.description}
-        </p>
+        <p className="text-[12.5px] text-gd-muted leading-snug line-clamp-2">{issue.description}</p>
       )}
 
-      {/* Bottom meta row */}
-      <div className="flex items-center justify-between text-[10px] text-slate-400 pt-1 border-t border-slate-100 mt-0.5">
-        <div className="flex items-center gap-2 truncate">
-          {issue.project && (
-            <span className="flex items-center gap-0.5 font-medium text-slate-500">
-              <Tag className="w-2.5 h-2.5 text-slate-400" />
-              {issue.project}
-            </span>
-          )}
-          {issue.assignee && (
-            <span className="flex items-center gap-0.5 truncate text-slate-500" title={issue.assignee}>
-              <User className="w-2.5 h-2.5 text-slate-400 flex-shrink-0" />
-              <span className="truncate">{issue.assignee}</span>
-            </span>
-          )}
-        </div>
-
+      {/* Метаданные */}
+      <div className="flex items-center gap-3 text-[11.5px] text-gd-muted min-w-0">
+        {issue.type && (
+          <span className="flex items-center gap-1 flex-shrink-0">
+            <Tag className="w-3 h-3" />
+            {issue.type}
+          </span>
+        )}
+        {issue.assignee && (
+          <span className="flex items-center gap-1 truncate" title={issue.assignee}>
+            <User className="w-3 h-3 flex-shrink-0" />
+            <span className="truncate">{issue.assignee}</span>
+          </span>
+        )}
         {issue.updatedAt && (
-          <span className="flex items-center gap-0.5 flex-shrink-0 text-slate-400 font-mono">
-            <Calendar className="w-2.5 h-2.5" />
+          <span className="ml-auto flex items-center gap-1 flex-shrink-0 tabular-nums">
+            <Calendar className="w-3 h-3" />
             {formatDate(issue.updatedAt)}
           </span>
         )}
+      </div>
+
+      {/* Действия */}
+      <div className="flex items-center gap-1.5 pt-1" onClick={(e) => e.stopPropagation()}>
+        {onTransferToGreenData && (
+          <button
+            type="button"
+            disabled={!isGreenDataModalActive}
+            onClick={handleTransferToGreenData}
+            title={
+              isGreenDataModalActive
+                ? `Перенести в форму создания задачи GreenData:\n• TFS: ${tfsNumber || '—'}\n• YT: ${issue.id}\n• Название: ${issue.summary}`
+                : 'Откройте модальное окно создания задачи в GreenData, чтобы перенести данные'
+            }
+            className={`h-8 px-3 rounded-full text-[12.5px] font-semibold flex items-center gap-1.5 select-none transition-colors ${
+              justTransferred
+                ? 'bg-gd-green-dark text-white cursor-default'
+                : isGreenDataModalActive
+                ? 'bg-gd-green hover:bg-gd-green-dark text-white cursor-pointer animate-pop-in'
+                : 'bg-gd-fill text-gd-faint cursor-not-allowed'
+            }`}
+          >
+            {justTransferred ? (
+              <>
+                <Check className="w-3.5 h-3.5 animate-pop-in" strokeWidth={2.75} />
+                Перенесено
+              </>
+            ) : (
+              <>
+                <ArrowDownToLine className="w-3.5 h-3.5" />
+                Перенести
+              </>
+            )}
+          </button>
+        )}
+        {onTransferToImplementation && (
+          <button
+            type="button"
+            onClick={handleTransfer}
+            title="Создать или привязать задачу в Реализации"
+            className="h-8 px-3 rounded-full text-[12.5px] font-semibold bg-gd-green-light text-gd-green hover:bg-emerald-500/20 flex items-center gap-1 cursor-pointer"
+          >
+            В реализацию
+            <ArrowRight className="w-3.5 h-3.5" />
+          </button>
+        )}
+        <span className="flex-1" />
+        <IconButton
+          icon={<ExternalLink className="w-3.5 h-3.5" />}
+          size="sm"
+          variant="ghost"
+          title="Открыть задачу в YouTrack (новой вкладке)"
+          onClick={handleOpenExternal}
+        />
       </div>
     </div>
   );

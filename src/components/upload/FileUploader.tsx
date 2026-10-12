@@ -4,7 +4,6 @@ import {
     FileArchive,
     FileCode,
     Plus,
-    Sparkles,
 } from 'lucide-react';
 import { Button } from '../ui/Button';
 
@@ -58,76 +57,49 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
                     onChange={handleAddFilesChange}
                 />
                 <Button
-                    variant="secondary"
-                    size="xs"
-                    leftIcon={<Plus className="w-3.5 h-3.5 text-emerald-600" />}
+                    variant="outline"
+                    size="sm"
+                    className="!h-[34px]"
+                    leftIcon={<Plus className="w-4 h-4" strokeWidth={2.5} />}
                     onClick={() => addGufInputRef.current?.click()}
+                    title="Добавить .guf файлы в пакет"
                 >
-                    Добавить .guf
+                    .guf
                 </Button>
             </div>
         );
     }
 
     return (
-        <div className="relative overflow-hidden rounded-xl border-2 border-dashed border-emerald-300/80 bg-white p-7 shadow-xs hover:border-emerald-500 hover:shadow-md transition-all group">
-            <div className="relative flex flex-col items-center justify-center text-center">
-                <input
-                    ref={zipInputRef}
-                    type="file"
-                    accept=".zip"
-                    className="hidden"
-                    onChange={handleZipChange}
-                />
-                <input
-                    ref={gufInputRef}
-                    type="file"
-                    accept=".guf"
-                    multiple
-                    className="hidden"
-                    onChange={handleGufChange}
-                />
+        <div className="gd-group relative px-5 py-8 text-center animate-pop-in">
+            <input ref={zipInputRef} type="file" accept=".zip" className="hidden" onChange={handleZipChange} />
+            <input ref={gufInputRef} type="file" accept=".guf" multiple className="hidden" onChange={handleGufChange} />
 
-                <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-500 text-white shadow-md shadow-emerald-500/25 transition-transform group-hover:scale-105">
-                    <UploadCloud className="h-8 w-8" />
-                </div>
+            <div className="mx-auto mb-4 grid h-16 w-16 place-items-center rounded-[18px] bg-gd-green text-white shadow-gd-green">
+                <UploadCloud className="h-8 w-8" />
+            </div>
+            <h4 className="text-[17px] font-semibold tracking-[-0.02em] text-slate-900">Перетащите файлы пакета</h4>
+            <p className="mx-auto mt-1 max-w-[260px] text-[13px] leading-snug text-gd-muted">
+                ZIP-архив или отдельные файлы <span className="font-mono text-slate-700">.guf</span> — в любое место окна
+            </p>
 
-                <div className="mb-2 space-y-1.5">
-                    <h4 className="text-base font-bold text-slate-900 tracking-tight">
-                        Перетащите файлы пакета сюда
-                    </h4>
-                    <p className="max-w-md text-xs leading-relaxed text-slate-500">
-                        Поддерживается ZIP-архив или отдельные файлы <code className="text-emerald-700 font-mono font-bold bg-emerald-50 px-1 py-0.5 rounded border border-emerald-200">.guf</code> для пакетного переименования.
-                    </p>
-                </div>
-
-                <div className="mt-4 flex flex-wrap items-center justify-center gap-2.5">
-                    <Button
-                        variant="secondary"
-                        size="sm"
-                        leftIcon={
-                            <FileArchive className="h-3.5 w-3.5 text-emerald-600" />
-                        }
-                        onClick={() => zipInputRef.current?.click()}
-                    >
-                        Выбрать ZIP
-                    </Button>
-                    <Button
-                        variant="secondary"
-                        size="sm"
-                        leftIcon={
-                            <FileCode className="h-3.5 w-3.5 text-sky-600" />
-                        }
-                        onClick={() => gufInputRef.current?.click()}
-                    >
-                        Выбрать .guf
-                    </Button>
-                </div>
-
-                <div className="mt-5 inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-[10.5px] font-bold uppercase tracking-wider text-emerald-800 shadow-2xs">
-                    <Sparkles className="h-3 w-3 text-emerald-600" />
-                    Быстрый импорт
-                </div>
+            <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
+                <Button
+                    variant="primary"
+                    size="md"
+                    leftIcon={<FileArchive className="h-4 w-4" />}
+                    onClick={() => zipInputRef.current?.click()}
+                >
+                    Выбрать ZIP
+                </Button>
+                <Button
+                    variant="secondary"
+                    size="md"
+                    leftIcon={<FileCode className="h-4 w-4" />}
+                    onClick={() => gufInputRef.current?.click()}
+                >
+                    Файлы .guf
+                </Button>
             </div>
         </div>
     );

@@ -185,15 +185,15 @@ export const AiChatContainer: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-full w-full min-h-0 flex-1 bg-white overflow-hidden relative font-sans">
+    <div className="flex flex-col h-full w-full min-h-0 flex-1 bg-gd-bg overflow-hidden relative font-sans">
       {/* ── Top Bar with Agent Switcher ── */}
-      <div className="flex items-center justify-between px-2.5 py-1.5 bg-white/95 backdrop-blur-md border-b border-slate-200 flex-shrink-0 z-20">
+      <div className="flex items-center justify-between px-3 py-1.5 gd-glass border-b border-gd-border flex-shrink-0 z-20">
         {/* Agent Switcher Dropdown Button */}
         <div className="relative min-w-0">
           <button
             type="button"
             onClick={() => setIsAgentMenuOpen(!isAgentMenuOpen)}
-            className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-xl border text-[11px] font-bold transition-all cursor-pointer shadow-2xs group ${getAgentBadgeColor(
+            className={`inline-flex items-center gap-1.5 h-8 px-3 rounded-full border text-[12.5px] font-semibold transition-all cursor-pointer group ${getAgentBadgeColor(
               activeAgent
             )}`}
             title="Сменить активного ИИ-агента"
@@ -210,7 +210,7 @@ export const AiChatContainer: React.FC = () => {
                 className="fixed inset-0 z-30"
                 onClick={() => setIsAgentMenuOpen(false)}
               />
-              <div className="absolute top-full mt-1.5 left-0 w-64 bg-white border border-slate-200 rounded-xl shadow-2xl p-1.5 space-y-1 z-40 animate-slide-down">
+              <div className="gd-menu absolute top-full mt-1.5 left-0 w-64 p-1.5 space-y-0.5 z-40">
                 <div className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
                   Выборка ИИ-агентов
                 </div>
@@ -266,7 +266,7 @@ export const AiChatContainer: React.FC = () => {
           <button
             type="button"
             onClick={() => setIsSettingsOpen(true)}
-            className="inline-flex items-center gap-1.5 h-7 px-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 text-[10px] font-mono font-semibold border border-slate-200 transition-all cursor-pointer max-w-[120px] truncate shadow-2xs"
+            className="inline-flex items-center gap-1.5 h-8 px-3 rounded-full bg-gd-fill hover:bg-slate-200 text-slate-700 text-[11px] font-mono font-semibold transition-all cursor-pointer max-w-[130px] truncate shadow-2xs"
             title={`Модель: ${settings.model || 'gpt-4o-mini'}`}
           >
             <span
@@ -317,7 +317,7 @@ export const AiChatContainer: React.FC = () => {
       <div
         ref={messagesContainerRef}
         onScroll={handleScroll}
-        className="flex-1 p-3 sm:p-3.5 overflow-y-auto overscroll-contain space-y-3 bg-[#fafafa] min-h-0 select-text scrollbar-thin"
+        className="flex-1 p-3 sm:p-4 overflow-y-auto overscroll-contain space-y-3 bg-gd-bg min-h-0 select-text"
       >
         {messages.length === 0 ? (
           <div className="py-3 px-1 text-center max-w-sm mx-auto space-y-3 animate-fade-in">
@@ -375,7 +375,7 @@ export const AiChatContainer: React.FC = () => {
                   <button
                     type="button"
                     onClick={handleAttachActiveTabContext}
-                    className="w-full inline-flex items-center justify-between gap-2 p-2 rounded-xl bg-white border border-emerald-200 hover:border-emerald-400 hover:bg-emerald-50/40 text-left transition-all group cursor-pointer shadow-2xs"
+                    className="w-full inline-flex items-center justify-between gap-2 p-3 rounded-xl bg-white hover:bg-gd-fill-2 text-left transition-colors group cursor-pointer shadow-2xs"
                   >
                     <div className="flex items-center gap-2 min-w-0">
                       <Globe className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
@@ -396,10 +396,10 @@ export const AiChatContainer: React.FC = () => {
 
             {/* Agent Specific Starter Prompts */}
             <div className="space-y-1.5 pt-1 text-left">
-              <span className="text-[9.5px] font-bold uppercase tracking-wider text-slate-400 block px-0.5">
+              <span className="gd-section-title !px-1.5 !pb-1 block">
                 Сценарии для {activeAgent.shortName}:
               </span>
-              <div className="grid grid-cols-1 gap-1.5">
+              <div className="gd-group grid grid-cols-1 gd-stagger">
                 {activeAgent.starterSuggestions.map((item, idx) => (
                   <button
                     key={idx}
@@ -408,16 +408,16 @@ export const AiChatContainer: React.FC = () => {
                       setInputVal(item.prompt);
                       textareaRef.current?.focus();
                     }}
-                    className="p-2.5 rounded-xl bg-white border border-slate-200 hover:border-emerald-400 hover:bg-emerald-50/30 text-left transition-all flex items-start gap-2.5 group cursor-pointer shadow-2xs"
+                    className="gd-row gd-row--tap !items-start !py-2.5 text-left w-full group"
                   >
-                    <div className="p-1.5 rounded-lg bg-slate-100 group-hover:bg-white transition-colors flex-shrink-0 mt-0.5">
+                    <div className="gd-row-icon mt-0.5">
                       {getAgentIcon(activeAgent.avatarIcon, 'w-3 h-3 text-emerald-600')}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <span className="font-bold text-slate-900 group-hover:text-emerald-900 transition-colors text-[11.5px] block truncate">
+                      <span className="font-medium text-slate-900 text-[13.5px] block truncate">
                         {item.title}
                       </span>
-                      <span className="text-[10.5px] text-slate-500 line-clamp-1 leading-tight block">
+                      <span className="text-[12px] text-gd-muted line-clamp-1 leading-tight block">
                         {item.desc}
                       </span>
                     </div>
@@ -449,7 +449,7 @@ export const AiChatContainer: React.FC = () => {
         <button
           type="button"
           onClick={() => scrollToBottom('smooth')}
-          className="absolute bottom-[88px] right-3 z-20 p-1.5 rounded-full bg-white text-emerald-700 hover:text-emerald-800 shadow-md border border-slate-200 transition-all hover:scale-105 cursor-pointer"
+          className="absolute bottom-[96px] right-3 z-20 w-9 h-9 grid place-items-center rounded-full gd-glass text-gd-green shadow-gd-float transition-transform hover:scale-105 cursor-pointer animate-pop-in"
           title="Прокрутить вниз"
         >
           <ArrowDown className="w-3.5 h-3.5" />
@@ -457,8 +457,8 @@ export const AiChatContainer: React.FC = () => {
       )}
 
       {/* ── Floating Composer Bar ── */}
-      <div className="p-2 sm:p-2.5 bg-white border-t border-slate-200 flex-shrink-0 z-10">
-        <div className="relative rounded-xl bg-white border border-slate-300 focus-within:border-emerald-500 focus-within:ring-2 focus-within:ring-emerald-500/15 shadow-sm transition-all p-2.5 space-y-1.5">
+      <div className="px-3 pt-2 pb-2.5 gd-glass border-t border-gd-border flex-shrink-0 z-10">
+        <div className="relative rounded-[20px] bg-white border border-gd-border focus-within:border-gd-green focus-within:ring-4 focus-within:ring-emerald-500/15 transition-all px-3 pt-2.5 pb-2 space-y-1.5">
           {/* Quick Prompt Templates Popover */}
           {showQuickMenu && (
             <>
@@ -466,7 +466,7 @@ export const AiChatContainer: React.FC = () => {
                 className="fixed inset-0 z-20"
                 onClick={() => setShowQuickMenu(false)}
               />
-              <div className="absolute bottom-full mb-2 left-0 right-0 bg-white border border-slate-200 rounded-xl shadow-xl p-2 space-y-1 z-30 animate-slide-up">
+              <div className="gd-menu absolute bottom-full mb-2 left-0 right-0 p-1.5 space-y-0.5 z-30 !origin-bottom">
                 <div className="text-[9.5px] font-bold uppercase tracking-wider text-slate-400 px-2 py-0.5 flex items-center justify-between">
                   <span>Шаблоны для {activeAgent.shortName}:</span>
                   <button
@@ -523,17 +523,17 @@ export const AiChatContainer: React.FC = () => {
                 ? 'Вставьте скрипт GDSL (LaTeX или JS) или задайте вопрос...'
                 : `Спросите ${activeAgent.name}...`
             }
-            className="w-full bg-transparent text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none resize-none max-h-36 leading-relaxed font-normal"
+            className="w-full bg-transparent text-[13.5px] text-slate-900 placeholder:text-slate-400 focus:outline-none resize-none max-h-36 leading-relaxed font-normal"
           />
 
           {/* Bottom Toolbar inside Composer */}
-          <div className="flex items-center justify-between gap-1 pt-1 border-t border-slate-100">
+          <div className="flex items-center justify-between gap-1 pt-1">
             {/* Left Action Pills */}
             <div className="flex items-center gap-1 overflow-x-auto no-scrollbar">
               <button
                 type="button"
                 onClick={() => setShowQuickMenu(!showQuickMenu)}
-                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-slate-100 hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 text-[10.5px] font-bold border border-slate-200 transition-colors flex-shrink-0 cursor-pointer shadow-2xs"
+                className="inline-flex items-center gap-1 h-7 px-2.5 rounded-full bg-gd-fill hover:bg-gd-green-light text-slate-700 hover:text-gd-green text-[11.5px] font-semibold transition-colors flex-shrink-0 cursor-pointer shadow-2xs"
               >
                 <Sparkles className="w-3 h-3 text-amber-500" />
                 <span>Шаблоны</span>
@@ -544,7 +544,7 @@ export const AiChatContainer: React.FC = () => {
                 onClick={handleAttachActiveTabContext}
                 disabled={isFetchingTab}
                 title="Прикрепить контекст активной страницы"
-                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-slate-100 hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 text-[10.5px] font-bold border border-slate-200 transition-colors flex-shrink-0 cursor-pointer shadow-2xs"
+                className="inline-flex items-center gap-1 h-7 px-2.5 rounded-full bg-gd-fill hover:bg-gd-green-light text-slate-700 hover:text-gd-green text-[11.5px] font-semibold transition-colors flex-shrink-0 cursor-pointer shadow-2xs"
               >
                 <Globe className="w-3 h-3 text-emerald-600" />
                 <span>Контекст</span>
@@ -564,7 +564,7 @@ export const AiChatContainer: React.FC = () => {
                   type="button"
                   onClick={stopGeneration}
                   title="Остановить генерацию"
-                  className="w-7 h-7 rounded-full bg-rose-600 hover:bg-rose-700 text-white flex items-center justify-center transition-all shadow-xs cursor-pointer active:scale-95 animate-pulse"
+                  className="w-8 h-8 rounded-full bg-slate-900 hover:bg-slate-700 text-white flex items-center justify-center transition-colors cursor-pointer"
                 >
                   <Square className="w-3 h-3 fill-current" />
                 </button>
@@ -574,13 +574,14 @@ export const AiChatContainer: React.FC = () => {
                   onClick={handleSend}
                   disabled={(!inputVal.trim() && !attachedContext) || isLoading}
                   title="Отправить (Enter)"
-                  className={`w-7 h-7 rounded-full flex items-center justify-center transition-all shadow-xs ${
+                  data-icon-anim="bounce"
+                  className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
                     (inputVal.trim() || attachedContext) && !isLoading
-                      ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/30 hover:scale-105 cursor-pointer'
-                      : 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                      ? 'bg-gd-green hover:bg-gd-green-dark text-white cursor-pointer animate-pop-in'
+                      : 'bg-gd-fill text-gd-faint cursor-not-allowed'
                   }`}
                 >
-                  <ArrowUp className="w-3.5 h-3.5" />
+                  <ArrowUp className="w-4 h-4" strokeWidth={2.75} />
                 </button>
               )}
             </div>

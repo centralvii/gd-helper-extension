@@ -1,114 +1,90 @@
-import React from 'react';
-import {
-    Archive,
-    FileText,
-    Zap,
-    Maximize2,
-    Bot,
-    CheckSquare,
-} from 'lucide-react';
-import { ActiveTool } from '../../types';
+import React, { useEffect, useState } from 'react';
+import { Maximize2 } from 'lucide-react';
+import { clsx } from 'clsx';
 
 interface HeaderProps {
-    activeTool: ActiveTool;
-    fileCount: number;
-    onSelectTool: (tool: ActiveTool) => void;
+  title: string;
+  subtitle?: React.ReactNode;
+  /** Дополнительные круглые кнопки справа (перед «Во весь экран») */
+  actions?: React.ReactNode;
+  /** Только компактная строка без крупного заголовка (ИИ-чат) */
+  compact?: boolean;
 }
 
-export const Header: React.FC<HeaderProps> = ({
-    activeTool,
-    fileCount,
-    onSelectTool,
-}) => {
-    const handleOpenFullscreen = () => {
-        if (typeof chrome !== 'undefined' && chrome.tabs && chrome.tabs.create) {
-            chrome.tabs.create({ url: chrome.runtime.getURL('index.html') });
-        } else {
-            window.open(window.location.href, '_blank');
-        }
-    };
+const COLLAPSE_AT_PX = 34;
 
-    const navTabs: { id: ActiveTool; label?: string; icon: React.ReactNode; title: string }[] = [
-        {
-            id: 'packer',
-            label: 'Упаковка',
-            icon: <Archive className="w-3.5 h-3.5" />,
-            title: 'Упаковка GUF файлов',
-        },
-        {
-            id: 'implementation',
-            label: 'Реализация',
-            icon: <FileText className="w-3.5 h-3.5" />,
-            title: 'Инструмент описания реализации',
-        },
-        {
-            id: 'youtrack',
-            label: 'YouTrack',
-            icon: <CheckSquare className="w-3.5 h-3.5" />,
-            title: 'Задачи YouTrack (РЭЦ_Fin)',
-        },
-        {
-            id: 'extra',
-            icon: <Zap className="w-3.5 h-3.5" />,
-            title: 'Экстра инструменты (ID алгоритмов, стили)',
-        },
-        {
-            id: 'ai',
-            icon: <Bot className="w-3.5 h-3.5" />,
-            title: 'ИИ Ассистент GreenData',
-        },
-    ];
+/**
+ * Навигационная панель iOS: крупный заголовок, который при прокрутке
+ * сворачивается в компактную строку со стеклянным фоном.
+ * Прокручивается #root (см. src/index.css), поэтому слушаем его.
+ */
+export const Header: React.FC<HeaderProps> = ({ title, subtitle, actions, compact = false }) => {
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
-    return (
-        <header className="sticky top-0 z-30 bg-white/85 backdrop-blur-md border-b border-slate-200 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
-            {/* Фирменная акцентная линия GreenData */}
-            <div className="h-0.5 bg-gradient-to-r from-emerald-400 via-emerald-500 to-teal-400" />
-            <div className="flex items-center justify-between gap-1.5 px-2.5 py-1.5 min-h-[44px]">
-                {/* ── Navigation tabs pill ── */}
-                <div className="flex items-center gap-0.5 min-w-0 rounded-xl p-0.5 bg-slate-100/90 border border-slate-200 shadow-2xs">
-                    {navTabs.map((tab) => {
-                        const isActive = activeTool === tab.id;
-                        return (
-                            <button
-                                key={tab.id}
-                                type="button"
-                                onClick={() => onSelectTool(tab.id)}
-                                title={tab.title}
-                                className={`header-tab ${isActive ? 'header-tab--active' : ''} ${
-                                    !tab.label ? 'header-tab--icon-only' : ''
-                                }`}
-                            >
-                                {tab.icon}
-                                {/* На узкой панели подпись видна только у активной вкладки */}
-                                {tab.label && (
-                                    <span className={isActive ? '' : 'hidden xs:inline'}>{tab.label}</span>
-                                )}
-                                {tab.id === 'packer' && fileCount > 0 && (
-                                    <span
-                                        className={`rounded-full px-1.5 py-0.5 text-[9px] font-bold leading-none tabular-nums flex-shrink-0 transition-all ${
-                                            isActive
-                                                ? 'bg-emerald-600 text-white shadow-[0_0_6px_rgba(5,150,105,0.4)]'
-                                                : 'bg-emerald-100 text-emerald-700'
-                                        }`}
-                                    >
-                                        {fileCount}
-                                    </span>
-                                )}
-                            </button>
-                        );
-                    })}
-                </div>
+  useEffect(() => {
+    const scroller = document.getElementById('root');
+    if (!scroller) return;
+    const onScroll = () => setIsCollapsed(scroller.scrollTop > COLLAPSE_AT_PX);
+    onScroll();
+    scroller.addEventListener('scroll', onScroll, { passive: true });
+    return () => scroller.removeEventListener('scroll', onScroll);
+  }, []);
 
-                {/* ── Right: Fullscreen Action ── */}
-                <button
-                    type="button"
-                    onClick={handleOpenFullscreen}
-                    title="Открыть во весь экран (в новой вкладке)"
-                    className="icon-btn vk-icon-pop"
-                >
-                    <Maximize2 className="w-3.5 h-3.5" />
-                </button>
-            </div>
-        </header>
-    );
+  const showSmallTitle = compact || isCollapsed;
+
+  const handleOpenFullscreen = () => {
+    if (typeof chrome !== 'undefined' && chrome.tabs && chrome.tabs.create) {
+      chrome.tabs.create({ url: chrome.runtime.getURL('index.html') });
+    } else {
+      window.open(window.location.href, '_blank');
+    }
+  };
+
+  return (
+    <>
+      {/* Компактная строка (всегда прилипает к верху) */}
+      <header
+        className={clsx(
+          'sticky top-0 z-30 transition-[background-color,box-shadow] duration-200',
+          showSmallTitle ? 'gd-glass shadow-gd-header' : 'bg-transparent'
+        )}
+      >
+        <div className="relative flex h-11 items-center justify-end gap-2 px-4">
+          <div
+            className={clsx(
+              'pointer-events-none absolute inset-x-24 text-center text-[15px] font-semibold tracking-[-0.015em] text-slate-900 truncate transition-all duration-200',
+              showSmallTitle ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-1'
+            )}
+          >
+            {title}
+          </div>
+          {actions}
+          <button
+            type="button"
+            onClick={handleOpenFullscreen}
+            title="Открыть во весь экран (в новой вкладке)"
+            aria-label="Во весь экран"
+            className="icon-btn"
+          >
+            <Maximize2 className="h-[15px] w-[15px]" />
+          </button>
+        </div>
+      </header>
+
+      {/* Крупный заголовок */}
+      {!compact && (
+        <div
+          className={clsx(
+            'px-4 pb-3 pt-0.5 transition-opacity duration-200',
+            isCollapsed ? 'opacity-0' : 'opacity-100'
+          )}
+        >
+          <h1 key={title} className="text-[28px] font-bold leading-[1.1] tracking-[-0.025em] text-slate-900 animate-fade-in">
+            {title}
+          </h1>
+          {subtitle && <div className="mt-0.5 truncate text-[13px] text-gd-muted">{subtitle}</div>}
+        </div>
+      )}
+    </>
+  );
 };

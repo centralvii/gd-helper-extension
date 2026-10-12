@@ -4,137 +4,93 @@
 
 ---
 
-## 1. Дизайн-система GreenData
+## 1. Дизайн-система GreenData (стиль iOS)
 
-### 1.1 Цветовая палитра
+Интерфейс оформлен как приложение iOS: **строгая монохромная база** (системные серые iOS) и **один акцент** GreenData. Крупные заголовки, группированные списки, нижний таб-бар, шторки, пружинные анимации.
 
-Проект использует **строго бело-зелёную** тему в стиле GreenData. **Запрещено** использовать тёмные фоны.
+### 1.1 Цвета
 
-Единый источник токенов — CSS-переменные в `src/index.css` (`:root`). Tailwind-цвета `gd-*` в `tailwind.config.js` ссылаются на них (`gd-green` → `var(--gd-green)`), поэтому значения меняются в одном месте.
+Единый источник токенов — CSS-переменные в `src/index.css` (`:root`). Tailwind-цвета `gd-*` ссылаются на них, а шкала `slate-*` в `tailwind.config.js` **переопределена системными серыми iOS** (`slate-500` = `#8e8e93`, `slate-900` = `#1c1c1e` и т.д.).
 
 | CSS-переменная / Tailwind | Значение | Назначение |
 |---|---|---|
-| `--gd-bg` / `gd-bg` | `#f8faf9` | Фон страницы (+ мягкое зелёное свечение сверху в `body`) |
-| `--gd-surface` / `gd-surface` | `#ffffff` | Фон карточек, модалок |
-| `--gd-green` / `gd-green` | `#059669` (emerald-600) | Основной акцент |
-| `--gd-green-dark` / `gd-green-dark` | `#047857` (emerald-700) | Активные состояния, hover |
-| `--gd-green-light` / `gd-green-light` | `#ecfdf5` (emerald-50) | Фон подсветки, hover кнопок |
-| `--gd-border` / `gd-border` | `#e5e9e6` | Границы |
-| `--gd-border-green` / `gd-border-green` | `rgba(5,150,105,0.28)` | Зелёные границы акцента |
-| `--gd-text` / `gd-text` | `#0f172a` (slate-900) | Основной текст |
-| `--gd-muted` / `gd-muted` | `#64748b` (slate-500) | Вторичный текст |
-| `--gd-faint` / `gd-faint` | `#94a3b8` (slate-400) | Placeholder, disabled |
+| `--gd-bg` / `bg-gd-bg` | `#f2f2f7` | Фон экрана (systemGroupedBackground) |
+| `--gd-surface` | `#ffffff` | Группы, карточки, шторки |
+| `--gd-fill` / `bg-gd-fill` | `rgba(120,120,128,.12)` | Заливка полей, вторичных кнопок, кнопок-иконок |
+| `--gd-fill-2` / `bg-gd-fill-2` | `rgba(120,120,128,.08)` | Hover строк, тихие подложки |
+| `--gd-green` / `gd-green` | `#059669` | **Единственный** акцент: основные кнопки, ссылки, активный таб |
+| `--gd-green-dark` | `#047857` | Hover основной кнопки |
+| `--gd-green-light` / `gd-green-light` | `rgba(5,150,105,.12)` | Тонированные кнопки и бейджи |
+| `--gd-text` / `gd-text` | `#1c1c1e` | Основной текст (label) |
+| `--gd-muted` / `gd-muted` | `rgba(60,60,67,.62)` | Вторичный текст (secondaryLabel) |
+| `--gd-faint` / `gd-faint` | `rgba(60,60,67,.32)` | Плейсхолдеры, шевроны (tertiaryLabel) |
+| `--gd-border` / `gd-border` | `rgba(60,60,67,.14)` | Разделители (separator) |
+| `--gd-red`, `--gd-orange`, `--gd-switch` | `#ff3b30`, `#ff9500`, `#34c759` | Системные цвета iOS: удаление, предупреждение, переключатель |
 
-**Шкалы Tailwind:**
-- Нейтральная шкала — **только `slate-*`** (не `gray-*`, не `zinc-*`).
-- Акцент — `emerald-*`; статусы — `amber-*` (предупреждение), `rose-*` (ошибка), `sky-*` (инфо), `purple-*`.
-
-**Tailwind-классы для фонов:**
-- Страница: фон задаёт `body` — корневые контейнеры **не** перекрывают его своим `bg-*`
-- Карточки: `bg-white`
-- Hover строк: `hover:bg-emerald-50/30`
-- Заголовки карточек: `bg-slate-50/70`
-- Акцент бейджи/подсветки: `bg-emerald-50`, `bg-emerald-100`
-- Светлые нейтральные подложки (`bg-slate-50`, `bg-slate-100`) допустимы
+**Правила цвета:**
+- Нейтральная шкала — **только `slate-*`** (это серые iOS).
+- Акцент — только `gd-green` / `emerald-*`. Красный — только для удаления и ошибок, оранжевый — для предупреждений.
+- Белый текст — только на залитых кнопках, бейджах-счётчиках и аватарах.
 
 ### 1.2 Типографика
 
-- Основной шрифт: системный стек (`-apple-system, Segoe UI, Roboto`) с `Inter` в цепочке (`font-sans`); веб-шрифты не подгружаются — расширение работает офлайн
-- Моноширинный: **JetBrains Mono** → Consolas (`font-mono`)
-- Базовый размер текста: `13px` (body), `text-xs` (12px) для карточек
-- Заголовки секций: `text-xs font-bold text-slate-900`
-- Подписи: `.gd-label` или `text-[10px] font-semibold uppercase tracking-wider text-slate-500`
-- Mono-контент (имена файлов, шаблоны): `font-mono text-xs font-bold`
+- Шрифт: **Inter Variable** (пакет `@fontsource-variable/inter`, подключён в `main.tsx`, работает офлайн); моноширинный — JetBrains Mono → Consolas (`font-mono`).
+- Крупный заголовок экрана: `text-[28px] font-bold tracking-[-0.025em]` (в `Header`).
+- Текст строк: `text-[14px]`; подписи и метаданные: `text-[12px] text-gd-muted`.
+- Заголовок секции над группой: класс `.gd-section-title` (11.5px, uppercase, `text-gd-muted`).
 
 ### 1.3 ЗАПРЕЩЁННЫЕ стили
 
-Нельзя использовать:
-- Тёмные фоны: `bg-slate-700`…`bg-slate-950`, `bg-gray-800+`, `bg-zinc-*`, `bg-[#0d1117]` и т.п. (в том числе для блоков кода — они светлые: `bg-slate-50/80 border-slate-200`). Исключение — полупрозрачное затемнение под модалкой `bg-slate-900/40`
-- `text-white` на тёмных карточках (белый текст допустим только на зелёных/красных кнопках и бейджах)
-- `rounded-2xl`, `rounded-3xl` для карточек — **только `rounded-xl`**. Единственное исключение — верх шторки `Modal` (`rounded-t-2xl`)
-- Тени `shadow-xl`, `shadow-2xl` для обычных карточек (допустимо для модалок и выпадающих меню)
-- Прямые hex-значения в `style={{}}` вместо токенов/Tailwind-классов
-- Классы Tailwind v4, которых нет в v3: дробные шаги вроде `py-0.2`, `pl-8.5`, `bottom-22`, `rounded-*-xs`, `animate-in fade-in`. Они молча не генерируются. Тени `shadow-xs` / `shadow-2xs` добавлены в `tailwind.config.js` и разрешены
-- Атрибут `class="dark"` на `<html>` — тёмной темы в проекте нет
+- Тёмные фоны (`bg-slate-700+` и т.п.), в том числе для блоков кода. Исключения: затемнение под шторкой `bg-black/30` и активный чип фильтра `bg-slate-900`.
+- Рамки и тени у карточек на сером фоне: группы iOS — **плоские белые блоки** (`.gd-group`, `rounded-xl`), без `border` и `shadow`.
+- `rounded-2xl`/`rounded-3xl` для карточек. Исключения: верх шторки (`rounded-t-2xl`), «пузыри» чата и тост (`rounded-[18–22px]`), круглые кнопки (`rounded-full`).
+- Градиенты на кнопках и карточках.
+- Прямые hex-значения в `style={{}}`.
+- Классы Tailwind v4 (`py-0.2`, `pl-8.5`, `animate-in`, `rounded-*-xs`) и модификатор прозрачности у цветов-переменных (`ring-gd-green/40` не работает — используйте `emerald-500/40`, для hex — `/[0.12]`).
 
 ---
 
 ## 2. Компоненты — стандарты и переиспользование
 
-### 2.1 Обязательное использование существующих UI-примитивов
+### 2.1 UI-примитивы (`src/components/ui/`, barrel `index.ts`)
 
-В `src/components/ui/` определены базовые компоненты (barrel-экспорт — `src/components/ui/index.ts`). **Запрещено** дублировать их логику inline.
+| Компонент | Когда использовать |
+|---|---|
+| `Button` | Кнопки с текстом. `primary`/`emerald` — залитая акцентом; `secondary`/`toolbar` — серая заливка; `outline` — тонированная зелёная; `ghost` — текстовая зелёная; `danger` — красная. Размеры: `xs`/`sm` — капсулы, `md`/`lg` — `rounded-[10px]`/`rounded-xl` |
+| `IconButton` | Круглые кнопки-иконки (`ghost`, `secondary`, `danger`, `emerald`, `sky`) |
+| `ToolRow` | Строка-переход группы: иконка, подпись, значение, шеврон (Теги, Пресеты, Параметры задачи…) |
+| `Badge` | Плоские тонированные «пилюли» без рамок |
+| `Input`, `Textarea`, `Select` | Поля с серой заливкой; при фокусе — белые с зелёным кольцом |
+| `SegmentedControl` | Переключатель iOS со скользящим белым ползунком |
+| `Card` | Группа с шапкой (`Card.Header/Body/Footer`) — для сложных блоков; для списков предпочтительнее `.gd-group` |
+| `Toolbar` | Белая панель с круглыми/капсульными кнопками |
+| `Modal` | **Все** модальные окна (iOS-шторка, см. раздел 5) |
 
-| Компонент | Импорт | Когда использовать |
-|---|---|---|
-| `Button` | `from '../ui/Button'` | Любые кнопки с текстом. Варианты: `primary`, `secondary`, `danger`, `ghost`, `emerald`, `outline`, `toolbar`. Размеры: `xs`, `sm`, `md`, `lg`. `isLoading`, `leftIcon`, `rightIcon` |
-| `IconButton` | `from '../ui/IconButton'` | Квадратные кнопки-иконки с вариантами (`ghost`, `secondary`, `danger`, `emerald`, `sky`). Для простых случаев — CSS-класс `.icon-btn` |
-| `Badge` | `from '../ui/Badge'` | Статусные метки, счётчики. Варианты: `default`, `success`, `warning`, `danger`, `info`, `purple`. `dot`, `title` |
-| `Input` | `from '../ui/Input'` | Текстовые поля с label, error, helperText. Поддержка leftElement/rightElement |
-| `Textarea` | `from '../ui/Textarea'` | Многострочные поля, кнопка очистки (`showClear` + `onClear`) |
-| `Select` | `from '../ui/Select'` | Выпадающий список с action-items |
-| `SegmentedControl` | `from '../ui/SegmentedControl'` | Переключатель сегментов (generic `<T extends string>`) |
-| `Card` | `from '../ui/Card'` | Карточка-островок: `Card.Header`, `Card.Body`, `Card.Footer`; варианты `default`, `gradient`, `muted`, `danger`, `bordered` |
-| `Toolbar` | `from '../ui/Toolbar'` | Панель инструментов: `Toolbar.Title`, `Toolbar.Actions`, `Toolbar.Button`, `Toolbar.IconButton` |
-| `Modal` | `from '../ui/Modal'` | Все модальные окна (шторка снизу). Пропсы: `title`, `footer`, `maxWidth` (`sm`/`md`/`lg`/`xl`) |
+Компоненты оболочки (`src/components/layout/`): `Header` (крупный заголовок), `TabBar` (нижний таб-бар), `Toast` (уведомление-капсула), `Footer` (экспорт над таб-баром).
 
-### 2.2 Карточки-островки (Cards)
+### 2.2 Группированные списки (inset grouped)
 
-Каждая логическая секция обёрнута в «островок» с **единообразными классами**:
+Основной строительный блок экрана — CSS-классы из `src/index.css`:
 
-```
-/* Карточка с содержимым */
-className="bg-white border border-slate-200 rounded-xl shadow-sm p-3 space-y-3"
-
-/* Карточка с заголовком (header) — предпочтительно <Card> + <Card.Header> + <Card.Body> */
-className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm"
-  → header: className="border-b border-slate-100 bg-slate-50/70 px-3 py-2.5"
-  → body:   className="space-y-3 p-3"
-
-/* Панель инструментов (toolbar) — предпочтительно <Toolbar> */
-className="flex items-center justify-between gap-2 p-1.5 bg-white border border-slate-200 rounded-xl shadow-sm"
+```tsx
+<div className="gd-section-title"><span>Шаблон имени</span><button>Действие</button></div>
+<div className="gd-group gd-group--icons">         {/* белая группа, разделители с отступом под иконку */}
+  <div className="gd-row">                          {/* строка 44px; соседние строки разделены волосяной линией */}
+    <span className="gd-row-icon gd-row-icon--accent"><Wand2 /></span>
+    <span className="flex-1 text-[14px]">Подпись</span>
+    <span className="text-gd-muted">Значение</span>
+  </div>
+  <ToolRow icon={<Tag />} label="Теги" value={3} onClick={...} />   {/* строка-переход */}
+</div>
 ```
 
-**Правила:**
-- Все карточки — `rounded-xl` (12px). Не `rounded-2xl`, не `rounded-lg`
-- Границы — `border border-slate-200` (без прозрачности `/80`, `/90`)
-- Тень — `shadow-sm` для островков; `shadow-xs` / `shadow-2xs` для вложенных элементов
-- Внутренние отступы — `p-3` для карточек, `p-1.5` для тулбаров
-- Расстояние между карточками — `space-y-3` (строго одинаковое везде)
+- Между группами — `space-y-3`…`space-y-5`; внутри экрана отступ по бокам `px-4` задаёт `App`.
+- Нажимаемая строка — `.gd-row--tap`; поле — `.gd-field`; меню — `.gd-menu`; переключатель — `.gd-switch` (`role="switch"` + `aria-checked`).
+- Выпадающие меню группы открываются внутри группы с `!overflow-visible`.
 
-### 2.3 Строки элементов (Row items)
+### 2.3 Кнопки-иконки
 
-Файлы (`FileRowItem`) и пункты изменений (`ChangeItemRow`) стилизуются одинаково:
-
-```
-className="group relative flex items-start gap-2.5 p-2.5 bg-slate-50/70 hover:bg-emerald-50/30 border border-slate-200 hover:border-emerald-300 rounded-xl transition-all"
-```
-
-### 2.4 Кнопки-иконки
-
-Для кнопок-иконок используется CSS-класс `.icon-btn`:
-
-```html
-<button className="icon-btn" title="Описание действия">
-  <Icon className="w-4 h-4" />
-</button>
-
-<!-- Опасное действие -->
-<button className="icon-btn icon-btn--danger" title="Удалить">
-  <Trash2 className="w-3.5 h-3.5" />
-</button>
-```
-
-**НЕ** создавать inline-стили для иконок-кнопок — использовать `.icon-btn`.
-
-### 2.5 Выпадающие списки (Selectors)
-
-`PackageSelector` и `TaskSelector` **идентичны по структуре**:
-- Тулбар с кнопкой-триггером, бейджем счётчика, кнопками действий
-- Dropdown с поиском (при >2 элементах), списком элементов, кнопкой создания
-- Активный элемент выделен `bg-emerald-50 border-emerald-300`
-
-При создании новых выпадашек — копировать структуру из `TaskSelector.tsx` / `PackageSelector.tsx`.
+`.icon-btn` — круглая серая кнопка 30px; `.icon-btn--plain` — без заливки; `.icon-btn--danger` — красная при наведении. Либо компонент `IconButton`.
 
 ---
 
@@ -142,27 +98,26 @@ className="group relative flex items-start gap-2.5 p-2.5 bg-slate-50/70 hover:bg
 
 ### 3.1 Библиотека иконок
 
-- **Основная**: `lucide-react` — для всех иконок интерфейса, табов, шапки и компонентов.
+`lucide-react` — все иконки.
 
-### 3.2 Анимации иконок (VK-style micro-interactions)
+### 3.2 Движение
 
-Все кнопки-иконки ДОЛЖНЫ иметь анимацию при наведении. Классы определены в `src/index.css` и анимируют вложенный `<svg>`:
+Все анимации — на пружине (`--ease-spring`) или с замедлением (`--ease-out`), keyframes — в `src/index.css`.
 
-| Класс | Эффект | Когда применять |
+| Что | Как | Где |
 |---|---|---|
-| `.icon-btn` | Плавное увеличение иконки `scale(1.12)`, зелёная подложка | По умолчанию для всех |
-| `.vk-icon-pop` | Упругое увеличение | Добавить, сохранить, развернуть |
-| `.vk-icon-shake` | Тряска | Удаление, предупреждения |
-| `.vk-icon-spin` | Поворот | Настройки, обновление, закрытие |
-| `.vk-icon-bounce` | Прыжок | Загрузка, добавление |
+| Нажатие | Любая `button`/`[role=button]` «вдавливается» до `scale: 0.96` и возвращается пружиной | Глобально, `src/index.css` (свойство `scale`, не конфликтует с `translate`) |
+| Анимация иконки при нажатии | По имени lucide-иконки: обновить/настройки — вращение, удалить/закрыть — тряска, добавить/скачать/отправить — прыжок, ИИ/молния — покачивание, остальные — пружинка. Переопределение: `data-icon-anim="spin\|shake\|bounce\|pop\|wiggle\|none"` | `src/utils/iconTapAnimation.ts` (глобальный слушатель) |
+| Смена экрана | `animate-screen-in` (вперёд), `animate-screen-back` (назад) | Вкладки, «‹ Задачи», детали YouTrack |
+| Списки | `gd-stagger` — каскадное появление (fill-mode `backwards`, не мешает dnd-kit) | Файлы, задачи, меню |
+| Появление | `animate-pop-in`, `animate-fade-in`, `animate-slide-down`, `animate-toast-in` | Галочки, пустые состояния, тосты |
+| Hover-эффекты | `.vk-icon-pop/spin/shake/bounce` | По желанию на отдельных кнопках |
 
-Анимации `animate-icon-*` (Tailwind) используют те же keyframes из `src/index.css`.
-
-Всегда использовать `transition-all` или `transition-colors` на интерактивных элементах. Фокус с клавиатуры подсвечивается глобально (`:focus-visible` в `src/index.css`), у `Button` — `focus-visible:ring-*`. При `prefers-reduced-motion` анимации отключаются глобально.
+При `prefers-reduced-motion` анимации и «вдавливание» отключаются.
 
 ### 3.3 Прочие общие CSS-классы
 
-`.gd-card`, `.gd-label`, `.header-tab`, `.input-gd`, `.gd-toggle`, `.modal-*`, `.animate-fade-in` / `.animate-slide-up` / `.animate-slide-down` — см. `src/index.css`. Новые повторяющиеся стили добавлять туда же, а не копировать строки классов.
+`.gd-glass` (стекло навбара/таб-бара), `.gd-label`, `.gd-card`, `.gd-sheet-body`, `.tabular-nums` — см. `src/index.css`.
 
 ---
 
@@ -227,27 +182,19 @@ src/
 
 ---
 
-## 5. Модальные окна
+## 5. Модальные окна (iOS-шторки)
 
-Все модалки используют компонент `<Modal>` из `src/components/ui/Modal.tsx`:
+Все модалки — компонент `<Modal>` (`src/components/ui/Modal.tsx`). Он рисует iOS-шторку:
+- выезжает снизу на пружине; страница под ней уменьшается и затемняется (класс `body.gd-sheet-open`, поэтому прокручивается `#root`, а не окно);
+- закрывается крестиком, по `Esc`, тапом по фону или **свайпом вниз за шапку**;
+- тело шторки серое (`.gd-sheet-body`): белые карточки внутри выглядят как группы, поля на сером фоне автоматически белые.
 
 ```tsx
-<Modal
-  isOpen={isOpen}
-  onClose={onClose}
-  title="Заголовок"
-  maxWidth="md"        // sm | md | lg | xl
-  footer={
-    <>
-      <Button variant="secondary" size="sm" onClick={onClose}>
-        Отмена
-      </Button>
-      <Button variant="primary" size="sm" onClick={onSave}>
-        Сохранить
-      </Button>
-    </>
-  }
->
+<Modal isOpen={isOpen} onClose={onClose} title="Заголовок" maxWidth="md"
+  footer={<>
+    <Button variant="secondary" size="sm" onClick={onClose}>Отмена</Button>
+    <Button variant="primary" size="sm" onClick={onSave}>Сохранить</Button>
+  </>}>
   {/* Содержимое */}
 </Modal>
 ```
@@ -311,11 +258,10 @@ npm run watch
 ## 9. Чеклист перед PR / коммитом
 
 - [ ] Все новые компоненты переиспользуют примитивы из `ui/` (`Button`, `Badge`, `Input`, `Textarea`, `Card`, `Toolbar`, `Modal`, ...)
-- [ ] Карточки имеют `rounded-xl border border-slate-200 bg-white shadow-sm`
-- [ ] Между карточками одинаковые отступы `space-y-3`
-- [ ] Нет тёмных фонов (`bg-slate-700+`, `bg-gray-*`, `bg-zinc-*`) и классов Tailwind v4
-- [ ] Кнопки-иконки используют `.icon-btn`
-- [ ] Все иконки анимируются при hover
+- [ ] Списки и настройки собраны из `.gd-group` / `.gd-row` / `ToolRow`, карточки без рамок и теней
+- [ ] Один акцент (`gd-green`), нейтральные — только `slate-*`; нет тёмных фонов и классов Tailwind v4
+- [ ] Кнопки-иконки круглые (`.icon-btn` / `IconButton`)
+- [ ] Новые кнопки не ломают глобальные анимации нажатия и иконок (при необходимости — `data-icon-anim`)
 - [ ] Нет `any`; ошибки из `catch` — через `getErrorMessage`
 - [ ] `PROJECT_DOCUMENTATION.md` обновлён (раздел Changelog)
 - [ ] Типы определены в `src/types/index.ts`

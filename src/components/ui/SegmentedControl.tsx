@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useLayoutEffect, useRef, useState } from 'react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -18,6 +18,15 @@ interface SegmentedControlProps<T extends string = string> {
   className?: string;
 }
 
+interface ThumbRect {
+  left: number;
+  width: number;
+}
+
+/**
+ * Сегментный переключатель iOS: белый «ползунок» плавно переезжает
+ * под выбранный сегмент на пружине.
+ */
 export function SegmentedControl<T extends string = string>({
   value,
   onChange,
@@ -26,33 +35,62 @@ export function SegmentedControl<T extends string = string>({
   className,
 }: SegmentedControlProps<T>) {
   const sizeClasses = {
-    xs: 'h-6 px-2 text-[10px]',
-    sm: 'h-7 px-2.5 text-[11px]',
-    md: 'h-8 px-3 text-xs',
+    xs: 'h-6 px-2 text-[11px]',
+    sm: 'h-7 px-2.5 text-[12px]',
+    md: 'h-8 px-3 text-[13px]',
   };
+
+  const containerRef = useRef<HTMLDivElement>(null);
+  const buttonRefs = useRef<Array<HTMLButtonElement | null>>([]);
+  const [thumb, setThumb] = useState<ThumbRect | null>(null);
+  const activeIndex = options.findIndex((opt) => opt.value === value);
+
+  useLayoutEffect(() => {
+    const measure = () => {
+      const btn = buttonRefs.current[activeIndex];
+      if (!btn) {
+        setThumb(null);
+        return;
+      }
+      setThumb({ left: btn.offsetLeft, width: btn.offsetWidth });
+    };
+    measure();
+    const observer = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(measure) : null;
+    if (observer && containerRef.current) observer.observe(containerRef.current);
+    return () => observer?.disconnect();
+  }, [activeIndex, options.length]);
 
   return (
     <div
+      ref={containerRef}
       className={twMerge(
-        'inline-flex items-center p-0.5 bg-slate-100/90 border border-slate-200 rounded-xl shadow-2xs flex-shrink-0 select-none',
+        'relative inline-flex items-center p-0.5 bg-gd-fill rounded-[9px] flex-shrink-0 select-none',
         className
       )}
     >
-      {options.map((opt) => {
+      {thumb && (
+        <span
+          aria-hidden
+          className="absolute top-0.5 bottom-0.5 rounded-[7px] bg-white shadow-[0_3px_8px_rgba(0,0,0,0.12),0_3px_1px_rgba(0,0,0,0.04)] transition-[left,width] duration-300 ease-[cubic-bezier(0.34,1.3,0.64,1)]"
+          style={{ left: thumb.left, width: thumb.width }}
+        />
+      )}
+      {options.map((opt, idx) => {
         const isActive = opt.value === value;
         return (
           <button
             key={opt.value}
+            ref={(el) => {
+              buttonRefs.current[idx] = el;
+            }}
             type="button"
             onClick={() => onChange(opt.value)}
             title={opt.title}
             className={twMerge(
               clsx(
-                'inline-flex items-center justify-center gap-1.5 rounded-lg font-semibold leading-none transition-all duration-150 cursor-pointer',
+                'relative z-10 inline-flex flex-1 items-center justify-center gap-1.5 rounded-[7px] font-semibold leading-none whitespace-nowrap transition-colors duration-200 cursor-pointer',
                 sizeClasses[size],
-                isActive
-                  ? 'bg-white text-emerald-800 shadow-xs ring-1 ring-emerald-200/70'
-                  : 'text-slate-500 hover:text-slate-800 bg-transparent'
+                isActive ? 'text-slate-900' : 'text-slate-500 hover:text-slate-800'
               )
             )}
           >

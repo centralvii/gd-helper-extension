@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sparkles, FileText } from 'lucide-react';
+import { Zap, Type } from 'lucide-react';
 import { AutoCollectNamingMode } from '../../types';
 import { SegmentedControl } from '../ui/SegmentedControl';
 
@@ -10,6 +10,10 @@ interface AutoCollectModeBarProps {
   onToggleAutoCollect: () => void;
 }
 
+/**
+ * Строки группы «Пакет»: переключатель автосбора скачанных .guf
+ * и выбор, как называть перехваченный файл.
+ */
 export const AutoCollectModeBar: React.FC<AutoCollectModeBarProps> = ({
   namingMode,
   onChangeNamingMode,
@@ -17,51 +21,59 @@ export const AutoCollectModeBar: React.FC<AutoCollectModeBarProps> = ({
   onToggleAutoCollect,
 }) => {
   return (
-    <div className="flex items-center justify-between gap-1.5 p-1.5 pl-2.5 bg-white border border-slate-200 rounded-xl shadow-sm min-w-0">
-      {/* Indicator & Label */}
-      <button
-        type="button"
-        onClick={onToggleAutoCollect}
-        title={
-          isAutoCollectEnabled
-            ? 'Автосбор активен. Нажмите для паузы'
-            : 'Автосбор на паузе. Нажмите для включения'
-        }
-        className="flex items-center gap-1.5 text-left cursor-pointer group min-w-0 flex-shrink-0"
-      >
-        <div
-          className={`w-2 h-2 rounded-full flex-shrink-0 transition-colors ${
-            isAutoCollectEnabled
-              ? 'bg-emerald-500 shadow-[0_0_6px_rgba(34,197,94,0.8)] animate-pulse'
-              : 'bg-slate-300 group-hover:bg-slate-400'
+    <>
+      <div className="gd-row">
+        <span
+          className={`gd-row-icon transition-colors duration-300 ${
+            isAutoCollectEnabled ? 'gd-row-icon--accent' : ''
           }`}
-        />
-        <span className="font-bold text-[11px] text-slate-700 whitespace-nowrap">
-          <span className="hidden sm:inline">Имя при автосборе:</span>
-          <span className="sm:hidden">Автосбор:</span>
+        >
+          <Zap className={isAutoCollectEnabled ? 'fill-current' : ''} />
         </span>
-      </button>
+        <span className="min-w-0 flex-1">
+          <span className="block text-[14px] text-slate-900">Автосбор скачиваний</span>
+          <span className="block text-[12px] text-gd-muted truncate">
+            {isAutoCollectEnabled ? 'Скачанные .guf добавляются в пакет' : 'На паузе'}
+          </span>
+        </span>
+        <button
+          type="button"
+          role="switch"
+          aria-checked={isAutoCollectEnabled}
+          aria-label="Автосбор скачиваний"
+          onClick={onToggleAutoCollect}
+          title={
+            isAutoCollectEnabled
+              ? 'Автосбор активен. Нажмите для паузы'
+              : 'Автосбор на паузе. Нажмите для включения'
+          }
+          className="gd-switch"
+        />
+      </div>
 
-      {/* Segmented Switcher */}
-      <SegmentedControl<AutoCollectNamingMode>
-        value={namingMode}
-        onChange={onChangeNamingMode}
-        size="xs"
-        options={[
-          {
-            value: 'pageName',
-            label: 'Со страницы',
-            icon: <Sparkles className="w-2.5 h-2.5 text-emerald-600 flex-shrink-0" />,
-            title: 'Называть файл по названию открытой страницы в GreenData',
-          },
-          {
-            value: 'original',
-            label: 'Исходное',
-            icon: <FileText className="w-2.5 h-2.5 text-slate-500 flex-shrink-0" />,
-            title: 'Сохранять исходное имя скачиваемого файла',
-          },
-        ]}
-      />
-    </div>
+      <div className="gd-row">
+        <span className="gd-row-icon">
+          <Type />
+        </span>
+        <span className="flex-1 min-w-0 text-[14px] text-slate-900 truncate">Имя файла</span>
+        <SegmentedControl<AutoCollectNamingMode>
+          value={namingMode}
+          onChange={onChangeNamingMode}
+          size="xs"
+          options={[
+            {
+              value: 'pageName',
+              label: 'Со страницы',
+              title: 'Называть файл по названию открытой страницы в GreenData',
+            },
+            {
+              value: 'original',
+              label: 'Исходное',
+              title: 'Сохранять исходное имя скачиваемого файла',
+            },
+          ]}
+        />
+      </div>
+    </>
   );
 };

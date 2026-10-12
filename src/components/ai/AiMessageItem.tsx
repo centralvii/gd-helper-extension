@@ -369,7 +369,7 @@ export const AiMessageItem: React.FC<AiMessageItemProps> = React.memo(({ message
     >
       {/* Assistant Avatar */}
       {!isUser && (
-        <div className="w-6 h-6 rounded-lg bg-gradient-to-tr from-emerald-600 to-teal-600 text-white flex items-center justify-center flex-shrink-0 shadow-2xs mt-0.5">
+        <div className="w-7 h-7 rounded-full bg-gd-green text-white flex items-center justify-center flex-shrink-0 mt-0.5">
           {message.error ? (
             <AlertCircle className="w-3.5 h-3.5 text-white" />
           ) : (
@@ -386,8 +386,8 @@ export const AiMessageItem: React.FC<AiMessageItemProps> = React.memo(({ message
       >
         {isUser ? (
           /* User Message: Clean Emerald Pill */
-          <div className="relative rounded-xl rounded-tr-sm px-3.5 py-2.5 bg-emerald-600 text-white shadow-xs">
-            <div className="text-xs leading-relaxed whitespace-pre-wrap select-text font-normal text-white">
+          <div className="relative rounded-[18px] rounded-br-[6px] px-3.5 py-2 bg-gd-green text-white animate-pop-in origin-bottom-right">
+            <div className="text-[13.5px] leading-snug whitespace-pre-wrap select-text font-normal text-white">
               {message.content}
             </div>
             {/* Hover Actions */}
@@ -420,7 +420,7 @@ export const AiMessageItem: React.FC<AiMessageItemProps> = React.memo(({ message
           </div>
         ) : (
           /* Assistant Message Content */
-          <div className="space-y-1.5 py-0.5 min-w-0">
+          <div className="space-y-1.5 min-w-0 rounded-[18px] rounded-bl-[6px] bg-white px-3.5 py-2.5 animate-fade-in">
             {/* Thinking Box */}
             {message.reasoningContent && (
               <div className="rounded-xl bg-amber-50/70 border border-amber-200/80 overflow-hidden text-xs transition-all">
@@ -432,7 +432,7 @@ export const AiMessageItem: React.FC<AiMessageItemProps> = React.memo(({ message
                   <div className="flex items-center gap-1.5 min-w-0">
                     <Brain className="w-3 h-3 text-amber-600 animate-pulse flex-shrink-0" />
                     <span className="font-bold text-amber-950 text-[11px] truncate">Ход рассуждений</span>
-                    <span className="text-[9px] text-amber-800 bg-amber-200/70 px-1.5 py-0.1 rounded font-mono font-bold flex-shrink-0">
+                    <span className="text-[9px] text-amber-800 bg-amber-200/70 px-1.5 py-px rounded font-mono font-bold flex-shrink-0">
                       {message.reasoningContent.length} симв.
                     </span>
                   </div>
@@ -553,7 +553,7 @@ export const AiMessageItem: React.FC<AiMessageItemProps> = React.memo(({ message
 
       {/* User Avatar */}
       {isUser && (
-        <div className="w-6 h-6 rounded-lg bg-emerald-700 text-white flex items-center justify-center flex-shrink-0 shadow-2xs mt-0.5">
+        <div className="w-7 h-7 rounded-full bg-slate-300 text-white flex items-center justify-center flex-shrink-0 mt-0.5">
           <User className="w-3.5 h-3.5 text-white" />
         </div>
       )}

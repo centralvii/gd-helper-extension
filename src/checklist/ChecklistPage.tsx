@@ -1,7 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import {
-  CheckSquare,
-  Square,
   ExternalLink,
   CheckCircle2,
   RotateCcw,
@@ -300,7 +298,7 @@ export const ChecklistPage: React.FC = () => {
       {/* Main Container */}
       <main className="max-w-4xl mx-auto px-4 pt-6 space-y-4">
         {/* Progress Card */}
-        <div className="p-4 bg-white border border-slate-200 rounded-xl shadow-sm space-y-3">
+        <div className="p-4 bg-white rounded-xl space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
               <h2 className="text-sm font-bold text-slate-900">Прогресс сбора объектов</h2>
@@ -388,7 +386,7 @@ export const ChecklistPage: React.FC = () => {
 
         {/* Filter & Sorting Controls Bar */}
         {totalCount > 0 && (
-          <div className="flex flex-wrap items-center justify-between gap-2 p-1.5 bg-white border border-slate-200 rounded-xl shadow-sm">
+          <div className="flex flex-wrap items-center justify-between gap-2 p-1.5 bg-white rounded-xl">
             {/* Filter Tabs */}
             <div className="flex items-center gap-1 bg-slate-50 p-1 rounded-lg border border-slate-200 shadow-2xs">
               <button
@@ -504,7 +502,7 @@ export const ChecklistPage: React.FC = () => {
               return (
                 <div
                   key={sec.id}
-                  className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden"
+                  className="bg-white rounded-xl overflow-hidden"
                 >
                   <div className="flex items-center justify-between gap-2 px-4 py-2.5 bg-gradient-to-r from-slate-50 to-white border-b border-slate-200">
                     <div className="flex items-center gap-2 min-w-0">
@@ -550,9 +548,9 @@ export const ChecklistPage: React.FC = () => {
                               className="mt-0.5 text-emerald-600 hover:text-emerald-700 transition-transform p-0.5 rounded cursor-pointer flex-shrink-0"
                             >
                               {isCollected ? (
-                                <CheckSquare className="w-5 h-5 text-emerald-600" />
+                                <span className="grid h-[22px] w-[22px] place-items-center rounded-full bg-gd-green text-white"><Check className="h-3.5 w-3.5 animate-pop-in" strokeWidth={3} /></span>
                               ) : (
-                                <Square className="w-5 h-5 text-slate-400 hover:text-emerald-500" />
+                                <span className="block h-[22px] w-[22px] rounded-full border-[1.5px] border-slate-300 hover:border-gd-green group-hover:border-gd-green transition-colors" />
                               )}
                             </button>
 
@@ -663,7 +661,7 @@ export const ChecklistPage: React.FC = () => {
 
             {/* Unsectioned */}
             {unsectionedItems.length > 0 && displayedUnsectionedItems.length > 0 && (
-              <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+              <div className="bg-white rounded-xl overflow-hidden">
                 <div className="flex items-center justify-between gap-2 px-4 py-2.5 bg-gradient-to-r from-slate-50 to-white border-b border-slate-200">
                   <div className="flex items-center gap-2 min-w-0">
                     <Layers className="w-4 h-4 text-slate-500 flex-shrink-0" />
@@ -702,9 +700,9 @@ export const ChecklistPage: React.FC = () => {
                             className="mt-0.5 text-emerald-600 hover:text-emerald-700 transition-transform p-0.5 rounded cursor-pointer flex-shrink-0"
                           >
                             {isCollected ? (
-                              <CheckSquare className="w-5 h-5 text-emerald-600" />
+                              <span className="grid h-[22px] w-[22px] place-items-center rounded-full bg-gd-green text-white"><Check className="h-3.5 w-3.5 animate-pop-in" strokeWidth={3} /></span>
                             ) : (
-                              <Square className="w-5 h-5 text-slate-400 hover:text-emerald-500" />
+                              <span className="block h-[22px] w-[22px] rounded-full border-[1.5px] border-slate-300 hover:border-gd-green group-hover:border-gd-green transition-colors" />
                             )}
                           </button>
 

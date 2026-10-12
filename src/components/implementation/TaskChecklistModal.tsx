@@ -1,7 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import {
-  CheckSquare,
-  Square,
   ExternalLink,
   CheckCircle2,
   RotateCcw,
@@ -563,9 +561,9 @@ export const TaskChecklistModal: React.FC<TaskChecklistModalProps> = ({
                               className="mt-0.5 text-emerald-600 hover:text-emerald-700 transition-transform p-0.5 rounded cursor-pointer flex-shrink-0"
                             >
                               {isCollected ? (
-                                <CheckSquare className="w-4 h-4 text-emerald-600" />
+                                <span className="grid h-[22px] w-[22px] place-items-center rounded-full bg-gd-green text-white"><Check className="h-3.5 w-3.5 animate-pop-in" strokeWidth={3} /></span>
                               ) : (
-                                <Square className="w-4 h-4 text-slate-400 group-hover:text-emerald-500" />
+                                <span className="block h-[22px] w-[22px] rounded-full border-[1.5px] border-slate-300 hover:border-gd-green group-hover:border-gd-green transition-colors" />
                               )}
                             </button>
 
@@ -722,9 +720,9 @@ export const TaskChecklistModal: React.FC<TaskChecklistModalProps> = ({
                             className="mt-0.5 text-emerald-600 hover:text-emerald-700 transition-transform p-0.5 rounded cursor-pointer flex-shrink-0"
                           >
                             {isCollected ? (
-                              <CheckSquare className="w-4 h-4 text-emerald-600" />
+                              <span className="grid h-[22px] w-[22px] place-items-center rounded-full bg-gd-green text-white"><Check className="h-3.5 w-3.5 animate-pop-in" strokeWidth={3} /></span>
                             ) : (
-                              <Square className="w-4 h-4 text-slate-400 group-hover:text-emerald-500" />
+                              <span className="block h-[22px] w-[22px] rounded-full border-[1.5px] border-slate-300 hover:border-gd-green group-hover:border-gd-green transition-colors" />
                             )}
                           </button>
 
