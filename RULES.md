@@ -8,45 +8,54 @@
 
 ### 1.1 Цветовая палитра
 
-Проект использует **строго бело-зелёную** тему в стиле GreenData. **Запрещено** использовать тёмные/slate/dark фоны.
+Проект использует **строго бело-зелёную** тему в стиле GreenData. **Запрещено** использовать тёмные фоны.
 
-| Токен | Значение | Назначение |
+Единый источник токенов — CSS-переменные в `src/index.css` (`:root`). Tailwind-цвета `gd-*` в `tailwind.config.js` ссылаются на них (`gd-green` → `var(--gd-green)`), поэтому значения меняются в одном месте.
+
+| CSS-переменная / Tailwind | Значение | Назначение |
 |---|---|---|
-| `--gd-bg` / `gd-bg` | `#f0f4f0` | Фон страницы |
+| `--gd-bg` / `gd-bg` | `#f8faf9` | Фон страницы (+ мягкое зелёное свечение сверху в `body`) |
 | `--gd-surface` / `gd-surface` | `#ffffff` | Фон карточек, модалок |
-| `--gd-green` / `gd-green` | `#22c55e` | Основной акцент |
-| `--gd-green-dark` / `gd-green-dark` | `#16a34a` | Активные состояния, hover |
-| `--gd-green-light` / `gd-green-light` | `#dcfce7` | Фон подсветки, hover кнопок |
-| `--gd-border` / `gd-border` | `#e2e8e2` | Границы карточек |
-| `--gd-border-green` | `rgba(34,197,94,0.35)` | Зелёные границы акцента |
-| `--gd-text` / `gd-text` | `#111827` | Основной текст |
-| `--gd-muted` / `gd-muted` | `#6b7280` | Вторичный текст |
-| `--gd-faint` / `gd-faint` | `#d1d5db` | Placeholder, disabled |
+| `--gd-green` / `gd-green` | `#059669` (emerald-600) | Основной акцент |
+| `--gd-green-dark` / `gd-green-dark` | `#047857` (emerald-700) | Активные состояния, hover |
+| `--gd-green-light` / `gd-green-light` | `#ecfdf5` (emerald-50) | Фон подсветки, hover кнопок |
+| `--gd-border` / `gd-border` | `#e5e9e6` | Границы |
+| `--gd-border-green` / `gd-border-green` | `rgba(5,150,105,0.28)` | Зелёные границы акцента |
+| `--gd-text` / `gd-text` | `#0f172a` (slate-900) | Основной текст |
+| `--gd-muted` / `gd-muted` | `#64748b` (slate-500) | Вторичный текст |
+| `--gd-faint` / `gd-faint` | `#94a3b8` (slate-400) | Placeholder, disabled |
 
-**Tailwind-классы для фоновых цветов:**
-- Страница: `bg-[#f0f4f0]`
+**Шкалы Tailwind:**
+- Нейтральная шкала — **только `slate-*`** (не `gray-*`, не `zinc-*`).
+- Акцент — `emerald-*`; статусы — `amber-*` (предупреждение), `rose-*` (ошибка), `sky-*` (инфо), `purple-*`.
+
+**Tailwind-классы для фонов:**
+- Страница: фон задаёт `body` — корневые контейнеры **не** перекрывают его своим `bg-*`
 - Карточки: `bg-white`
 - Hover строк: `hover:bg-emerald-50/30`
-- Заголовки карточек: `bg-gray-50/70`
+- Заголовки карточек: `bg-slate-50/70`
 - Акцент бейджи/подсветки: `bg-emerald-50`, `bg-emerald-100`
+- Светлые нейтральные подложки (`bg-slate-50`, `bg-slate-100`) допустимы
 
 ### 1.2 Типографика
 
-- Основной шрифт: **Inter** (`font-sans`)
-- Моноширинный: **JetBrains Mono** (`font-mono`)
+- Основной шрифт: системный стек (`-apple-system, Segoe UI, Roboto`) с `Inter` в цепочке (`font-sans`); веб-шрифты не подгружаются — расширение работает офлайн
+- Моноширинный: **JetBrains Mono** → Consolas (`font-mono`)
 - Базовый размер текста: `13px` (body), `text-xs` (12px) для карточек
-- Заголовки секций: `text-xs font-bold text-gray-900`
-- Подписи: `text-[10px] font-semibold uppercase tracking-wider text-gray-500`
+- Заголовки секций: `text-xs font-bold text-slate-900`
+- Подписи: `.gd-label` или `text-[10px] font-semibold uppercase tracking-wider text-slate-500`
 - Mono-контент (имена файлов, шаблоны): `font-mono text-xs font-bold`
 
 ### 1.3 ЗАПРЕЩЁННЫЕ стили
 
 Нельзя использовать:
-- `bg-slate-*`, `bg-gray-800`, `bg-gray-900`, `bg-zinc-*` и любой тёмный фон
-- `text-white` на тёмных карточках (белый текст допустим только на зелёных кнопках)
-- `rounded-2xl`, `rounded-3xl` для карточек — **только `rounded-xl`**
-- Тени `shadow-xl`, `shadow-2xl` для обычных карточек (допустимо только для модалок)
-- Прямые hex-значения вместо токенов GreenData (кроме случаев inline-style, где это оправдано)
+- Тёмные фоны: `bg-slate-700`…`bg-slate-950`, `bg-gray-800+`, `bg-zinc-*`, `bg-[#0d1117]` и т.п. (в том числе для блоков кода — они светлые: `bg-slate-50/80 border-slate-200`). Исключение — полупрозрачное затемнение под модалкой `bg-slate-900/40`
+- `text-white` на тёмных карточках (белый текст допустим только на зелёных/красных кнопках и бейджах)
+- `rounded-2xl`, `rounded-3xl` для карточек — **только `rounded-xl`**. Единственное исключение — верх шторки `Modal` (`rounded-t-2xl`)
+- Тени `shadow-xl`, `shadow-2xl` для обычных карточек (допустимо для модалок и выпадающих меню)
+- Прямые hex-значения в `style={{}}` вместо токенов/Tailwind-классов
+- Классы Tailwind v4, которых нет в v3: дробные шаги вроде `py-0.2`, `pl-8.5`, `bottom-22`, `rounded-*-xs`, `animate-in fade-in`. Они молча не генерируются. Тени `shadow-xs` / `shadow-2xs` добавлены в `tailwind.config.js` и разрешены
+- Атрибут `class="dark"` на `<html>` — тёмной темы в проекте нет
 
 ---
 
@@ -54,15 +63,20 @@
 
 ### 2.1 Обязательное использование существующих UI-примитивов
 
-В `src/components/ui/` определены базовые компоненты. **Запрещено** дублировать их логику inline.
+В `src/components/ui/` определены базовые компоненты (barrel-экспорт — `src/components/ui/index.ts`). **Запрещено** дублировать их логику inline.
 
 | Компонент | Импорт | Когда использовать |
 |---|---|---|
-| `Button` | `from '../ui/Button'` | Любые кнопки с текстом. Варианты: `primary`, `secondary`, `danger`, `ghost`, `emerald`, `outline`. Размеры: `xs`, `sm`, `md`, `lg` |
-| `Badge` | `from '../ui/Badge'` | Статусные метки, счётчики. Варианты: `default`, `success`, `warning`, `danger`, `info`, `purple` |
+| `Button` | `from '../ui/Button'` | Любые кнопки с текстом. Варианты: `primary`, `secondary`, `danger`, `ghost`, `emerald`, `outline`, `toolbar`. Размеры: `xs`, `sm`, `md`, `lg`. `isLoading`, `leftIcon`, `rightIcon` |
+| `IconButton` | `from '../ui/IconButton'` | Квадратные кнопки-иконки с вариантами (`ghost`, `secondary`, `danger`, `emerald`, `sky`). Для простых случаев — CSS-класс `.icon-btn` |
+| `Badge` | `from '../ui/Badge'` | Статусные метки, счётчики. Варианты: `default`, `success`, `warning`, `danger`, `info`, `purple`. `dot`, `title` |
 | `Input` | `from '../ui/Input'` | Текстовые поля с label, error, helperText. Поддержка leftElement/rightElement |
-| `Modal` | `from '../ui/Modal'` | Все модальные окна. Пропсы: `title`, `footer`, `maxWidth` (`sm`/`md`/`lg`/`xl`) |
-| `ConsoleCard` | `from '../ui/ConsoleCard'` | Карточки-обёртки с monospace-заголовком в стиле терминала |
+| `Textarea` | `from '../ui/Textarea'` | Многострочные поля, кнопка очистки (`showClear` + `onClear`) |
+| `Select` | `from '../ui/Select'` | Выпадающий список с action-items |
+| `SegmentedControl` | `from '../ui/SegmentedControl'` | Переключатель сегментов (generic `<T extends string>`) |
+| `Card` | `from '../ui/Card'` | Карточка-островок: `Card.Header`, `Card.Body`, `Card.Footer`; варианты `default`, `gradient`, `muted`, `danger`, `bordered` |
+| `Toolbar` | `from '../ui/Toolbar'` | Панель инструментов: `Toolbar.Title`, `Toolbar.Actions`, `Toolbar.Button`, `Toolbar.IconButton` |
+| `Modal` | `from '../ui/Modal'` | Все модальные окна (шторка снизу). Пропсы: `title`, `footer`, `maxWidth` (`sm`/`md`/`lg`/`xl`) |
 
 ### 2.2 Карточки-островки (Cards)
 
@@ -70,21 +84,21 @@
 
 ```
 /* Карточка с содержимым */
-className="bg-white border border-gray-200 rounded-xl shadow-sm p-3 space-y-3"
+className="bg-white border border-slate-200 rounded-xl shadow-sm p-3 space-y-3"
 
-/* Карточка с заголовком (header) */
-className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm"
-  → header: className="border-b border-gray-100 bg-gray-50/70 px-3 py-2.5"
+/* Карточка с заголовком (header) — предпочтительно <Card> + <Card.Header> + <Card.Body> */
+className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm"
+  → header: className="border-b border-slate-100 bg-slate-50/70 px-3 py-2.5"
   → body:   className="space-y-3 p-3"
 
-/* Панель инструментов (toolbar) */
-className="flex items-center justify-between gap-2 p-1.5 bg-white border border-gray-200 rounded-xl shadow-sm"
+/* Панель инструментов (toolbar) — предпочтительно <Toolbar> */
+className="flex items-center justify-between gap-2 p-1.5 bg-white border border-slate-200 rounded-xl shadow-sm"
 ```
 
 **Правила:**
 - Все карточки — `rounded-xl` (12px). Не `rounded-2xl`, не `rounded-lg`
-- Границы — `border border-gray-200`
-- Тень — `shadow-sm`
+- Границы — `border border-slate-200` (без прозрачности `/80`, `/90`)
+- Тень — `shadow-sm` для островков; `shadow-xs` / `shadow-2xs` для вложенных элементов
 - Внутренние отступы — `p-3` для карточек, `p-1.5` для тулбаров
 - Расстояние между карточками — `space-y-3` (строго одинаковое везде)
 
@@ -93,7 +107,7 @@ className="flex items-center justify-between gap-2 p-1.5 bg-white border border-
 Файлы (`FileRowItem`) и пункты изменений (`ChangeItemRow`) стилизуются одинаково:
 
 ```
-className="group relative flex items-start gap-2.5 p-2.5 bg-gray-50/70 hover:bg-emerald-50/30 border border-gray-200 hover:border-emerald-300 rounded-xl transition-all"
+className="group relative flex items-start gap-2.5 p-2.5 bg-slate-50/70 hover:bg-emerald-50/30 border border-slate-200 hover:border-emerald-300 rounded-xl transition-all"
 ```
 
 ### 2.4 Кнопки-иконки
@@ -132,17 +146,23 @@ className="group relative flex items-start gap-2.5 p-2.5 bg-gray-50/70 hover:bg-
 
 ### 3.2 Анимации иконок (VK-style micro-interactions)
 
-Все кнопки-иконки ДОЛЖНЫ иметь анимацию при наведении. Это обеспечивается через CSS-классы:
+Все кнопки-иконки ДОЛЖНЫ иметь анимацию при наведении. Классы определены в `src/index.css` и анимируют вложенный `<svg>`:
 
 | Класс | Эффект | Когда применять |
 |---|---|---|
-| `.icon-btn` | Плавное увеличение `scale(1.18)` | По умолчанию для всех |
-| `.vk-icon-pop` | Упругое увеличение | Добавить, сохранить |
+| `.icon-btn` | Плавное увеличение иконки `scale(1.12)`, зелёная подложка | По умолчанию для всех |
+| `.vk-icon-pop` | Упругое увеличение | Добавить, сохранить, развернуть |
 | `.vk-icon-shake` | Тряска | Удаление, предупреждения |
-| `.vk-icon-spin` | Поворот | Настройки, обновление |
+| `.vk-icon-spin` | Поворот | Настройки, обновление, закрытие |
 | `.vk-icon-bounce` | Прыжок | Загрузка, добавление |
 
-Всегда использовать `transition-all` или `transition-colors` на интерактивных элементах.
+Анимации `animate-icon-*` (Tailwind) используют те же keyframes из `src/index.css`.
+
+Всегда использовать `transition-all` или `transition-colors` на интерактивных элементах. Фокус с клавиатуры подсвечивается глобально (`:focus-visible` в `src/index.css`), у `Button` — `focus-visible:ring-*`. При `prefers-reduced-motion` анимации отключаются глобально.
+
+### 3.3 Прочие общие CSS-классы
+
+`.gd-card`, `.gd-label`, `.header-tab`, `.input-gd`, `.gd-toggle`, `.modal-*`, `.animate-fade-in` / `.animate-slide-up` / `.animate-slide-down` — см. `src/index.css`. Новые повторяющиеся стили добавлять туда же, а не копировать строки классов.
 
 ---
 
@@ -153,19 +173,25 @@ className="group relative flex items-start gap-2.5 p-2.5 bg-gray-50/70 hover:bg-
 ```
 src/
 ├── background/          # Service Worker расширения
+├── checklist/           # Отдельная страница чеклиста сбора (checklist.html)
 ├── components/
-│   ├── ui/              # Переиспользуемые примитивы (Button, Badge, Input, Modal, ConsoleCard)
-│   ├── layout/          # Header и общий макет
-│   ├── template/        # Шаблон имени, выбор пакета (PackageSelector, TemplateEditor)
-│   ├── table/           # Таблица файлов (FileTable, FileRowItem)
+│   ├── ui/              # Переиспользуемые примитивы (Button, IconButton, Badge, Input, Textarea, Select, SegmentedControl, Card, Toolbar, Modal)
+│   ├── layout/          # Header, Footer
+│   ├── template/        # Шаблон имени, пакеты, автосбор (PackageSelector, TemplateEditor, ...)
+│   ├── table/           # Таблица файлов (FileTable, FileRowItem, FileEditModal)
 │   ├── upload/          # Импорт файлов (FileUploader)
 │   ├── validation/      # Панель валидации
 │   ├── readme/          # Редактор README
-│   └── implementation/  # Вкладка «Реализация» (TaskSelector, TaskEditor, ChangeItemRow, etc.)
-├── core/                # Бизнес-логика (парсеры, генераторы)
-├── hooks/               # Кастомные React-хуки (useAppState, useImplementationTasks, etc.)
+│   ├── implementation/  # Вкладка «Реализация» (TaskSelector, TaskEditor, ChangeItemRow, ...)
+│   ├── youtrack/        # Вкладка «YouTrack»
+│   ├── extra/           # Вкладка «Дополнительно» (генератор ID алгоритмов)
+│   └── ai/              # Вкладка «ИИ-ассистент»
+├── constants/           # Реестры и константы (AI-агенты, шапка алгоритма)
+├── core/                # Чистая бизнес-логика без React (парсеры, шаблоны, валидация, ZIP)
+├── hooks/               # Кастомные React-хуки (useAppState, useImplementationTasks, ...)
+├── services/            # Внешние вызовы (LLM-генерация ID)
 ├── types/               # TypeScript интерфейсы
-├── utils/               # Утилиты и хелперы
+├── utils/               # Утилиты (tabUtils, indexedDB, errorUtils, pluralize, ...)
 └── sidepanel/           # Точка входа (App.tsx)
 ```
 
@@ -197,7 +223,7 @@ src/
 - **Типы** из `src/types/index.ts` — всегда импортировать оттуда, не дублировать
 - Новые типы добавлять в `src/types/index.ts`
 - Использовать `React.FC<Props>` для компонентов
-- Не использовать `any` — всегда указывать конкретный тип
+- Не использовать `any` — всегда указывать конкретный тип. В `catch` ошибка имеет тип `unknown`; текст извлекать через `getErrorMessage(err, 'Фоллбэк')` из `src/utils/errorUtils.ts`
 
 ---
 
@@ -275,6 +301,7 @@ npm run watch
 ## 8. Локализация
 
 - **Весь UI** — на **русском языке**
+- Числительные склонять через `pluralizeRu(n, FILE_FORMS)` из `src/utils/pluralize.ts` (не `n === 1 ? 'файл' : 'файлов'`)
 - Комментарии в коде — на русском или английском (предпочтительно русский)
 - Названия переменных, функций, компонентов — на **английском**
 - Коммиты — на **английском**
@@ -283,12 +310,14 @@ npm run watch
 
 ## 9. Чеклист перед PR / коммитом
 
-- [ ] Все новые компоненты переиспользуют `Button`, `Badge`, `Input`, `Modal` из `ui/`
-- [ ] Карточки имеют `rounded-xl border border-gray-200 bg-white shadow-sm`
+- [ ] Все новые компоненты переиспользуют примитивы из `ui/` (`Button`, `Badge`, `Input`, `Textarea`, `Card`, `Toolbar`, `Modal`, ...)
+- [ ] Карточки имеют `rounded-xl border border-slate-200 bg-white shadow-sm`
 - [ ] Между карточками одинаковые отступы `space-y-3`
-- [ ] Нет тёмных фонов (`bg-slate-*`, `bg-gray-800+`)
+- [ ] Нет тёмных фонов (`bg-slate-700+`, `bg-gray-*`, `bg-zinc-*`) и классов Tailwind v4
 - [ ] Кнопки-иконки используют `.icon-btn`
 - [ ] Все иконки анимируются при hover
+- [ ] Нет `any`; ошибки из `catch` — через `getErrorMessage`
+- [ ] `PROJECT_DOCUMENTATION.md` обновлён (раздел Changelog)
 - [ ] Типы определены в `src/types/index.ts`
 - [ ] `npm run build` проходит без ошибок
 - [ ] UI-текст на русском языке
