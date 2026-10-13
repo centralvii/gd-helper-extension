@@ -1,4 +1,5 @@
 import { YouTrackIssue } from '../types';
+import { getErrorMessage } from './errorUtils';
 
 export interface GreenDataTaskFillResult {
   success: boolean;
@@ -261,10 +262,10 @@ export async function injectYouTrackIntoGreenDataTask(
       message: 'Модальное окно создания задачи не найдено на открытой странице GreenData',
       filled: { tfs: tfsNumber, yt: ytGit, name: taskName },
     };
-  } catch (err: any) {
+  } catch (err) {
     return {
       success: false,
-      message: err?.message || 'Ошибка заполнения полей задачи в GreenData',
+      message: getErrorMessage(err, 'Ошибка заполнения полей задачи в GreenData'),
       filled: { tfs: tfsNumber, yt: ytGit, name: taskName },
     };
   }

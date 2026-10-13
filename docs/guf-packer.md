@@ -19,18 +19,21 @@ GUF Packer - браузерный инструмент для пакетной �
 
 Основные точки кода:
 
-- `src/pages/GufPackerPage.tsx` - композиция страницы и обработчики UI;
-- `src/hooks/useAppState.ts` - состояние GUF Packer и операции над ним;
-- `src/utils/zipHandler.ts` - чтение ZIP, создание `FileRow`, генерация результата;
-- `src/utils/nameCleaner.ts` - разбор исходных имён;
-- `src/utils/templateEngine.ts` - применение шаблонов и пересчёт имён;
-- `src/utils/validation.ts` - проверки итоговых имён;
-- `src/utils/persistence.ts` - сохранение состояния в IndexedDB;
-- `src/components/FileUploader.tsx` - загрузка через input и локальный dropzone;
-- `src/components/FileTable.tsx` - таблица, поиск и сортировка файлов;
-- `src/components/TemplateEditor.tsx` и `src/components/MassActions.tsx` - шаблон и переменные;
-- `src/components/ReadmeEditor.tsx` - общий текст README;
-- `src/components/ValidationPanel.tsx` - отображение ошибок.
+- `src/sidepanel/App.tsx` - композиция вкладки «Упаковка» и обработчики UI;
+- `src/hooks/useAppState.ts` - состояние GUF Packer (пакеты, файлы, шаблон) и операции над ним;
+- `src/core/zipHandler.ts` - чтение ZIP, создание `FileRow`, генерация результата и `README.txt`;
+- `src/core/nameCleaner.ts` - разбор исходных имён;
+- `src/core/templateEngine.ts` - применение шаблонов и пересчёт имён;
+- `src/core/validation.ts` - проверки итоговых имён;
+- `src/utils/indexedDB.ts` - сохранение состояния в IndexedDB;
+- `src/components/upload/FileUploader.tsx` - загрузка через input и локальный dropzone;
+- `src/components/table/FileTable.tsx`, `FileRowItem.tsx` - таблица, поиск и сортировка файлов;
+- `src/components/template/TemplateEditor.tsx` и `MassActionsModal.tsx` - шаблон и переменные;
+- `src/components/readme/ReadmeEditorModal.tsx` - общий текст README;
+- `src/components/validation/ValidationPanel.tsx` - отображение ошибок;
+- `src/components/layout/Footer.tsx` - имя архива, статус валидации и кнопка экспорта.
+
+> Полный контекст проекта (все вкладки, дизайн-система, changelog) — в `PROJECT_DOCUMENTATION.md` в корне репозитория.
 
 ## Архитектура потока данных
 
@@ -57,7 +60,7 @@ FileTable + TemplateEditor + ReadmeEditor
 JSZip -> Blob -> file-saver -> download
 ```
 
-`GufPackerPage` не содержит алгоритмов переименования. Он получает API хука `useAppState`, передаёт колбэки дочерним компонентам и показывает уведомления.
+`App.tsx` не содержит алгоритмов переименования. Он получает API хука `useAppState`, передаёт колбэки дочерним компонентам и показывает уведомления.
 
 ## Модель файла
 
@@ -84,7 +87,7 @@ JSZip -> Blob -> file-saver -> download
 
 ### ZIP
 
-`extractZip()` в `src/utils/zipHandler.ts`:
+`extractZip()` в `src/core/zipHandler.ts`:
 
 1. открывает файл через `JSZip.loadAsync(file)`;
 2. собирает только записи-файлы, пропуская директории;
@@ -198,7 +201,7 @@ cleanName    = "Описание документа"
 
 ## README и описание файлов
 
-Пользовательский текст из `ReadmeEditor` хранится в `readmeContent`.
+Пользовательский текст из `ReadmeEditorModal` хранится в `readmeContent`.
 
 Перед экспортом `useAppState` добавляет к нему автоматически сформированный раздел с описаниями строк, у которых заполнено поле `description`:
 
@@ -226,7 +229,7 @@ cleanName    = "Описание документа"
 
 ## Сохранение и восстановление
 
-Состояние GUF Packer сохраняется в IndexedDB через `src/utils/persistence.ts`.
+Состояние GUF Packer сохраняется в IndexedDB через `src/utils/indexedDB.ts`.
 
 База данных:
 
@@ -267,7 +270,7 @@ cleanName    = "Описание документа"
 
 ## Возможное выделение в `guf-core`
 
-Для будущего Chrome Extension чистыми и переиспользуемыми кандидатами являются:
+Чистыми и переиспользуемыми кандидатами для выноса в отдельный пакет являются (сейчас они уже собраны в `src/core/` без зависимостей от React):
 
 - типы входного файла и результата;
 - `parseFileName`, `getExtension`, `getNameWithoutExtension`, `getBaseName`;
@@ -275,4 +278,4 @@ cleanName    = "Описание документа"
 - `validateFiles`;
 - функция построения ZIP, возвращающая `Blob` или `Uint8Array` вместо непосредственного вызова `saveAs`.
 
-React-состояние, IndexedDB, уведомления, роутинг и DOM-скачивание следует оставить на уровне конкретного приложения. В текущем репозитории это разделение ещё не завершено: рабочая GUF-логика находится в `src/`, а `packages/guf-core` пока не оформлен как самостоятельный пакет.
+React-состояние, IndexedDB, уведомления, роутинг и DOM-скачивание следует оставить на уровне конкретного приложения. Отдельный пакет `guf-core` пока не оформлен: логика живёт в `src/core/`.

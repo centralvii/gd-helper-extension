@@ -3,19 +3,16 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import {
     GripVertical,
-    Edit3,
     Trash2,
     AlertTriangle,
     FileText,
     Calendar,
     Link as LinkIcon,
-    ExternalLink,
     Download,
     Check,
 } from 'lucide-react';
 import { saveAs } from 'file-saver';
 import { FileRow } from '../../types';
-import { Badge } from '../ui/Badge';
 import { IconButton } from '../ui';
 import { trimGreenDataUrl } from '../../utils/tabUtils';
 
@@ -85,174 +82,137 @@ export const FileRowItem: React.FC<FileRowItemProps> = React.memo(({
         setTimeout(() => setIsDownloaded(false), 1500);
     };
 
+    const hasAltName = Boolean(file.newName && file.newName !== file.originalName);
+    const cardLink = file.sourceUrl ? trimGreenDataUrl(file.sourceUrl) : '';
+
     return (
         <div
             ref={setNodeRef}
             style={style}
-            className={`group relative flex items-start gap-2 rounded-xl border p-2 transition-all duration-150 ${
+            className={`gd-row group !items-start !py-2.5 !gap-2.5 transition-[background-color,box-shadow,border-radius] duration-200 ${
                 isDragging
-                    ? 'border-emerald-500 bg-emerald-50/90 shadow-lg scale-[1.01]'
+                    ? 'bg-white shadow-xl rounded-xl scale-[1.02] relative'
                     : hasError
-                      ? 'border-rose-300 bg-rose-50/50 hover:border-rose-400 shadow-2xs'
-                      : 'border-slate-200/90 bg-white hover:border-emerald-300 hover:shadow-xs'
+                      ? 'bg-[#ff3b30]/[0.05]'
+                      : 'hover:bg-gd-fill-2'
             }`}
         >
-            {/* Combined Drag Handle + Order Number */}
+            {/* Ручка перетаскивания + порядковый номер */}
             <button
                 type="button"
                 {...attributes}
                 {...listeners}
                 title="Перетащите для изменения порядка"
-                className="flex h-6 px-1.5 gap-0.5 flex-shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 text-slate-600 transition-colors hover:border-slate-300 hover:text-slate-900 cursor-grab active:cursor-grabbing shadow-2xs select-none mt-0.5"
+                data-icon-anim="none"
+                className="flex w-8 flex-shrink-0 flex-col items-center gap-0.5 pt-0.5 text-gd-faint hover:text-slate-600 cursor-grab active:cursor-grabbing select-none touch-none"
             >
-                <GripVertical className="h-3 w-3 text-slate-400" />
-                <span className="font-mono text-[10.5px] font-bold">#{file.order}</span>
+                <span className="font-mono text-[11px] font-semibold text-gd-muted tabular-nums">
+                    {String(file.order).padStart(3, '0')}
+                </span>
+                <GripVertical className="h-3.5 w-3.5 opacity-60 group-hover:opacity-100 transition-opacity" />
             </button>
 
-            {/* File Info Body */}
-            <div className="min-w-0 flex-1 space-y-1">
-                {/* Line 1: Filename + Indicators + Actions */}
-                <div className="flex items-center justify-between gap-1.5 min-w-0">
-                    <div className="flex items-center gap-1.5 min-w-0 flex-1">
-                        <span
-                            className="truncate font-mono text-xs font-bold text-slate-900 min-w-0"
-                            title={file.newName || file.originalName}
-                        >
-                            {file.newName || file.originalName}
+            {/* Имя и метаданные (тап — редактирование) */}
+            <div
+                role="button"
+                tabIndex={0}
+                onClick={() => onEdit(file)}
+                onKeyDown={(e) => {
+                    if (e.key === 'Enter') onEdit(file);
+                }}
+                title="Редактировать параметры файла"
+                className="min-w-0 flex-1 space-y-0.5 cursor-pointer !scale-100"
+            >
+                <div className="flex items-center gap-1.5 min-w-0">
+                    <span
+                        className="truncate font-mono text-[12.5px] font-semibold text-slate-900 min-w-0 tracking-[-0.02em]"
+                        title={file.newName || file.originalName}
+                    >
+                        {file.newName || file.originalName}
+                    </span>
+                    {file.description && (
+                        <span title={`README: ${file.description}`} className="flex-shrink-0 text-gd-green">
+                            <FileText className="h-3 w-3" />
                         </span>
-
-                        {isDuplicate && (
-                            <Badge
-                                variant="danger"
-                                size="xs"
-                                className="flex-shrink-0"
-                            >
-                                Дубликат
-                            </Badge>
-                        )}
-
-                        {hasError && !isDuplicate && (
-                            <span
-                                title="Ошибка валидации файла"
-                                className="flex-shrink-0 text-amber-500"
-                            >
-                                <AlertTriangle className="h-3 w-3" />
-                            </span>
-                        )}
-
-                        {file.description && (
-                            <span
-                                title={`README: ${file.description}`}
-                                className="flex-shrink-0 text-emerald-600"
-                            >
-                                <FileText className="h-3 w-3" />
-                            </span>
-                        )}
-                    </div>
-
-                    {/* Actions */}
-                    <div className="flex flex-shrink-0 items-center gap-0.5">
-                        <IconButton
-                            size="xs"
-                            variant="sky"
-                            icon={
-                                isDownloaded ? (
-                                    <Check className="h-3 w-3 text-emerald-600" />
-                                ) : (
-                                    <Download className="h-3 w-3" />
-                                )
-                            }
-                            onClick={handleDownload}
-                            title="Скачать этот GUF-файл"
-                        />
-                        <IconButton
-                            size="xs"
-                            variant="emerald"
-                            icon={<Edit3 className="h-3 w-3" />}
-                            onClick={() => onEdit(file)}
-                            title="Редактировать параметры файла"
-                        />
-                        <IconButton
-                            size="xs"
-                            variant="danger"
-                            icon={<Trash2 className="h-3 w-3" />}
-                            onClick={() => onDelete(file.id)}
-                            title="Удалить файл из пакета"
-                        />
-                    </div>
+                    )}
                 </div>
 
-                {/* Line 2: Metadata row */}
-                <div className="flex items-center gap-1.5 text-[10px] text-slate-400 min-w-0 flex-wrap">
-                    {file.newName && file.newName !== file.originalName && (
-                        <span
-                            className="truncate min-w-0 text-slate-400 text-[10px]"
-                            title={`Исходное имя: ${file.originalName}`}
-                        >
-                            исх: {file.originalName}
+                <div className="flex items-center gap-x-1.5 gap-y-0.5 text-[11.5px] text-gd-muted min-w-0 flex-wrap">
+                    {isDuplicate ? (
+                        <span className="font-medium text-[#d70015]">Дубликат имени</span>
+                    ) : hasError ? (
+                        <span className="inline-flex items-center gap-1 font-medium text-[#c26a00]">
+                            <AlertTriangle className="h-3 w-3" />
+                            Ошибка имени
+                        </span>
+                    ) : null}
+
+                    {hasAltName && (
+                        <span className="truncate min-w-0 max-w-full" title={`Исходное имя: ${file.originalName}`}>
+                            {file.originalName}
                         </span>
                     )}
 
-                    {file.detectedDate && (
-                        <span
-                            title={`Дата обнаружения / создания: ${file.detectedDate}`}
-                            className="inline-flex items-center gap-0.5 px-1 py-0.2 rounded bg-slate-100 text-slate-500 text-[9.5px] font-mono flex-shrink-0 whitespace-nowrap"
-                        >
-                            <Calendar className="h-2.5 w-2.5 text-slate-400" />
+                    {file.detectedDate && !hasAltName && (
+                        <span className="inline-flex items-center gap-1 tabular-nums" title={`Дата выгрузки: ${file.detectedDate}`}>
+                            <Calendar className="h-3 w-3" />
                             {file.detectedDate}
                         </span>
                     )}
 
-                    {/* Compact Card ID & Link */}
-                    {file.cardId ? (
-                        file.sourceUrl ? (
+                    {(file.cardId || cardLink) &&
+                        (cardLink ? (
                             <a
-                                href={trimGreenDataUrl(file.sourceUrl)}
+                                href={cardLink}
                                 target="_blank"
                                 rel="noreferrer"
-                                title={`Открыть карточку в GreenData: ${trimGreenDataUrl(file.sourceUrl)}`}
+                                title={`Открыть карточку в GreenData: ${cardLink}`}
                                 onClick={(e) => e.stopPropagation()}
-                                className="inline-flex items-center gap-1 px-1.5 py-0.2 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-200/90 rounded-md font-mono text-[9.5px] font-bold transition-all shadow-2xs cursor-pointer flex-shrink-0"
+                                className="inline-flex items-center gap-0.5 font-medium text-gd-green hover:underline flex-shrink-0"
                             >
-                                <LinkIcon className="w-2.5 h-2.5 text-emerald-600 flex-shrink-0" />
-                                <span>ID: {file.cardId}</span>
-                                <ExternalLink className="w-2 h-2 text-emerald-600 opacity-60 flex-shrink-0" />
+                                <LinkIcon className="w-3 h-3" />
+                                {file.cardId ? `ID ${file.cardId}` : 'Карточка'}
                             </a>
                         ) : (
-                            <span
-                                className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded-md bg-slate-100 text-slate-700 border border-slate-200/90 font-mono text-[9.5px] font-bold shadow-2xs flex-shrink-0"
-                                title={`ID карточки в GreenData: ${file.cardId}`}
-                            >
-                                <span className="text-slate-400 font-normal">ID:</span>
-                                {file.cardId}
+                            <span className="font-mono flex-shrink-0" title={`ID карточки в GreenData: ${file.cardId}`}>
+                                ID {file.cardId}
                             </span>
-                        )
-                    ) : file.sourceUrl ? (
-                        <a
-                            href={trimGreenDataUrl(file.sourceUrl)}
-                            target="_blank"
-                            rel="noreferrer"
-                            title={trimGreenDataUrl(file.sourceUrl)}
-                            onClick={(e) => e.stopPropagation()}
-                            className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded-md bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-200/90 text-[9.5px] font-semibold transition-all shadow-2xs flex-shrink-0"
-                        >
-                            <LinkIcon className="w-2.5 h-2.5 text-emerald-600 flex-shrink-0" />
-                            <span>Карточка</span>
-                            <ExternalLink className="w-2 h-2 text-emerald-600 opacity-60 flex-shrink-0" />
-                        </a>
-                    ) : null}
+                        ))}
 
-                    {/* Matched in Task Badge */}
                     {isMatchedInTask && (
                         <span
                             title="Объект найден в привязанной задаче реализации по ID карточки"
-                            className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded-md bg-emerald-100/80 text-emerald-900 border border-emerald-300/80 text-[9.5px] font-bold shadow-2xs flex-shrink-0"
+                            className="inline-flex items-center gap-0.5 font-medium text-gd-green flex-shrink-0"
                         >
-                            <Check className="w-2.5 h-2.5 text-emerald-700 flex-shrink-0" />
-                            <span className="hidden xs:inline">В задаче</span>
+                            <Check className="w-3 h-3" strokeWidth={2.75} />
+                            В задаче
                         </span>
                     )}
                 </div>
+            </div>
+
+            {/* Действия */}
+            <div className="flex flex-shrink-0 items-center gap-0.5 -mr-1">
+                <IconButton
+                    size="sm"
+                    variant="ghost"
+                    icon={
+                        isDownloaded ? (
+                            <Check className="h-3.5 w-3.5 text-gd-green animate-pop-in" strokeWidth={2.75} />
+                        ) : (
+                            <Download className="h-3.5 w-3.5" />
+                        )
+                    }
+                    onClick={handleDownload}
+                    title="Скачать этот GUF-файл"
+                />
+                <IconButton
+                    size="sm"
+                    variant="danger"
+                    icon={<Trash2 className="h-3.5 w-3.5" />}
+                    onClick={() => onDelete(file.id)}
+                    title="Удалить файл из пакета"
+                />
             </div>
         </div>
     );

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useImplementationTasks } from '../../hooks/useImplementationTasks';
 import { TaskSelector } from './TaskSelector';
 import { TaskEditor } from './TaskEditor';
@@ -43,6 +43,14 @@ export const ImplementationTool: React.FC<ImplementationToolProps> = ({
   } = tasksState;
 
   const [isImportExportOpen, setIsImportExportOpen] = useState(false);
+  // Навигация iOS: список задач ↔ открытая задача
+  const [view, setView] = useState<'detail' | 'list'>('detail');
+
+  // Смена активной задачи (выбор, создание, перенос из YouTrack) открывает её экран
+  const activeTaskId = activeTask?.id;
+  useEffect(() => {
+    setView('detail');
+  }, [activeTaskId]);
   const [importExportDefaultTab, setImportExportDefaultTab] = useState<'export' | 'import'>('export');
 
   const handleOpenImportExport = (tab: 'export' | 'import' = 'export') => {
@@ -62,10 +70,13 @@ export const ImplementationTool: React.FC<ImplementationToolProps> = ({
         onDeleteTask={deleteTask}
         onUpdateTask={updateTask}
         onOpenImportExport={handleOpenImportExport}
+        view={view}
+        onChangeView={setView}
       />
 
       {/* Main Task Editor */}
-      {activeTask && (
+      {activeTask && view === 'detail' && (
+        <div className="space-y-3 animate-screen-in">
         <TaskEditor
           task={activeTask}
           packages={packages}
@@ -86,6 +97,7 @@ export const ImplementationTool: React.FC<ImplementationToolProps> = ({
           onSetStartNumber={onSetStartNumber}
           onShowToast={onShowToast}
         />
+        </div>
       )}
 
       {/* Backup / Export / Import Modal */}

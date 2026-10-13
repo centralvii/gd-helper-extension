@@ -19,32 +19,33 @@ export const IconButton: React.FC<IconButtonProps> = ({
   type = 'button',
   ...props
 }) => {
+  // iOS: круглые кнопки-иконки
   const sizes = {
-    xs: 'w-6 h-6 rounded-lg text-xs',
-    sm: 'w-7 h-7 rounded-xl text-xs',
-    md: 'w-8 h-8 rounded-xl text-sm',
+    xs: 'w-6 h-6 rounded-full text-xs',
+    sm: 'w-7 h-7 rounded-full text-xs',
+    md: 'w-8 h-8 rounded-full text-sm',
   };
 
   const variants = {
     ghost: clsx(
-      'text-slate-400 hover:text-slate-700 hover:bg-slate-100',
-      isActive && 'bg-slate-100 text-slate-800'
+      'text-slate-500 hover:text-slate-900 hover:bg-gd-fill',
+      isActive && 'bg-gd-fill text-slate-900'
     ),
     secondary: clsx(
-      'border border-slate-200 bg-slate-50 text-slate-600 hover:text-slate-900 hover:border-slate-300 shadow-2xs',
-      isActive && 'bg-white text-slate-900 border-slate-300 shadow-xs'
+      'bg-gd-fill text-slate-900 hover:bg-slate-200',
+      isActive && 'bg-slate-200'
     ),
     danger: clsx(
-      'text-slate-400 hover:text-rose-600 hover:bg-rose-50',
-      isActive && 'bg-rose-50 text-rose-700'
+      'text-slate-500 hover:text-[#ff3b30] hover:bg-[#ff3b30]/10',
+      isActive && 'bg-[#ff3b30]/10 text-[#ff3b30]'
     ),
     emerald: clsx(
-      'text-slate-400 hover:text-emerald-700 hover:bg-emerald-50',
-      isActive && 'bg-emerald-50 text-emerald-800'
+      'text-slate-500 hover:text-gd-green hover:bg-gd-green-light',
+      isActive && 'bg-gd-green-light text-gd-green'
     ),
     sky: clsx(
-      'text-slate-400 hover:text-sky-700 hover:bg-sky-50',
-      isActive && 'bg-sky-50 text-sky-800'
+      'text-slate-500 hover:text-[#007aff] hover:bg-[#007aff]/10',
+      isActive && 'bg-[#007aff]/10 text-[#007aff]'
     ),
   };
 
@@ -53,7 +54,7 @@ export const IconButton: React.FC<IconButtonProps> = ({
       type={type}
       className={twMerge(
         clsx(
-          'inline-flex items-center justify-center transition-all duration-150 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed select-none active:scale-95 flex-shrink-0',
+          'inline-flex items-center justify-center transition-colors duration-150 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed select-none flex-shrink-0',
           sizes[size],
           variants[variant]
         ),

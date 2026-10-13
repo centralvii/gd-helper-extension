@@ -23,6 +23,7 @@ import {
 import { YouTrackIssueTile } from './YouTrackIssueTile';
 import { YouTrackIssueDetail } from './YouTrackIssueDetail';
 import { Button } from '../ui/Button';
+import { getErrorMessage } from '../../utils/errorUtils';
 
 interface YouTrackToolProps {
   onTransferToImplementation?: (issue: YouTrackIssue) => void;
@@ -111,8 +112,8 @@ export const YouTrackTool: React.FC<YouTrackToolProps> = ({
           setHasSyncError(true);
           onShowToast?.(result.message);
         }
-      } catch (err: any) {
-        const msg = err?.message || 'Ошибка переноса данных в GreenData';
+      } catch (err) {
+        const msg = getErrorMessage(err, 'Ошибка переноса данных в GreenData');
         setSyncNotice(msg);
         setHasSyncError(true);
         onShowToast?.(msg);
@@ -149,8 +150,8 @@ export const YouTrackTool: React.FC<YouTrackToolProps> = ({
         setHasSyncError(true);
         onShowToast?.(errorMsg);
       }
-    } catch (e: any) {
-      const errorMsg = e?.message || 'Ошибка парсинга YouTrack';
+    } catch (e) {
+      const errorMsg = getErrorMessage(e, 'Ошибка парсинга YouTrack');
       setSyncNotice(errorMsg);
       setHasSyncError(true);
       onShowToast?.(errorMsg);
@@ -241,196 +242,161 @@ export const YouTrackTool: React.FC<YouTrackToolProps> = ({
     );
   }
 
+  const sourceLabel = lastSyncSource === 'api' ? 'API' : lastSyncSource === 'dom' ? 'Контур' : 'Кэш';
+
   return (
-    <div className="space-y-3">
-      {/* Top Header Card */}
-      <div className="bg-white border border-slate-200/90 rounded-xl p-3 shadow-2xs space-y-2.5">
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2 min-w-0">
-            <div className="w-7 h-7 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center flex-shrink-0 font-bold shadow-2xs">
-              <CheckSquare className="w-4 h-4" />
-            </div>
-            <div className="min-w-0">
-              <div className="flex items-center gap-1.5">
-                <h3 className="text-xs font-bold text-slate-900 truncate">
-                  Задачи YouTrack (РЭЦ_Fin)
-                </h3>
-                {issues.length > 0 && (
-                  <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-                    {filteredIssues.length}
-                  </span>
-                )}
-              </div>
-              <div className="flex items-center gap-1.5 text-[10px] text-slate-400 flex-wrap">
-                <Database className="w-2.5 h-2.5 text-slate-400" />
-                <span>{formattedSyncTime}</span>
-                {lastSyncedAt && (
-                  <span className="text-[9px] px-1.5 py-0.2 rounded font-mono font-medium bg-slate-100 text-slate-600 border border-slate-200">
-                    {lastSyncSource === 'api'
-                      ? 'API'
-                      : lastSyncSource === 'dom'
-                      ? 'Контур'
-                      : 'Кэш'}
-                  </span>
-                )}
-                <span
-                  className={`inline-flex items-center gap-1 text-[9px] px-1.5 py-0.2 rounded font-medium border select-none transition-colors ${
-                    isGreenDataModalActive
-                      ? 'bg-emerald-50 text-emerald-800 border-emerald-300 font-semibold'
-                      : 'bg-slate-100 text-slate-500 border-slate-200'
-                  }`}
-                  title={
-                    isGreenDataModalActive
-                      ? 'Окно создания задачи GreenData открыто — перенос доступен'
-                      : 'Откройте модальное окно создания задачи в GreenData для автозаполнения полей'
-                  }
-                >
-                  <span
-                    className={`w-1.5 h-1.5 rounded-full ${
-                      isGreenDataModalActive ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'
-                    }`}
-                  />
-                  <span>{isGreenDataModalActive ? 'Окно GD активно' : 'Окно GD не активно'}</span>
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Action buttons */}
-          <div className="flex items-center gap-1.5 flex-shrink-0">
-            <Button
-              size="xs"
-              variant="primary"
-              onClick={handleRefresh}
-              isLoading={isLoading}
-              leftIcon={<RefreshCw className={`w-3 h-3 ${isLoading ? 'animate-spin' : ''}`} />}
-              title="Спарсить задачи из YouTrack (в корпоративном контуре)"
-            >
-              Обновить
-            </Button>
-
-            <Button
-              size="xs"
-              variant="secondary"
-              onClick={handleOpenSearchUrl}
-              leftIcon={<ExternalLink className="w-3 h-3" />}
-              title="Открыть фильтр задач в YouTrack"
-            >
-              В YouTrack
-            </Button>
-          </div>
+    <div className="space-y-4">
+      {/* Статус синхронизации и формы GreenData */}
+      <div className="gd-group gd-group--icons">
+        <div className="gd-row">
+          <span className="gd-row-icon">
+            <Database />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block text-[14px] text-slate-900 truncate">
+              {issues.length > 0 ? `Задач: ${filteredIssues.length}` : 'Задачи не загружены'}
+            </span>
+            <span className="block text-[12px] text-gd-muted truncate">
+              {formattedSyncTime}
+              {lastSyncedAt ? ` · ${sourceLabel}` : ''}
+            </span>
+          </span>
+          <button
+            type="button"
+            onClick={handleOpenSearchUrl}
+            title="Открыть фильтр задач в YouTrack"
+            className="icon-btn"
+          >
+            <ExternalLink className="w-3.5 h-3.5" />
+          </button>
+          <button
+            type="button"
+            onClick={handleRefresh}
+            disabled={isLoading}
+            title="Спарсить задачи из YouTrack (в корпоративном контуре)"
+            data-icon-anim="spin"
+            className="icon-btn !bg-gd-green !text-white hover:!bg-gd-green-dark disabled:opacity-60"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
+          </button>
         </div>
 
-        {/* Sync message banner */}
-        {syncNotice && (
-          <div
-            className={`flex items-center justify-between text-[11px] px-2.5 py-1.5 rounded-lg border animate-in fade-in ${
-              hasSyncError
-                ? 'bg-amber-50 text-amber-900 border-amber-200'
-                : 'bg-emerald-50 text-emerald-800 border-emerald-200'
+        <div
+          className="gd-row"
+          title={
+            isGreenDataModalActive
+              ? 'Окно создания задачи GreenData открыто — перенос доступен'
+              : 'Откройте модальное окно создания задачи в GreenData для автозаполнения полей'
+          }
+        >
+          <span className={`gd-row-icon transition-colors duration-300 ${isGreenDataModalActive ? 'gd-row-icon--accent' : ''}`}>
+            <CheckSquare />
+          </span>
+          <span className="min-w-0 flex-1 text-[14px] text-slate-900 truncate">Форма задачи GreenData</span>
+          <span
+            className={`inline-flex items-center gap-1.5 text-[12.5px] font-medium flex-shrink-0 ${
+              isGreenDataModalActive ? 'text-gd-green' : 'text-gd-muted'
             }`}
           >
-            <div className="flex items-center gap-1.5 truncate">
-              {hasSyncError ? (
-                <AlertTriangle className="w-3.5 h-3.5 text-amber-600 flex-shrink-0" />
-              ) : (
-                <Sparkles className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
-              )}
-              <span className="truncate">{syncNotice}</span>
-            </div>
+            <span
+              className={`w-2 h-2 rounded-full ${isGreenDataModalActive ? 'bg-[#34c759] animate-pulse' : 'bg-slate-300'}`}
+            />
+            {isGreenDataModalActive ? 'Открыта' : 'Не открыта'}
+          </span>
+        </div>
+
+        {syncNotice && (
+          <div
+            className={`gd-row !min-h-0 !py-2 text-[12.5px] animate-fade-in ${
+              hasSyncError ? 'text-[#c26a00]' : 'text-gd-green'
+            }`}
+          >
+            {hasSyncError ? (
+              <AlertTriangle className="w-4 h-4 flex-shrink-0 ml-1.5 mr-1.5" />
+            ) : (
+              <Sparkles className="w-4 h-4 flex-shrink-0 ml-1.5 mr-1.5" />
+            )}
+            <span className="flex-1 min-w-0 leading-snug">{syncNotice}</span>
             <button
+              type="button"
               onClick={() => setSyncNotice(null)}
-              className="text-slate-400 hover:text-slate-700 cursor-pointer ml-1"
+              className="icon-btn icon-btn--plain w-6 h-6"
+              title="Скрыть"
             >
               <X className="w-3 h-3" />
             </button>
           </div>
         )}
-
-        {/* Search bar and Filters (only if we have issues) */}
-        {issues.length > 0 && (
-          <div className="space-y-2 pt-1 border-t border-slate-100">
-            <div className="relative">
-              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Поиск по ID (rez-fin...) или названию..."
-                className="w-full pl-8 pr-7 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-emerald-500 focus:outline-none transition-colors text-slate-800 placeholder-slate-400"
-              />
-              {searchQuery && (
-                <button
-                  type="button"
-                  onClick={() => setSearchQuery('')}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5 cursor-pointer"
-                >
-                  <X className="w-3 h-3" />
-                </button>
-              )}
-            </div>
-
-            {/* Quick filter chips */}
-            {distinctStates.length > 0 && (
-              <div className="flex items-center gap-1 overflow-x-auto pb-0.5 no-scrollbar">
-                <button
-                  type="button"
-                  onClick={() => setSelectedStateFilter('all')}
-                  className={`text-[10px] font-semibold px-2 py-0.5 rounded-lg transition-colors cursor-pointer select-none whitespace-nowrap ${
-                    selectedStateFilter === 'all'
-                      ? 'bg-slate-900 text-white shadow-2xs'
-                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                  }`}
-                >
-                  Все ({issues.length})
-                </button>
-
-                {distinctStates.map((st) => {
-                  const count = issues.filter((i) => i.state === st).length;
-                  const isSelected = selectedStateFilter === st;
-                  return (
-                    <button
-                      key={st}
-                      type="button"
-                      onClick={() => setSelectedStateFilter(isSelected ? 'all' : st)}
-                      className={`text-[10px] font-semibold px-2 py-0.5 rounded-lg transition-colors cursor-pointer select-none whitespace-nowrap ${
-                        isSelected
-                          ? 'bg-emerald-600 text-white shadow-2xs'
-                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                      }`}
-                    >
-                      {st} ({count})
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        )}
       </div>
 
-      {/* Loading state when no issues loaded yet */}
+      {/* Поиск и фильтры */}
+      {issues.length > 0 && (
+        <div className="space-y-2.5">
+          <div className="relative">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gd-faint pointer-events-none" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Поиск по ID или названию"
+              className="gd-field !pl-8 !pr-8 !bg-[rgba(118,118,128,0.12)]"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                className="absolute right-2 top-1/2 -translate-y-1/2 w-5 h-5 grid place-items-center rounded-full bg-slate-400 text-white cursor-pointer"
+                title="Очистить"
+              >
+                <X className="w-3 h-3" strokeWidth={3} />
+              </button>
+            )}
+          </div>
+
+          {distinctStates.length > 0 && (
+            <div className="flex items-center gap-1.5 overflow-x-auto -mx-4 px-4 pb-0.5">
+              {[{ key: 'all', label: 'Все', count: issues.length }, ...distinctStates.map((st) => ({
+                key: st,
+                label: st,
+                count: issues.filter((i) => i.state === st).length,
+              }))].map((chip) => {
+                const isSelected = selectedStateFilter === chip.key;
+                return (
+                  <button
+                    key={chip.key}
+                    type="button"
+                    onClick={() => setSelectedStateFilter(isSelected && chip.key !== 'all' ? 'all' : chip.key)}
+                    className={`h-7 px-3 rounded-full text-[12.5px] font-medium whitespace-nowrap cursor-pointer select-none transition-colors ${
+                      isSelected ? 'bg-slate-900 text-white' : 'bg-white text-slate-700 hover:bg-slate-200/60'
+                    }`}
+                  >
+                    {chip.label}
+                    <span className={`ml-1 tabular-nums ${isSelected ? 'text-white/70' : 'text-gd-muted'}`}>{chip.count}</span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Загрузка */}
       {isLoading && issues.length === 0 ? (
-        <div className="bg-white border border-slate-200/90 rounded-xl p-8 text-center space-y-3 shadow-2xs">
-          <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto">
-            <RefreshCw className="w-5 h-5 animate-spin" />
+        <div className="gd-group px-6 py-8 text-center space-y-3 animate-pop-in">
+          <div className="w-12 h-12 rounded-full bg-gd-green-light text-gd-green grid place-items-center mx-auto">
+            <RefreshCw className="w-6 h-6 animate-spin" />
           </div>
           <div className="space-y-1">
-            <h4 className="text-xs font-bold text-slate-900">
-              Загрузка задач из YouTrack...
-            </h4>
-            <p className="text-[11px] text-slate-500 max-w-xs mx-auto">
-              Подключение к https://youtrack.greendatasoft.ru и парсинг задач по запросу:
+            <h4 className="text-[15px] font-semibold text-slate-900">Загрузка задач…</h4>
+            <p className="text-[12.5px] text-gd-muted max-w-xs mx-auto">
+              Парсинг youtrack.greendatasoft.ru по запросу
               <br />
-              <span className="font-mono text-[10px] text-emerald-800 font-semibold">
-                Исполнитель: Кучин_В_В проект: РЭЦ_Fin
-              </span>
+              <span className="font-mono text-[11.5px] text-slate-700">Исполнитель: Кучин_В_В проект: РЭЦ_Fin</span>
             </p>
           </div>
         </div>
       ) : filteredIssues.length > 0 ? (
-        /* Issues Tiles Grid */
-        <div className="space-y-2">
+        <div className="space-y-2.5 gd-stagger">
           {filteredIssues.map((issue) => (
             <YouTrackIssueTile
               key={issue.id}
@@ -443,38 +409,35 @@ export const YouTrackTool: React.FC<YouTrackToolProps> = ({
           ))}
         </div>
       ) : (
-        /* Empty / Not logged in State */
-        <div className="bg-white border border-slate-200/90 rounded-xl p-6 text-center space-y-3 shadow-2xs">
-          <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center mx-auto">
-            <CheckSquare className="w-5 h-5" />
+        <div className="gd-group px-6 py-8 text-center space-y-3 animate-pop-in">
+          <div className="w-12 h-12 rounded-full bg-gd-fill text-gd-muted grid place-items-center mx-auto">
+            <CheckSquare className="w-6 h-6" />
           </div>
-          <div className="space-y-1.5">
-            <h4 className="text-xs font-bold text-slate-900">
-              {searchQuery ? 'Задачи не найдены' : 'Реальные задачи не загружены'}
+          <div className="space-y-1">
+            <h4 className="text-[15px] font-semibold text-slate-900">
+              {searchQuery ? 'Задачи не найдены' : 'Задачи не загружены'}
             </h4>
-            <p className="text-[11px] text-slate-500 max-w-sm mx-auto leading-relaxed">
+            <p className="text-[12.5px] text-gd-muted max-w-[280px] mx-auto leading-snug">
               {searchQuery
-                ? 'Попробуйте изменить поисковый запрос или сбросить фильтры статуса.'
-                : 'Для получения задач необходимо подключиться к корпоративной сети (VPN) и авторизоваться в YouTrack в этом браузере.'}
+                ? 'Измените запрос или сбросьте фильтр статуса.'
+                : 'Подключитесь к корпоративной сети (VPN) и войдите в YouTrack в этом браузере.'}
             </p>
           </div>
-
           <div className="flex items-center justify-center gap-2 pt-1 flex-wrap">
             <Button
-              size="xs"
+              size="md"
               variant="primary"
               onClick={handleRefresh}
               isLoading={isLoading}
-              leftIcon={<RefreshCw className={`w-3 h-3 ${isLoading ? 'animate-spin' : ''}`} />}
+              leftIcon={!isLoading ? <RefreshCw className="w-4 h-4" /> : undefined}
             >
-              Повторить попытку
+              Повторить
             </Button>
-
             <Button
-              size="xs"
+              size="md"
               variant="secondary"
               onClick={handleOpenSearchUrl}
-              leftIcon={<LogIn className="w-3 h-3" />}
+              leftIcon={<LogIn className="w-4 h-4" />}
             >
               Войти в YouTrack
             </Button>

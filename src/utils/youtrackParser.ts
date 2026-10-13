@@ -1,4 +1,4 @@
-import { YouTrackIssue, YouTrackCacheData, YouTrackParsedResult } from '../types';
+import { YouTrackIssue, YouTrackApiIssue, YouTrackCacheData, YouTrackParsedResult } from '../types';
 
 export const DEFAULT_YOUTRACK_URL =
   'https://youtrack.greendatasoft.ru/issues?q=%D0%98%D1%81%D0%BF%D0%BE%D0%BB%D0%BD%D0%B8%D1%82%D0%B5%D0%BB%D1%8C:%20%D0%9A%D1%83%D1%87%D0%B8%D0%BD_%D0%92%D0%BB%D0%B0%D0%B4%D0%B8%D0%BC%D0%B8%D1%80_%D0%92%D0%B0%D0%BB%D0%B5%D1%80%D1%8C%D0%B5%D0%B2%D0%B8%D1%87%20%D0%BF%D1%80%D0%BE%D0%B5%D0%BA%D1%82:%20%D0%A0%D0%AD%D0%A6_Fin&u=1';
@@ -120,7 +120,7 @@ export function extractQueryFromYouTrackUrl(url: string): string {
 /**
  * Normalizes raw API response item into YouTrackIssue
  */
-export function normalizeApiIssue(item: any): YouTrackIssue {
+export function normalizeApiIssue(item: YouTrackApiIssue): YouTrackIssue {
   const id = item.idReadable || item.id || '';
   let state: string | undefined;
   let priority: string | undefined;
@@ -159,12 +159,12 @@ export function normalizeApiIssue(item: any): YouTrackIssue {
     id,
     summary: item.summary || id,
     description: typeof item.description === 'string' ? item.description : undefined,
-    state: normalizeIssueState(state || (item.resolved ? 'Решена' : 'Открыта')),
+    state: normalizeIssueState(state || item.state || (item.resolved ? 'Решена' : 'Открыта')),
     priority: priority || 'Обычный',
     type: type || 'Доработка',
     project: item.project?.name || item.project?.shortName || 'РЭЦ_Fin',
     assignee: assignee || 'Кучин Владимир Валерьевич',
-    url: `https://youtrack.greendatasoft.ru/issue/${id}`,
+    url: item.url || `https://youtrack.greendatasoft.ru/issue/${id}`,
     created: item.created,
     updatedAt: item.updated || Date.now(),
     rawFields,
@@ -178,7 +178,7 @@ export function normalizeApiIssue(item: any): YouTrackIssue {
  */
 export async function executeInTabYouTrackExtraction(queryStr: string): Promise<{
   success: boolean;
-  issues: any[];
+  issues: YouTrackApiIssue[];
   error?: string;
   source: 'api' | 'dom';
 }> {
@@ -273,13 +273,13 @@ export async function executeInTabYouTrackExtraction(queryStr: string): Promise<
         }
       } catch (minErr) {}
     }
-  } catch (err: any) {
+  } catch {
     // If API threw, continue directly to DOM extraction below
   }
 
   // 3. Fallback: Parse DOM of current page (if tab is viewing the search list)
   try {
-    const issuesMap = new Map<string, any>();
+    const issuesMap = new Map<string, YouTrackApiIssue>();
     const issueLinkRegex = /\/issue\/([a-zA-Zа-яА-Я0-9_-]+-\d+)/i;
     const links = document.querySelectorAll('a[href*="/issue/"]');
 
@@ -345,7 +345,7 @@ export async function executeInTabYouTrackExtraction(queryStr: string): Promise<
         source: 'dom',
       };
     }
-  } catch (domErr: any) {
+  } catch {
     // ignore
   }
 

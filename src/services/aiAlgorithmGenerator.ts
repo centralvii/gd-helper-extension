@@ -1,4 +1,4 @@
-import { AiSettings, AiAlgorithmIdResult, AlgorithmType } from '../types';
+import { AiSettings, AiAlgorithmIdResult, AiAlgorithmRawResponse, AlgorithmType } from '../types';
 import { resolveApiEndpoint, buildRequestHeaders, DEFAULT_AI_SETTINGS } from '../hooks/useAiChat';
 
 const AI_SETTINGS_STORAGE_KEY = 'gd_ai_settings';
@@ -182,7 +182,7 @@ export async function generateAlgorithmIdViaAi(
     jsonString = jsonMatch[1].trim();
   }
 
-  let parsed: any;
+  let parsed: AiAlgorithmRawResponse;
   try {
     parsed = JSON.parse(jsonString);
   } catch (e) {
@@ -205,7 +205,7 @@ export async function generateAlgorithmIdViaAi(
   }
 
   const validTypes: AlgorithmType[] = ['general', 'card_action', 'filter_condition', 'validation', 'calculation'];
-  const detectedType: AlgorithmType = validTypes.includes(parsed.detectedType) ? parsed.detectedType : 'general';
+  const detectedType: AlgorithmType = validTypes.find((t) => t === parsed.detectedType) ?? 'general';
 
   const rawVariants: Array<{ id: string; desc?: string }> = Array.isArray(parsed.variants) ? parsed.variants : [];
   const variants = rawVariants

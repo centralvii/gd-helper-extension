@@ -162,7 +162,7 @@ export const TaskExportPreviewModal: React.FC<TaskExportPreviewModalProps> = ({
             </span>
           </div>
 
-          <pre className="p-3 bg-slate-50/80 border border-slate-200/90 rounded-2xl text-slate-900 font-mono text-[11px] leading-relaxed whitespace-pre-wrap max-h-72 overflow-y-auto select-all shadow-2xs">
+          <pre className="p-3 bg-slate-50/80 border border-slate-200 rounded-xl text-slate-900 font-mono text-[11px] leading-relaxed whitespace-pre-wrap max-h-72 overflow-y-auto select-all shadow-2xs">
             {markdownText || '(Описание пока пусто)'}
           </pre>
         </div>

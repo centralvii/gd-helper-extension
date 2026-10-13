@@ -11,7 +11,6 @@ import {
   Sparkles,
   Zap,
   Settings,
-  SlidersHorizontal,
 } from 'lucide-react';
 import {
   generateAlgorithmId,
@@ -27,11 +26,12 @@ import {
   Button,
   Input,
   Select,
-  Toolbar,
+  ToolRow,
   SegmentedControl,
   Textarea,
 } from '../ui';
 import confetti from 'canvas-confetti';
+import { getErrorMessage } from '../../utils/errorUtils';
 
 const POSTFIX_OPTIONS = [
   { value: '_ALG', label: '_ALG (Стандартный)' },
@@ -146,8 +146,8 @@ export const AlgorithmIdGenerator: React.FC = () => {
       const res = await generateAlgorithmIdViaAi(trimmed, { postfix });
       setAiResult(res);
       setActiveSource('ai');
-    } catch (err: any) {
-      setAiError(err?.message || 'Не удалось сгенерировать ID через AI модель.');
+    } catch (err) {
+      setAiError(getErrorMessage(err, 'Не удалось сгенерировать ID через AI модель.'));
     } finally {
       setIsAiLoading(false);
     }
@@ -308,60 +308,8 @@ export const AlgorithmIdGenerator: React.FC = () => {
 
   return (
     <div className="space-y-3">
-      {/* ── Top Toolbar Bar (Project Standard Style) ── */}
-      <Toolbar className="animate-fade-in">
-        <Toolbar.Title
-          icon={<SlidersHorizontal className="w-3.5 h-3.5" />}
-          title={<span className="hidden sm:inline">Инструменты</span>}
-          titleAttr="Инструменты"
-        />
-
-        <Toolbar.Actions>
-          <Toolbar.Button
-            onClick={() => setIsHistoryOpen(true)}
-            title="История генераций"
-            icon={<History className="w-3.5 h-3.5 text-emerald-600" />}
-            badge={
-              history.length > 0 ? (
-                <span className="px-1.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800 text-[10px] font-mono font-bold">
-                  {history.length}
-                </span>
-              ) : undefined
-            }
-          >
-            История
-          </Toolbar.Button>
-
-          <Toolbar.Button
-            onClick={() => setIsDictOpen(true)}
-            title="Словарь терминов и сокращений"
-            icon={<Bookmark className="w-3.5 h-3.5 text-emerald-600" />}
-            className="w-7 h-7 p-0 rounded-lg justify-center flex-shrink-0"
-          />
-
-          <Toolbar.Button
-            onClick={() => setIsRulesOpen(true)}
-            title="Стандарты именования алгоритмов GreenData"
-            icon={<FileText className="w-3.5 h-3.5 text-emerald-600" />}
-            className="w-7 h-7 p-0 rounded-lg justify-center flex-shrink-0"
-          />
-
-          <Toolbar.Button
-            onClick={() => setIsAiSettingsOpen(true)}
-            title={
-              isAiConfigured()
-                ? `Параметры AI (${aiSettings.model || 'OpenAI'} подключен)`
-                : 'Настройка подключения AI'
-            }
-            icon={<Settings className="w-3.5 h-3.5 text-emerald-600" />}
-            dot={isAiConfigured()}
-            className="w-7 h-7 p-0 rounded-lg justify-center flex-shrink-0"
-          />
-        </Toolbar.Actions>
-      </Toolbar>
-
-      {/* ── Input Card (Clean & Compact) ── */}
-      <div className="rounded-2xl border border-slate-200/90 bg-white p-3 shadow-xs space-y-2.5">
+      {/* ── Ввод названия алгоритма ── */}
+      <div className="gd-group p-3.5 space-y-3">
         <Textarea
           value={inputText}
           onChange={(e) => handleSetInputText(e.target.value)}
@@ -374,7 +322,7 @@ export const AlgorithmIdGenerator: React.FC = () => {
         {/* Controls row: Postfix selector & AI Generation button */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
           <div className="flex items-center gap-1.5 flex-1 min-w-0">
-            <span className="text-[11px] text-slate-500 font-medium flex-shrink-0">Постфикс:</span>
+            <span className="text-[13px] text-gd-muted flex-shrink-0">Постфикс</span>
             <Select
               size="sm"
               value={postfix}
@@ -385,20 +333,20 @@ export const AlgorithmIdGenerator: React.FC = () => {
           </div>
 
           <Button
-            variant="emerald"
-            size="sm"
+            variant="primary"
+            size="md"
             onClick={handleGenerateAi}
             disabled={isAiLoading || !inputText.trim()}
-            className="w-full sm:w-auto h-8 px-3 text-xs font-semibold shadow-2xs cursor-pointer bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 hover:from-emerald-500 hover:to-teal-600 text-white flex-shrink-0"
+            className="w-full sm:w-auto flex-shrink-0"
             leftIcon={
               isAiLoading ? (
                 <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin flex-shrink-0" />
               ) : (
-                <Sparkles className="w-3.5 h-3.5 text-amber-300 flex-shrink-0" />
+                <Sparkles className="w-4 h-4 flex-shrink-0" />
               )
             }
           >
-            <span>{isAiLoading ? 'AI думает...' : 'AI Генерация'}</span>
+            <span>{isAiLoading ? 'ИИ думает…' : 'Сгенерировать с ИИ'}</span>
           </Button>
         </div>
 
@@ -421,9 +369,9 @@ export const AlgorithmIdGenerator: React.FC = () => {
       </div>
 
       {/* ── Generated Result Card ── */}
-      <div className="overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-xs">
+      <div className="gd-group">
         {/* Header bar */}
-        <div className="flex items-center justify-between gap-2 border-b border-slate-100 bg-slate-50/80 px-3 py-2">
+        <div className="flex items-center justify-between gap-2 border-b border-gd-border px-3.5 py-2.5">
           <div className="flex items-center gap-2 min-w-0 flex-wrap">
             {aiResult ? (
               <SegmentedControl<'ai' | 'local'>
@@ -436,8 +384,8 @@ export const AlgorithmIdGenerator: React.FC = () => {
                 ]}
               />
             ) : (
-              <span className="inline-flex items-center gap-1 text-[10.5px] font-semibold text-slate-600 bg-white border border-slate-200 px-2 py-0.5 rounded-md shadow-2xs">
-                <Zap className="w-3 h-3 text-amber-500" />
+              <span className="inline-flex items-center gap-1 text-[12px] font-medium text-gd-muted">
+                <Zap className="w-3.5 h-3.5 text-[#ff9500]" />
                 Локальный перевод
               </span>
             )}
@@ -455,16 +403,16 @@ export const AlgorithmIdGenerator: React.FC = () => {
         </div>
 
         {/* Result Content */}
-        <div className="p-3 space-y-2.5">
+        <div className="p-3.5 space-y-3">
           {currentGeneratedId ? (
             <>
               {/* Monospace ID block with full-width text and top-right copy icon */}
               <div
                 onClick={() => handleCopy()}
                 title="Нажмите, чтобы скопировать"
-                className="group/id relative p-3 pr-10 rounded-xl border border-emerald-200/90 bg-emerald-50/50 hover:bg-emerald-50/80 transition-all cursor-pointer shadow-2xs"
+                className="group/id relative p-3 pr-11 rounded-[10px] bg-gd-fill-2 hover:bg-gd-fill transition-colors cursor-pointer"
               >
-                <div className="font-mono text-xs font-bold text-emerald-950 break-all select-all leading-relaxed">
+                <div className="font-mono text-[14px] font-semibold tracking-[-0.02em] text-slate-900 break-all select-all leading-relaxed">
                   {currentGeneratedId}
                 </div>
                 <button
@@ -474,10 +422,10 @@ export const AlgorithmIdGenerator: React.FC = () => {
                     handleCopy();
                   }}
                   title="Скопировать идентификатор"
-                  className={`absolute top-2.5 right-2.5 h-7 w-7 rounded-lg flex items-center justify-center transition-all cursor-pointer shadow-2xs ${
+                  className={`absolute top-2.5 right-2.5 h-7 w-7 rounded-full flex items-center justify-center transition-colors cursor-pointer ${
                     copied && (!copiedId || copiedId === currentGeneratedId)
-                      ? 'bg-emerald-600 text-white'
-                      : 'bg-white hover:bg-emerald-100 text-emerald-700 border border-emerald-300 hover:border-emerald-400 active:scale-95'
+                      ? 'bg-gd-green text-white'
+                      : 'bg-white text-gd-green hover:bg-gd-green-light'
                   }`}
                 >
                   {copied && (!copiedId || copiedId === currentGeneratedId) ? (
@@ -490,10 +438,10 @@ export const AlgorithmIdGenerator: React.FC = () => {
 
               {/* Dedicated Copy Button */}
               <Button
-                variant="emerald"
-                size="sm"
+                variant="primary"
+                size="lg"
                 onClick={() => handleCopy()}
-                className="w-full h-8 text-xs font-semibold shadow-2xs cursor-pointer"
+                className="w-full"
                 leftIcon={
                   copied && (!copiedId || copiedId === currentGeneratedId) ? (
                     <Check className="w-3.5 h-3.5 flex-shrink-0" />
@@ -504,7 +452,7 @@ export const AlgorithmIdGenerator: React.FC = () => {
               >
                 <span>
                   {copied && (!copiedId || copiedId === currentGeneratedId)
-                    ? 'Скопировано в буфер!'
+                    ? 'Скопировано'
                     : 'Копировать идентификатор'}
                 </span>
               </Button>
@@ -521,17 +469,17 @@ export const AlgorithmIdGenerator: React.FC = () => {
               {activeSource === 'local' && (
                 <div className="flex items-center gap-1.5 flex-wrap text-[10.5px]">
                   {parsed.block && (
-                    <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200/80">
+                    <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200">
                       Блок: <strong className="text-emerald-700 font-mono">{parsed.blockCode}</strong>
                     </span>
                   )}
                   {parsed.targetObject && (
-                    <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200/80">
+                    <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200">
                       Объект: <strong className="text-emerald-700 font-mono">{parsed.targetObjectCode}</strong>
                     </span>
                   )}
                   {parsed.filterParams && (
-                    <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200/80">
+                    <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200">
                       Фильтр: <strong className="text-emerald-700 font-mono">{parsed.filterParamsCode}</strong>
                     </span>
                   )}
@@ -554,7 +502,7 @@ export const AlgorithmIdGenerator: React.FC = () => {
                         type="button"
                         onClick={() => handleCopy(v.id)}
                         title={v.desc}
-                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-slate-200 bg-slate-50 hover:bg-emerald-50 hover:border-emerald-300 text-slate-800 text-[11px] font-mono font-medium transition-all shadow-2xs cursor-pointer group"
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gd-fill hover:bg-gd-green-light hover:text-gd-green text-slate-800 text-[11.5px] font-mono font-medium transition-colors cursor-pointer group"
                       >
                         <span className="break-all">{v.id}</span>
                         {v.desc && (
@@ -579,6 +527,40 @@ export const AlgorithmIdGenerator: React.FC = () => {
             </div>
           )}
         </div>
+      </div>
+
+      {/* ── Справочники и настройки ── */}
+      <div className="gd-group gd-group--icons">
+        <ToolRow
+          icon={<History />}
+          label="История генераций"
+          value={history.length || undefined}
+          title="История генераций"
+          onClick={() => setIsHistoryOpen(true)}
+        />
+        <ToolRow
+          icon={<Bookmark />}
+          label="Словарь терминов"
+          title="Словарь терминов и сокращений"
+          onClick={() => setIsDictOpen(true)}
+        />
+        <ToolRow
+          icon={<FileText />}
+          label="Стандарты именования"
+          title="Стандарты именования алгоритмов GreenData"
+          onClick={() => setIsRulesOpen(true)}
+        />
+        <ToolRow
+          icon={<Settings />}
+          label="Подключение ИИ"
+          value={isAiConfigured() ? aiSettings.model || 'Подключено' : 'Не настроено'}
+          title={
+            isAiConfigured()
+              ? `Параметры AI (${aiSettings.model || 'OpenAI'} подключен)`
+              : 'Настройка подключения AI'
+          }
+          onClick={() => setIsAiSettingsOpen(true)}
+        />
       </div>
 
       {/* ── Dictionary Modal ── */}
@@ -627,7 +609,7 @@ export const AlgorithmIdGenerator: React.FC = () => {
               className="w-full px-2.5 py-1.5 text-xs border border-slate-200 rounded-xl bg-slate-50 focus:bg-white focus:border-emerald-500 outline-none"
             />
 
-            <div className="flex flex-wrap gap-1.5 max-h-56 overflow-y-auto p-1.5 bg-slate-50/70 rounded-xl border border-slate-200/80">
+            <div className="flex flex-wrap gap-1.5 max-h-56 overflow-y-auto p-1.5 bg-slate-50/70 rounded-xl border border-slate-200">
               {filteredDictEntries.map(([ru, en]) => (
                 <span
                   key={ru}
@@ -659,7 +641,7 @@ export const AlgorithmIdGenerator: React.FC = () => {
         maxWidth="md"
       >
         <div className="space-y-2.5 text-xs text-slate-700 leading-relaxed max-h-[70vh] overflow-y-auto pr-1">
-          <div className="rounded-xl bg-slate-50 p-2.5 border border-slate-200/80 space-y-1">
+          <div className="rounded-xl bg-slate-50 p-2.5 border border-slate-200 space-y-1">
             <div className="font-bold text-slate-900 flex items-center gap-1.5">
               <span className="flex h-4 w-4 items-center justify-center rounded-full bg-emerald-600 text-[9px] text-white font-bold">1</span>
               Каноническая формула и префиксы блоков:
@@ -674,7 +656,7 @@ export const AlgorithmIdGenerator: React.FC = () => {
             </p>
           </div>
 
-          <div className="rounded-xl bg-slate-50 p-2.5 border border-slate-200/80 space-y-1">
+          <div className="rounded-xl bg-slate-50 p-2.5 border border-slate-200 space-y-1">
             <div className="font-bold text-slate-900 flex items-center gap-1.5">
               <span className="flex h-4 w-4 items-center justify-center rounded-full bg-emerald-600 text-[9px] text-white font-bold">2</span>
               Алгоритмы карточек объектов:
@@ -684,7 +666,7 @@ export const AlgorithmIdGenerator: React.FC = () => {
             </p>
           </div>
 
-          <div className="rounded-xl bg-slate-50 p-2.5 border border-slate-200/80 space-y-1">
+          <div className="rounded-xl bg-slate-50 p-2.5 border border-slate-200 space-y-1">
             <div className="font-bold text-slate-900 flex items-center gap-1.5">
               <span className="flex h-4 w-4 items-center justify-center rounded-full bg-emerald-600 text-[9px] text-white font-bold">3</span>
               Условия фильтрации для выбора элементов:
@@ -696,7 +678,7 @@ export const AlgorithmIdGenerator: React.FC = () => {
             </p>
           </div>
 
-          <div className="rounded-xl bg-slate-50 p-2.5 border border-slate-200/80 space-y-1">
+          <div className="rounded-xl bg-slate-50 p-2.5 border border-slate-200 space-y-1">
             <div className="font-bold text-slate-900 flex items-center gap-1.5">
               <span className="flex h-4 w-4 items-center justify-center rounded-full bg-emerald-600 text-[9px] text-white font-bold">4</span>
               Расчеты и валидации:

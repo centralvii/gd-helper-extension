@@ -84,8 +84,8 @@ export const Select: React.FC<SelectProps> = ({
 
   const sizeClasses =
     size === 'sm'
-      ? 'px-2.5 py-1 text-[11px] rounded-lg min-h-[30px]'
-      : 'px-3 py-1.5 text-xs rounded-xl min-h-[36px]';
+      ? 'px-2.5 py-1 text-[12px] rounded-lg min-h-[30px]'
+      : 'px-3 py-1.5 text-[13px] rounded-[10px] min-h-[36px]';
 
   return (
     <div ref={containerRef} className={`relative select-none ${className}`}>
@@ -95,14 +95,14 @@ export const Select: React.FC<SelectProps> = ({
         id={id}
         disabled={disabled}
         onClick={() => !disabled && setIsOpen((prev) => !prev)}
-        className={`w-full flex items-center justify-between gap-2 bg-white border text-left transition-all shadow-2xs cursor-pointer ${
+        className={`gd-select-trigger w-full flex items-center justify-between gap-2 border text-left transition-all cursor-pointer ${
           isOpen
-            ? 'border-emerald-500 ring-2 ring-emerald-500/10'
-            : 'border-slate-200 hover:border-slate-300'
+            ? 'bg-white border-gd-green ring-4 ring-emerald-500/15'
+            : 'bg-gd-fill border-transparent hover:bg-slate-200/70'
         } ${
           disabled
-            ? 'opacity-50 cursor-not-allowed bg-slate-50'
-            : 'hover:bg-slate-50/50'
+            ? 'opacity-50 cursor-not-allowed'
+            : ''
         } ${sizeClasses} ${buttonClassName}`}
       >
         <div className="flex items-center gap-2 min-w-0 flex-1">
@@ -112,7 +112,7 @@ export const Select: React.FC<SelectProps> = ({
               {selectedOption.icon && <span className="flex-shrink-0">{selectedOption.icon}</span>}
               <span className="truncate">{selectedOption.label}</span>
               {selectedOption.badge && (
-                <span className="px-1.5 py-0.2 rounded-md bg-emerald-50 text-emerald-800 text-[10px] font-bold border border-emerald-200 flex-shrink-0 ml-1">
+                <span className="px-1.5 py-px rounded-full bg-gd-green-light text-gd-green text-[10px] font-bold flex-shrink-0 ml-1">
                   {selectedOption.badge}
                 </span>
               )}
@@ -125,7 +125,7 @@ export const Select: React.FC<SelectProps> = ({
         {/* Custom Chevron Down */}
         <ChevronDown
           className={`w-4 h-4 flex-shrink-0 transition-transform duration-200 ${
-            isOpen ? 'rotate-180 text-emerald-600' : 'text-slate-400'
+            isOpen ? 'rotate-180 text-gd-green' : 'text-slate-400'
           }`}
         />
       </button>
@@ -133,7 +133,7 @@ export const Select: React.FC<SelectProps> = ({
       {/* Dropdown Menu */}
       {isOpen && (
         <div
-          className={`absolute left-0 right-0 z-50 mt-1 bg-white border border-slate-200/90 rounded-xl shadow-lg py-1 overflow-y-auto max-h-60 animate-slide-down ${dropdownClassName}`}
+          className={`absolute left-0 right-0 z-50 mt-1.5 gd-glass bg-white/90 rounded-[13px] shadow-gd-float p-1 overflow-y-auto max-h-64 animate-slide-down origin-top ${dropdownClassName}`}
         >
           {options.length === 0 ? (
             <div className="px-3 py-2 text-center text-slate-400 text-[11px]">
@@ -148,28 +148,28 @@ export const Select: React.FC<SelectProps> = ({
                   type="button"
                   disabled={opt.disabled}
                   onClick={() => handleSelect(opt.value, opt.disabled)}
-                  className={`w-full flex items-center justify-between gap-2 px-3 py-1.5 text-left text-xs transition-colors cursor-pointer ${
+                  className={`w-full flex items-center justify-between gap-2 px-2.5 py-2 rounded-lg text-left text-[13px] transition-colors cursor-pointer ${
                     opt.disabled
                       ? 'opacity-40 cursor-not-allowed bg-slate-50'
                       : opt.isAction
-                      ? 'text-emerald-700 font-bold hover:bg-emerald-50/80 border-t border-slate-100 mt-0.5'
+                      ? 'text-gd-green font-semibold hover:bg-gd-green-light border-t border-gd-border mt-0.5'
                       : isSelected
-                      ? 'bg-emerald-50/90 text-emerald-950 font-bold'
-                      : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900 font-normal'
+                      ? 'text-slate-900 font-semibold'
+                      : 'text-slate-900 hover:bg-gd-fill font-normal'
                   }`}
                 >
                   <div className="flex items-center gap-2 min-w-0 flex-1">
                     {opt.icon && <span className="flex-shrink-0">{opt.icon}</span>}
                     <span className="truncate">{opt.label}</span>
                     {opt.badge && (
-                      <span className="px-1.5 py-0.2 rounded-md bg-emerald-50 text-emerald-800 text-[10px] font-bold border border-emerald-200 flex-shrink-0">
+                      <span className="px-1.5 py-px rounded-full bg-gd-green-light text-gd-green text-[10px] font-bold flex-shrink-0">
                         {opt.badge}
                       </span>
                     )}
                   </div>
 
                   {isSelected && !opt.isAction && (
-                    <Check className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0 ml-1" />
+                    <Check className="w-4 h-4 text-gd-green flex-shrink-0 ml-1" strokeWidth={2.5} />
                   )}
                 </button>
               );

@@ -50,7 +50,7 @@ export const ValidationPanel: React.FC<ValidationPanelProps> = ({
           </div>
         ) : (
           <>
-            <p className="text-xs text-gray-600">
+            <p className="text-xs text-slate-600">
               Перед экспортом архива необходимо исправить следующие конфликты в именах файлов:
             </p>
             <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
@@ -62,7 +62,7 @@ export const ValidationPanel: React.FC<ValidationPanelProps> = ({
                   <AlertCircle className="w-4 h-4 text-rose-500 flex-shrink-0 mt-0.5" />
                   <div className="min-w-0 flex-1 space-y-1">
                     <div className="flex items-center justify-between gap-2">
-                      <span className="font-mono text-xs font-bold text-gray-900 truncate block">
+                      <span className="font-mono text-xs font-bold text-slate-900 truncate block">
                         {err.fileName}
                       </span>
                       {getBadgeForType(err.type)}

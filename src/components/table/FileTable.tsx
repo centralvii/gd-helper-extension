@@ -27,6 +27,7 @@ interface FileTableProps {
     onDeleteFile: (id: string) => void;
     onAddFiles: (files: File[]) => void;
     onDownloadFile?: (file: FileRow) => void;
+    onClearFiles?: () => void;
     taskItems?: ImplementationChangeItem[];
 }
 
@@ -38,6 +39,7 @@ export const FileTable: React.FC<FileTableProps> = ({
     onDeleteFile,
     onAddFiles,
     onDownloadFile,
+    onClearFiles,
     taskItems,
 }) => {
     const [searchQuery, setSearchQuery] = useState('');
@@ -93,59 +95,66 @@ export const FileTable: React.FC<FileTableProps> = ({
 
     return (
         <div className="space-y-3">
-            {/* Toolbar with Search and Add files button */}
-            <div className="flex items-center justify-between gap-2 p-1.5 bg-white border border-slate-200/90 rounded-2xl shadow-xs">
+            {/* Поиск + добавление */}
+            <div className="flex items-center gap-2">
                 <div className="relative flex-1">
-                    <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
+                    <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gd-faint" />
                     <input
                         type="text"
-                        placeholder="Поиск по файлам пакета..."
+                        placeholder="Поиск по файлам"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full rounded-xl border border-slate-200 bg-slate-50/70 py-1.5 pl-9 pr-3 text-xs text-slate-900 placeholder:text-slate-400 outline-none transition-all focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-500/10 shadow-2xs"
+                        className="gd-field !pl-8 !bg-[rgba(118,118,128,0.12)]"
                     />
                 </div>
-
-                <FileUploader
-                    isCompact
-                    onAddFiles={onAddFiles}
-                />
+                <FileUploader isCompact onAddFiles={onAddFiles} />
             </div>
 
-            {isFiltered && (
-                <div className="rounded-xl border border-amber-300 bg-amber-50 px-3 py-1.5 text-[11px] font-medium text-amber-900 shadow-2xs animate-fade-in">
-                    Показано {filteredFiles.length} из {files.length} файлов. Перетаскивание отключено во время поиска.
+            <div>
+                <div className="gd-section-title">
+                    <span>
+                        Файлы · {isFiltered ? `${filteredFiles.length} из ${files.length}` : files.length}
+                    </span>
+                    {onClearFiles && (
+                        <button
+                            type="button"
+                            onClick={onClearFiles}
+                            title="Очистить все файлы в активном пакете"
+                            className="normal-case tracking-normal text-[12.5px] font-medium text-[#ff3b30] cursor-pointer"
+                        >
+                            Очистить
+                        </button>
+                    )}
                 </div>
-            )}
 
-            <DndContext
-                sensors={sensors}
-                collisionDetection={closestCenter}
-                onDragEnd={handleDragEnd}
-            >
-                <SortableContext
-                    items={fileIds}
-                    strategy={verticalListSortingStrategy}
-                    disabled={isFiltered}
-                >
-                    <div className="space-y-2">
-                        {filteredFiles.map((file) => (
-                            <FileRowItem
-                                key={file.id}
-                                file={file}
-                                hasError={validation.errorFileIds.has(file.id)}
-                                isDuplicate={validation.duplicateFileIds.has(
-                                    file.id,
-                                )}
-                                onEdit={onEditFile}
-                                onDelete={onDeleteFile}
-                                onDownload={onDownloadFile}
-                                isMatchedInTask={Boolean(file.cardId && taskCardIdsSet.has(file.cardId))}
-                            />
-                        ))}
-                    </div>
-                </SortableContext>
-            </DndContext>
+                {isFiltered && (
+                    <p className="px-3.5 pb-1.5 text-[11.5px] text-gd-muted animate-fade-in">
+                        Перетаскивание отключено во время поиска.
+                    </p>
+                )}
+
+                <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                    <SortableContext items={fileIds} strategy={verticalListSortingStrategy} disabled={isFiltered}>
+                        <div className="gd-group !overflow-visible [--gd-sep-inset:56px] gd-stagger">
+                            {filteredFiles.map((file) => (
+                                <FileRowItem
+                                    key={file.id}
+                                    file={file}
+                                    hasError={validation.errorFileIds.has(file.id)}
+                                    isDuplicate={validation.duplicateFileIds.has(file.id)}
+                                    onEdit={onEditFile}
+                                    onDelete={onDeleteFile}
+                                    onDownload={onDownloadFile}
+                                    isMatchedInTask={Boolean(file.cardId && taskCardIdsSet.has(file.cardId))}
+                                />
+                            ))}
+                            {filteredFiles.length === 0 && (
+                                <div className="gd-row justify-center text-[13px] text-gd-muted">Ничего не найдено</div>
+                            )}
+                        </div>
+                    </SortableContext>
+                </DndContext>
+            </div>
         </div>
     );
 };

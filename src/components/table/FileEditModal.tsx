@@ -61,7 +61,7 @@ export const FileEditModal: React.FC<FileEditModalProps> = ({
     >
       <div className="space-y-4">
         {/* Original File Info */}
-        <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200/90 space-y-1.5 text-[11px] shadow-2xs">
+        <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1.5 text-[11px] shadow-2xs">
           <div className="flex items-center gap-1.5 text-slate-600">
             <FileCode className="w-3.5 h-3.5 text-emerald-600" />
             <span className="font-semibold text-slate-800">Исходный файл:</span>

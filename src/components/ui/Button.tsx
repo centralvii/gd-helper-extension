@@ -21,32 +21,33 @@ export const Button: React.FC<ButtonProps> = ({
   disabled,
   ...props
 }) => {
+  // iOS: заливка без рамок и теней, мягкое затемнение при hover, пружина при нажатии (глобально в index.css)
   const base =
-    'inline-flex items-center justify-center font-semibold rounded-xl transition-all duration-150 focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed select-none will-change-transform active:scale-[0.97] active:transition-none cursor-pointer whitespace-nowrap';
+    'inline-flex items-center justify-center font-semibold tracking-[-0.01em] transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 disabled:opacity-35 disabled:cursor-not-allowed select-none cursor-pointer whitespace-nowrap';
 
-  const canonicalPrimary =
-    'bg-gradient-to-b from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white border border-emerald-600/90 shadow-sm shadow-emerald-600/25 hover:shadow-md hover:shadow-emerald-600/35 focus:ring-2 focus:ring-emerald-500/30';
+  const filledAccent =
+    'bg-gd-green hover:bg-gd-green-dark text-white focus-visible:ring-emerald-500/40';
 
   const variants = {
-    primary: canonicalPrimary,
-    emerald: canonicalPrimary,
+    primary: filledAccent,
+    emerald: filledAccent,
     secondary:
-      'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 hover:border-slate-300 hover:text-slate-900 shadow-2xs focus:ring-2 focus:ring-slate-200',
+      'bg-gd-fill hover:bg-slate-200 text-slate-900 focus-visible:ring-slate-400/40',
     danger:
-      'bg-rose-600 hover:bg-rose-700 text-white border border-rose-600 shadow-xs hover:shadow-md hover:shadow-rose-600/20 focus:ring-2 focus:ring-rose-400/30',
+      'bg-[#ff3b30] hover:bg-[#e0352b] text-white focus-visible:ring-rose-400/40',
     ghost:
-      'bg-transparent text-slate-600 hover:bg-emerald-50 hover:text-emerald-800 focus:ring-2 focus:ring-emerald-500/20',
+      'bg-transparent text-gd-green hover:bg-gd-green-light focus-visible:ring-emerald-500/30',
     outline:
-      'bg-transparent text-emerald-700 border border-emerald-300 hover:bg-emerald-50 hover:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20',
+      'bg-gd-green-light text-gd-green hover:bg-emerald-500/20 focus-visible:ring-emerald-500/30',
     toolbar:
-      'bg-slate-50 hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 border border-slate-200 hover:border-emerald-300 shadow-2xs font-semibold',
+      'bg-gd-fill hover:bg-slate-200 text-slate-900 focus-visible:ring-slate-400/40',
   };
 
   const sizes = {
-    xs: 'text-[10px] px-2 py-1 gap-1',
-    sm: 'text-xs px-2.5 py-1.5 gap-1.5',
-    md: 'text-xs px-3.5 py-2 gap-2',
-    lg: 'text-sm px-5 py-2.5 gap-2.5',
+    xs: 'text-[11px] h-6 px-2.5 gap-1 rounded-full',
+    sm: 'text-[12.5px] h-8 px-3 gap-1.5 rounded-full',
+    md: 'text-[13px] h-9 px-4 gap-2 rounded-[10px]',
+    lg: 'text-[15px] h-11 px-5 gap-2 rounded-xl',
   };
 
   return (
@@ -57,7 +58,7 @@ export const Button: React.FC<ButtonProps> = ({
     >
       {isLoading ? (
         <svg
-          className="animate-spin -ml-0.5 mr-1.5 h-3.5 w-3.5 text-current"
+          className="animate-spin -ml-0.5 h-3.5 w-3.5 text-current"
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
           viewBox="0 0 24 24"

@@ -2,7 +2,6 @@ import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import {
   Plus,
   Sparkles,
-  ListOrdered,
   Copy,
   Check,
   Eye,
@@ -16,13 +15,13 @@ import {
   Trash2,
   Layers,
   FileJson,
-  MoreVertical,
+  MoreHorizontal,
+  X,
   Code2,
   Settings,
   RotateCw,
   AlertCircle,
   Link as LinkIcon,
-  SlidersHorizontal,
   ListChecks,
   Filter,
 } from 'lucide-react';
@@ -46,7 +45,7 @@ import { Input } from '../ui/Input';
 import { Button } from '../ui/Button';
 import { Modal } from '../ui/Modal';
 import { Select } from '../ui/Select';
-import { Toolbar } from '../ui/Toolbar';
+import { ToolRow } from '../ui/ToolRow';
 import { ChangeItemRow } from './ChangeItemRow';
 import { AddChangeItemModal } from './AddChangeItemModal';
 import { TaskExportPreviewModal } from './TaskExportPreviewModal';
@@ -60,6 +59,7 @@ import {
   extractCardIdFromUrl,
   isGreenDataUpdatePackage,
 } from '../../utils/tabUtils';
+import { getErrorMessage } from '../../utils/errorUtils';
 
 interface TaskEditorProps {
   task: ImplementationTask;
@@ -221,10 +221,10 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
         setCopiedHeader(true);
         setTimeout(() => setCopiedHeader(false), 2500);
       }
-    } catch (err: any) {
+    } catch (err) {
       setInjectResult({
         success: false,
-        message: err.message || 'Ошибка вставки комментария',
+        message: getErrorMessage(err, 'Ошибка вставки комментария'),
       });
     } finally {
       setIsInjecting(false);
@@ -649,284 +649,225 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
     setTimeout(() => setQuickCopied(false), 2000);
   };
 
+  const progressPct = task.items.length ? Math.round((collectedCount / task.items.length) * 100) : 0;
+
+  const renderItems = (items: ImplementationChangeItem[], totalCount: number) =>
+    items.map((item, idx) => {
+      const itemCardId = extractCardIdFromUrl(item.linkUrl);
+      const matchingFile = itemCardId ? linkedFilesByCardId.get(itemCardId) : undefined;
+      return (
+        <ChangeItemRow
+          key={item.id}
+          item={item}
+          index={idx}
+          totalCount={totalCount}
+          onEdit={handleEditItem}
+          onDelete={handleDeleteItem}
+          onMoveUp={handleMoveUpItem}
+          onMoveDown={handleMoveDownItem}
+          onToggleCollected={(id) => onToggleChangeItemCollected?.(task.id, id)}
+          matchingPackageFile={matchingFile}
+          onApplyPackageNumber={handleApplyPackageNumber}
+        />
+      );
+    });
+
+  const menuItemClass =
+    'w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] text-slate-900 hover:bg-gd-fill-2 disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer';
+
   return (
-    <div className="space-y-3">
-      {/* ── Implementation Tools Bar ── */}
-      <Toolbar className="animate-fade-in">
-        <Toolbar.Title
-          icon={<SlidersHorizontal className="w-3.5 h-3.5" />}
-          title={<span className="hidden sm:inline">Инструменты</span>}
-          titleAttr="Инструменты"
-          badge={
-            task.releaseNumber ? (
-              <span className="hidden xs:inline-flex px-1.5 py-0.5 rounded-md bg-emerald-50 text-emerald-800 text-[10px] font-bold border border-emerald-200/80">
-                Релиз {task.releaseNumber}
+    <div className="space-y-5">
+      {/* ── Сводка: прогресс сбора, параметры, бэкап ── */}
+      <div className="gd-group gd-group--icons">
+        <button
+          type="button"
+          onClick={() => setIsChecklistModalOpen(true)}
+          title="Чеклист сбора объектов (открыть ссылку, отслеживать прогресс)"
+          className="gd-row gd-row--tap w-full text-left !py-3"
+        >
+          <span className={`gd-row-icon ${isAllCollected ? 'gd-row-icon--accent' : ''}`}>
+            <ListChecks />
+          </span>
+          <span className="flex-1 min-w-0">
+            <span className="flex items-baseline justify-between gap-2">
+              <span className="text-[14px] text-slate-900">Чеклист сбора</span>
+              <span className="text-[13px] text-gd-muted tabular-nums">
+                {task.items.length > 0 ? `${collectedCount} из ${task.items.length}` : 'нет пунктов'}
               </span>
-            ) : undefined
+            </span>
+            <span className="mt-2 block h-1.5 rounded-full bg-gd-fill overflow-hidden">
+              <span
+                className="block h-full rounded-full bg-gd-green transition-[width] duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]"
+                style={{ width: `${progressPct}%` }}
+              />
+            </span>
+          </span>
+          <ChevronRight className="w-4 h-4 text-gd-faint flex-shrink-0" />
+        </button>
+
+        <ToolRow
+          icon={
+            <>
+              <Settings />
+              {task.summary?.trim() && (
+                <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-gd-green ring-2 ring-white" />
+              )}
+            </>
           }
+          label="Параметры задачи"
+          value={task.releaseNumber ? `Релиз ${task.releaseNumber}` : undefined}
+          title="Параметры задачи (номер, релиз, название, пакеты, заметка)"
+          onClick={() => setIsSettingsModalOpen(true)}
         />
 
-        <Toolbar.Actions>
-          <Toolbar.Button
-            icon={<ListChecks className="w-3 h-3 text-emerald-600" />}
-            onClick={() => setIsChecklistModalOpen(true)}
-            title="Чеклист сбора объектов (открыть ссылку, отслеживать прогресс)"
-            badge={task.items.length > 0 ? `${collectedCount}/${task.items.length}` : undefined}
-          >
-            Чеклист
-          </Toolbar.Button>
-
-          <Toolbar.Button
-            icon={<Settings className="w-3.5 h-3.5 text-emerald-600" />}
-            onClick={() => setIsSettingsModalOpen(true)}
-            title="Параметры задачи (номер, релиз, название, пакеты, заметка)"
-            dot={Boolean(task.summary?.trim())}
-            className="w-7 h-7 p-0 justify-center flex-shrink-0"
+        {onOpenImportExport && (
+          <ToolRow
+            icon={<FileJson />}
+            label="Бэкап и импорт JSON"
+            title="Резервное копирование и экспорт в JSON"
+            onClick={() => onOpenImportExport('export')}
           />
+        )}
+      </div>
 
-          {onOpenImportExport && (
-            <Toolbar.Button
-              icon={<FileJson className="w-3.5 h-3.5 text-emerald-600" />}
-              onClick={() => onOpenImportExport('export')}
-              title="Резервное копирование и экспорт в JSON"
-              className="w-7 h-7 p-0 justify-center flex-shrink-0"
-            />
-          )}
-        </Toolbar.Actions>
-      </Toolbar>
-
-      {/* ── Algorithm Header Quick Action Card (Feature: Вставка комментария в алгоритм) ── */}
-      <div className="p-3 bg-gradient-to-r from-emerald-50 via-teal-50/60 to-emerald-50 border border-emerald-200/90 rounded-xl shadow-2xs space-y-2">
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2 min-w-0">
-            <div className="p-1.5 rounded-xl bg-emerald-600 text-white shadow-2xs flex-shrink-0">
-              <Code2 className="w-3.5 h-3.5" />
-            </div>
-            <div className="min-w-0">
-              <span className="font-bold text-xs text-slate-900 block truncate">
-                Шапка алгоритма
-              </span>
-              <span className="text-[10px] text-slate-500 block truncate">
-                Быстрая вставка комментария в формулу GreenData
-              </span>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-1.5 flex-shrink-0">
-            <button
-              type="button"
-              onClick={() => setIsHeaderSettingsOpen(true)}
-              title="Настройки шапки (Фамилия И.О., релиз)"
-              className="p-1.5 rounded-xl bg-white hover:bg-emerald-100/70 border border-emerald-200 text-slate-600 hover:text-emerald-900 transition-all cursor-pointer shadow-2xs"
-            >
-              <Settings className="w-3.5 h-3.5" />
-            </button>
-
+      {/* ── Шапка алгоритма: вставка комментария в формулу GreenData ── */}
+      <div>
+        <div className="gd-section-title">
+          <span>Шапка алгоритма</span>
+          <button
+            type="button"
+            onClick={() => setIsHeaderSettingsOpen(true)}
+            title="Настройки шапки (Фамилия И.О., релиз)"
+            className="normal-case tracking-normal text-[12.5px] font-medium text-gd-green cursor-pointer"
+          >
+            Настроить
+          </button>
+        </div>
+        <div className="gd-group">
+          <div className="gd-row !py-2.5">
+            <span className="flex-1 min-w-0 font-mono text-[12px] text-slate-700 truncate select-all" title={headerCommentText}>
+              {headerCommentText}
+            </span>
             <button
               type="button"
               onClick={handleCopyHeaderComment}
               title="Скопировать комментарий в буфер обмена"
-              className="p-1.5 rounded-xl bg-white hover:bg-emerald-100/70 border border-emerald-200 text-slate-600 hover:text-emerald-900 transition-all cursor-pointer shadow-2xs"
+              className="icon-btn w-8 h-8"
             >
               {copiedHeader ? (
-                <Check className="w-3.5 h-3.5 text-emerald-600" />
+                <Check className="w-4 h-4 text-gd-green animate-pop-in" strokeWidth={2.75} />
               ) : (
                 <Copy className="w-3.5 h-3.5" />
               )}
             </button>
-
             <Button
-              variant="emerald"
+              variant="outline"
               size="sm"
               disabled={isInjecting}
               onClick={handleInsertHeaderComment}
-              className="px-2.5 py-1 text-[11px] font-bold shadow-xs cursor-pointer"
+              leftIcon={<Code2 className="w-3.5 h-3.5" />}
+              title="Вставить комментарий в редактор алгоритма на открытой вкладке"
             >
-              {isInjecting ? 'Вставка...' : injectResult?.success ? 'Вставлено!' : 'Вставить'}
+              {isInjecting ? 'Вставка…' : injectResult?.success ? 'Вставлено' : 'Вставить'}
             </Button>
           </div>
-        </div>
-
-        {/* Live Preview Bar */}
-        <div className="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-xl bg-white/95 border border-emerald-200/80 font-mono text-[11px] text-emerald-950 shadow-2xs select-all">
-          <div className="flex items-center gap-1.5 truncate min-w-0">
-            <span className="truncate">{headerCommentText}</span>
-          </div>
-          <span className="text-[9.5px] font-sans font-bold text-emerald-700 bg-emerald-100/70 px-1.5 py-0.5 rounded-md flex-shrink-0">
-            {headerSettings.author}
-          </span>
-        </div>
-
-        {/* Feedback message if any */}
-        {injectResult && (
-          <div
-            className={`text-[10px] font-medium px-2 py-1 rounded-xl flex items-center justify-between gap-1 animate-fade-in ${
-              injectResult.success
-                ? 'bg-emerald-100/90 text-emerald-950 border border-emerald-200'
-                : 'bg-amber-100/90 text-amber-950 border border-amber-200'
-            }`}
-          >
-            <span>{injectResult.message}</span>
-            <button
-              type="button"
-              onClick={() => setInjectResult(null)}
-              className="text-slate-400 hover:text-slate-700 text-xs px-1 cursor-pointer"
+          {injectResult && (
+            <div
+              className={`gd-row !min-h-0 !py-2 text-[12px] font-medium animate-fade-in ${
+                injectResult.success ? 'text-gd-green' : 'text-[#c26a00]'
+              }`}
             >
-              ✕
-            </button>
-          </div>
-        )}
+              <span className="flex-1 min-w-0">{injectResult.message}</span>
+              <button
+                type="button"
+                onClick={() => setInjectResult(null)}
+                className="icon-btn icon-btn--plain w-6 h-6"
+                title="Скрыть"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </div>
+          )}
+        </div>
+        <p className="px-3.5 pt-1.5 text-[11.5px] text-gd-muted">Автор: {headerSettings.author}</p>
       </div>
 
-      {/* Changes Section Container */}
-      <div className="p-3 sm:p-4 bg-white border border-slate-200/90 rounded-xl space-y-3.5 shadow-xs">
-        {/* Main Toolbar - Optimized 2 compact rows to prevent any overflow on narrow sidepanel */}
-        <div className="space-y-2 border-b border-slate-100 pb-2.5">
-          {/* Row 1: Header title on left, Creation actions (Add, Tab, Section) on right */}
-          <div className="flex items-center justify-between gap-1.5">
-            <div className="flex items-center gap-1.5 min-w-0 flex-1 mr-1">
-              <ListOrdered className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-              <h3 className="font-bold text-xs text-slate-900 tracking-tight truncate">
-                Внесённые изменения
-              </h3>
-              <span className="px-1.5 py-0.2 rounded-md bg-emerald-50 text-emerald-800 text-[10.5px] font-bold border border-emerald-200 flex-shrink-0 shadow-2xs">
-                {task.items.length}
-              </span>
-            </div>
-
-            <div className="flex items-center gap-1 flex-shrink-0">
-              <Button
-                variant="emerald"
-                size="sm"
-                onClick={() => handleOpenAddNew()}
-                leftIcon={<Plus className="w-3.5 h-3.5 flex-shrink-0" />}
-                className="px-2 py-1 text-[11px] font-bold shadow-2xs"
-              >
-                Добавить
-              </Button>
-
-              <button
-                type="button"
-                onClick={() => handleOpenAddWithTab()}
-                disabled={isTabFetching}
-                title="Добавить пункт и автоматически подставить ссылку на открытую вкладку"
-                className="inline-flex items-center gap-1 px-2 py-1 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200/90 rounded-xl text-[10.5px] font-bold transition-all shadow-2xs cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
-              >
-                <Sparkles className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
-                <span className="hidden xs:inline">С вкладки</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={handleOpenCreateSection}
-                title="Создать новый раздел (категорию)"
-                className="inline-flex items-center gap-1 px-2 py-1 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200/90 rounded-xl text-[10.5px] font-bold transition-all shadow-2xs cursor-pointer"
-              >
-                <FolderPlus className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
-                <span className="hidden xs:inline">Раздел</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Row 2: List management (Checklist modal, Uncollected filter, Collapse all) */}
-          <div className="flex items-center justify-between gap-1.5 pt-0.5">
-            <div className="flex items-center gap-1.5 min-w-0 flex-wrap">
-              <button
-                type="button"
-                onClick={() => setIsChecklistModalOpen(true)}
-                title="Чеклист сбора объектов (открыть ссылку, отслеживать прогресс)"
-                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[10.5px] font-bold transition-all shadow-2xs cursor-pointer whitespace-nowrap border ${
-                  isAllCollected
-                    ? 'bg-emerald-100/90 text-emerald-800 border-emerald-300 hover:bg-emerald-200'
-                    : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200/90'
-                }`}
-              >
-                <ListChecks className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
-                <span>Чеклист</span>
-                {task.items.length > 0 && (
-                  <span className="px-1.5 py-0.2 rounded-md bg-white/90 text-emerald-900 text-[10px] font-mono font-bold border border-emerald-200/60">
-                    {collectedCount}/{task.items.length}
-                  </span>
-                )}
-              </button>
-
-              {task.items.length > 0 && (uncollectedCount > 0 || filterStatus === 'uncollected') && (
-                <button
-                  type="button"
-                  onClick={() => setFilterStatus((prev) => (prev === 'all' ? 'uncollected' : 'all'))}
-                  title={filterStatus === 'uncollected' ? 'Показать все пункты' : 'Показать только не собранные'}
-                  className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-[10.5px] font-bold transition-all shadow-2xs cursor-pointer whitespace-nowrap border ${
-                    filterStatus === 'uncollected'
-                      ? 'bg-amber-100 text-amber-900 border-amber-300'
-                      : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200/90'
-                  }`}
-                >
-                  <Filter className="w-3.5 h-3.5 text-amber-600 flex-shrink-0" />
-                  <span>{filterStatus === 'uncollected' ? 'Все' : 'Не собранные'}</span>
-                  {uncollectedCount > 0 && (
-                    <span
-                      className={`px-1.5 py-0.2 rounded-md text-[10px] font-mono font-bold ${
-                        filterStatus === 'uncollected'
-                          ? 'bg-amber-200 text-amber-950'
-                          : 'bg-amber-100 text-amber-900'
-                      }`}
-                    >
-                      {uncollectedCount}
-                    </span>
-                  )}
-                </button>
+      {/* ── Внесённые изменения ── */}
+      <div className="space-y-3">
+        {/* Панель действий */}
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={() => handleOpenAddNew()}
+            leftIcon={<Plus className="w-4 h-4" strokeWidth={2.5} />}
+          >
+            Добавить
+          </Button>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => handleOpenAddWithTab()}
+            disabled={isTabFetching}
+            title="Добавить пункт и автоматически подставить ссылку на открытую вкладку"
+            leftIcon={<Sparkles className="w-3.5 h-3.5 text-gd-green" />}
+          >
+            С вкладки
+          </Button>
+          <span className="flex-1" />
+          <button
+            type="button"
+            onClick={handleOpenCreateSection}
+            title="Создать новый раздел (категорию)"
+            className="icon-btn"
+          >
+            <FolderPlus className="w-3.5 h-3.5" />
+          </button>
+          {task.items.length > 0 && (uncollectedCount > 0 || filterStatus === 'uncollected') && (
+            <button
+              type="button"
+              onClick={() => setFilterStatus((prev) => (prev === 'all' ? 'uncollected' : 'all'))}
+              title={filterStatus === 'uncollected' ? 'Показать все пункты' : 'Показать только не собранные'}
+              className={`icon-btn relative ${filterStatus === 'uncollected' ? '!bg-[#ff9500]/15 !text-[#c26a00]' : ''}`}
+            >
+              <Filter className="w-3.5 h-3.5" />
+              {uncollectedCount > 0 && (
+                <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full bg-[#ff9500] text-white text-[9.5px] font-bold leading-4 text-center tabular-nums">
+                  {uncollectedCount}
+                </span>
               )}
-            </div>
-
-            {sections.length > 1 && (
-              <button
-                type="button"
-                onClick={toggleCollapseAll}
-                title={allSectionsCollapsed ? 'Развернуть все разделы' : 'Свернуть все разделы'}
-                className="inline-flex items-center gap-1 px-2 py-1 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200/90 rounded-xl text-[10.5px] font-bold transition-all shadow-2xs cursor-pointer whitespace-nowrap flex-shrink-0"
-              >
-                <ChevronsUpDown className="w-3.5 h-3.5 text-slate-500 flex-shrink-0" />
-                <span className="hidden xs:inline">{allSectionsCollapsed ? 'Развернуть' : 'Свернуть'}</span>
-              </button>
-            )}
-          </div>
+            </button>
+          )}
+          {sections.length > 1 && (
+            <button
+              type="button"
+              onClick={toggleCollapseAll}
+              title={allSectionsCollapsed ? 'Развернуть все разделы' : 'Свернуть все разделы'}
+              className="icon-btn"
+            >
+              <ChevronsUpDown className="w-3.5 h-3.5" />
+            </button>
+          )}
         </div>
 
-        {/* Changes List / Sections */}
+        {filterStatus === 'uncollected' && (
+          <p className="px-1 text-[12px] font-medium text-[#c26a00] animate-fade-in">
+            Показаны только не собранные пункты
+          </p>
+        )}
+
         {task.items.length === 0 && sections.length === 0 ? (
-          <div className="py-6 px-3 text-center border-2 border-dashed border-slate-200 rounded-xl bg-slate-50/50">
-            <Info className="w-7 h-7 text-slate-400 mx-auto mb-1.5" />
-            <p className="text-xs font-bold text-slate-800 mb-1">
-              Список изменений пуст
-            </p>
-            <p className="text-[11px] text-slate-500 mb-3 max-w-xs mx-auto leading-relaxed">
-              Зафиксируйте, что конкретно было изменено, и прикрепите ссылки на алгоритмы, экранные формы или модули.
-            </p>
-            <div className="flex flex-col xs:flex-row items-stretch xs:items-center justify-center gap-2 max-w-xs mx-auto">
-              <Button
-                variant="emerald"
-                size="sm"
-                onClick={() => handleOpenAddNew()}
-                leftIcon={<Plus className="w-3.5 h-3.5 flex-shrink-0" />}
-                className="flex-1 justify-center whitespace-nowrap"
-              >
-                Добавить пункт
-              </Button>
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => handleOpenAddWithTab()}
-                disabled={isTabFetching}
-                leftIcon={<Sparkles className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />}
-                className="flex-1 justify-center whitespace-nowrap"
-              >
-                С открытой вкладки
-              </Button>
+          <div className="gd-group px-5 py-7 text-center animate-pop-in">
+            <div className="mx-auto mb-3 grid h-12 w-12 place-items-center rounded-full bg-gd-fill text-gd-muted">
+              <Info className="w-6 h-6" />
             </div>
+            <p className="text-[15px] font-semibold text-slate-900">Изменений пока нет</p>
+            <p className="mx-auto mt-1 max-w-[260px] text-[13px] leading-snug text-gd-muted">
+              Зафиксируйте, что было изменено, и прикрепите ссылки на алгоритмы, формы и модули.
+            </p>
           </div>
         ) : (
           <div className="space-y-3">
-            {/* Render each section */}
             {sections.map((sec, secIdx) => {
               const allSectionItems = groupedItems.get(sec.id) || [];
               const items = filterStatus === 'uncollected'
@@ -935,93 +876,45 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
               const isCollapsed = !!collapsedSections[sec.id];
 
               return (
-                <div
-                  key={sec.id}
-                  className={`rounded-xl border border-slate-200/90 bg-white shadow-xs transition-all relative ${
-                    openSectionMenuId === sec.id ? 'z-30' : 'z-0'
-                  }`}
-                >
-                  {/* Section Header */}
-                  <div
-                    className={`flex items-center justify-between gap-1.5 px-3 py-2 bg-gradient-to-r from-slate-50/90 to-white cursor-pointer select-none transition-colors hover:bg-slate-100/70 ${
-                      isCollapsed ? 'rounded-xl' : 'rounded-t-xl border-b border-slate-200/80'
-                    }`}
-                    onClick={() => toggleSectionCollapse(sec.id)}
-                  >
-                    <div className="flex items-center gap-1.5 min-w-0 flex-1 mr-1">
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleSectionCollapse(sec.id);
-                        }}
-                        className="text-slate-400 hover:text-emerald-700 transition-transform p-0.5 rounded cursor-pointer flex-shrink-0"
-                      >
-                        {isCollapsed ? (
-                          <ChevronRight className="w-3.5 h-3.5 text-slate-500" />
-                        ) : (
-                          <ChevronDown className="w-3.5 h-3.5 text-emerald-600" />
-                        )}
-                      </button>
-                      <Layers className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
-                      <span className="font-bold text-xs text-slate-900 truncate min-w-0" title={sec.name}>
+                <div key={sec.id} className={`relative ${openSectionMenuId === sec.id ? 'z-30' : 'z-0'}`}>
+                  {/* Заголовок раздела */}
+                  <div className="flex items-center gap-1 pl-1.5 pr-1 pb-1.5">
+                    <button
+                      type="button"
+                      onClick={() => toggleSectionCollapse(sec.id)}
+                      className="flex flex-1 min-w-0 items-center gap-1 text-left cursor-pointer !scale-100"
+                      title={isCollapsed ? 'Развернуть раздел' : 'Свернуть раздел'}
+                    >
+                      <ChevronRight
+                        className={`w-4 h-4 text-gd-muted flex-shrink-0 transition-transform duration-300 ${isCollapsed ? '' : 'rotate-90'}`}
+                      />
+                      <span className="gd-label !text-[11.5px] truncate" title={sec.name}>
                         {sec.name}
                       </span>
-                      <span className="px-1.5 py-0.2 rounded-md bg-emerald-50 text-emerald-800 text-[10px] font-bold border border-emerald-200 flex-shrink-0 shadow-2xs">
-                        {filterStatus === 'uncollected'
-                          ? `${items.length} из ${allSectionItems.length}`
-                          : allSectionItems.length}
+                      <span className="text-[11.5px] font-semibold text-gd-faint tabular-nums flex-shrink-0">
+                        {filterStatus === 'uncollected' ? `${items.length}/${allSectionItems.length}` : allSectionItems.length}
                       </span>
-                    </div>
+                    </button>
 
-                    {/* Section Controls */}
-                    <div className="relative flex items-center gap-1 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
-                      {/* Responsive Reorder Arrows: Visible on wider screens */}
-                      <div className="hidden xs:inline-flex items-center gap-0.5">
-                        <button
-                          type="button"
-                          onClick={() => onReorderSections(task.id, secIdx, secIdx - 1)}
-                          disabled={secIdx === 0}
-                          title="Переместить раздел выше"
-                          className="icon-btn p-1 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg disabled:opacity-20 disabled:hover:bg-transparent cursor-pointer"
-                        >
-                          <ChevronUp className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => onReorderSections(task.id, secIdx, secIdx + 1)}
-                          disabled={secIdx === sections.length - 1}
-                          title="Переместить раздел ниже"
-                          className="icon-btn p-1 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg disabled:opacity-20 disabled:hover:bg-transparent cursor-pointer"
-                        >
-                          <ChevronDown className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-
+                    <div className="relative flex items-center gap-1 flex-shrink-0">
                       <button
                         type="button"
                         onClick={() => handleOpenAddNew(sec.id)}
                         title={`Добавить пункт в раздел "${sec.name}"`}
-                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-900 text-[11px] font-bold border border-emerald-200/90 transition-all shadow-2xs cursor-pointer flex-shrink-0 whitespace-nowrap"
+                        className="inline-flex items-center gap-0.5 px-2 h-7 rounded-full text-[12.5px] font-medium text-gd-green hover:bg-gd-green-light cursor-pointer"
                       >
-                        <Plus className="w-3.5 h-3.5 text-emerald-700" />
-                        <span>Пункт</span>
+                        <Plus className="w-3.5 h-3.5" strokeWidth={2.5} />
+                        Пункт
                       </button>
-
                       <button
                         type="button"
                         onClick={() => setOpenSectionMenuId(openSectionMenuId === sec.id ? null : sec.id)}
                         title="Опции раздела"
-                        className={`p-1.5 rounded-xl transition-all cursor-pointer ${
-                          openSectionMenuId === sec.id
-                            ? 'bg-slate-200 text-slate-900'
-                            : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100'
-                        }`}
+                        className={`icon-btn icon-btn--plain w-7 h-7 ${openSectionMenuId === sec.id ? '!bg-gd-fill !text-slate-900' : ''}`}
                       >
-                        <MoreVertical className="w-3.5 h-3.5" />
+                        <MoreHorizontal className="w-4 h-4" />
                       </button>
 
-                      {/* 3-dots Dropdown Menu */}
                       {openSectionMenuId === sec.id && (
                         <>
                           <div
@@ -1032,65 +925,55 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
                             }}
                           />
                           <div
-                            className="absolute right-0 top-full mt-1.5 z-50 bg-white border border-slate-200/90 rounded-xl shadow-xl p-1.5 min-w-[175px] space-y-0.5 animate-fade-in text-xs"
+                            className="gd-menu absolute right-0 top-full mt-1 z-50 p-1 min-w-[190px]"
                             onClick={(e) => e.stopPropagation()}
                           >
-                            {/* Up / Down visible in menu only on narrow screens */}
-                            <div className="xs:hidden space-y-0.5">
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  onReorderSections(task.id, secIdx, secIdx - 1);
-                                  setOpenSectionMenuId(null);
-                                }}
-                                disabled={secIdx === 0}
-                                className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-slate-700 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer transition-colors text-[11px] font-medium"
-                              >
-                                <ChevronUp className="w-3.5 h-3.5 text-slate-500" />
-                                <span>Поднять выше</span>
-                              </button>
-
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  onReorderSections(task.id, secIdx, secIdx + 1);
-                                  setOpenSectionMenuId(null);
-                                }}
-                                disabled={secIdx === sections.length - 1}
-                                className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-slate-700 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer transition-colors text-[11px] font-medium"
-                              >
-                                <ChevronDown className="w-3.5 h-3.5 text-slate-500" />
-                                <span>Опустить ниже</span>
-                              </button>
-
-                              <div className="h-px bg-slate-100 my-0.5" />
-                            </div>
-
-                            {/* Rename & Delete: ALWAYS in 3-dots menu */}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                onReorderSections(task.id, secIdx, secIdx - 1);
+                                setOpenSectionMenuId(null);
+                              }}
+                              disabled={secIdx === 0}
+                              className={menuItemClass}
+                            >
+                              <ChevronUp className="w-4 h-4 text-gd-muted" />
+                              Поднять выше
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                onReorderSections(task.id, secIdx, secIdx + 1);
+                                setOpenSectionMenuId(null);
+                              }}
+                              disabled={secIdx === sections.length - 1}
+                              className={menuItemClass}
+                            >
+                              <ChevronDown className="w-4 h-4 text-gd-muted" />
+                              Опустить ниже
+                            </button>
                             <button
                               type="button"
                               onClick={() => {
                                 handleOpenEditSection(sec);
                                 setOpenSectionMenuId(null);
                               }}
-                              className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-slate-700 hover:bg-sky-50 hover:text-sky-700 cursor-pointer transition-colors text-[11px] font-medium"
+                              className={menuItemClass}
                             >
-                              <Edit2 className="w-3.5 h-3.5 text-sky-600" />
-                              <span>Переименовать</span>
+                              <Edit2 className="w-4 h-4 text-gd-muted" />
+                              Переименовать
                             </button>
-
-                            <div className="h-px bg-slate-100 my-0.5" />
-
+                            <div className="h-px bg-gd-border my-1 mx-2" />
                             <button
                               type="button"
                               onClick={() => {
                                 setSectionToDelete(sec);
                                 setOpenSectionMenuId(null);
                               }}
-                              className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-rose-600 hover:bg-rose-50 hover:text-rose-700 cursor-pointer transition-colors text-[11px] font-medium"
+                              className={`${menuItemClass} !text-[#ff3b30]`}
                             >
-                              <Trash2 className="w-3.5 h-3.5 text-rose-600" />
-                              <span>Удалить раздел</span>
+                              <Trash2 className="w-4 h-4" />
+                              Удалить раздел
                             </button>
                           </div>
                         </>
@@ -1098,44 +981,24 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
                     </div>
                   </div>
 
-                  {/* Section Items (when not collapsed) */}
+                  {/* Пункты раздела */}
                   {!isCollapsed && (
-                    <div className="p-2 space-y-1.5 animate-slide-down">
+                    <div className="gd-group !overflow-visible animate-slide-down">
                       {allSectionItems.length === 0 ? (
-                        <div className="py-2.5 px-3 text-center text-slate-400 text-[11px] bg-slate-50/50 rounded-xl border border-dashed border-slate-200">
-                          В этом разделе пока нет изменений.{' '}
-                          <button
-                            type="button"
-                            onClick={() => handleOpenAddNew(sec.id)}
-                            className="text-emerald-700 hover:underline font-bold cursor-pointer"
-                          >
-                            + Добавить
-                          </button>
-                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleOpenAddNew(sec.id)}
+                          className="gd-row gd-row--tap w-full justify-center rounded-xl text-[13px] text-gd-muted"
+                        >
+                          Пусто · <span className="text-gd-green font-medium">Добавить пункт</span>
+                        </button>
                       ) : items.length === 0 && filterStatus === 'uncollected' ? (
-                        <div className="py-2.5 px-3 text-center text-emerald-800 text-[11px] bg-emerald-50/70 rounded-xl border border-emerald-200 font-medium">
-                          Все {allSectionItems.length} пунктов в этом разделе собраны ✅
+                        <div className="gd-row justify-center text-[13px] font-medium text-gd-green">
+                          <Check className="w-4 h-4" strokeWidth={2.75} />
+                          Все {allSectionItems.length} собраны
                         </div>
                       ) : (
-                        items.map((item, idx) => {
-                          const itemCardId = extractCardIdFromUrl(item.linkUrl);
-                          const matchingFile = itemCardId ? linkedFilesByCardId.get(itemCardId) : undefined;
-                          return (
-                            <ChangeItemRow
-                              key={item.id}
-                              item={item}
-                              index={idx}
-                              totalCount={items.length}
-                              onEdit={handleEditItem}
-                              onDelete={handleDeleteItem}
-                              onMoveUp={handleMoveUpItem}
-                              onMoveDown={handleMoveDownItem}
-                              onToggleCollected={(id) => onToggleChangeItemCollected?.(task.id, id)}
-                              matchingPackageFile={matchingFile}
-                              onApplyPackageNumber={handleApplyPackageNumber}
-                            />
-                          );
-                        })
+                        renderItems(items, items.length)
                       )}
                     </div>
                   )}
@@ -1143,128 +1006,73 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
               );
             })}
 
-            {/* Unsectioned Items */}
-            {unsectionedItems.length > 0 && (
-              <div className="rounded-xl border border-slate-200 bg-white shadow-xs overflow-hidden">
-                <div
-                  className="flex items-center justify-between gap-1.5 px-3 py-2 bg-slate-50/90 border-b border-slate-200 cursor-pointer select-none"
-                  onClick={() => toggleSectionCollapse('__unsectioned__')}
-                >
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleSectionCollapse('__unsectioned__');
-                      }}
-                      className="text-slate-400 hover:text-emerald-700 transition-transform p-0.5 rounded cursor-pointer"
-                    >
-                      {collapsedSections['__unsectioned__'] ? (
-                        <ChevronRight className="w-3.5 h-3.5 text-slate-500" />
-                      ) : (
-                        <ChevronDown className="w-3.5 h-3.5 text-emerald-600" />
-                      )}
-                    </button>
-                    <span className="font-bold text-xs text-slate-800">Прочее / Без раздела</span>
-                    <span className="px-1.5 py-0.2 rounded bg-slate-200 text-slate-700 text-[10px] font-bold">
-                      {filterStatus === 'uncollected'
-                        ? `${unsectionedItems.filter((i) => !i.isCollected).length} из ${unsectionedItems.length}`
-                        : unsectionedItems.length}
+            {/* Пункты без раздела */}
+            {unsectionedItems.length > 0 && (() => {
+              const visible = filterStatus === 'uncollected'
+                ? unsectionedItems.filter((i) => !i.isCollected)
+                : unsectionedItems;
+              const isCollapsed = !!collapsedSections['__unsectioned__'];
+              return (
+                <div>
+                  <button
+                    type="button"
+                    onClick={() => toggleSectionCollapse('__unsectioned__')}
+                    className="flex w-full items-center gap-1 pl-1.5 pb-1.5 text-left cursor-pointer !scale-100"
+                  >
+                    <ChevronRight
+                      className={`w-4 h-4 text-gd-muted flex-shrink-0 transition-transform duration-300 ${isCollapsed ? '' : 'rotate-90'}`}
+                    />
+                    <span className="gd-label !text-[11.5px]">Без раздела</span>
+                    <span className="text-[11.5px] font-semibold text-gd-faint tabular-nums">
+                      {filterStatus === 'uncollected' ? `${visible.length}/${unsectionedItems.length}` : unsectionedItems.length}
                     </span>
-                  </div>
+                  </button>
+                  {!isCollapsed && (
+                    <div className="gd-group !overflow-visible animate-slide-down">
+                      {visible.length === 0 && filterStatus === 'uncollected' ? (
+                        <div className="gd-row justify-center text-[13px] font-medium text-gd-green">
+                          <Check className="w-4 h-4" strokeWidth={2.75} />
+                          Все объекты без раздела собраны
+                        </div>
+                      ) : (
+                        renderItems(visible, unsectionedItems.length)
+                      )}
+                    </div>
+                  )}
                 </div>
-
-                {!collapsedSections['__unsectioned__'] && (
-                  <div className="p-2 space-y-1.5 animate-slide-down">
-                    {(filterStatus === 'uncollected'
-                      ? unsectionedItems.filter((i) => !i.isCollected)
-                      : unsectionedItems
-                    ).length === 0 && filterStatus === 'uncollected' ? (
-                      <div className="py-2.5 px-3 text-center text-emerald-800 text-[11px] bg-emerald-50/70 rounded-xl border border-emerald-200 font-medium">
-                        Все объекты без раздела собраны ✅
-                      </div>
-                    ) : (
-                      (filterStatus === 'uncollected'
-                        ? unsectionedItems.filter((i) => !i.isCollected)
-                        : unsectionedItems
-                      ).map((item, idx) => {
-                        const itemCardId = extractCardIdFromUrl(item.linkUrl);
-                        const matchingFile = itemCardId ? linkedFilesByCardId.get(itemCardId) : undefined;
-                        return (
-                          <ChangeItemRow
-                            key={item.id}
-                            item={item}
-                            index={idx}
-                            totalCount={unsectionedItems.length}
-                            onEdit={handleEditItem}
-                            onDelete={handleDeleteItem}
-                            onMoveUp={handleMoveUpItem}
-                            onMoveDown={handleMoveDownItem}
-                            onToggleCollected={(id) => onToggleChangeItemCollected?.(task.id, id)}
-                            matchingPackageFile={matchingFile}
-                            onApplyPackageNumber={handleApplyPackageNumber}
-                          />
-                        );
-                      })
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
+              );
+            })()}
           </div>
         )}
 
-        {/* Task Bottom Actions Bar */}
-        <div className="flex flex-wrap items-center justify-between gap-2.5 pt-3 border-t border-slate-100">
-          <div className="flex items-center gap-1.5 text-xs text-slate-500 min-w-0">
-            <span>Всего изменений:</span>
-            <span className="font-bold text-slate-900 bg-slate-100 px-2 py-0.5 rounded-lg border border-slate-200/80 text-[11px]">
-              {task.items.length}
-            </span>
-          </div>
-
-          <div className="flex items-center gap-1.5 flex-wrap flex-shrink-0">
-            {onOpenImportExport && (
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => onOpenImportExport('export')}
-                leftIcon={<FileJson className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />}
-                title="Резервное копирование и экспорт в JSON"
-                className="whitespace-nowrap px-2.5 py-1.5 text-xs font-semibold"
-              >
-                Бэкап
-              </Button>
-            )}
-
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={handleQuickCopyMarkdown}
-              leftIcon={
-                quickCopied ? (
-                  <Check className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
-                ) : (
-                  <Copy className="w-3.5 h-3.5 flex-shrink-0" />
-                )
-              }
-              title="Копировать всё описание в формате Markdown"
-              className="whitespace-nowrap px-2.5 py-1.5 text-xs font-semibold"
-            >
-              {quickCopied ? 'Скопировано!' : 'Копировать'}
-            </Button>
-
-            <Button
-              variant="emerald"
-              size="sm"
-              onClick={() => setIsPreviewModalOpen(true)}
-              leftIcon={<Eye className="w-3.5 h-3.5 flex-shrink-0" />}
-              title="Просмотр и экспорт описания"
-              className="whitespace-nowrap px-3 py-1.5 text-xs font-semibold"
-            >
-              Экспорт
-            </Button>
-          </div>
+        {/* Итог: копирование и экспорт описания */}
+        <div className="flex items-center gap-2 pt-1">
+          <Button
+            variant="secondary"
+            size="md"
+            className="flex-1"
+            onClick={handleQuickCopyMarkdown}
+            leftIcon={
+              quickCopied ? (
+                <Check className="w-4 h-4 text-gd-green animate-pop-in" strokeWidth={2.75} />
+              ) : (
+                <Copy className="w-4 h-4" />
+              )
+            }
+            title="Копировать всё описание в формате Markdown"
+          >
+            {quickCopied ? 'Скопировано' : 'Копировать MD'}
+          </Button>
+          <Button
+            variant="primary"
+            size="md"
+            className="flex-1"
+            onClick={() => setIsPreviewModalOpen(true)}
+            leftIcon={<Eye className="w-4 h-4" />}
+            title="Просмотр и экспорт описания"
+          >
+            Экспорт
+          </Button>
         </div>
       </div>
 
@@ -1345,7 +1153,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
       >
         <form onSubmit={handleSaveSection} className="space-y-3">
           <div>
-            <label className="block text-xs font-semibold text-gray-700 mb-1">
+            <label className="block text-xs font-semibold text-slate-700 mb-1">
               Название раздела <span className="text-rose-500">*</span>
             </label>
             <Input
@@ -1356,7 +1164,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
             />
           </div>
           <div className="flex flex-wrap gap-1.5 pt-1">
-            <span className="text-[10px] text-gray-400 block w-full">
+            <span className="text-[10px] text-slate-400 block w-full">
               Быстрые варианты:
             </span>
             {['Типы объекта', 'Алгоритмы', 'Визуалы', 'Бизнес-процессы', 'Печатные формы'].map((opt) => (
@@ -1364,7 +1172,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
                 key={opt}
                 type="button"
                 onClick={() => setSectionNameInput(opt)}
-                className="px-2 py-0.5 rounded bg-gray-100 hover:bg-emerald-50 hover:text-emerald-700 text-[10px] font-medium text-gray-600 transition-colors border border-gray-200"
+                className="px-2 py-0.5 rounded bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 text-[10px] font-medium text-slate-600 transition-colors border border-slate-200"
               >
                 {opt}
               </button>
@@ -1404,9 +1212,9 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
           </>
         }
       >
-        <p className="text-xs text-gray-700">
+        <p className="text-xs text-slate-700">
           Вы уверены, что хотите удалить раздел{' '}
-          <strong className="text-gray-900">"{sectionToDelete?.name}"</strong>?
+          <strong className="text-slate-900">"{sectionToDelete?.name}"</strong>?
           Пункты из этого раздела не удалятся, а переместятся в список «Без раздела».
         </p>
       </Modal>
@@ -1478,7 +1286,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
             </div>
 
             {/* Existing Item Card */}
-            <div className="p-2.5 rounded-xl bg-slate-50/90 border border-slate-200/90 space-y-1.5 shadow-2xs">
+            <div className="p-2.5 rounded-xl bg-slate-50/90 border border-slate-200 space-y-1.5 shadow-2xs">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
                   <Layers className="w-3 h-3 text-slate-400" />
@@ -1490,7 +1298,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
                   </span>
                 )}
               </div>
-              <p className="font-semibold text-slate-800 text-xs line-clamp-2 bg-white p-2 rounded-lg border border-slate-200/70">
+              <p className="font-semibold text-slate-800 text-xs line-clamp-2 bg-white p-2 rounded-lg border border-slate-200">
                 {duplicateCandidate.existingItem.description}
               </p>
               {duplicateCandidate.existingItem.linkUrl && (

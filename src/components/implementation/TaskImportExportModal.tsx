@@ -194,7 +194,7 @@ export const TaskImportExportModal: React.FC<TaskImportExportModalProps> = ({
         {activeTab === 'export' && (
           <div className="space-y-3.5 animate-fade-in">
             {/* Scope Selection */}
-            <div className="p-3 bg-slate-50 border border-slate-200/90 rounded-2xl space-y-2.5">
+            <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2.5">
               <label className="block text-[11px] font-bold text-slate-700">
                 Что экспортировать:
               </label>
@@ -273,7 +273,7 @@ export const TaskImportExportModal: React.FC<TaskImportExportModalProps> = ({
                 </span>
                 <span>{exportJSONString.split('\n').length} строк</span>
               </div>
-              <pre className="p-3 bg-slate-900 text-emerald-400 border border-slate-800 rounded-2xl font-mono text-[11px] leading-relaxed max-h-48 overflow-y-auto select-all">
+              <pre className="p-3 bg-slate-50/80 text-slate-800 border border-slate-200 rounded-xl font-mono text-[11px] leading-relaxed max-h-48 overflow-y-auto select-all">
                 {exportJSONString}
               </pre>
             </div>
@@ -286,7 +286,7 @@ export const TaskImportExportModal: React.FC<TaskImportExportModalProps> = ({
         {activeTab === 'import' && (
           <div className="space-y-3.5 animate-fade-in">
             {/* File Upload Zone */}
-            <div className="p-4 bg-slate-50 border-2 border-dashed border-slate-300 rounded-2xl text-center hover:border-emerald-400 transition-colors">
+            <div className="p-4 bg-slate-50 border-2 border-dashed border-slate-300 rounded-xl text-center hover:border-emerald-400 transition-colors">
               <input
                 ref={fileInputRef}
                 type="file"
@@ -330,7 +330,7 @@ export const TaskImportExportModal: React.FC<TaskImportExportModalProps> = ({
             {parsedImport && (
               <div className="space-y-2.5">
                 {parsedImport.valid ? (
-                  <div className="p-3 bg-emerald-50/90 border border-emerald-200/90 rounded-2xl space-y-2 animate-slide-down shadow-2xs">
+                  <div className="p-3 bg-emerald-50/90 border border-emerald-200/90 rounded-xl space-y-2 animate-slide-down shadow-2xs">
                     <div className="flex items-center justify-between font-bold text-emerald-950">
                       <span className="flex items-center gap-1.5">
                         <Sparkles className="w-4 h-4 text-emerald-600 flex-shrink-0" />
@@ -363,7 +363,7 @@ export const TaskImportExportModal: React.FC<TaskImportExportModalProps> = ({
                     </div>
                   </div>
                 ) : (
-                  <div className="p-3 bg-rose-50 border border-rose-200 rounded-2xl flex items-start gap-2 text-rose-900 animate-slide-down">
+                  <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl flex items-start gap-2 text-rose-900 animate-slide-down">
                     <AlertCircle className="w-4 h-4 text-rose-600 flex-shrink-0 mt-0.5" />
                     <div>
                       <div className="font-bold text-xs">Ошибка в структуре данных</div>
@@ -376,7 +376,7 @@ export const TaskImportExportModal: React.FC<TaskImportExportModalProps> = ({
 
             {/* Import Mode Radio Options (Visible when valid) */}
             {parsedImport?.valid && (
-              <div className="p-3 bg-slate-50 border border-slate-200/90 rounded-2xl space-y-2">
+              <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
                 <label className="block text-[11px] font-bold text-slate-700">
                   Режим импорта:
                 </label>
@@ -447,7 +447,7 @@ export const TaskImportExportModal: React.FC<TaskImportExportModalProps> = ({
             {/* Status Message */}
             {importStatus && (
               <div
-                className={`p-3 rounded-2xl flex items-center gap-2 font-bold text-xs animate-fade-in ${
+                className={`p-3 rounded-xl flex items-center gap-2 font-bold text-xs animate-fade-in ${
                   importStatus.type === 'success'
                     ? 'bg-emerald-100 text-emerald-950 border border-emerald-300'
                     : 'bg-rose-100 text-rose-950 border border-rose-300'
