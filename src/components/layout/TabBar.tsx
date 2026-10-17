@@ -1,5 +1,5 @@
 import React from 'react';
-import { Archive, ListChecks, SquareCheckBig, Zap, Sparkles, type LucideIcon } from 'lucide-react';
+import { Archive, ListChecks, SquareCheckBig, Zap, type LucideIcon } from 'lucide-react';
 import { clsx } from 'clsx';
 import { ActiveTool } from '../../types';
 
@@ -21,11 +21,10 @@ const TABS: TabItem[] = [
   { id: 'implementation', label: 'Реализация', title: 'Инструмент описания реализации', Icon: ListChecks },
   { id: 'youtrack', label: 'YouTrack', title: 'Задачи YouTrack (РЭЦ_Fin)', Icon: SquareCheckBig },
   { id: 'extra', label: 'Утилиты', title: 'Утилиты: генератор ID алгоритмов', Icon: Zap },
-  { id: 'ai', label: 'ИИ', title: 'ИИ-ассистент GreenData', Icon: Sparkles },
 ];
 
 /**
- * Нижний таб-бар в стиле iOS: стекло, иконка + подпись, счётчик-бейдж.
+ * Нижний таб-бар в стиле iOS (4 раздела): стекло, иконка + подпись, счётчик-бейдж.
  * Иконка активного таба подпрыгивает при нажатии (глобальная анимация иконок).
  */
 export const TabBar: React.FC<TabBarProps> = ({ activeTool, fileCount, onSelectTool }) => (

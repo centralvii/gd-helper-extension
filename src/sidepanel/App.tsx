@@ -12,7 +12,6 @@ import { Footer } from '../components/layout/Footer';
 import { ImplementationTool } from '../components/implementation/ImplementationTool';
 import { YouTrackTool } from '../components/youtrack/YouTrackTool';
 import { ExtraContainer } from '../components/extra/ExtraContainer';
-import { AiChatContainer } from '../components/ai/AiChatContainer';
 import { PackageSelector } from '../components/template/PackageSelector';
 import { AutoCollectModeBar } from '../components/template/AutoCollectModeBar';
 import { FileUploader } from '../components/upload/FileUploader';
@@ -34,7 +33,6 @@ const TOOL_TITLES: Record<ActiveTool, string> = {
     implementation: 'Реализация',
     youtrack: 'YouTrack',
     extra: 'Утилиты',
-    ai: 'ИИ-ассистент',
 };
 
 export const App: React.FC = () => {
@@ -89,7 +87,7 @@ export const App: React.FC = () => {
     const [activeTool, setActiveTool] = useState<ActiveTool>(() => {
         try {
             const saved = localStorage.getItem('gd-helper-active-tool');
-            if (saved === 'packer' || saved === 'implementation' || saved === 'youtrack' || saved === 'extra' || saved === 'ai') {
+            if (saved === 'packer' || saved === 'implementation' || saved === 'youtrack' || saved === 'extra') {
                 return saved;
             }
         } catch {
@@ -300,11 +298,7 @@ export const App: React.FC = () => {
 
     return (
         <div
-            className={`flex flex-col relative ${
-                activeTool === 'ai'
-                    ? 'h-full overflow-hidden pb-[var(--tabbar-h)]'
-                    : 'min-h-full pb-[var(--tabbar-h)]'
-            }`}
+            className="flex flex-col relative min-h-full pb-[var(--tabbar-h)]"
         >
             {/* Global Drag Overlay */}
             {isDraggingOver && (
@@ -376,22 +370,10 @@ export const App: React.FC = () => {
                 key={activeTool}
                 title={TOOL_TITLES[activeTool]}
                 subtitle={headerSubtitle}
-                compact={activeTool === 'ai'}
             />
 
             {/* Main Content Area */}
-            <main
-                className={
-                    activeTool === 'ai'
-                        ? 'flex-1 overflow-hidden flex flex-col min-h-0 p-0'
-                        : 'flex-1 px-4 pt-1 space-y-3 pb-6'
-                }
-            >
-                {/* AI Chat View (preserved in DOM so streaming / scroll / inputs never get lost) */}
-                <div className={activeTool === 'ai' ? 'flex-1 overflow-hidden flex flex-col min-h-0 h-full' : 'hidden'}>
-                    <AiChatContainer />
-                </div>
-
+            <main className="flex-1 px-4 pt-1 space-y-3 pb-6">
                 {/* Extra Tools View */}
                 <div className={activeTool === 'extra' ? 'space-y-3 animate-screen-in' : 'hidden'}>
                     <ExtraContainer />

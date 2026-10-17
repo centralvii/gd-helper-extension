@@ -18,8 +18,8 @@ import {
 } from '../../utils/algorithmIdGenerator';
 import { AlgorithmHistoryItem, AlgorithmType, AiAlgorithmIdResult } from '../../types';
 import { generateAlgorithmIdViaAi, isAiConfigured } from '../../services/aiAlgorithmGenerator';
-import { useAiChat } from '../../hooks/useAiChat';
-import { AiSettingsModal } from '../ai/AiSettingsModal';
+import { useAiSettings } from '../../hooks/useAiSettings';
+import { AiSettingsModal } from './AiSettingsModal';
 import {
   Modal,
   Badge,
@@ -53,7 +53,7 @@ export const AlgorithmIdGenerator: React.FC = () => {
     updateSettings: updateAiSettings,
     resetSettings: resetAiSettings,
     testConnection: testAiConnection,
-  } = useAiChat();
+  } = useAiSettings();
 
   const [isAiSettingsOpen, setIsAiSettingsOpen] = useState(false);
   const [isDictOpen, setIsDictOpen] = useState(false);

@@ -7,8 +7,6 @@ interface HeaderProps {
   subtitle?: React.ReactNode;
   /** Дополнительные круглые кнопки справа (перед «Во весь экран») */
   actions?: React.ReactNode;
-  /** Только компактная строка без крупного заголовка (ИИ-чат) */
-  compact?: boolean;
 }
 
 const COLLAPSE_AT_PX = 34;
@@ -18,7 +16,7 @@ const COLLAPSE_AT_PX = 34;
  * сворачивается в компактную строку со стеклянным фоном.
  * Прокручивается #root (см. src/index.css), поэтому слушаем его.
  */
-export const Header: React.FC<HeaderProps> = ({ title, subtitle, actions, compact = false }) => {
+export const Header: React.FC<HeaderProps> = ({ title, subtitle, actions }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   useEffect(() => {
@@ -30,7 +28,7 @@ export const Header: React.FC<HeaderProps> = ({ title, subtitle, actions, compac
     return () => scroller.removeEventListener('scroll', onScroll);
   }, []);
 
-  const showSmallTitle = compact || isCollapsed;
+  const showSmallTitle = isCollapsed;
 
   const handleOpenFullscreen = () => {
     if (typeof chrome !== 'undefined' && chrome.tabs && chrome.tabs.create) {
@@ -72,19 +70,17 @@ export const Header: React.FC<HeaderProps> = ({ title, subtitle, actions, compac
       </header>
 
       {/* Крупный заголовок */}
-      {!compact && (
-        <div
-          className={clsx(
-            'px-4 pb-3 pt-0.5 transition-opacity duration-200',
-            isCollapsed ? 'opacity-0' : 'opacity-100'
-          )}
-        >
-          <h1 key={title} className="text-[28px] font-bold leading-[1.1] tracking-[-0.025em] text-slate-900 animate-fade-in">
-            {title}
-          </h1>
-          {subtitle && <div className="mt-0.5 truncate text-[13px] text-gd-muted">{subtitle}</div>}
-        </div>
-      )}
+      <div
+        className={clsx(
+          'px-4 pb-3 pt-0.5 transition-opacity duration-200',
+          isCollapsed ? 'opacity-0' : 'opacity-100'
+        )}
+      >
+        <h1 key={title} className="text-[28px] font-bold leading-[1.1] tracking-[-0.025em] text-slate-900 animate-fade-in">
+          {title}
+        </h1>
+        {subtitle && <div className="mt-0.5 truncate text-[13px] text-gd-muted">{subtitle}</div>}
+      </div>
     </>
   );
 };
