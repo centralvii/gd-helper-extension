@@ -97,7 +97,7 @@ export const YouTrackIssueTile: React.FC<YouTrackIssueTileProps> = ({
           type="button"
           onClick={handleCopyId}
           title="Нажмите, чтобы скопировать ID задачи"
-          className="inline-flex items-center gap-1 font-mono text-[12px] font-semibold text-gd-green hover:underline cursor-pointer select-none flex-shrink-0"
+          className="inline-flex items-center gap-1 font-mono text-[12px] font-semibold text-gd-accent hover:underline cursor-pointer select-none flex-shrink-0"
         >
           {issue.id}
           {copied ? (
@@ -171,9 +171,9 @@ export const YouTrackIssueTile: React.FC<YouTrackIssueTileProps> = ({
             }
             className={`h-8 px-3 rounded-full text-[12.5px] font-semibold flex items-center gap-1.5 select-none transition-colors ${
               justTransferred
-                ? 'bg-gd-green-dark text-white cursor-default'
+                ? 'bg-gd-accent-dark text-white cursor-default'
                 : isGreenDataModalActive
-                ? 'bg-gd-green hover:bg-gd-green-dark text-white cursor-pointer animate-pop-in'
+                ? 'bg-gd-accent hover:bg-gd-accent-dark text-white cursor-pointer animate-pop-in'
                 : 'bg-gd-fill text-gd-faint cursor-not-allowed'
             }`}
           >
@@ -195,7 +195,7 @@ export const YouTrackIssueTile: React.FC<YouTrackIssueTileProps> = ({
             type="button"
             onClick={handleTransfer}
             title="Создать или привязать задачу в Реализации"
-            className="h-8 px-3 rounded-full text-[12.5px] font-semibold bg-gd-green-light text-gd-green hover:bg-emerald-500/20 flex items-center gap-1 cursor-pointer"
+            className="h-8 px-3 rounded-full text-[12.5px] font-semibold bg-gd-accent-light text-gd-accent hover:bg-accent-500/20 flex items-center gap-1 cursor-pointer"
           >
             В реализацию
             <ArrowRight className="w-3.5 h-3.5" />

@@ -79,7 +79,7 @@ export const TaskSelector: React.FC<TaskSelectorProps> = ({
           <button
             type="button"
             onClick={() => onChangeView('list')}
-            className="inline-flex items-center gap-0.5 -ml-1.5 pl-0.5 pr-2 h-8 rounded-full text-[15px] font-medium text-gd-green hover:bg-gd-green-light cursor-pointer"
+            className="inline-flex items-center gap-0.5 -ml-1.5 pl-0.5 pr-2 h-8 rounded-full text-[15px] font-medium text-gd-accent hover:bg-gd-accent-light cursor-pointer"
             title="Все задачи реализации"
           >
             <ChevronLeft className="w-5 h-5" strokeWidth={2.5} />
@@ -87,7 +87,7 @@ export const TaskSelector: React.FC<TaskSelectorProps> = ({
             <span className="ml-1 text-[12px] font-semibold text-gd-muted tabular-nums">{tasks.length}</span>
           </button>
           <div className="flex items-center gap-1.5">
-            <button type="button" onClick={onCreateTask} title="Создать новую задачу" className="icon-btn !bg-gd-green-light !text-gd-green">
+            <button type="button" onClick={onCreateTask} title="Создать новую задачу" className="icon-btn !bg-gd-accent-light !text-gd-accent">
               <Plus className="w-4 h-4" strokeWidth={2.5} />
             </button>
             {activeTask && (
@@ -146,7 +146,7 @@ export const TaskSelector: React.FC<TaskSelectorProps> = ({
                     className="gd-row gd-row--tap group/row !py-2.5"
                   >
                     <span className="w-5 flex justify-center flex-shrink-0">
-                      {isActive && <Check className="w-4 h-4 text-gd-green" strokeWidth={2.75} />}
+                      {isActive && <Check className="w-4 h-4 text-gd-accent" strokeWidth={2.75} />}
                     </span>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-baseline gap-1.5 min-w-0">
@@ -158,7 +158,7 @@ export const TaskSelector: React.FC<TaskSelectorProps> = ({
                       <div className="mt-1 flex items-center gap-2">
                         <div className="h-1 w-16 rounded-full bg-gd-fill overflow-hidden flex-shrink-0">
                           <div
-                            className="h-full rounded-full bg-gd-green transition-[width] duration-500"
+                            className="h-full rounded-full bg-gd-accent transition-[width] duration-500"
                             style={{ width: total ? `${Math.round((done / total) * 100)}%` : '0%' }}
                           />
                         </div>
@@ -202,7 +202,7 @@ export const TaskSelector: React.FC<TaskSelectorProps> = ({
               <span className="gd-row-icon gd-row-icon--accent">
                 <Plus />
               </span>
-              <span className="flex-1 text-[14px] font-medium text-gd-green">Новая задача</span>
+              <span className="flex-1 text-[14px] font-medium text-gd-accent">Новая задача</span>
             </button>
             {onOpenImportExport && (
               <button

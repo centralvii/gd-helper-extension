@@ -45,7 +45,7 @@ export const ValidationPanel: React.FC<ValidationPanelProps> = ({
     >
       <div className="space-y-3">
         {validation.errors.length === 0 ? (
-          <div className="text-center py-6 text-emerald-700 font-semibold">
+          <div className="text-center py-6 text-accent-700 font-semibold">
             Все имена файлов корректны и готовы к экспорту!
           </div>
         ) : (

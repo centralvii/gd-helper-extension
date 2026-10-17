@@ -85,7 +85,7 @@ export const Select: React.FC<SelectProps> = ({
   const sizeClasses =
     size === 'sm'
       ? 'px-2.5 py-1 text-[12px] rounded-lg min-h-[30px]'
-      : 'px-3 py-1.5 text-[13px] rounded-[10px] min-h-[36px]';
+      : 'px-3 py-1.5 text-[13px] rounded-xl min-h-[36px]';
 
   return (
     <div ref={containerRef} className={`relative select-none ${className}`}>
@@ -97,8 +97,8 @@ export const Select: React.FC<SelectProps> = ({
         onClick={() => !disabled && setIsOpen((prev) => !prev)}
         className={`gd-select-trigger w-full flex items-center justify-between gap-2 border text-left transition-all cursor-pointer ${
           isOpen
-            ? 'bg-white border-gd-green ring-4 ring-emerald-500/15'
-            : 'bg-gd-fill border-transparent hover:bg-slate-200/70'
+            ? 'bg-white border-gd-accent ring-4 ring-accent-500/15'
+            : 'bg-gd-fill border-transparent hover:bg-white/70'
         } ${
           disabled
             ? 'opacity-50 cursor-not-allowed'
@@ -112,7 +112,7 @@ export const Select: React.FC<SelectProps> = ({
               {selectedOption.icon && <span className="flex-shrink-0">{selectedOption.icon}</span>}
               <span className="truncate">{selectedOption.label}</span>
               {selectedOption.badge && (
-                <span className="px-1.5 py-px rounded-full bg-gd-green-light text-gd-green text-[10px] font-bold flex-shrink-0 ml-1">
+                <span className="px-1.5 py-px rounded-full bg-gd-accent-light text-gd-accent text-[10px] font-bold flex-shrink-0 ml-1">
                   {selectedOption.badge}
                 </span>
               )}
@@ -125,7 +125,7 @@ export const Select: React.FC<SelectProps> = ({
         {/* Custom Chevron Down */}
         <ChevronDown
           className={`w-4 h-4 flex-shrink-0 transition-transform duration-200 ${
-            isOpen ? 'rotate-180 text-gd-green' : 'text-slate-400'
+            isOpen ? 'rotate-180 text-gd-accent' : 'text-slate-400'
           }`}
         />
       </button>
@@ -133,7 +133,7 @@ export const Select: React.FC<SelectProps> = ({
       {/* Dropdown Menu */}
       {isOpen && (
         <div
-          className={`absolute left-0 right-0 z-50 mt-1.5 gd-glass bg-white/90 rounded-[13px] shadow-gd-float p-1 overflow-y-auto max-h-64 animate-slide-down origin-top ${dropdownClassName}`}
+          className={`gd-menu absolute left-0 right-0 z-50 mt-1.5 p-1 overflow-y-auto max-h-64 animate-slide-down origin-top ${dropdownClassName}`}
         >
           {options.length === 0 ? (
             <div className="px-3 py-2 text-center text-slate-400 text-[11px]">
@@ -152,7 +152,7 @@ export const Select: React.FC<SelectProps> = ({
                     opt.disabled
                       ? 'opacity-40 cursor-not-allowed bg-slate-50'
                       : opt.isAction
-                      ? 'text-gd-green font-semibold hover:bg-gd-green-light border-t border-gd-border mt-0.5'
+                      ? 'text-gd-accent font-semibold hover:bg-gd-accent-light border-t border-gd-border mt-0.5'
                       : isSelected
                       ? 'text-slate-900 font-semibold'
                       : 'text-slate-900 hover:bg-gd-fill font-normal'
@@ -162,14 +162,14 @@ export const Select: React.FC<SelectProps> = ({
                     {opt.icon && <span className="flex-shrink-0">{opt.icon}</span>}
                     <span className="truncate">{opt.label}</span>
                     {opt.badge && (
-                      <span className="px-1.5 py-px rounded-full bg-gd-green-light text-gd-green text-[10px] font-bold flex-shrink-0">
+                      <span className="px-1.5 py-px rounded-full bg-gd-accent-light text-gd-accent text-[10px] font-bold flex-shrink-0">
                         {opt.badge}
                       </span>
                     )}
                   </div>
 
                   {isSelected && !opt.isAction && (
-                    <Check className="w-4 h-4 text-gd-green flex-shrink-0 ml-1" strokeWidth={2.5} />
+                    <Check className="w-4 h-4 text-gd-accent flex-shrink-0 ml-1" strokeWidth={2.5} />
                   )}
                 </button>
               );

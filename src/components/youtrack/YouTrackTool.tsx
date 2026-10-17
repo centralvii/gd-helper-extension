@@ -275,7 +275,7 @@ export const YouTrackTool: React.FC<YouTrackToolProps> = ({
             disabled={isLoading}
             title="Спарсить задачи из YouTrack (в корпоративном контуре)"
             data-icon-anim="spin"
-            className="icon-btn !bg-gd-green !text-white hover:!bg-gd-green-dark disabled:opacity-60"
+            className="icon-btn !bg-gd-accent !text-white hover:!bg-gd-accent-dark disabled:opacity-60"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
           </button>
@@ -295,7 +295,7 @@ export const YouTrackTool: React.FC<YouTrackToolProps> = ({
           <span className="min-w-0 flex-1 text-[14px] text-slate-900 truncate">Форма задачи GreenData</span>
           <span
             className={`inline-flex items-center gap-1.5 text-[12.5px] font-medium flex-shrink-0 ${
-              isGreenDataModalActive ? 'text-gd-green' : 'text-gd-muted'
+              isGreenDataModalActive ? 'text-gd-accent' : 'text-gd-muted'
             }`}
           >
             <span
@@ -308,7 +308,7 @@ export const YouTrackTool: React.FC<YouTrackToolProps> = ({
         {syncNotice && (
           <div
             className={`gd-row !min-h-0 !py-2 text-[12.5px] animate-fade-in ${
-              hasSyncError ? 'text-[#c26a00]' : 'text-gd-green'
+              hasSyncError ? 'text-[#c26a00]' : 'text-gd-accent'
             }`}
           >
             {hasSyncError ? (
@@ -383,7 +383,7 @@ export const YouTrackTool: React.FC<YouTrackToolProps> = ({
       {/* Загрузка */}
       {isLoading && issues.length === 0 ? (
         <div className="gd-group px-6 py-8 text-center space-y-3 animate-pop-in">
-          <div className="w-12 h-12 rounded-full bg-gd-green-light text-gd-green grid place-items-center mx-auto">
+          <div className="w-12 h-12 rounded-full bg-gd-accent-light text-gd-accent grid place-items-center mx-auto">
             <RefreshCw className="w-6 h-6 animate-spin" />
           </div>
           <div className="space-y-1">

@@ -1,3 +1,5 @@
+import type { ReactNode } from 'react';
+
 export interface FileRow {
   id: string;
   order: number;
@@ -285,4 +287,16 @@ type MathQuillFactory = (el: HTMLElement) => MathQuillField | null;
 /** window страницы GreenData с глобальным MathQuill */
 export interface MathQuillWindow {
   MathQuill?: MathQuillFactory & { getInterface?: (version: number) => MathQuillFactory };
+}
+
+/** Команда командной палитры (Ctrl/⌘ + K) */
+export interface PaletteCommand {
+  id: string;
+  group: string; // Заголовок группы: «Перейти», «Действия», «Задачи», «Пакеты»
+  title: string;
+  subtitle?: string;
+  icon: ReactNode;
+  shortcut?: string;
+  keywords?: string; // Дополнительные слова для поиска
+  run: () => void;
 }

@@ -3,49 +3,61 @@
 @tailwind utilities;
 
 /* ════════════════════════════════════════════════════════════
-   GD Helper — дизайн-система в стиле iOS
-   Строгая монохромная база (системные серые iOS) + один акцент GreenData.
-   Единый источник токенов: эти CSS-переменные. Tailwind (`gd-*`, `slate-*`)
-   ссылается на них через tailwind.config.js.
+   GD Helper — дизайн-система «Aurora Glass»
+   Светлое «жидкое стекло» поверх мягкой авроры, один индиго-акцент,
+   плотная вёрстка для узкой боковой панели. Шрифт — Geist / Geist Mono.
+   Единый источник токенов: эти CSS-переменные. Tailwind (`gd-*`, `accent-*`,
+   `slate-*`) ссылается на них через tailwind.config.js.
    ════════════════════════════════════════════════════════════ */
 
 @layer base {
     :root {
-        /* Фоны */
-        --gd-bg:           #f2f2f7;   /* systemGroupedBackground */
-        --gd-surface:      #ffffff;   /* secondarySystemGroupedBackground */
-        --gd-card:         #ffffff;
-        --gd-sidebar:      #f2f2f7;
-        --gd-fill:         rgba(120, 120, 128, 0.12);  /* tertiarySystemFill */
-        --gd-fill-2:       rgba(120, 120, 128, 0.08);  /* quaternarySystemFill */
+        /* Фоны и стекло */
+        --gd-bg:            #eef1fa;
+        --gd-surface:       #ffffff;
+        --gd-card:          #ffffff;
+        --gd-glass:         rgba(255, 255, 255, 0.56);
+        --gd-glass-strong:  rgba(255, 255, 255, 0.82);
+        --gd-glass-border:  rgba(255, 255, 255, 0.75);
+        --gd-glass-blur:    blur(26px) saturate(180%);
+        --gd-fill:          rgba(27, 31, 59, 0.06);
+        --gd-fill-2:        rgba(27, 31, 59, 0.035);
 
-        /* Акцент GreenData */
-        --gd-green:        #059669;
-        --gd-green-dark:   #047857;
-        --gd-green-light:  rgba(5, 150, 105, 0.12);    /* tinted fill */
-        --gd-border-green: rgba(5, 150, 105, 0.28);
+        /* Аврора (размытые пятна фона) */
+        --gd-aurora-1:      #c7cdfe;   /* лаванда */
+        --gd-aurora-2:      #b7f0de;   /* мята */
+        --gd-aurora-3:      #fbd3e6;   /* персик */
+
+        /* Акцент — индиго */
+        --gd-accent:        #4f5bd5;
+        --gd-accent-dark:   #3f4bc4;
+        --gd-accent-light:  rgba(91, 103, 241, 0.14);
+        --gd-border-accent: rgba(79, 91, 213, 0.32);
 
         /* Текст */
-        --gd-text:         #1c1c1e;                    /* label */
-        --gd-muted:        rgba(60, 60, 67, 0.62);     /* secondaryLabel */
-        --gd-faint:        rgba(60, 60, 67, 0.32);     /* tertiaryLabel */
+        --gd-text:          #1b1f3b;
+        --gd-muted:         #5e6582;
+        --gd-faint:         #8a90aa;
 
         /* Линии */
-        --gd-border:       rgba(60, 60, 67, 0.14);     /* separator */
-        --gd-border-subtle: rgba(60, 60, 67, 0.08);
+        --gd-border:        rgba(27, 31, 59, 0.08);
+        --gd-border-subtle: rgba(27, 31, 59, 0.05);
 
-        /* Системные статусы iOS */
-        --gd-red:          #ff3b30;
-        --gd-orange:       #ff9500;
-        --gd-switch:       #34c759;
+        /* Статусы */
+        --gd-success:       #22b58a;
+        --gd-success-ink:   #0f7a5c;
+        --gd-red:           #e5484d;
+        --gd-orange:        #f59e3b;
+        --gd-orange-ink:    #a4500f;
+        --gd-switch:        var(--gd-accent);
 
         /* Движение */
-        --ease-spring:     cubic-bezier(0.34, 1.56, 0.64, 1);
-        --ease-out:        cubic-bezier(0.16, 1, 0.3, 1);
-        --ease-in:         cubic-bezier(0.32, 0, 0.67, 0);
+        --ease-spring:      cubic-bezier(0.34, 1.56, 0.64, 1);
+        --ease-out:         cubic-bezier(0.16, 1, 0.3, 1);
+        --ease-in:          cubic-bezier(0.32, 0, 0.67, 0);
 
-        /* Высота нижнего таб-бара (используется футером, ИИ-чатом и отступами) */
-        --tabbar-h:        58px;
+        /* Место под плавающий док снизу (таб-бар + отступ) */
+        --tabbar-h:         82px;
     }
 
     /* Прокручивается #root, а не окно: так шторка может «утопить» страницу
@@ -61,10 +73,9 @@
     body {
         background: var(--gd-bg);
         color: var(--gd-text);
-        font-family: "Inter Variable", "Inter", -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, system-ui, sans-serif;
+        font-family: "Geist Variable", "Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, system-ui, sans-serif;
         font-size: 13px;
-        letter-spacing: -0.006em;
-        font-feature-settings: "cv11", "ss01";
+        letter-spacing: -0.005em;
         -webkit-text-size-adjust: 100%;
         text-size-adjust: 100%;
         -webkit-font-smoothing: antialiased;
@@ -78,12 +89,18 @@
         height: 100%;
         overflow-y: auto;
         overscroll-behavior: contain;
-        background: var(--gd-bg);
+        /* Аврора: фон закреплён за контейнером и не уезжает при прокрутке —
+           контент скользит под стеклом над неподвижными пятнами */
+        background:
+            radial-gradient(260px 260px at 8% 4%, var(--gd-aurora-1) 0%, rgba(199, 205, 254, 0) 70%),
+            radial-gradient(280px 280px at 100% 38%, var(--gd-aurora-2) 0%, rgba(183, 240, 222, 0) 70%),
+            radial-gradient(260px 260px at 4% 92%, var(--gd-aurora-3) 0%, rgba(251, 211, 230, 0) 70%),
+            var(--gd-bg);
         transform-origin: 50% 0;
         transition: transform 0.42s var(--ease-out), border-radius 0.42s var(--ease-out), filter 0.42s var(--ease-out);
     }
     body.gd-sheet-open {
-        background: #000;
+        background: #1b1f3b;
     }
     body.gd-sheet-open #root {
         transform: scale(0.94) translateY(10px);
@@ -108,7 +125,7 @@
     }
 
     ::selection {
-        background: rgba(5, 150, 105, 0.2);
+        background: rgba(79, 91, 213, 0.22);
         color: inherit;
     }
 
@@ -117,7 +134,7 @@
     a:focus-visible,
     [role="button"]:focus-visible,
     [role="switch"]:focus-visible {
-        outline: 2px solid rgba(5, 150, 105, 0.55);
+        outline: 2px solid rgba(79, 91, 213, 0.55);
         outline-offset: 2px;
     }
 
@@ -152,56 +169,80 @@
 @layer components {
 
     /* ────────────────────────────────────────
-       ICON BUTTON — круглая кнопка-иконка iOS
+       СТЕКЛО — базовый рецепт Aurora Glass
+    ──────────────────────────────────────── */
+    .gd-glass-surface {
+        background: var(--gd-glass);
+        -webkit-backdrop-filter: var(--gd-glass-blur);
+        backdrop-filter: var(--gd-glass-blur);
+        border: 1px solid var(--gd-glass-border);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 10px 30px rgba(40, 48, 110, 0.08);
+    }
+
+    /* ────────────────────────────────────────
+       ICON BUTTON — круглая стеклянная кнопка
     ──────────────────────────────────────── */
     .icon-btn {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        width: 30px;
-        height: 30px;
+        width: 32px;
+        height: 32px;
         border-radius: 9999px;
         color: var(--gd-text);
-        background: var(--gd-fill);
-        border: none;
+        background: var(--gd-glass-strong);
+        border: 1px solid var(--gd-glass-border);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 4px 12px rgba(40, 48, 110, 0.08);
         cursor: pointer;
         flex-shrink: 0;
     }
     .icon-btn:hover {
-        color: var(--gd-green);
-        background: var(--gd-green-light);
+        color: var(--gd-accent);
+        background: #fff;
     }
     .icon-btn--plain {
         background: transparent;
+        border-color: transparent;
+        box-shadow: none;
         color: var(--gd-muted);
+    }
+    .icon-btn--plain:hover {
+        background: var(--gd-accent-light);
     }
     .icon-btn--danger:hover {
         color: var(--gd-red);
-        background: rgba(255, 59, 48, 0.12);
+        background: rgba(229, 72, 77, 0.12);
     }
 
     /* ────────────────────────────────────────
-       КАРТОЧКИ И СПИСКИ (inset grouped)
+       КАРТОЧКИ И СПИСКИ — стеклянные группы
     ──────────────────────────────────────── */
-    .gd-card {
-        background: var(--gd-surface);
-        border-radius: 12px;
-    }
-
-    /* Группа (inset grouped list): белый блок со скруглением 12px */
+    .gd-card,
     .gd-group {
-        background: var(--gd-surface);
-        border-radius: 12px;
+        background: var(--gd-glass);
+        -webkit-backdrop-filter: var(--gd-glass-blur);
+        backdrop-filter: var(--gd-glass-blur);
+        border: 1px solid var(--gd-glass-border);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 10px 30px rgba(40, 48, 110, 0.08);
+        border-radius: 20px;
+    }
+    .gd-group {
         overflow: hidden;
     }
-    /* Строка группы; соседние строки разделены волосяной линией с отступом под иконку */
+    /* backdrop-filter создаёт свой контекст наложения: группа с открытым меню
+       поднимается над соседними, иначе меню уходит под следующую группу */
+    :is(.gd-group, .gd-card, .gd-row):has(.gd-menu) {
+        position: relative;
+        z-index: 35;
+    }
+    /* Строка группы; соседние строки разделены линией с отступом под иконку */
     .gd-row {
         position: relative;
         display: flex;
         align-items: center;
-        gap: 12px;
-        min-height: 44px;
-        padding: 6px 14px;
+        gap: 10px;
+        min-height: 42px;
+        padding: 5px 12px;
     }
     .gd-row + .gd-row::before,
     .gd-group > * + .gd-row::before,
@@ -210,38 +251,38 @@
         position: absolute;
         top: 0;
         right: 0;
-        left: var(--gd-sep-inset, 14px);
-        height: 0.5px;
+        left: var(--gd-sep-inset, 12px);
+        height: 1px;
         background: var(--gd-border);
     }
-    .gd-group--icons { --gd-sep-inset: 54px; }
+    .gd-group--icons { --gd-sep-inset: 50px; }
     .gd-row--tap { cursor: pointer; transition: background-color 0.15s ease; }
-    .gd-row--tap:hover { background: var(--gd-fill-2); }
-    .gd-row--tap:active { background: var(--gd-fill); }
+    .gd-row--tap:hover { background: rgba(255, 255, 255, 0.55); }
+    .gd-row--tap:active { background: rgba(255, 255, 255, 0.8); }
 
-    /* Квадратная иконка строки (как в «Настройках» iOS) */
+    /* Иконка строки */
     .gd-row-icon {
         width: 28px;
         height: 28px;
-        border-radius: 7px;
+        border-radius: 9px;
         display: grid;
         place-items: center;
         flex-shrink: 0;
-        background: var(--gd-fill);
+        background: rgba(255, 255, 255, 0.78);
         color: var(--gd-text);
+        box-shadow: 0 1px 2px rgba(40, 48, 110, 0.06);
     }
-    .gd-row-icon > svg { width: 16px; height: 16px; }
-    .gd-row-icon--accent { background: var(--gd-green); color: #fff; }
+    .gd-row-icon > svg { width: 15px; height: 15px; }
+    .gd-row-icon--accent { background: var(--gd-accent); color: #fff; }
 
-    /* Тело шторки: серый фон iOS, белые карточки внутри выглядят как группы,
-       рамки карточек приглушены до волосяных */
+    /* Тело шторки: светлое матовое стекло, группы внутри — стеклянные карточки */
     .gd-sheet-body {
-        background: var(--gd-bg);
+        background: rgba(238, 241, 250, 0.7);
     }
     .gd-sheet-body :is(.border-slate-200, .border-slate-100, .border-slate-300) {
         border-color: var(--gd-border-subtle);
     }
-    /* Поля прямо на сером фоне шторки — белые; внутри белых карточек — с серой заливкой */
+    /* Поля прямо на фоне шторки — белые; внутри белых карточек — с заливкой */
     .gd-sheet-body :is(input, textarea, .gd-select-trigger, .gd-field):not(:focus):is(.bg-gd-fill, .gd-field) {
         background: #fff;
         border-color: var(--gd-border-subtle);
@@ -257,20 +298,20 @@
         align-items: baseline;
         justify-content: space-between;
         gap: 8px;
-        padding: 0 14px 6px;
-        font-size: 11.5px;
+        padding: 0 12px 6px;
+        font-size: 10.5px;
         font-weight: 600;
-        letter-spacing: 0.03em;
+        letter-spacing: 0.06em;
         text-transform: uppercase;
         color: var(--gd-muted);
     }
 
-    /* Поле ввода с заливкой (iOS search field) */
+    /* Поле ввода с заливкой */
     .gd-field {
         width: 100%;
         background: var(--gd-fill);
         border: 1px solid transparent;
-        border-radius: 10px;
+        border-radius: 12px;
         color: var(--gd-text);
         font-size: 13px;
         padding: 7px 10px;
@@ -280,26 +321,55 @@
     .gd-field::placeholder { color: var(--gd-faint); }
     .gd-field:focus {
         background: #fff;
-        border-color: var(--gd-green);
-        box-shadow: 0 0 0 4px rgba(5, 150, 105, 0.15);
+        border-color: var(--gd-accent);
+        box-shadow: 0 0 0 4px rgba(79, 91, 213, 0.15);
     }
 
-    /* Всплывающее меню (UIMenu): стекло, крупное скругление, «парящая» тень */
+    /* Всплывающее меню: плотное стекло */
     .gd-menu {
-        background: rgba(255, 255, 255, 0.92);
-        -webkit-backdrop-filter: saturate(180%) blur(24px);
-        backdrop-filter: saturate(180%) blur(24px);
-        border-radius: 14px;
-        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.16), 0 0 0 0.5px rgba(0, 0, 0, 0.06);
+        background: rgba(252, 252, 255, 0.985);
+        -webkit-backdrop-filter: blur(30px) saturate(180%);
+        backdrop-filter: blur(30px) saturate(180%);
+        border: 1px solid rgba(255, 255, 255, 0.85);
+        border-radius: 18px;
+        box-shadow: inset 0 1px 0 #fff, 0 18px 50px rgba(30, 36, 90, 0.2);
         transform-origin: top center;
         animation: slideDown 0.24s var(--ease-out) both;
     }
 
+    /* Чип-кнопка (компактные параметры: №, теги, README) */
+    .gd-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        height: 28px;
+        padding: 0 10px;
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.72);
+        color: var(--gd-text);
+        font-size: 12px;
+        font-weight: 500;
+        white-space: nowrap;
+        cursor: pointer;
+        border: 0;
+    }
+    .gd-chip:hover { background: #fff; color: var(--gd-accent); }
+
+    /* Клавиша-подсказка */
+    .gd-kbd {
+        font: 500 10.5px "Geist Mono Variable", "Geist Mono", monospace;
+        color: var(--gd-muted);
+        border: 1px solid rgba(27, 31, 59, 0.14);
+        border-radius: 5px;
+        padding: 1px 5px;
+        background: rgba(255, 255, 255, 0.6);
+    }
+
     /* Подпись секции над группой: «ШАБЛОН ИМЕНИ» */
     .gd-label {
-        font-size: 11px;
+        font-size: 10.5px;
         font-weight: 600;
-        letter-spacing: 0.04em;
+        letter-spacing: 0.06em;
         text-transform: uppercase;
         color: var(--gd-muted);
     }
@@ -310,10 +380,10 @@
     .gd-switch {
         position: relative;
         display: inline-flex;
-        width: 42px;
-        height: 26px;
+        width: 40px;
+        height: 24px;
         border-radius: 9999px;
-        background: rgba(120, 120, 128, 0.16);
+        background: rgba(27, 31, 59, 0.14);
         cursor: pointer;
         flex-shrink: 0;
         transition: background-color 0.25s ease;
@@ -323,11 +393,11 @@
         position: absolute;
         top: 2px;
         left: 2px;
-        width: 22px;
-        height: 22px;
+        width: 20px;
+        height: 20px;
         border-radius: 9999px;
         background: #fff;
-        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15), 0 1px 1px rgba(0, 0, 0, 0.16);
+        box-shadow: 0 2px 6px rgba(27, 31, 59, 0.2);
         transition: transform 0.32s var(--ease-spring);
     }
     .gd-switch[aria-checked="true"] {
@@ -416,9 +486,9 @@
     50%      { opacity: 0.45; }
 }
 @keyframes zapPulse {
-    0%   { transform: scale(1);    filter: drop-shadow(0 0 2px rgba(5,150,105,0.4)); }
-    50%  { transform: scale(1.18); filter: drop-shadow(0 0 7px rgba(16,185,129,0.85)); }
-    100% { transform: scale(1);    filter: drop-shadow(0 0 2px rgba(5,150,105,0.4)); }
+    0%   { transform: scale(1);    filter: drop-shadow(0 0 2px rgba(79,91,213,0.4)); }
+    50%  { transform: scale(1.18); filter: drop-shadow(0 0 7px rgba(79,91,213,0.8)); }
+    100% { transform: scale(1);    filter: drop-shadow(0 0 2px rgba(79,91,213,0.4)); }
 }
 
 @keyframes sheetIn {
@@ -472,10 +542,13 @@
     .modal-sheet-out    { animation: sheetOut 0.26s var(--ease-in) both; }
 
     /* Стекло (navigation bar / tab bar) */
+    /* Плотное стекло для плавающих панелей (док, шапка при прокрутке, тосты) */
     .gd-glass {
-        background: rgba(249, 249, 251, 0.88);
-        -webkit-backdrop-filter: saturate(180%) blur(20px);
-        backdrop-filter: saturate(180%) blur(20px);
+        background: rgba(255, 255, 255, 0.62);
+        -webkit-backdrop-filter: blur(28px) saturate(180%);
+        backdrop-filter: blur(28px) saturate(180%);
+        border: 1px solid rgba(255, 255, 255, 0.8);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 12px 34px rgba(30, 36, 90, 0.14);
     }
 
     .zap-pulse {

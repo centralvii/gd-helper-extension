@@ -79,7 +79,7 @@ export const TaskExportPreviewModal: React.FC<TaskExportPreviewModalProps> = ({
             <Button
               variant="secondary"
               size="sm"
-              leftIcon={<FileJson className="w-3.5 h-3.5 text-emerald-600" />}
+              leftIcon={<FileJson className="w-3.5 h-3.5 text-accent-600" />}
               onClick={handleDownloadJson}
             >
               Скачать .json
@@ -96,16 +96,16 @@ export const TaskExportPreviewModal: React.FC<TaskExportPreviewModalProps> = ({
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
           <button
             onClick={() => handleCopy('md', markdownText)}
-            className="flex items-center justify-center gap-2 p-2.5 bg-emerald-50/80 hover:bg-emerald-100 text-emerald-900 border border-emerald-300 rounded-xl transition-all font-semibold text-xs shadow-2xs cursor-pointer"
+            className="flex items-center justify-center gap-2 p-2.5 bg-accent-50/80 hover:bg-accent-100 text-accent-900 border border-accent-300 rounded-xl transition-all font-semibold text-xs shadow-2xs cursor-pointer"
           >
             {copiedFormat === 'md' ? (
               <>
-                <Check className="w-4 h-4 text-emerald-600" />
+                <Check className="w-4 h-4 text-accent-600" />
                 <span>Скопировано!</span>
               </>
             ) : (
               <>
-                <Code className="w-4 h-4 text-emerald-600" />
+                <Code className="w-4 h-4 text-accent-600" />
                 <span>Markdown</span>
               </>
             )}
@@ -122,7 +122,7 @@ export const TaskExportPreviewModal: React.FC<TaskExportPreviewModalProps> = ({
           >
             {copiedFormat === 'plain' ? (
               <>
-                <Check className="w-4 h-4 text-emerald-600" />
+                <Check className="w-4 h-4 text-accent-600" />
                 <span>Скопировано!</span>
               </>
             ) : (
@@ -135,16 +135,16 @@ export const TaskExportPreviewModal: React.FC<TaskExportPreviewModalProps> = ({
 
           <button
             onClick={() => handleCopy('json', jsonBackupString)}
-            className="flex items-center justify-center gap-2 p-2.5 bg-slate-50 hover:bg-emerald-50 text-slate-800 hover:text-emerald-900 border border-slate-200 rounded-xl transition-all font-semibold text-xs shadow-2xs cursor-pointer"
+            className="flex items-center justify-center gap-2 p-2.5 bg-slate-50 hover:bg-accent-50 text-slate-800 hover:text-accent-900 border border-slate-200 rounded-xl transition-all font-semibold text-xs shadow-2xs cursor-pointer"
           >
             {copiedFormat === 'json' ? (
               <>
-                <Check className="w-4 h-4 text-emerald-600" />
+                <Check className="w-4 h-4 text-accent-600" />
                 <span>Скопировано!</span>
               </>
             ) : (
               <>
-                <FileJson className="w-4 h-4 text-emerald-600" />
+                <FileJson className="w-4 h-4 text-accent-600" />
                 <span>JSON бэкап</span>
               </>
             )}

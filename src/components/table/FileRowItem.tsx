@@ -6,7 +6,6 @@ import {
     Trash2,
     AlertTriangle,
     FileText,
-    Calendar,
     Link as LinkIcon,
     Download,
     Check,
@@ -82,37 +81,38 @@ export const FileRowItem: React.FC<FileRowItemProps> = React.memo(({
         setTimeout(() => setIsDownloaded(false), 1500);
     };
 
-    const hasAltName = Boolean(file.newName && file.newName !== file.originalName);
     const cardLink = file.sourceUrl ? trimGreenDataUrl(file.sourceUrl) : '';
+    const issue = isDuplicate ? 'Дубликат имени' : hasError ? 'Ошибка в имени файла' : '';
 
     return (
         <div
             ref={setNodeRef}
             style={style}
-            className={`gd-row group !items-start !py-2.5 !gap-2.5 transition-[background-color,box-shadow,border-radius] duration-200 ${
+            className={`gd-row group !min-h-[40px] !py-1.5 !gap-2 transition-[background-color,box-shadow,border-radius] duration-200 ${
                 isDragging
-                    ? 'bg-white shadow-xl rounded-xl scale-[1.02] relative'
-                    : hasError
-                      ? 'bg-[#ff3b30]/[0.05]'
-                      : 'hover:bg-gd-fill-2'
+                    ? 'bg-white shadow-xl rounded-2xl scale-[1.02] relative'
+                    : issue
+                      ? 'bg-[#f59e3b]/[0.07]'
+                      : 'hover:bg-white/50'
             }`}
         >
-            {/* Ручка перетаскивания + порядковый номер */}
+            {/* Номер; при наведении — ручка перетаскивания */}
             <button
                 type="button"
                 {...attributes}
                 {...listeners}
                 title="Перетащите для изменения порядка"
+                aria-label={`Файл ${file.order}: перетащите для изменения порядка`}
                 data-icon-anim="none"
-                className="flex w-8 flex-shrink-0 flex-col items-center gap-0.5 pt-0.5 text-gd-faint hover:text-slate-600 cursor-grab active:cursor-grabbing select-none touch-none"
+                className="relative grid h-7 w-7 flex-shrink-0 place-items-center rounded-lg text-gd-faint hover:bg-white/70 cursor-grab active:cursor-grabbing select-none touch-none"
             >
-                <span className="font-mono text-[11px] font-semibold text-gd-muted tabular-nums">
+                <span className="font-mono text-[11px] tabular-nums transition-opacity group-hover:opacity-0">
                     {String(file.order).padStart(3, '0')}
                 </span>
-                <GripVertical className="h-3.5 w-3.5 opacity-60 group-hover:opacity-100 transition-opacity" />
+                <GripVertical className="absolute h-4 w-4 opacity-0 transition-opacity group-hover:opacity-100" />
             </button>
 
-            {/* Имя и метаданные (тап — редактирование) */}
+            {/* Имя (тап — редактирование) + индикаторы */}
             <div
                 role="button"
                 tabIndex={0}
@@ -120,85 +120,55 @@ export const FileRowItem: React.FC<FileRowItemProps> = React.memo(({
                 onKeyDown={(e) => {
                     if (e.key === 'Enter') onEdit(file);
                 }}
-                title="Редактировать параметры файла"
-                className="min-w-0 flex-1 space-y-0.5 cursor-pointer !scale-100"
+                title={`${file.newName || file.originalName}\nИсходное: ${file.originalName}\nНажмите для редактирования`}
+                className="min-w-0 flex-1 cursor-pointer !scale-100"
             >
-                <div className="flex items-center gap-1.5 min-w-0">
-                    <span
-                        className="truncate font-mono text-[12.5px] font-semibold text-slate-900 min-w-0 tracking-[-0.02em]"
-                        title={file.newName || file.originalName}
-                    >
+                <div className="flex min-w-0 items-center gap-1.5">
+                    <span className="min-w-0 truncate font-mono text-[12px] font-medium tracking-[-0.02em] text-slate-900">
                         {file.newName || file.originalName}
                     </span>
                     {file.description && (
-                        <span title={`README: ${file.description}`} className="flex-shrink-0 text-gd-green">
-                            <FileText className="h-3 w-3" />
-                        </span>
+                        <FileText className="h-3 w-3 flex-shrink-0 text-accent-600" aria-label="Есть описание для README" />
                     )}
                 </div>
-
-                <div className="flex items-center gap-x-1.5 gap-y-0.5 text-[11.5px] text-gd-muted min-w-0 flex-wrap">
-                    {isDuplicate ? (
-                        <span className="font-medium text-[#d70015]">Дубликат имени</span>
-                    ) : hasError ? (
-                        <span className="inline-flex items-center gap-1 font-medium text-[#c26a00]">
-                            <AlertTriangle className="h-3 w-3" />
-                            Ошибка имени
-                        </span>
-                    ) : null}
-
-                    {hasAltName && (
-                        <span className="truncate min-w-0 max-w-full" title={`Исходное имя: ${file.originalName}`}>
-                            {file.originalName}
-                        </span>
-                    )}
-
-                    {file.detectedDate && !hasAltName && (
-                        <span className="inline-flex items-center gap-1 tabular-nums" title={`Дата выгрузки: ${file.detectedDate}`}>
-                            <Calendar className="h-3 w-3" />
-                            {file.detectedDate}
-                        </span>
-                    )}
-
-                    {(file.cardId || cardLink) &&
-                        (cardLink ? (
-                            <a
-                                href={cardLink}
-                                target="_blank"
-                                rel="noreferrer"
-                                title={`Открыть карточку в GreenData: ${cardLink}`}
-                                onClick={(e) => e.stopPropagation()}
-                                className="inline-flex items-center gap-0.5 font-medium text-gd-green hover:underline flex-shrink-0"
-                            >
-                                <LinkIcon className="w-3 h-3" />
-                                {file.cardId ? `ID ${file.cardId}` : 'Карточка'}
-                            </a>
-                        ) : (
-                            <span className="font-mono flex-shrink-0" title={`ID карточки в GreenData: ${file.cardId}`}>
-                                ID {file.cardId}
-                            </span>
-                        ))}
-
-                    {isMatchedInTask && (
-                        <span
-                            title="Объект найден в привязанной задаче реализации по ID карточки"
-                            className="inline-flex items-center gap-0.5 font-medium text-gd-green flex-shrink-0"
-                        >
-                            <Check className="w-3 h-3" strokeWidth={2.75} />
-                            В задаче
-                        </span>
-                    )}
-                </div>
+                {issue && (
+                    <div className="mt-0.5 flex items-center gap-1 text-[11px] font-medium text-[#a4500f]">
+                        <AlertTriangle className="h-3 w-3" />
+                        {issue}
+                    </div>
+                )}
             </div>
 
+            {/* Индикаторы связи с GreenData и задачей */}
+            {cardLink && (
+                <a
+                    href={cardLink}
+                    target="_blank"
+                    rel="noreferrer"
+                    onClick={(e) => e.stopPropagation()}
+                    title={`Открыть карточку в GreenData${file.cardId ? ` (ID ${file.cardId})` : ''}`}
+                    aria-label="Открыть карточку в GreenData"
+                    className="grid h-6 w-6 flex-shrink-0 place-items-center rounded-full text-accent-600 hover:bg-gd-accent-light"
+                >
+                    <LinkIcon className="h-3.5 w-3.5" />
+                </a>
+            )}
+            {isMatchedInTask && (
+                <span
+                    title="Объект найден в привязанной задаче реализации по ID карточки"
+                    aria-label="В задаче"
+                    className="h-2 w-2 flex-shrink-0 rounded-full bg-gd-success"
+                />
+            )}
+
             {/* Действия */}
-            <div className="flex flex-shrink-0 items-center gap-0.5 -mr-1">
+            <div className="-mr-1 flex flex-shrink-0 items-center">
                 <IconButton
                     size="sm"
                     variant="ghost"
                     icon={
                         isDownloaded ? (
-                            <Check className="h-3.5 w-3.5 text-gd-green animate-pop-in" strokeWidth={2.75} />
+                            <Check className="h-3.5 w-3.5 text-gd-success animate-pop-in" strokeWidth={2.75} />
                         ) : (
                             <Download className="h-3.5 w-3.5" />
                         )

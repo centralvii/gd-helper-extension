@@ -18,7 +18,7 @@ interface ToastProps {
 export const Toast: React.FC<ToastProps> = ({ icon, title, detail, meta, onClose }) => (
   <div className="fixed top-2 inset-x-3 z-50 flex justify-center pointer-events-none animate-toast-in">
     <div className="pointer-events-auto w-full max-w-sm gd-glass bg-white/85 rounded-[22px] shadow-gd-float pl-2 pr-1.5 py-1.5 flex items-center gap-2.5 select-none">
-      <div className="w-8 h-8 rounded-full bg-gd-green text-white flex items-center justify-center flex-shrink-0 [&_svg]:w-4 [&_svg]:h-4 [&_svg]:animate-icon-pop">
+      <div className="w-8 h-8 rounded-full bg-gd-accent text-white flex items-center justify-center flex-shrink-0 [&_svg]:w-4 [&_svg]:h-4 [&_svg]:animate-icon-pop">
         {icon}
       </div>
       <div className="flex-1 min-w-0">

@@ -123,7 +123,7 @@ export const TaskSettingsModal: React.FC<TaskSettingsModalProps> = ({
               Ссылка на релизный пакет GreenData
             </label>
             {task.lastFileNumber !== undefined && (
-              <span className="text-[10px] font-mono font-bold text-emerald-800 bg-emerald-100/90 px-1.5 py-0.5 rounded border border-emerald-200">
+              <span className="text-[10px] font-mono font-bold text-accent-800 bg-accent-100/90 px-1.5 py-0.5 rounded border border-accent-200">
                 Спарсен № {task.lastFileNumber}
               </span>
             )}
@@ -149,19 +149,19 @@ export const TaskSettingsModal: React.FC<TaskSettingsModalProps> = ({
             </Button>
           </div>
           {parseFeedback && (
-            <p className="text-[10.5px] font-medium text-emerald-700">{parseFeedback}</p>
+            <p className="text-[10.5px] font-medium text-accent-700">{parseFeedback}</p>
           )}
         </div>
 
         {/* ── Linked Packages Row (1 Task -> N Packages) ── */}
-        <div className="p-2.5 bg-emerald-50/60 border border-emerald-200/80 rounded-xl text-xs shadow-2xs space-y-1.5">
-          <div className="flex items-center justify-between gap-1.5 font-bold text-emerald-950 text-[11px] min-w-0">
+        <div className="p-2.5 bg-accent-50/60 border border-accent-200/80 rounded-xl text-xs shadow-2xs space-y-1.5">
+          <div className="flex items-center justify-between gap-1.5 font-bold text-accent-950 text-[11px] min-w-0">
             <div className="flex items-center gap-1.5 min-w-0">
-              <Package className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
+              <Package className="w-3.5 h-3.5 text-accent-600 flex-shrink-0" />
               <span className="truncate">Пакеты сборки</span>
             </div>
             {linkedPackages.length > 0 && (
-              <span className="px-1.5 py-0.5 bg-emerald-100/80 text-emerald-800 rounded-md font-bold text-[10px]">
+              <span className="px-1.5 py-0.5 bg-accent-100/80 text-accent-800 rounded-md font-bold text-[10px]">
                 {linkedPackages.length}
               </span>
             )}
@@ -185,14 +185,14 @@ export const TaskSettingsModal: React.FC<TaskSettingsModalProps> = ({
                     }
                   }}
                   title={`Открыть пакет "${pkg.name}" во вкладке Упаковка`}
-                  className="w-full flex items-center justify-between gap-1.5 px-2.5 py-1.5 rounded-xl bg-white hover:bg-emerald-100/70 border border-emerald-200 text-emerald-900 font-bold text-xs transition-all shadow-2xs group cursor-pointer"
+                  className="w-full flex items-center justify-between gap-1.5 px-2.5 py-1.5 rounded-xl bg-white hover:bg-accent-100/70 border border-accent-200 text-accent-900 font-bold text-xs transition-all shadow-2xs group cursor-pointer"
                 >
-                  <span className="font-mono text-emerald-800 truncate min-w-0 flex-1 text-left">
+                  <span className="font-mono text-accent-800 truncate min-w-0 flex-1 text-left">
                     {pkg.name}
                   </span>
                   <div className="flex items-center gap-1 flex-shrink-0">
                     <span className="text-slate-500 text-[10px]">({pkg.files.length} ф.)</span>
-                    <ExternalLink className="w-3 h-3 opacity-60 group-hover:opacity-100 text-emerald-600" />
+                    <ExternalLink className="w-3 h-3 opacity-60 group-hover:opacity-100 text-accent-600" />
                   </div>
                 </button>
               ))

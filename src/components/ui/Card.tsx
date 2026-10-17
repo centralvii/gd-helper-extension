@@ -14,11 +14,11 @@ export const Card: React.FC<CardProps> & {
 } = ({ variant = 'default', children, className, ...props }) => {
   // iOS inset grouped: белая группа на сером фоне, без рамок и теней
   const variants = {
-    default: 'rounded-xl bg-white',
-    gradient: 'rounded-xl bg-white ring-1 ring-inset ring-gd-border-green',
-    muted: 'rounded-xl bg-gd-fill-2',
-    danger: 'rounded-xl bg-[#ff3b30]/[0.06] ring-1 ring-inset ring-[#ff3b30]/20',
-    bordered: 'rounded-xl bg-white ring-1 ring-inset ring-gd-border-green',
+    default: 'gd-card',
+    gradient: 'gd-card ring-1 ring-inset ring-gd-border-accent',
+    muted: 'rounded-[20px] bg-white/40',
+    danger: 'rounded-[20px] bg-[#e5484d]/[0.07] ring-1 ring-inset ring-[#e5484d]/20',
+    bordered: 'gd-card ring-1 ring-inset ring-gd-border-accent',
   };
 
   return (

@@ -63,7 +63,7 @@ export const FileEditModal: React.FC<FileEditModalProps> = ({
         {/* Original File Info */}
         <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1.5 text-[11px] shadow-2xs">
           <div className="flex items-center gap-1.5 text-slate-600">
-            <FileCode className="w-3.5 h-3.5 text-emerald-600" />
+            <FileCode className="w-3.5 h-3.5 text-accent-600" />
             <span className="font-semibold text-slate-800">Исходный файл:</span>
             <span className="font-mono text-slate-900 font-bold truncate">{file.originalName}</span>
           </div>
@@ -101,7 +101,7 @@ export const FileEditModal: React.FC<FileEditModalProps> = ({
             <div className="grid grid-cols-1 gap-2">
               {variables.map((v) => (
                 <div key={v.key} className="flex items-center gap-2">
-                  <span className="w-24 text-[11px] font-mono font-bold text-emerald-700 truncate">{`{${v.key}}`}</span>
+                  <span className="w-24 text-[11px] font-mono font-bold text-accent-700 truncate">{`{${v.key}}`}</span>
                   <input
                     type="text"
                     value={customVars[v.key] || ''}
@@ -109,7 +109,7 @@ export const FileEditModal: React.FC<FileEditModalProps> = ({
                     onChange={(e) =>
                       setCustomVars((prev) => ({ ...prev, [v.key]: e.target.value }))
                     }
-                    className="flex-1 bg-slate-50/70 border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/10 shadow-2xs transition-all"
+                    className="flex-1 bg-slate-50/70 border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-accent-500 focus:outline-none focus:ring-2 focus:ring-accent-500/10 shadow-2xs transition-all"
                   />
                 </div>
               ))}

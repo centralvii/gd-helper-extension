@@ -6,7 +6,6 @@ import {
   Wand2,
   Hash,
   Package,
-  ExternalLink,
   Check,
   AlertTriangle,
 } from 'lucide-react';
@@ -26,6 +25,10 @@ interface TemplateEditorProps {
   onSetStartNumber: (num: number) => void;
   onResetTemplate: () => void;
   onShowToast?: (notification: { fileName: string; number: number }) => void;
+  /** Дополнительные чипы под шаблоном (теги, README) */
+  chips?: React.ReactNode;
+  onOpenPresets?: () => void;
+  presetsCount?: number;
 }
 
 export const TemplateEditor: React.FC<TemplateEditorProps> = ({
@@ -38,6 +41,9 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
   onSetStartNumber,
   onResetTemplate,
   onShowToast,
+  chips,
+  onOpenPresets,
+  presetsCount,
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const isPrimary = template === primaryTemplate;
@@ -112,34 +118,40 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
   return (
     <div>
       <div className="gd-section-title">
-        <span>Шаблон имени</span>
-        {isPrimary ? (
-          <span
-            title="Этот шаблон выбран основным и применяется всегда по умолчанию"
-            className="inline-flex items-center gap-1 normal-case tracking-normal text-[12px] font-medium text-[#c26a00]"
-          >
-            <Star className="h-3 w-3 fill-[#ff9500] text-[#ff9500]" />
-            Основной
-          </span>
-        ) : (
+        <span className="inline-flex items-center gap-1.5">
+          Шаблон имени
+          {isPrimary ? (
+            <Star
+              className="h-3 w-3 fill-[#f59e3b] text-[#f59e3b]"
+              aria-label="Основной шаблон"
+            />
+          ) : (
+            <button
+              type="button"
+              onClick={() => onSetPrimaryTemplate(template)}
+              title="Сделать текущий шаблон основным по умолчанию"
+              className="text-gd-faint hover:text-[#f59e3b] cursor-pointer"
+            >
+              <Star className="h-3 w-3" />
+            </button>
+          )}
+        </span>
+        {onOpenPresets && (
           <button
             type="button"
-            onClick={() => onSetPrimaryTemplate(template)}
-            title="Сделать текущий шаблон основным по умолчанию"
-            className="inline-flex items-center gap-1 normal-case tracking-normal text-[12.5px] font-medium text-gd-green cursor-pointer"
+            onClick={onOpenPresets}
+            title="Пресеты шаблонов наименования"
+            className="normal-case tracking-normal text-[12px] font-semibold text-accent-700 cursor-pointer"
           >
-            <Star className="h-3 w-3" />
-            Сделать основным
+            Пресеты{presetsCount ? ` · ${presetsCount}` : ''}
           </button>
         )}
       </div>
 
-      <div className="gd-group gd-group--icons">
+      <div className="gd-group p-2.5 space-y-2.5">
         {/* Шаблон */}
-        <div className="gd-row">
-          <span className="gd-row-icon gd-row-icon--accent">
-            <Wand2 />
-          </span>
+        <div className="flex items-center gap-2 rounded-xl bg-white/70 pl-2.5 pr-1">
+          <Wand2 className="h-3.5 w-3.5 flex-shrink-0 text-accent-600" />
           <input
             ref={inputRef}
             type="text"
@@ -147,103 +159,95 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
             onChange={(e) => onSetTemplate(e.target.value)}
             placeholder="{indexPad6}_{type}_{module}_{task}_{cleanName}"
             spellCheck={false}
-            className="min-w-0 flex-1 bg-transparent py-1.5 font-mono text-[12.5px] font-semibold text-slate-900 outline-none placeholder:text-gd-faint"
+            aria-label="Шаблон имени файла"
+            className="min-w-0 flex-1 bg-transparent py-2 font-mono text-[12px] font-medium text-slate-900 outline-none placeholder:text-gd-faint"
           />
           <button
             type="button"
             onClick={onResetTemplate}
             title="Сбросить к основному шаблону"
-            className="icon-btn icon-btn--plain w-7 h-7"
+            className="icon-btn icon-btn--plain !w-7 !h-7"
           >
             <RotateCcw className="h-3.5 w-3.5" />
           </button>
         </div>
 
-        {/* Начальный номер */}
-        <div className="gd-row">
-          <span className="gd-row-icon">
-            <Hash />
-          </span>
-          <span className="flex-1 min-w-0 text-[14px] text-slate-900 truncate">Начальный номер</span>
-          <input
-            type="number"
-            min={1}
-            value={startNumber}
-            onChange={(e) => onSetStartNumber(parseInt(e.target.value, 10) || 1)}
-            title="Стартовый номер"
-            className="gd-field !w-16 !py-1 text-center font-semibold tabular-nums [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-          />
+        {/* Компактные параметры: начальный номер + чипы */}
+        <div className="flex flex-wrap items-center gap-1.5">
+          <label className="gd-chip !cursor-text" title="Начальный номер файлов">
+            <Hash className="h-3.5 w-3.5 text-accent-600" />
+            <input
+              type="number"
+              min={1}
+              value={startNumber}
+              onChange={(e) => onSetStartNumber(parseInt(e.target.value, 10) || 1)}
+              aria-label="Начальный номер"
+              className="w-12 bg-transparent font-mono text-[12px] font-semibold outline-none tabular-nums [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+            />
+          </label>
+          {chips}
         </div>
 
         {/* Релизный пакет GreenData → автопарсинг номера */}
-        <div className="gd-row !items-start !py-2.5">
-          <span className="gd-row-icon mt-0.5">
-            <Package />
-          </span>
-          <div className="flex-1 min-w-0 space-y-2">
-            <div className="flex items-center justify-between gap-2">
-              <span className="text-[14px] text-slate-900 truncate">Релизный пакет</span>
-              <button
-                type="button"
-                onClick={handleFetchUrlFromActiveTab}
-                disabled={isParsing}
-                className="inline-flex items-center gap-1 text-[12.5px] font-medium text-gd-green cursor-pointer flex-shrink-0 disabled:opacity-40"
-                title="Вставить ссылку из текущей открытой вкладки Chrome"
-              >
-                <Sparkles className="w-3 h-3" />
-                Из вкладки
-              </button>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <div className="relative flex-1 min-w-0">
-                <ExternalLink className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-gd-faint" />
-                <input
-                  type="url"
-                  value={packageUrl}
-                  onChange={(e) => {
-                    setPackageUrl(e.target.value);
-                    try {
-                      localStorage.setItem('gd_last_package_url', e.target.value);
-                    } catch {}
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      handleAutoParseNumber();
-                    }
-                  }}
-                  placeholder="https://expo.greendatasoft.ru/#/card/…"
-                  className="gd-field !pl-7 !py-1.5 font-mono !text-[11.5px]"
-                />
-              </div>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={handleAutoParseNumber}
-                disabled={isParsing}
-                isLoading={isParsing}
-                title="Спарсить последний номер .guf файла по указанной ссылке"
-                leftIcon={!isParsing ? <Hash className="w-3.5 h-3.5" /> : undefined}
-              >
-                {isParsing ? 'Парсинг…' : '№'}
-              </Button>
-            </div>
-            {parseFeedback && (
-              <div
-                className={`text-[12px] font-medium flex items-center gap-1.5 animate-fade-in ${
-                  parseFeedback.type === 'success' ? 'text-gd-green' : 'text-[#d70015]'
-                }`}
-              >
-                {parseFeedback.type === 'success' ? (
-                  <Check className="w-3.5 h-3.5 flex-shrink-0" />
-                ) : (
-                  <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" />
-                )}
-                <span className="truncate flex-1 min-w-0">{parseFeedback.text}</span>
-              </div>
-            )}
+        <div className="flex items-center gap-1.5">
+          <div className="relative min-w-0 flex-1">
+            <Package className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gd-faint" />
+            <input
+              type="url"
+              value={packageUrl}
+              onChange={(e) => {
+                setPackageUrl(e.target.value);
+                try {
+                  localStorage.setItem('gd_last_package_url', e.target.value);
+                } catch {}
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  handleAutoParseNumber();
+                }
+              }}
+              placeholder="Ссылка на релизный пакет"
+              aria-label="Ссылка на релизный пакет GreenData"
+              className="gd-field !py-1.5 !pl-8 !text-[12px]"
+            />
           </div>
+          <button
+            type="button"
+            onClick={handleFetchUrlFromActiveTab}
+            disabled={isParsing}
+            title="Вставить ссылку из текущей открытой вкладки Chrome"
+            className="icon-btn !w-8 !h-8 disabled:opacity-40"
+          >
+            <Sparkles className="h-3.5 w-3.5" />
+          </button>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={handleAutoParseNumber}
+            disabled={isParsing}
+            isLoading={isParsing}
+            title="Спарсить последний номер .guf файла по ссылке и подставить следующий"
+            leftIcon={!isParsing ? <Hash className="h-3.5 w-3.5" /> : undefined}
+          >
+            {isParsing ? '…' : '№'}
+          </Button>
         </div>
+
+        {parseFeedback && (
+          <div
+            className={`flex items-center gap-1.5 px-1 text-[12px] font-medium animate-fade-in ${
+              parseFeedback.type === 'success' ? 'text-[#0f7a5c]' : 'text-[#b42328]'
+            }`}
+          >
+            {parseFeedback.type === 'success' ? (
+              <Check className="h-3.5 w-3.5 flex-shrink-0" />
+            ) : (
+              <AlertTriangle className="h-3.5 w-3.5 flex-shrink-0" />
+            )}
+            <span className="min-w-0 flex-1 truncate">{parseFeedback.text}</span>
+          </div>
+        )}
       </div>
     </div>
   );

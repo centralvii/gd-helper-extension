@@ -24,21 +24,21 @@ export const Badge: React.FC<BadgeProps> = ({
     'inline-flex items-center font-semibold rounded-full select-none transition-colors whitespace-nowrap tabular-nums';
 
   const variants = {
-    default: 'bg-gd-fill text-slate-600',
-    success: 'bg-gd-green-light text-gd-green',
-    warning: 'bg-[#ff9500]/15 text-[#c26a00]',
-    danger: 'bg-[#ff3b30]/[0.12] text-[#d70015]',
-    info: 'bg-[#007aff]/[0.12] text-[#0062cc]',
-    purple: 'bg-[#af52de]/[0.12] text-[#8944ab]',
+    default: 'bg-gd-fill text-slate-700',
+    success: 'bg-[#22b58a]/[0.16] text-[#0f7a5c]',
+    warning: 'bg-[#f59e3b]/[0.18] text-[#a4500f]',
+    danger: 'bg-[#e5484d]/[0.14] text-[#b42328]',
+    info: 'bg-gd-accent-light text-accent-700',
+    purple: 'bg-[#8b5cf6]/[0.14] text-[#6d3fd0]',
   };
 
   const dotColors = {
     default: 'bg-slate-400',
-    success: 'bg-gd-green',
-    warning: 'bg-[#ff9500]',
-    danger: 'bg-[#ff3b30]',
-    info: 'bg-[#007aff]',
-    purple: 'bg-[#af52de]',
+    success: 'bg-[#22b58a]',
+    warning: 'bg-[#f59e3b]',
+    danger: 'bg-[#e5484d]',
+    info: 'bg-gd-accent',
+    purple: 'bg-[#8b5cf6]',
   };
 
   const sizes = {

@@ -44,7 +44,7 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
             value={value}
             className={twMerge(
               clsx(
-                'block w-full rounded-[10px] border border-transparent bg-gd-fill p-2.5 text-[13px] text-slate-900 placeholder:text-slate-400 outline-none transition-all focus:border-gd-green focus:bg-white focus:ring-4 focus:ring-emerald-500/15 resize-none',
+                'block w-full rounded-xl border border-transparent bg-gd-fill p-2.5 text-[13px] text-slate-900 placeholder:text-slate-400 outline-none transition-all focus:border-gd-accent focus:bg-white focus:ring-4 focus:ring-accent-500/15 resize-none',
                 showClear && hasValue && 'pr-7',
                 error && 'border-[#ff3b30]/60 focus:border-[#ff3b30] focus:ring-[#ff3b30]/15',
                 className

@@ -131,7 +131,7 @@ export const AiSettingsModal: React.FC<AiSettingsModalProps> = ({
         {/* Base URL */}
         <div>
           <label className="block text-[11px] font-semibold text-slate-700 mb-1 flex items-center gap-1.5">
-            <Server className="w-3.5 h-3.5 text-emerald-600" />
+            <Server className="w-3.5 h-3.5 text-accent-600" />
             <span>Base URL сервера или шлюза</span>
           </label>
           <Input
@@ -150,7 +150,7 @@ export const AiSettingsModal: React.FC<AiSettingsModalProps> = ({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             <div>
               <label className="block text-[11px] font-semibold text-slate-700 mb-1 flex items-center gap-1.5">
-                <Shield className="w-3.5 h-3.5 text-emerald-600" />
+                <Shield className="w-3.5 h-3.5 text-accent-600" />
                 <span>Тип авторизации</span>
               </label>
               <Select
@@ -167,7 +167,7 @@ export const AiSettingsModal: React.FC<AiSettingsModalProps> = ({
 
             <div>
               <label className="block text-[11px] font-semibold text-slate-700 mb-1 flex items-center gap-1.5">
-                <Key className="w-3.5 h-3.5 text-emerald-600" />
+                <Key className="w-3.5 h-3.5 text-accent-600" />
                 <span>API-ключ / Токен</span>
               </label>
               <Input
@@ -198,7 +198,7 @@ export const AiSettingsModal: React.FC<AiSettingsModalProps> = ({
         <div>
           <div className="flex items-center justify-between mb-1">
             <label className="text-[11px] font-semibold text-slate-700 flex items-center gap-1.5">
-              <Cpu className="w-3.5 h-3.5 text-emerald-600" />
+              <Cpu className="w-3.5 h-3.5 text-accent-600" />
               <span>Название модели (Model ID)</span>
             </label>
             <span className="text-[10px] text-slate-400">Например: deepseek-coder, gpt-4o-mini</span>
@@ -229,7 +229,7 @@ export const AiSettingsModal: React.FC<AiSettingsModalProps> = ({
                 onChange={(e) => setCustomHeadersJson(e.target.value)}
                 placeholder={'{\n  "X-Custom-Auth": "token",\n  "User-Agent": "MyClient"\n}'}
                 rows={3}
-                className="w-full px-2.5 py-1.5 font-mono text-[11px] bg-white border border-slate-200 rounded-lg text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                className="w-full px-2.5 py-1.5 font-mono text-[11px] bg-white border border-slate-200 rounded-lg text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-accent-500"
               />
               <span className="text-[10px] text-slate-400 block">
                 Произвольные заголовки в формате JSON для внутренних корпоративных шлюзов
@@ -261,12 +261,12 @@ export const AiSettingsModal: React.FC<AiSettingsModalProps> = ({
             <div
               className={`p-2.5 rounded-xl border text-[11px] flex items-start gap-2 animate-fade-in whitespace-pre-line ${
                 testResult.ok
-                  ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
+                  ? 'bg-accent-50 border-accent-200 text-accent-800'
                   : 'bg-rose-50 border-rose-200 text-rose-800'
               }`}
             >
               {testResult.ok ? (
-                <Check className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
+                <Check className="w-4 h-4 text-accent-600 flex-shrink-0 mt-0.5" />
               ) : (
                 <HelpCircle className="w-4 h-4 text-rose-600 flex-shrink-0 mt-0.5" />
               )}
