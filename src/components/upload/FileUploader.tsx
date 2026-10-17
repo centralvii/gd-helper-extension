@@ -75,7 +75,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
             <input ref={zipInputRef} type="file" accept=".zip" className="hidden" onChange={handleZipChange} />
             <input ref={gufInputRef} type="file" accept=".guf" multiple className="hidden" onChange={handleGufChange} />
 
-            <div className="mx-auto mb-4 grid h-16 w-16 place-items-center rounded-[18px] bg-gd-green text-white shadow-gd-green">
+            <div className="mx-auto mb-4 grid h-16 w-16 place-items-center rounded-[18px] bg-gd-accent text-white shadow-gd-accent">
                 <UploadCloud className="h-8 w-8" />
             </div>
             <h4 className="text-[17px] font-semibold tracking-[-0.02em] text-slate-900">Перетащите файлы пакета</h4>

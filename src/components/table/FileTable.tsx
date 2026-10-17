@@ -135,7 +135,7 @@ export const FileTable: React.FC<FileTableProps> = ({
 
                 <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
                     <SortableContext items={fileIds} strategy={verticalListSortingStrategy} disabled={isFiltered}>
-                        <div className="gd-group !overflow-visible [--gd-sep-inset:56px] gd-stagger">
+                        <div className="gd-group !overflow-visible [--gd-sep-inset:48px] gd-stagger">
                             {filteredFiles.map((file) => (
                                 <FileRowItem
                                     key={file.id}

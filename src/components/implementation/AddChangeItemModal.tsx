@@ -286,7 +286,7 @@ export const AddChangeItemModal: React.FC<AddChangeItemModalProps> = ({
         <div className="space-y-2 p-3 bg-slate-50/90 border border-slate-200 rounded-xl shadow-2xs">
           <div className="flex items-center justify-between gap-2 flex-wrap">
             <label className="font-bold text-slate-800 flex items-center gap-1.5">
-              <Layers className="w-3.5 h-3.5 text-emerald-600" />
+              <Layers className="w-3.5 h-3.5 text-accent-600" />
               <span>Раздел (категория)</span>
             </label>
 
@@ -295,30 +295,30 @@ export const AddChangeItemModal: React.FC<AddChangeItemModalProps> = ({
                 type="button"
                 onClick={() => setIsBadgeExpanded(true)}
                 title="Нажмите, чтобы развернуть подробности сопоставления"
-                className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg bg-emerald-100/90 hover:bg-emerald-200/90 text-emerald-950 text-[10.5px] font-bold border border-emerald-300/80 transition-all shadow-2xs max-w-[240px] cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg bg-accent-100/90 hover:bg-accent-200/90 text-accent-950 text-[10.5px] font-bold border border-accent-300/80 transition-all shadow-2xs max-w-[240px] cursor-pointer"
               >
-                <Sparkles className="w-3 h-3 text-emerald-700 flex-shrink-0" />
+                <Sparkles className="w-3 h-3 text-accent-700 flex-shrink-0" />
                 <span className="truncate">
                   {detectedBadge.rawType ? `${detectedBadge.rawType} ➔ ` : ''}
                   {detectedBadge.sectionName}
                 </span>
-                <ChevronDown className="w-3 h-3 text-emerald-700 flex-shrink-0 ml-0.5" />
+                <ChevronDown className="w-3 h-3 text-accent-700 flex-shrink-0 ml-0.5" />
               </button>
             )}
           </div>
 
           {/* Expanded Detected Badge Card */}
           {detectedBadge && isBadgeExpanded && (
-            <div className="p-2.5 rounded-xl bg-emerald-100/90 border border-emerald-300/90 text-emerald-950 text-[11px] space-y-1 animate-slide-down shadow-2xs">
-              <div className="flex items-center justify-between gap-2 font-bold border-b border-emerald-200/80 pb-1">
-                <span className="flex items-center gap-1.5 text-emerald-900">
-                  <Sparkles className="w-3.5 h-3.5 text-emerald-700 flex-shrink-0" />
+            <div className="p-2.5 rounded-xl bg-accent-100/90 border border-accent-300/90 text-accent-950 text-[11px] space-y-1 animate-slide-down shadow-2xs">
+              <div className="flex items-center justify-between gap-2 font-bold border-b border-accent-200/80 pb-1">
+                <span className="flex items-center gap-1.5 text-accent-900">
+                  <Sparkles className="w-3.5 h-3.5 text-accent-700 flex-shrink-0" />
                   Авто-определение раздела
                 </span>
                 <button
                   type="button"
                   onClick={() => setIsBadgeExpanded(false)}
-                  className="text-[10px] text-emerald-800 hover:text-emerald-950 font-semibold flex items-center gap-0.5 cursor-pointer bg-white/70 hover:bg-white px-1.5 py-0.5 rounded-md border border-emerald-300/60 transition-colors"
+                  className="text-[10px] text-accent-800 hover:text-accent-950 font-semibold flex items-center gap-0.5 cursor-pointer bg-white/70 hover:bg-white px-1.5 py-0.5 rounded-md border border-accent-300/60 transition-colors"
                 >
                   <span>Свернуть</span>
                   <ChevronUp className="w-3 h-3" />
@@ -326,19 +326,19 @@ export const AddChangeItemModal: React.FC<AddChangeItemModalProps> = ({
               </div>
 
               {detectedBadge.rawType && (
-                <div className="text-[10.5px] text-emerald-900 break-words leading-relaxed">
-                  <span className="font-semibold text-emerald-800">Объект на странице: </span>
+                <div className="text-[10.5px] text-accent-900 break-words leading-relaxed">
+                  <span className="font-semibold text-accent-800">Объект на странице: </span>
                   <span className="font-bold">{detectedBadge.rawType}</span>
                 </div>
               )}
 
-              <div className="text-[10.5px] text-emerald-950 font-bold break-words leading-relaxed">
-                <span className="font-semibold text-emerald-800">Выбран раздел: </span>
+              <div className="text-[10.5px] text-accent-950 font-bold break-words leading-relaxed">
+                <span className="font-semibold text-accent-800">Выбран раздел: </span>
                 «{detectedBadge.sectionName}»
               </div>
 
               {detectedBadge.reason && (
-                <div className="text-[10px] text-emerald-700 font-medium italic break-words pt-0.5">
+                <div className="text-[10px] text-accent-700 font-medium italic break-words pt-0.5">
                   {detectedBadge.reason}
                 </div>
               )}
@@ -360,7 +360,7 @@ export const AddChangeItemModal: React.FC<AddChangeItemModalProps> = ({
               <button
                 type="button"
                 onClick={() => handleQuickCreateSection(unmatchedDetectedType)}
-                className="px-2.5 py-1 text-[11px] font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-all shadow-xs flex items-center gap-1 flex-shrink-0 cursor-pointer"
+                className="px-2.5 py-1 text-[11px] font-bold bg-accent-600 hover:bg-accent-700 text-white rounded-lg transition-all shadow-xs flex items-center gap-1 flex-shrink-0 cursor-pointer"
               >
                 <FolderPlus className="w-3.5 h-3.5" />
                 + Создать раздел
@@ -448,7 +448,7 @@ export const AddChangeItemModal: React.FC<AddChangeItemModalProps> = ({
         <div className="p-3 bg-slate-50/90 border border-slate-200 rounded-xl space-y-2.5 shadow-2xs">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-1.5 text-slate-700 font-semibold min-w-0">
-              <LinkIcon className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
+              <LinkIcon className="w-3.5 h-3.5 text-accent-600 flex-shrink-0" />
               <span className="truncate text-xs font-bold">Ссылка на объект (опционально)</span>
             </div>
             <Button
@@ -458,15 +458,15 @@ export const AddChangeItemModal: React.FC<AddChangeItemModalProps> = ({
               onClick={handleFetchActiveTab}
               disabled={isLoadingTab}
               title="Получить заголовок, тип объекта и адрес текущей открытой вкладки Chrome"
-              leftIcon={<Sparkles className="w-3 h-3 text-emerald-600 flex-shrink-0" />}
+              leftIcon={<Sparkles className="w-3 h-3 text-accent-600 flex-shrink-0" />}
             >
               {isLoadingTab ? 'Считывание...' : 'С активной вкладки'}
             </Button>
           </div>
 
           {tabLoadedMessage && (
-            <div className="text-[11px] text-emerald-900 bg-emerald-100/80 px-2.5 py-1 rounded-xl border border-emerald-300 flex items-center gap-1 truncate animate-fade-in font-medium">
-              <Check className="w-3 h-3 flex-shrink-0 text-emerald-600" />
+            <div className="text-[11px] text-accent-900 bg-accent-100/80 px-2.5 py-1 rounded-xl border border-accent-300 flex items-center gap-1 truncate animate-fade-in font-medium">
+              <Check className="w-3 h-3 flex-shrink-0 text-accent-600" />
               <span className="truncate">{tabLoadedMessage}</span>
             </div>
           )}
@@ -495,7 +495,7 @@ export const AddChangeItemModal: React.FC<AddChangeItemModalProps> = ({
               <div className="pt-1 flex flex-col gap-1.5 animate-fade-in">
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-[10.5px] text-slate-500 font-semibold flex items-center gap-1">
-                    <Package className="w-3 h-3 text-emerald-600" />
+                    <Package className="w-3 h-3 text-accent-600" />
                     Релизный пакет:
                   </span>
                   <Button
@@ -504,19 +504,19 @@ export const AddChangeItemModal: React.FC<AddChangeItemModalProps> = ({
                     size="xs"
                     onClick={handleParsePackageFromUrl}
                     disabled={isParsingPackage}
-                    leftIcon={<Hash className={`w-3 h-3 text-emerald-600 ${isParsingPackage ? 'animate-spin' : ''}`} />}
+                    leftIcon={<Hash className={`w-3 h-3 text-accent-600 ${isParsingPackage ? 'animate-spin' : ''}`} />}
                   >
                     {isParsingPackage ? 'Парсинг...' : 'Спарсить № из ссылки'}
                   </Button>
                 </div>
 
                 {parsedPackageNumber && (
-                  <div className="text-[11px] bg-emerald-50 text-emerald-900 border border-emerald-200 px-2.5 py-1.5 rounded-xl flex items-center gap-2">
-                    <Check className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
+                  <div className="text-[11px] bg-accent-50 text-accent-900 border border-accent-200 px-2.5 py-1.5 rounded-xl flex items-center gap-2">
+                    <Check className="w-3.5 h-3.5 text-accent-600 flex-shrink-0" />
                     <div className="min-w-0 flex-1">
                       <span className="font-bold">Спарсен след. № {parsedPackageNumber.number}</span>
                       {parsedPackageNumber.fileName && (
-                        <span className="text-emerald-700 ml-1.5 font-mono text-[10px] truncate block">
+                        <span className="text-accent-700 ml-1.5 font-mono text-[10px] truncate block">
                           {parsedPackageNumber.fileName}
                         </span>
                       )}
@@ -574,7 +574,7 @@ export const AddChangeItemModal: React.FC<AddChangeItemModalProps> = ({
                   href={linkUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="ml-1 inline-flex items-center gap-0.5 text-emerald-700 hover:text-emerald-800 underline font-semibold"
+                  className="ml-1 inline-flex items-center gap-0.5 text-accent-700 hover:text-accent-800 underline font-semibold"
                 >
                   [{linkTitle || 'Ссылка'}]
                   <ExternalLink className="w-2.5 h-2.5 inline" />

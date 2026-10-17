@@ -40,8 +40,8 @@ export const IconButton: React.FC<IconButtonProps> = ({
       isActive && 'bg-[#ff3b30]/10 text-[#ff3b30]'
     ),
     emerald: clsx(
-      'text-slate-500 hover:text-gd-green hover:bg-gd-green-light',
-      isActive && 'bg-gd-green-light text-gd-green'
+      'text-slate-500 hover:text-gd-accent hover:bg-gd-accent-light',
+      isActive && 'bg-gd-accent-light text-gd-accent'
     ),
     sky: clsx(
       'text-slate-500 hover:text-[#007aff] hover:bg-[#007aff]/10',

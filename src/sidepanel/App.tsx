@@ -1,5 +1,5 @@
-import React, { useState, useMemo, useCallback } from 'react';
-import { UploadCloud, Zap, Bookmark, FileEdit, Hash, Tag } from 'lucide-react';
+import React, { useState, useMemo, useCallback, useRef } from 'react';
+import { UploadCloud, Zap, Bookmark, FileEdit, Hash, Tag, Archive, ListChecks, SquareCheckBig, Plus, FileArchive, Download, AlertTriangle, Package, ListPlus } from 'lucide-react';
 import { useAppState, getFormattedArchiveName } from '../hooks/useAppState';
 import { useGlobalFileDrop } from '../hooks/useGlobalFileDrop';
 import { useAutoCollector } from '../hooks/useAutoCollector';
@@ -7,12 +7,14 @@ import { useImplementationTasks } from '../hooks/useImplementationTasks';
 import { Header } from '../components/layout/Header';
 import { TabBar } from '../components/layout/TabBar';
 import { Toast } from '../components/layout/Toast';
+import { CommandPalette } from '../components/layout/CommandPalette';
+import { usePaletteShortcuts } from '../hooks/usePaletteShortcuts';
+import { pluralizeRu, FILE_FORMS } from '../utils/pluralize';
 import { Badge } from '../components/ui/Badge';
 import { Footer } from '../components/layout/Footer';
 import { ImplementationTool } from '../components/implementation/ImplementationTool';
 import { YouTrackTool } from '../components/youtrack/YouTrackTool';
 import { ExtraContainer } from '../components/extra/ExtraContainer';
-import { AiChatContainer } from '../components/ai/AiChatContainer';
 import { PackageSelector } from '../components/template/PackageSelector';
 import { AutoCollectModeBar } from '../components/template/AutoCollectModeBar';
 import { FileUploader } from '../components/upload/FileUploader';
@@ -26,15 +28,13 @@ import { FileEditModal } from '../components/table/FileEditModal';
 import { DuplicateAutoCollectModal } from '../components/template/DuplicateAutoCollectModal';
 import { isSameUrl, extractCardIdFromUrl, isGreenDataUpdatePackage } from '../utils/tabUtils';
 import { AutoCollectedMeta } from '../hooks/useAutoCollector';
-import { ToolRow } from '../components/ui/ToolRow';
-import { FileRow, ActiveTool, YouTrackIssue } from '../types';
+import { FileRow, ActiveTool, YouTrackIssue, PaletteCommand } from '../types';
 
 const TOOL_TITLES: Record<ActiveTool, string> = {
     packer: 'Упаковка',
     implementation: 'Реализация',
     youtrack: 'YouTrack',
     extra: 'Утилиты',
-    ai: 'ИИ-ассистент',
 };
 
 export const App: React.FC = () => {
@@ -89,7 +89,7 @@ export const App: React.FC = () => {
     const [activeTool, setActiveTool] = useState<ActiveTool>(() => {
         try {
             const saved = localStorage.getItem('gd-helper-active-tool');
-            if (saved === 'packer' || saved === 'implementation' || saved === 'youtrack' || saved === 'extra' || saved === 'ai') {
+            if (saved === 'packer' || saved === 'implementation' || saved === 'youtrack' || saved === 'extra') {
                 return saved;
             }
         } catch {
@@ -98,14 +98,14 @@ export const App: React.FC = () => {
         return 'packer';
     });
 
-    const handleSelectTool = (tool: ActiveTool) => {
+    const handleSelectTool = useCallback((tool: ActiveTool) => {
         setActiveTool(tool);
         try {
             localStorage.setItem('gd-helper-active-tool', tool);
         } catch {
             // ignore
         }
-    };
+    }, []);
 
     const handleTransferYouTrackToImplementation = useCallback(
         (issue: YouTrackIssue) => {
@@ -273,6 +273,60 @@ export const App: React.FC = () => {
         }
     }, [activeTool, activePackage.name, activePackageTask, implTasks.activeTask]);
 
+    // ── Командная палитра (Ctrl/⌘ + K) ──
+    const [isPaletteOpen, setIsPaletteOpen] = useState(false);
+    const togglePalette = useCallback(() => setIsPaletteOpen((v) => !v), []);
+    usePaletteShortcuts(togglePalette, handleSelectTool);
+
+    const paletteGufInputRef = useRef<HTMLInputElement>(null);
+    const paletteZipInputRef = useRef<HTMLInputElement>(null);
+
+    const paletteCommands = useMemo<PaletteCommand[]>(() => {
+        const cmds: PaletteCommand[] = [
+            { id: 'go-packer', group: 'Перейти', title: 'Упаковка', icon: <Archive />, shortcut: 'Alt 1', run: () => handleSelectTool('packer') },
+            { id: 'go-impl', group: 'Перейти', title: 'Реализация', icon: <ListChecks />, shortcut: 'Alt 2', run: () => handleSelectTool('implementation') },
+            { id: 'go-yt', group: 'Перейти', title: 'YouTrack', icon: <SquareCheckBig />, shortcut: 'Alt 3', run: () => handleSelectTool('youtrack') },
+            { id: 'go-extra', group: 'Перейти', title: 'Утилиты', subtitle: 'генератор ID алгоритмов', icon: <Zap />, shortcut: 'Alt 4', run: () => handleSelectTool('extra') },
+            { id: 'add-guf', group: 'Действия', title: 'Добавить .guf файлы', keywords: 'загрузить файл', icon: <Plus />, run: () => paletteGufInputRef.current?.click() },
+            { id: 'load-zip', group: 'Действия', title: 'Загрузить ZIP-архив', keywords: 'импорт архив', icon: <FileArchive />, run: () => paletteZipInputRef.current?.click() },
+        ];
+        if (files.length > 0 && !validation.hasErrors) {
+            cmds.push({ id: 'export', group: 'Действия', title: 'Экспорт ZIP', subtitle: activePackage.name, keywords: 'скачать архив', icon: <Download />, run: () => { void exportZip(activePackageTask); } });
+        }
+        if (validation.hasErrors) {
+            cmds.push({ id: 'validation', group: 'Действия', title: 'Ошибки имён файлов', subtitle: `${validation.errors.length}`, keywords: 'проверка валидация', icon: <AlertTriangle />, run: () => setIsValidationOpen(true) });
+        }
+        cmds.push(
+            { id: 'tags', group: 'Действия', title: 'Теги и шаблон', keywords: 'переменные module type task', icon: <Tag />, run: () => { handleSelectTool('packer'); setIsMassActionsOpen(true); } },
+            { id: 'presets', group: 'Действия', title: 'Пресеты шаблонов', icon: <Bookmark />, run: () => { handleSelectTool('packer'); setIsPresetsOpen(true); } },
+            { id: 'readme', group: 'Действия', title: 'Редактор README.txt', icon: <FileEdit />, run: () => { handleSelectTool('packer'); setIsReadmeOpen(true); } },
+            { id: 'new-package', group: 'Действия', title: 'Новый пакет сборки', icon: <Package />, run: () => { createPackage(); handleSelectTool('packer'); } },
+            { id: 'new-task', group: 'Действия', title: 'Новая задача реализации', icon: <ListPlus />, run: () => { implTasks.createTask(); handleSelectTool('implementation'); } },
+        );
+        implTasks.tasks.forEach((t) => {
+            const done = t.items.filter((i) => i.isCollected).length;
+            cmds.push({
+                id: `task-${t.id}`,
+                group: 'Задачи',
+                title: `${t.taskNumber} · ${t.title}`,
+                subtitle: `${done}/${t.items.length}`,
+                icon: <ListChecks />,
+                run: () => { implTasks.selectTask(t.id); handleSelectTool('implementation'); },
+            });
+        });
+        packages.forEach((pkg) => {
+            cmds.push({
+                id: `pkg-${pkg.id}`,
+                group: 'Пакеты',
+                title: pkg.name,
+                subtitle: `${pkg.files.length} ${pluralizeRu(pkg.files.length, FILE_FORMS)}`,
+                icon: <Package />,
+                run: () => { selectPackage(pkg.id); handleSelectTool('packer'); },
+            });
+        });
+        return cmds;
+    }, [files.length, validation, activePackage.name, activePackageTask, exportZip, createPackage, implTasks, packages, selectPackage, handleSelectTool]);
+
     const handleSaveFileEdit = (
         id: string,
         cleanName: string,
@@ -289,7 +343,7 @@ export const App: React.FC = () => {
     if (isLoading) {
         return (
             <div className="flex flex-col items-center justify-center min-h-screen gap-3">
-                <svg className="animate-spin w-7 h-7 text-gd-green" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <svg className="animate-spin w-7 h-7 text-gd-accent" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                 </svg>
@@ -300,17 +354,13 @@ export const App: React.FC = () => {
 
     return (
         <div
-            className={`flex flex-col relative ${
-                activeTool === 'ai'
-                    ? 'h-full overflow-hidden pb-[var(--tabbar-h)]'
-                    : 'min-h-full pb-[var(--tabbar-h)]'
-            }`}
+            className="flex flex-col relative min-h-full pb-[var(--tabbar-h)]"
         >
             {/* Global Drag Overlay */}
             {isDraggingOver && (
-                <div className="fixed inset-2 z-50 flex flex-col items-center justify-center p-6 text-center pointer-events-none animate-fade-in rounded-xl border-2 border-dashed border-emerald-400 bg-emerald-50/90 backdrop-blur-sm">
-                    <div className="w-16 h-16 mb-3 rounded-xl bg-white border border-emerald-200 shadow-gd-green flex items-center justify-center">
-                        <UploadCloud className="w-8 h-8 text-emerald-600 animate-bounce" />
+                <div className="fixed inset-2 z-50 flex flex-col items-center justify-center p-6 text-center pointer-events-none animate-fade-in rounded-xl border-2 border-dashed border-accent-400 bg-accent-50/90 backdrop-blur-sm">
+                    <div className="w-16 h-16 mb-3 rounded-xl bg-white border border-accent-200 shadow-gd-accent flex items-center justify-center">
+                        <UploadCloud className="w-8 h-8 text-accent-600 animate-bounce" />
                     </div>
                     <h2 className="text-base font-bold mb-1 text-slate-900">
                         Отпустите файлы здесь
@@ -373,25 +423,46 @@ export const App: React.FC = () => {
 
             {/* Header */}
             <Header
-                key={activeTool}
                 title={TOOL_TITLES[activeTool]}
                 subtitle={headerSubtitle}
-                compact={activeTool === 'ai'}
+                onOpenPalette={() => setIsPaletteOpen(true)}
+            />
+
+            {/* Командная палитра и её скрытые поля выбора файлов */}
+            <CommandPalette isOpen={isPaletteOpen} onClose={() => setIsPaletteOpen(false)} commands={paletteCommands} />
+            <input
+                ref={paletteGufInputRef}
+                type="file"
+                accept=".guf"
+                multiple
+                hidden
+                onChange={(e) => {
+                    const picked = e.target.files ? Array.from(e.target.files) : [];
+                    if (picked.length) {
+                        handleSelectTool('packer');
+                        if (files.length > 0) addFiles(picked);
+                        else loadGufFiles(picked);
+                    }
+                    e.target.value = '';
+                }}
+            />
+            <input
+                ref={paletteZipInputRef}
+                type="file"
+                accept=".zip"
+                hidden
+                onChange={(e) => {
+                    const zip = e.target.files?.[0];
+                    if (zip) {
+                        handleSelectTool('packer');
+                        void loadZip(zip);
+                    }
+                    e.target.value = '';
+                }}
             />
 
             {/* Main Content Area */}
-            <main
-                className={
-                    activeTool === 'ai'
-                        ? 'flex-1 overflow-hidden flex flex-col min-h-0 p-0'
-                        : 'flex-1 px-4 pt-1 space-y-3 pb-6'
-                }
-            >
-                {/* AI Chat View (preserved in DOM so streaming / scroll / inputs never get lost) */}
-                <div className={activeTool === 'ai' ? 'flex-1 overflow-hidden flex flex-col min-h-0 h-full' : 'hidden'}>
-                    <AiChatContainer />
-                </div>
-
+            <main className="flex-1 px-4 pt-1 space-y-3 pb-6">
                 {/* Extra Tools View */}
                 <div className={activeTool === 'extra' ? 'space-y-3 animate-screen-in' : 'hidden'}>
                     <ExtraContainer />
@@ -453,31 +524,6 @@ export const App: React.FC = () => {
                         />
                     ) : (
                         <>
-                            {/* Инструменты пакета: теги, пресеты, README */}
-                            <div className="gd-group gd-group--icons animate-fade-in">
-                                <ToolRow
-                                    icon={<Tag />}
-                                    label="Теги"
-                                    value={variables.length || undefined}
-                                    title="Массовые действия и заполнение тегов (переменных) для файлов"
-                                    onClick={() => setIsMassActionsOpen(true)}
-                                />
-                                <ToolRow
-                                    icon={<Bookmark />}
-                                    label="Пресеты шаблонов"
-                                    value={presets.length || undefined}
-                                    title="Пресеты шаблонов наименования"
-                                    onClick={() => setIsPresetsOpen(true)}
-                                />
-                                <ToolRow
-                                    icon={<FileEdit />}
-                                    label="README.txt"
-                                    value={readmeContent && readmeContent.trim().length > 0 ? 'Заполнен' : 'Пусто'}
-                                    title="Редактор README.txt"
-                                    onClick={() => setIsReadmeOpen(true)}
-                                />
-                            </div>
-
                             {/* Template Editor */}
                             <TemplateEditor
                                 template={template}
@@ -491,6 +537,34 @@ export const App: React.FC = () => {
                                 onSetStartNumber={setStartNumber}
                                 onResetTemplate={resetTemplate}
                                 onShowToast={showPackageNumberToast}
+                                onOpenPresets={() => setIsPresetsOpen(true)}
+                                presetsCount={presets.length}
+                                chips={
+                                    <>
+                                        <button
+                                            type="button"
+                                            className="gd-chip"
+                                            onClick={() => setIsMassActionsOpen(true)}
+                                            title="Массовые действия и заполнение тегов (переменных) для файлов"
+                                        >
+                                            <Tag className="h-3.5 w-3.5 text-accent-600" />
+                                            Теги
+                                            <span className="font-mono text-gd-muted">{variables.length}</span>
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className="gd-chip"
+                                            onClick={() => setIsReadmeOpen(true)}
+                                            title="Редактор README.txt"
+                                        >
+                                            <FileEdit className="h-3.5 w-3.5 text-accent-600" />
+                                            README
+                                            {readmeContent && readmeContent.trim().length > 0 && (
+                                                <span className="h-1.5 w-1.5 rounded-full bg-gd-success" aria-label="заполнен" />
+                                            )}
+                                        </button>
+                                    </>
+                                }
                             />
 
                             {/* File Table */}

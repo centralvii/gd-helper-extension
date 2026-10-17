@@ -25,29 +25,30 @@ export const Button: React.FC<ButtonProps> = ({
   const base =
     'inline-flex items-center justify-center font-semibold tracking-[-0.01em] transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 disabled:opacity-35 disabled:cursor-not-allowed select-none cursor-pointer whitespace-nowrap';
 
+  // Aurora Glass: капсулы; основная — индиго с мягким свечением, вторичная — стекло
   const filledAccent =
-    'bg-gd-green hover:bg-gd-green-dark text-white focus-visible:ring-emerald-500/40';
+    'bg-gd-accent hover:bg-gd-accent-dark text-white shadow-gd-accent focus-visible:ring-accent-500/40';
 
   const variants = {
     primary: filledAccent,
-    emerald: filledAccent,
+    emerald: filledAccent, // устаревший псевдоним primary
     secondary:
-      'bg-gd-fill hover:bg-slate-200 text-slate-900 focus-visible:ring-slate-400/40',
+      'bg-white/75 hover:bg-white text-slate-900 border border-white/80 shadow-[inset_0_1px_0_#fff,0_4px_12px_rgba(40,48,110,0.08)] focus-visible:ring-slate-400/40',
     danger:
-      'bg-[#ff3b30] hover:bg-[#e0352b] text-white focus-visible:ring-rose-400/40',
+      'bg-[#e5484d] hover:bg-[#d13c41] text-white shadow-[0_6px_18px_rgba(229,72,77,0.3)] focus-visible:ring-rose-400/40',
     ghost:
-      'bg-transparent text-gd-green hover:bg-gd-green-light focus-visible:ring-emerald-500/30',
+      'bg-transparent text-accent-700 hover:bg-gd-accent-light focus-visible:ring-accent-500/30',
     outline:
-      'bg-gd-green-light text-gd-green hover:bg-emerald-500/20 focus-visible:ring-emerald-500/30',
+      'bg-gd-accent-light text-accent-700 hover:bg-accent-500/20 focus-visible:ring-accent-500/30',
     toolbar:
-      'bg-gd-fill hover:bg-slate-200 text-slate-900 focus-visible:ring-slate-400/40',
+      'bg-white/75 hover:bg-white text-slate-900 border border-white/80 focus-visible:ring-slate-400/40',
   };
 
   const sizes = {
     xs: 'text-[11px] h-6 px-2.5 gap-1 rounded-full',
     sm: 'text-[12.5px] h-8 px-3 gap-1.5 rounded-full',
-    md: 'text-[13px] h-9 px-4 gap-2 rounded-[10px]',
-    lg: 'text-[15px] h-11 px-5 gap-2 rounded-xl',
+    md: 'text-[13px] h-9 px-4 gap-2 rounded-full',
+    lg: 'text-[14px] h-11 px-5 gap-2 rounded-full',
   };
 
   return (

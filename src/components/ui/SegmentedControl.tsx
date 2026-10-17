@@ -64,14 +64,14 @@ export function SegmentedControl<T extends string = string>({
     <div
       ref={containerRef}
       className={twMerge(
-        'relative inline-flex items-center p-0.5 bg-gd-fill rounded-[9px] flex-shrink-0 select-none',
+        'relative inline-flex items-center p-[3px] bg-[rgba(27,31,59,0.06)] rounded-full flex-shrink-0 select-none',
         className
       )}
     >
       {thumb && (
         <span
           aria-hidden
-          className="absolute top-0.5 bottom-0.5 rounded-[7px] bg-white shadow-[0_3px_8px_rgba(0,0,0,0.12),0_3px_1px_rgba(0,0,0,0.04)] transition-[left,width] duration-300 ease-[cubic-bezier(0.34,1.3,0.64,1)]"
+          className="absolute top-[3px] bottom-[3px] rounded-full bg-white shadow-[0_2px_8px_rgba(40,48,110,0.14)] transition-[left,width] duration-300 ease-[cubic-bezier(0.34,1.3,0.64,1)]"
           style={{ left: thumb.left, width: thumb.width }}
         />
       )}
@@ -88,7 +88,7 @@ export function SegmentedControl<T extends string = string>({
             title={opt.title}
             className={twMerge(
               clsx(
-                'relative z-10 inline-flex flex-1 items-center justify-center gap-1.5 rounded-[7px] font-semibold leading-none whitespace-nowrap transition-colors duration-200 cursor-pointer',
+                'relative z-10 inline-flex flex-1 items-center justify-center gap-1.5 rounded-full font-semibold leading-none whitespace-nowrap transition-colors duration-200 cursor-pointer',
                 sizeClasses[size],
                 isActive ? 'text-slate-900' : 'text-slate-500 hover:text-slate-800'
               )

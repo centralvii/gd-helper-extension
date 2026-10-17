@@ -103,7 +103,7 @@ export const AlgorithmHeaderSettingsModal: React.FC<AlgorithmHeaderSettingsModal
         {/* Author Field */}
         <div>
           <label className="block text-[11px] font-bold text-slate-700 mb-1 flex items-center gap-1.5">
-            <User className="w-3.5 h-3.5 text-emerald-600" />
+            <User className="w-3.5 h-3.5 text-accent-600" />
             <span>Фамилия и инициалы</span>
           </label>
           <Input
@@ -120,7 +120,7 @@ export const AlgorithmHeaderSettingsModal: React.FC<AlgorithmHeaderSettingsModal
         {/* Default Release */}
         <div>
           <label className="block text-[11px] font-bold text-slate-700 mb-1 flex items-center gap-1.5">
-            <Tag className="w-3.5 h-3.5 text-emerald-600" />
+            <Tag className="w-3.5 h-3.5 text-accent-600" />
             <span>Номер релиза по умолчанию (опционально)</span>
           </label>
           <Input
@@ -137,7 +137,7 @@ export const AlgorithmHeaderSettingsModal: React.FC<AlgorithmHeaderSettingsModal
         <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between gap-3">
           <div className="space-y-0.5">
             <span className="font-bold text-[11.5px] text-slate-800 flex items-center gap-1.5">
-              <CornerDownLeft className="w-3.5 h-3.5 text-emerald-600" />
+              <CornerDownLeft className="w-3.5 h-3.5 text-accent-600" />
               <span>Перенос строки после комментария</span>
             </span>
             <span className="text-[10.5px] text-slate-500 block">
@@ -152,14 +152,14 @@ export const AlgorithmHeaderSettingsModal: React.FC<AlgorithmHeaderSettingsModal
               onChange={(e) => setInsertNewline(e.target.checked)}
               className="sr-only peer"
             />
-            <div className="w-9 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
+            <div className="w-9 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-accent-600"></div>
           </label>
         </div>
 
         {/* Live Preview Box */}
-        <div className="p-3 bg-emerald-50/70 border border-emerald-200/90 rounded-xl space-y-2">
+        <div className="p-3 bg-accent-50/70 border border-accent-200/90 rounded-xl space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-[10.5px] font-bold text-emerald-900 flex items-center gap-1.5 uppercase tracking-wider">
+            <span className="text-[10.5px] font-bold text-accent-900 flex items-center gap-1.5 uppercase tracking-wider">
               <Sparkles className="w-3 h-3 text-amber-500" />
               <span>Предпросмотр шапки алгоритма:</span>
             </span>
@@ -167,11 +167,11 @@ export const AlgorithmHeaderSettingsModal: React.FC<AlgorithmHeaderSettingsModal
             <button
               type="button"
               onClick={handleCopyPreview}
-              className="inline-flex items-center gap-1 text-[10.5px] font-bold text-emerald-700 hover:text-emerald-900 cursor-pointer"
+              className="inline-flex items-center gap-1 text-[10.5px] font-bold text-accent-700 hover:text-accent-900 cursor-pointer"
             >
               {copiedPreview ? (
                 <>
-                  <Check className="w-3 h-3 text-emerald-600" />
+                  <Check className="w-3 h-3 text-accent-600" />
                   <span>Скопировано</span>
                 </>
               ) : (
@@ -183,11 +183,11 @@ export const AlgorithmHeaderSettingsModal: React.FC<AlgorithmHeaderSettingsModal
             </button>
           </div>
 
-          <div className="p-2 rounded-lg bg-white border border-emerald-200 text-emerald-950 font-mono text-xs select-all break-all shadow-2xs">
+          <div className="p-2 rounded-lg bg-white border border-accent-200 text-accent-950 font-mono text-xs select-all break-all shadow-2xs">
             {previewComment}
           </div>
 
-          <p className="text-[10px] text-emerald-700 leading-normal">
+          <p className="text-[10px] text-accent-700 leading-normal">
             💡 Номер задачи (<code>{currentTask?.taskNumber || 'TASK-1234'}</code>) и номер релиза берутся автоматически из текущей карточки реализации.
           </p>
         </div>

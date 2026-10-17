@@ -91,11 +91,11 @@ export const DuplicateAutoCollectModal: React.FC<DuplicateAutoCollectModalProps>
             target="_blank"
             rel="noreferrer"
             title={trimGreenDataUrl(sourceUrl)}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-200/90 rounded-xl text-xs font-semibold transition-colors max-w-full truncate shadow-2xs"
+            className="flex items-center gap-1.5 px-2.5 py-1.5 bg-accent-50 hover:bg-accent-100 text-accent-900 border border-accent-200/90 rounded-xl text-xs font-semibold transition-colors max-w-full truncate shadow-2xs"
           >
-            <LinkIcon className="w-3.5 h-3.5 flex-shrink-0 text-emerald-600" />
+            <LinkIcon className="w-3.5 h-3.5 flex-shrink-0 text-accent-600" />
             <span className="truncate flex-1">{formatSourceUrlDisplay(sourceUrl)}</span>
-            <ExternalLink className="w-3 h-3 flex-shrink-0 opacity-70 text-emerald-600" />
+            <ExternalLink className="w-3 h-3 flex-shrink-0 opacity-70 text-accent-600" />
           </a>
         </div>
 
@@ -121,18 +121,18 @@ export const DuplicateAutoCollectModal: React.FC<DuplicateAutoCollectModalProps>
           </div>
 
           {/* New file */}
-          <div className="p-2.5 rounded-xl border border-emerald-300 bg-emerald-50/60 space-y-1">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 block">
+          <div className="p-2.5 rounded-xl border border-accent-300 bg-accent-50/60 space-y-1">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-accent-700 block">
               Новая выгрузка
             </span>
             <p
-              className="font-mono text-xs font-bold text-emerald-950 break-words line-clamp-2"
+              className="font-mono text-xs font-bold text-accent-950 break-words line-clamp-2"
               title={newCleanName ? `${newCleanName}.guf` : newFile.name}
             >
               {newCleanName ? `${newCleanName}.guf` : newFile.name}
             </p>
             <p
-              className="text-[10px] text-emerald-700/80 truncate"
+              className="text-[10px] text-accent-700/80 truncate"
               title={newFile.name}
             >
               исх: {newFile.name}

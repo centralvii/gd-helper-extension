@@ -1,5 +1,5 @@
 import { AiSettings, AiAlgorithmIdResult, AiAlgorithmRawResponse, AlgorithmType } from '../types';
-import { resolveApiEndpoint, buildRequestHeaders, DEFAULT_AI_SETTINGS } from '../hooks/useAiChat';
+import { resolveApiEndpoint, buildRequestHeaders, DEFAULT_AI_SETTINGS } from '../hooks/useAiSettings';
 
 const AI_SETTINGS_STORAGE_KEY = 'gd_ai_settings';
 

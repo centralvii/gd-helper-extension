@@ -148,7 +148,7 @@ export const Modal: React.FC<ModalProps> = ({
     <div className="fixed inset-0 z-50 overflow-hidden pointer-events-none">
       {/* Затемнение */}
       <div
-        className={`fixed inset-0 bg-black/30 pointer-events-auto ${
+        className={`fixed inset-0 bg-[#1b1f3b]/25 pointer-events-auto ${
           isClosing ? 'modal-backdrop-out' : 'modal-backdrop-in'
         }`}
         onClick={requestClose}
@@ -161,7 +161,7 @@ export const Modal: React.FC<ModalProps> = ({
           role="dialog"
           aria-modal="true"
           aria-label={renderedTitle}
-          className={`w-full ${maxWidthClasses[maxWidth]} bg-white flex flex-col overflow-hidden max-h-[92vh] rounded-t-2xl pointer-events-auto shadow-[0_-10px_40px_rgba(0,0,0,0.18)] ${
+          className={`w-[calc(100%-12px)] mb-1.5 ${maxWidthClasses[maxWidth]} flex flex-col overflow-hidden max-h-[92vh] rounded-[28px] pointer-events-auto bg-[rgba(246,247,252,0.9)] backdrop-blur-[30px] backdrop-saturate-[180%] border border-white/80 shadow-[inset_0_1px_0_#fff,0_-10px_50px_rgba(30,36,90,0.25)] ${
             isClosing ? 'modal-sheet-out' : 'modal-sheet-in'
           }`}
         >
@@ -174,7 +174,7 @@ export const Modal: React.FC<ModalProps> = ({
             onPointerCancel={handlePointerUp}
           >
             <div className="flex justify-center pt-1.5">
-              <div className="w-9 h-[5px] rounded-full bg-slate-300" />
+              <div className="w-9 h-[5px] rounded-full bg-slate-300/80" />
             </div>
             <div className="relative flex items-center justify-center px-12 pt-2 pb-3">
               <h3 className="text-[15px] font-semibold text-slate-900 tracking-[-0.01em] truncate">
@@ -185,7 +185,7 @@ export const Modal: React.FC<ModalProps> = ({
                 onClick={requestClose}
                 title="Закрыть (Esc)"
                 aria-label="Закрыть"
-                className="absolute right-3 top-1.5 w-[30px] h-[30px] rounded-full bg-gd-fill text-slate-500 hover:text-slate-900 hover:bg-slate-200 grid place-items-center cursor-pointer"
+                className="absolute right-3 top-1 icon-btn !w-[30px] !h-[30px] text-slate-500"
               >
                 <X className="w-4 h-4" strokeWidth={2.5} />
               </button>

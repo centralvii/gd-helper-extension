@@ -18,8 +18,8 @@ import {
 } from '../../utils/algorithmIdGenerator';
 import { AlgorithmHistoryItem, AlgorithmType, AiAlgorithmIdResult } from '../../types';
 import { generateAlgorithmIdViaAi, isAiConfigured } from '../../services/aiAlgorithmGenerator';
-import { useAiChat } from '../../hooks/useAiChat';
-import { AiSettingsModal } from '../ai/AiSettingsModal';
+import { useAiSettings } from '../../hooks/useAiSettings';
+import { AiSettingsModal } from './AiSettingsModal';
 import {
   Modal,
   Badge,
@@ -32,6 +32,7 @@ import {
 } from '../ui';
 import confetti from 'canvas-confetti';
 import { getErrorMessage } from '../../utils/errorUtils';
+import { CELEBRATION_COLORS } from '../../constants/theme';
 
 const POSTFIX_OPTIONS = [
   { value: '_ALG', label: '_ALG (Стандартный)' },
@@ -53,7 +54,7 @@ export const AlgorithmIdGenerator: React.FC = () => {
     updateSettings: updateAiSettings,
     resetSettings: resetAiSettings,
     testConnection: testAiConnection,
-  } = useAiChat();
+  } = useAiSettings();
 
   const [isAiSettingsOpen, setIsAiSettingsOpen] = useState(false);
   const [isDictOpen, setIsDictOpen] = useState(false);
@@ -234,7 +235,7 @@ export const AlgorithmIdGenerator: React.FC = () => {
         particleCount: 25,
         spread: 40,
         origin: { y: 0.8 },
-        colors: ['#10b981', '#059669', '#34d399'],
+        colors: CELEBRATION_COLORS,
       });
     } catch {
       // ignore
@@ -424,8 +425,8 @@ export const AlgorithmIdGenerator: React.FC = () => {
                   title="Скопировать идентификатор"
                   className={`absolute top-2.5 right-2.5 h-7 w-7 rounded-full flex items-center justify-center transition-colors cursor-pointer ${
                     copied && (!copiedId || copiedId === currentGeneratedId)
-                      ? 'bg-gd-green text-white'
-                      : 'bg-white text-gd-green hover:bg-gd-green-light'
+                      ? 'bg-gd-accent text-white'
+                      : 'bg-white text-gd-accent hover:bg-gd-accent-light'
                   }`}
                 >
                   {copied && (!copiedId || copiedId === currentGeneratedId) ? (
@@ -470,17 +471,17 @@ export const AlgorithmIdGenerator: React.FC = () => {
                 <div className="flex items-center gap-1.5 flex-wrap text-[10.5px]">
                   {parsed.block && (
                     <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200">
-                      Блок: <strong className="text-emerald-700 font-mono">{parsed.blockCode}</strong>
+                      Блок: <strong className="text-accent-700 font-mono">{parsed.blockCode}</strong>
                     </span>
                   )}
                   {parsed.targetObject && (
                     <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200">
-                      Объект: <strong className="text-emerald-700 font-mono">{parsed.targetObjectCode}</strong>
+                      Объект: <strong className="text-accent-700 font-mono">{parsed.targetObjectCode}</strong>
                     </span>
                   )}
                   {parsed.filterParams && (
                     <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200">
-                      Фильтр: <strong className="text-emerald-700 font-mono">{parsed.filterParamsCode}</strong>
+                      Фильтр: <strong className="text-accent-700 font-mono">{parsed.filterParamsCode}</strong>
                     </span>
                   )}
                   <span className="text-slate-500 truncate max-w-full">
@@ -502,18 +503,18 @@ export const AlgorithmIdGenerator: React.FC = () => {
                         type="button"
                         onClick={() => handleCopy(v.id)}
                         title={v.desc}
-                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gd-fill hover:bg-gd-green-light hover:text-gd-green text-slate-800 text-[11.5px] font-mono font-medium transition-colors cursor-pointer group"
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gd-fill hover:bg-gd-accent-light hover:text-gd-accent text-slate-800 text-[11.5px] font-mono font-medium transition-colors cursor-pointer group"
                       >
                         <span className="break-all">{v.id}</span>
                         {v.desc && (
-                          <span className="text-[9.5px] font-sans text-slate-400 group-hover:text-emerald-700">
+                          <span className="text-[9.5px] font-sans text-slate-400 group-hover:text-accent-700">
                             ({v.desc})
                           </span>
                         )}
                         {copied && copiedId === v.id ? (
-                          <Check className="w-3 h-3 text-emerald-600 flex-shrink-0" />
+                          <Check className="w-3 h-3 text-accent-600 flex-shrink-0" />
                         ) : (
-                          <Copy className="w-3 h-3 text-slate-400 group-hover:text-emerald-600 flex-shrink-0" />
+                          <Copy className="w-3 h-3 text-slate-400 group-hover:text-accent-600 flex-shrink-0" />
                         )}
                       </button>
                     ))}
@@ -606,7 +607,7 @@ export const AlgorithmIdGenerator: React.FC = () => {
               value={dictSearch}
               onChange={(e) => setDictSearch(e.target.value)}
               placeholder="Поиск по терминам..."
-              className="w-full px-2.5 py-1.5 text-xs border border-slate-200 rounded-xl bg-slate-50 focus:bg-white focus:border-emerald-500 outline-none"
+              className="w-full px-2.5 py-1.5 text-xs border border-slate-200 rounded-xl bg-slate-50 focus:bg-white focus:border-accent-500 outline-none"
             />
 
             <div className="flex flex-wrap gap-1.5 max-h-56 overflow-y-auto p-1.5 bg-slate-50/70 rounded-xl border border-slate-200">
@@ -617,7 +618,7 @@ export const AlgorithmIdGenerator: React.FC = () => {
                 >
                   <span className="text-slate-700">{ru}</span>
                   <span className="text-slate-300">→</span>
-                  <strong className="font-mono text-emerald-700">{en}</strong>
+                  <strong className="font-mono text-accent-700">{en}</strong>
                   <button
                     type="button"
                     onClick={() => handleDeleteCustomTerm(ru)}
@@ -643,22 +644,22 @@ export const AlgorithmIdGenerator: React.FC = () => {
         <div className="space-y-2.5 text-xs text-slate-700 leading-relaxed max-h-[70vh] overflow-y-auto pr-1">
           <div className="rounded-xl bg-slate-50 p-2.5 border border-slate-200 space-y-1">
             <div className="font-bold text-slate-900 flex items-center gap-1.5">
-              <span className="flex h-4 w-4 items-center justify-center rounded-full bg-emerald-600 text-[9px] text-white font-bold">1</span>
+              <span className="flex h-4 w-4 items-center justify-center rounded-full bg-accent-600 text-[9px] text-white font-bold">1</span>
               Каноническая формула и префиксы блоков:
             </div>
             <p className="text-[11px] text-slate-600">
-              <code className="font-mono text-[10.5px] bg-white px-1.5 py-0.5 rounded border border-slate-200 font-bold text-emerald-700">
+              <code className="font-mono text-[10.5px] bg-white px-1.5 py-0.5 rounded border border-slate-200 font-bold text-accent-700">
                 [ПРЕФИКС_БЛОКА]_[СУБЪЕКТ]_[ДЕЙСТВИЕ]_[ПОСТФИКС]
               </code>
             </p>
             <p className="text-[11px] text-slate-600">
-              Например: «Лимиты. Рассчитать VaR по портфелю» → <code className="font-mono font-bold text-emerald-700">LIM_VAR_CALC_ALG</code>.
+              Например: «Лимиты. Рассчитать VaR по портфелю» → <code className="font-mono font-bold text-accent-700">LIM_VAR_CALC_ALG</code>.
             </p>
           </div>
 
           <div className="rounded-xl bg-slate-50 p-2.5 border border-slate-200 space-y-1">
             <div className="font-bold text-slate-900 flex items-center gap-1.5">
-              <span className="flex h-4 w-4 items-center justify-center rounded-full bg-emerald-600 text-[9px] text-white font-bold">2</span>
+              <span className="flex h-4 w-4 items-center justify-center rounded-full bg-accent-600 text-[9px] text-white font-bold">2</span>
               Алгоритмы карточек объектов:
             </div>
             <p className="text-[11px] text-slate-600">
@@ -668,11 +669,11 @@ export const AlgorithmIdGenerator: React.FC = () => {
 
           <div className="rounded-xl bg-slate-50 p-2.5 border border-slate-200 space-y-1">
             <div className="font-bold text-slate-900 flex items-center gap-1.5">
-              <span className="flex h-4 w-4 items-center justify-center rounded-full bg-emerald-600 text-[9px] text-white font-bold">3</span>
+              <span className="flex h-4 w-4 items-center justify-center rounded-full bg-accent-600 text-[9px] text-white font-bold">3</span>
               Условия фильтрации для выбора элементов:
             </div>
             <p className="text-[11px] text-slate-600">
-              Конструкция: <code className="font-mono text-[10.5px] bg-white px-1.5 py-0.5 rounded border border-slate-200 font-bold text-emerald-700">
+              Конструкция: <code className="font-mono text-[10.5px] bg-white px-1.5 py-0.5 rounded border border-slate-200 font-bold text-accent-700">
                 FILTER_&lt;ТИП_ОБЪЕКТА&gt;_BY_&lt;ПАРАМЕТРЫ&gt;[_BASED_ON_&lt;БАЗОВЫЙ_ОБЪЕКТ&gt;]
               </code>. Постфикс: <code className="font-mono font-bold">_FILTER_ALG</code>.
             </p>
@@ -680,11 +681,11 @@ export const AlgorithmIdGenerator: React.FC = () => {
 
           <div className="rounded-xl bg-slate-50 p-2.5 border border-slate-200 space-y-1">
             <div className="font-bold text-slate-900 flex items-center gap-1.5">
-              <span className="flex h-4 w-4 items-center justify-center rounded-full bg-emerald-600 text-[9px] text-white font-bold">4</span>
+              <span className="flex h-4 w-4 items-center justify-center rounded-full bg-accent-600 text-[9px] text-white font-bold">4</span>
               Расчеты и валидации:
             </div>
             <p className="text-[11px] text-slate-600">
-              Для проверок используется ключевой токен <code className="font-mono font-bold text-amber-700">CHECK</code> (постфикс <code className="font-mono font-bold">_VALID_ALG</code>). Для вычислений — токен <code className="font-mono font-bold text-emerald-700">CALC</code> (постфикс <code className="font-mono font-bold">_CALC_ALG</code>).
+              Для проверок используется ключевой токен <code className="font-mono font-bold text-amber-700">CHECK</code> (постфикс <code className="font-mono font-bold">_VALID_ALG</code>). Для вычислений — токен <code className="font-mono font-bold text-accent-700">CALC</code> (постфикс <code className="font-mono font-bold">_CALC_ALG</code>).
             </p>
           </div>
         </div>
@@ -715,7 +716,7 @@ export const AlgorithmIdGenerator: React.FC = () => {
             {history.map((item) => (
               <div
                 key={item.id}
-                className="flex items-center justify-between gap-2 p-2 rounded-xl bg-slate-50 hover:bg-emerald-50/50 border border-slate-200 transition-colors text-xs"
+                className="flex items-center justify-between gap-2 p-2 rounded-xl bg-slate-50 hover:bg-accent-50/50 border border-slate-200 transition-colors text-xs"
               >
                 <div
                   className="min-w-0 flex-1 cursor-pointer"
@@ -736,7 +737,7 @@ export const AlgorithmIdGenerator: React.FC = () => {
                   type="button"
                   onClick={() => handleCopy(item.generatedId, item.type)}
                   title="Скопировать"
-                  className="p-1 text-slate-400 hover:text-emerald-700 cursor-pointer"
+                  className="p-1 text-slate-400 hover:text-accent-700 cursor-pointer"
                 >
                   <Copy className="w-3.5 h-3.5" />
                 </button>

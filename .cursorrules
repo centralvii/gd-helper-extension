@@ -4,18 +4,19 @@
 
 ## Quick Reference
 
-### Design: iOS style, strict monochrome + GreenData accent
-- Tokens: CSS variables `--gd-*` in `src/index.css`; Tailwind `gd-*` reference them; `slate-*` is overridden with iOS system grays
-- Screen: gray `--gd-bg` (#f2f2f7), large title (`Header`), bottom `TabBar`, sheets (`Modal`), capsule `Toast`
-- Content = inset grouped lists: `.gd-section-title` + `.gd-group` + `.gd-row` / `<ToolRow>`; white blocks, NO borders/shadows on cards
-- One accent `gd-green` (emerald-600); red only for destructive; no gradients, no dark backgrounds
+### Design: «Aurora Glass»
+- Tokens: CSS variables `--gd-*` in `src/index.css`; Tailwind `gd-*`, `accent-*` (indigo, `accent-600` = #4f5bd5) and `slate-*` (cool neutrals) reference them
+- Light liquid glass over a soft aurora background on `#root`; Geist / Geist Mono fonts
+- Content = glass groups: `.gd-section-title` + `.gd-group` + `.gd-row` / `<ToolRow>`; params as `.gd-chip`; 20px group radius; capsule buttons
+- Compact: 40px rows, second line only for errors, rare actions in a "⋯" `.gd-menu`, frequent ones in the command palette
+- One accent only; no emerald/teal/gray, no dark backgrounds, no gradients on buttons/cards, no manual borders on groups
 - Tailwind **v3** only (no `py-0.2`, `pl-8.5`, `animate-in`); no `/opacity` on var-based colors
 
 ### Component Reuse (MANDATORY)
 - Text buttons → `<Button>` (`primary` filled, `secondary` gray, `outline` tinted, `ghost` text, `danger`)
 - Icon buttons → `<IconButton>` or `.icon-btn` (round); list nav rows → `<ToolRow>`; switch → `.gd-switch`
 - Badges → `<Badge>`; fields → `<Input>` / `<Textarea>` / `<Select>` / `.gd-field`; `<SegmentedControl>`
-- Modals → `<Modal>` (iOS sheet, swipe-to-close)
+- Modals → `<Modal>` (glass sheet, swipe-to-close); command palette → add commands in `App.tsx` (`PaletteCommand`)
 
 ### Motion
 - Press scale + icon tap animations are GLOBAL (`src/index.css`, `src/utils/iconTapAnimation.ts`); override with `data-icon-anim`

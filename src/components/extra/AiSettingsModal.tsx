@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import {
   Eye,
   EyeOff,
-  Sparkles,
   Check,
   RotateCcw,
   Key,
@@ -18,8 +17,7 @@ import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { Select } from '../ui/Select';
 import { AiSettings, AiAuthType } from '../../types';
-import { DEFAULT_AI_SETTINGS } from '../../hooks/useAiChat';
-import { AI_AGENTS, DEFAULT_AGENT } from '../../constants/aiAgents';
+import { DEFAULT_AI_SETTINGS } from '../../hooks/useAiSettings';
 import { getErrorMessage } from '../../utils/errorUtils';
 
 interface AiSettingsModalProps {
@@ -43,9 +41,6 @@ export const AiSettingsModal: React.FC<AiSettingsModalProps> = ({
   const [apiKey, setApiKey] = useState(settings.apiKey);
   const [authType, setAuthType] = useState<AiAuthType>(settings.authType || 'bearer');
   const [model, setModel] = useState(settings.model);
-  const [systemPrompt, setSystemPrompt] = useState(settings.systemPrompt);
-  const [temperature, setTemperature] = useState(settings.temperature);
-  const [stream, setStream] = useState(settings.stream);
   const [customHeadersJson, setCustomHeadersJson] = useState(settings.customHeadersJson || '');
   const [showAdvancedHeaders, setShowAdvancedHeaders] = useState(Boolean(settings.customHeadersJson));
 
@@ -59,9 +54,6 @@ export const AiSettingsModal: React.FC<AiSettingsModalProps> = ({
       setApiKey(settings.apiKey);
       setAuthType(settings.authType || (settings.apiKey ? 'bearer' : 'none'));
       setModel(settings.model);
-      setSystemPrompt(settings.systemPrompt);
-      setTemperature(settings.temperature);
-      setStream(settings.stream);
       setCustomHeadersJson(settings.customHeadersJson || '');
       setShowAdvancedHeaders(Boolean(settings.customHeadersJson));
       setTestResult(null);
@@ -77,9 +69,6 @@ export const AiSettingsModal: React.FC<AiSettingsModalProps> = ({
         apiKey,
         authType,
         model,
-        systemPrompt,
-        temperature,
-        stream,
         customHeadersJson,
       });
       setTestResult(res);
@@ -97,9 +86,6 @@ export const AiSettingsModal: React.FC<AiSettingsModalProps> = ({
       apiKey: apiKey.trim(),
       authType,
       model: model.trim(),
-      systemPrompt: systemPrompt.trim(),
-      temperature,
-      stream,
       customHeadersJson: customHeadersJson.trim(),
     });
     onClose();
@@ -109,7 +95,7 @@ export const AiSettingsModal: React.FC<AiSettingsModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Настройки ИИ (OpenAI-совместимое подключение)"
+      title="Подключение ИИ для генерации ID"
       maxWidth="md"
       footer={
         <div className="flex items-center justify-between w-full">
@@ -122,9 +108,6 @@ export const AiSettingsModal: React.FC<AiSettingsModalProps> = ({
               setApiKey('');
               setAuthType('bearer');
               setModel(DEFAULT_AI_SETTINGS.model);
-              setSystemPrompt(DEFAULT_AI_SETTINGS.systemPrompt);
-              setTemperature(DEFAULT_AI_SETTINGS.temperature);
-              setStream(DEFAULT_AI_SETTINGS.stream);
               setCustomHeadersJson('');
             }}
             leftIcon={<RotateCcw className="w-3.5 h-3.5" />}
@@ -148,7 +131,7 @@ export const AiSettingsModal: React.FC<AiSettingsModalProps> = ({
         {/* Base URL */}
         <div>
           <label className="block text-[11px] font-semibold text-slate-700 mb-1 flex items-center gap-1.5">
-            <Server className="w-3.5 h-3.5 text-emerald-600" />
+            <Server className="w-3.5 h-3.5 text-accent-600" />
             <span>Base URL сервера или шлюза</span>
           </label>
           <Input
@@ -167,7 +150,7 @@ export const AiSettingsModal: React.FC<AiSettingsModalProps> = ({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             <div>
               <label className="block text-[11px] font-semibold text-slate-700 mb-1 flex items-center gap-1.5">
-                <Shield className="w-3.5 h-3.5 text-emerald-600" />
+                <Shield className="w-3.5 h-3.5 text-accent-600" />
                 <span>Тип авторизации</span>
               </label>
               <Select
@@ -184,7 +167,7 @@ export const AiSettingsModal: React.FC<AiSettingsModalProps> = ({
 
             <div>
               <label className="block text-[11px] font-semibold text-slate-700 mb-1 flex items-center gap-1.5">
-                <Key className="w-3.5 h-3.5 text-emerald-600" />
+                <Key className="w-3.5 h-3.5 text-accent-600" />
                 <span>API-ключ / Токен</span>
               </label>
               <Input
@@ -215,7 +198,7 @@ export const AiSettingsModal: React.FC<AiSettingsModalProps> = ({
         <div>
           <div className="flex items-center justify-between mb-1">
             <label className="text-[11px] font-semibold text-slate-700 flex items-center gap-1.5">
-              <Cpu className="w-3.5 h-3.5 text-emerald-600" />
+              <Cpu className="w-3.5 h-3.5 text-accent-600" />
               <span>Название модели (Model ID)</span>
             </label>
             <span className="text-[10px] text-slate-400">Например: deepseek-coder, gpt-4o-mini</span>
@@ -226,111 +209,6 @@ export const AiSettingsModal: React.FC<AiSettingsModalProps> = ({
             placeholder="deepseek-coder"
             required
           />
-        </div>
-
-        {/* Agent Preset Selector */}
-        <div>
-          <label className="block text-[11px] font-semibold text-slate-700 mb-1 flex items-center gap-1.5">
-            <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
-            <span>Выбор активного ИИ-агента (Пресет роли)</span>
-          </label>
-          <div className="grid grid-cols-2 gap-1.5">
-            {AI_AGENTS.map((ag) => {
-              const isCurrent = (settings.selectedAgentId || DEFAULT_AGENT.id) === ag.id;
-              return (
-                <button
-                  key={ag.id}
-                  type="button"
-                  onClick={() => {
-                    setSystemPrompt(ag.systemPrompt);
-                    onSave({ selectedAgentId: ag.id, systemPrompt: ag.systemPrompt });
-                  }}
-                  className={`p-2 rounded-xl text-left border transition-all cursor-pointer ${
-                    isCurrent
-                      ? 'bg-emerald-50 border-emerald-300 text-emerald-950 shadow-2xs'
-                      : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
-                  }`}
-                >
-                  <span className="font-bold text-[11px] block truncate">{ag.name}</span>
-                  <span className="text-[9.5px] text-slate-500 line-clamp-1 block">{ag.shortName}</span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* System Prompt */}
-        <div>
-          <div className="flex items-center justify-between mb-1">
-            <label className="text-[11px] font-semibold text-slate-700 flex items-center gap-1.5">
-              <Code className="w-3.5 h-3.5 text-emerald-600" />
-              <span>Системный промпт (Инструкция агента)</span>
-            </label>
-            <button
-              type="button"
-              onClick={() => {
-                const target = AI_AGENTS.find((a) => a.id === settings.selectedAgentId) || DEFAULT_AGENT;
-                setSystemPrompt(target.systemPrompt);
-              }}
-              className="text-[10px] text-emerald-600 hover:underline cursor-pointer"
-            >
-              Восстановить промпт агента
-            </button>
-          </div>
-          <textarea
-            value={systemPrompt}
-            onChange={(e) => setSystemPrompt(e.target.value)}
-            rows={3}
-            className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 text-xs resize-y"
-          />
-        </div>
-
-        {/* Temperature & Streaming */}
-        <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <span className="font-semibold text-slate-800 text-[11px] block">
-                Температура генерации (Креативность)
-              </span>
-              <span className="text-[10px] text-slate-500 block">
-                Меньше — строже и точнее, больше — разнообразнее
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <input
-                type="range"
-                min="0"
-                max="1.5"
-                step="0.1"
-                value={temperature}
-                onChange={(e) => setTemperature(parseFloat(e.target.value))}
-                className="w-24 accent-emerald-600 cursor-pointer"
-              />
-              <span className="font-mono font-bold text-slate-800 text-xs w-7 text-right">
-                {temperature.toFixed(1)}
-              </span>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between pt-2 border-t border-slate-200">
-            <div className="space-y-0.5">
-              <span className="font-semibold text-slate-800 text-[11px] block">
-                Потоковый вывод (Streaming SSE)
-              </span>
-              <span className="text-[10px] text-slate-500 block">
-                Отображать текст ответа по мере генерации в реальном времени
-              </span>
-            </div>
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input
-                type="checkbox"
-                checked={stream}
-                onChange={(e) => setStream(e.target.checked)}
-                className="sr-only peer"
-              />
-              <div className="w-9 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
-            </label>
-          </div>
         </div>
 
         {/* Advanced: Custom Headers (JSON) */}
@@ -351,7 +229,7 @@ export const AiSettingsModal: React.FC<AiSettingsModalProps> = ({
                 onChange={(e) => setCustomHeadersJson(e.target.value)}
                 placeholder={'{\n  "X-Custom-Auth": "token",\n  "User-Agent": "MyClient"\n}'}
                 rows={3}
-                className="w-full px-2.5 py-1.5 font-mono text-[11px] bg-white border border-slate-200 rounded-lg text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                className="w-full px-2.5 py-1.5 font-mono text-[11px] bg-white border border-slate-200 rounded-lg text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-accent-500"
               />
               <span className="text-[10px] text-slate-400 block">
                 Произвольные заголовки в формате JSON для внутренних корпоративных шлюзов
@@ -383,12 +261,12 @@ export const AiSettingsModal: React.FC<AiSettingsModalProps> = ({
             <div
               className={`p-2.5 rounded-xl border text-[11px] flex items-start gap-2 animate-fade-in whitespace-pre-line ${
                 testResult.ok
-                  ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
+                  ? 'bg-accent-50 border-accent-200 text-accent-800'
                   : 'bg-rose-50 border-rose-200 text-rose-800'
               }`}
             >
               {testResult.ok ? (
-                <Check className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
+                <Check className="w-4 h-4 text-accent-600 flex-shrink-0 mt-0.5" />
               ) : (
                 <HelpCircle className="w-4 h-4 text-rose-600 flex-shrink-0 mt-0.5" />
               )}

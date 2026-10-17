@@ -177,12 +177,12 @@ export const TaskImportExportModal: React.FC<TaskImportExportModalProps> = ({
               {
                 value: 'export',
                 label: 'Экспорт / Сохранить в файл',
-                icon: <Download className="w-4 h-4 text-emerald-600" />,
+                icon: <Download className="w-4 h-4 text-accent-600" />,
               },
               {
                 value: 'import',
                 label: 'Импорт / Загрузить обратно',
-                icon: <Upload className="w-4 h-4 text-emerald-600" />,
+                icon: <Upload className="w-4 h-4 text-accent-600" />,
               },
             ]}
           />
@@ -206,11 +206,11 @@ export const TaskImportExportModal: React.FC<TaskImportExportModalProps> = ({
                   disabled={!activeTask}
                   className={`flex items-start gap-2.5 p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
                     exportScope === 'current'
-                      ? 'bg-emerald-50/90 border-emerald-300 text-emerald-950 shadow-2xs'
+                      ? 'bg-accent-50/90 border-accent-300 text-accent-950 shadow-2xs'
                       : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50/80'
                   } ${!activeTask ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
-                  <FileCode className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
+                  <FileCode className="w-4 h-4 text-accent-600 flex-shrink-0 mt-0.5" />
                   <div className="min-w-0 flex-1">
                     <div className="font-bold text-xs truncate">
                       {activeTask?.taskNumber || 'Текущая задача'}
@@ -226,11 +226,11 @@ export const TaskImportExportModal: React.FC<TaskImportExportModalProps> = ({
                   onClick={() => setExportScope('all')}
                   className={`flex items-start gap-2.5 p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
                     exportScope === 'all'
-                      ? 'bg-emerald-50/90 border-emerald-300 text-emerald-950 shadow-2xs'
+                      ? 'bg-accent-50/90 border-accent-300 text-accent-950 shadow-2xs'
                       : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50/80'
                   }`}
                 >
-                  <Archive className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
+                  <Archive className="w-4 h-4 text-accent-600 flex-shrink-0 mt-0.5" />
                   <div className="min-w-0 flex-1">
                     <div className="font-bold text-xs">Все задачи ({tasks.length})</div>
                     <div className="text-[10px] text-slate-500">
@@ -257,7 +257,7 @@ export const TaskImportExportModal: React.FC<TaskImportExportModalProps> = ({
                 variant="secondary"
                 size="md"
                 onClick={handleCopyExport}
-                leftIcon={copiedExport ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
+                leftIcon={copiedExport ? <Check className="w-4 h-4 text-accent-600" /> : <Copy className="w-4 h-4" />}
                 className="justify-center"
               >
                 {copiedExport ? 'Скопировано в буфер!' : 'Скопировать JSON'}
@@ -268,7 +268,7 @@ export const TaskImportExportModal: React.FC<TaskImportExportModalProps> = ({
             <div className="space-y-1.5">
               <div className="flex items-center justify-between text-[11px] text-slate-500">
                 <span className="font-semibold text-slate-700 flex items-center gap-1.5">
-                  <FileJson className="w-3.5 h-3.5 text-emerald-600" />
+                  <FileJson className="w-3.5 h-3.5 text-accent-600" />
                   Предпросмотр JSON структуры:
                 </span>
                 <span>{exportJSONString.split('\n').length} строк</span>
@@ -286,7 +286,7 @@ export const TaskImportExportModal: React.FC<TaskImportExportModalProps> = ({
         {activeTab === 'import' && (
           <div className="space-y-3.5 animate-fade-in">
             {/* File Upload Zone */}
-            <div className="p-4 bg-slate-50 border-2 border-dashed border-slate-300 rounded-xl text-center hover:border-emerald-400 transition-colors">
+            <div className="p-4 bg-slate-50 border-2 border-dashed border-slate-300 rounded-xl text-center hover:border-accent-400 transition-colors">
               <input
                 ref={fileInputRef}
                 type="file"
@@ -301,7 +301,7 @@ export const TaskImportExportModal: React.FC<TaskImportExportModalProps> = ({
               </div>
               <label
                 htmlFor="task-json-file-input"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-emerald-50 text-emerald-800 border border-emerald-300 rounded-xl font-bold text-xs transition-all shadow-2xs cursor-pointer mt-1"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-accent-50 text-accent-800 border border-accent-300 rounded-xl font-bold text-xs transition-all shadow-2xs cursor-pointer mt-1"
               >
                 <FolderPlus className="w-3.5 h-3.5" />
                 <span>Выбрать файл с диска</span>
@@ -330,13 +330,13 @@ export const TaskImportExportModal: React.FC<TaskImportExportModalProps> = ({
             {parsedImport && (
               <div className="space-y-2.5">
                 {parsedImport.valid ? (
-                  <div className="p-3 bg-emerald-50/90 border border-emerald-200/90 rounded-xl space-y-2 animate-slide-down shadow-2xs">
-                    <div className="flex items-center justify-between font-bold text-emerald-950">
+                  <div className="p-3 bg-accent-50/90 border border-accent-200/90 rounded-xl space-y-2 animate-slide-down shadow-2xs">
+                    <div className="flex items-center justify-between font-bold text-accent-950">
                       <span className="flex items-center gap-1.5">
-                        <Sparkles className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                        <Sparkles className="w-4 h-4 text-accent-600 flex-shrink-0" />
                         <span>Файл корректен! Найдено задач: {parsedImport.tasks.length}</span>
                       </span>
-                      <span className="px-2 py-0.5 rounded-lg bg-emerald-100 text-emerald-800 text-[10.5px] font-bold">
+                      <span className="px-2 py-0.5 rounded-lg bg-accent-100 text-accent-800 text-[10.5px] font-bold">
                         {parsedImport.tasks.reduce((sum, t) => sum + t.items.length, 0)} пунктов изменений
                       </span>
                     </div>
@@ -345,10 +345,10 @@ export const TaskImportExportModal: React.FC<TaskImportExportModalProps> = ({
                       {parsedImport.tasks.map((t, idx) => (
                         <div
                           key={t.id || idx}
-                          className="flex items-center justify-between gap-2 p-1.5 bg-white/80 border border-emerald-100 rounded-xl text-[11px]"
+                          className="flex items-center justify-between gap-2 p-1.5 bg-white/80 border border-accent-100 rounded-xl text-[11px]"
                         >
                           <div className="flex items-center gap-1.5 min-w-0 flex-1">
-                            <span className="font-bold text-emerald-900 flex-shrink-0">
+                            <span className="font-bold text-accent-900 flex-shrink-0">
                               {t.taskNumber}:
                             </span>
                             <span className="truncate text-slate-800 font-medium">
@@ -382,14 +382,14 @@ export const TaskImportExportModal: React.FC<TaskImportExportModalProps> = ({
                 </label>
 
                 <div className="space-y-1.5">
-                  <label className="flex items-center gap-2 p-2 rounded-xl bg-white border border-slate-200 hover:border-emerald-300 cursor-pointer transition-all">
+                  <label className="flex items-center gap-2 p-2 rounded-xl bg-white border border-slate-200 hover:border-accent-300 cursor-pointer transition-all">
                     <input
                       type="radio"
                       name="import-mode"
                       value="merge"
                       checked={importMode === 'merge'}
                       onChange={() => setImportMode('merge')}
-                      className="text-emerald-600 focus:ring-emerald-500"
+                      className="text-accent-600 focus:ring-accent-500"
                     />
                     <div className="min-w-0 flex-1">
                       <div className="font-bold text-slate-900 text-xs">
@@ -402,14 +402,14 @@ export const TaskImportExportModal: React.FC<TaskImportExportModalProps> = ({
                   </label>
 
                   {parsedImport.tasks.length === 1 && activeTask && (
-                    <label className="flex items-center gap-2 p-2 rounded-xl bg-white border border-slate-200 hover:border-emerald-300 cursor-pointer transition-all">
+                    <label className="flex items-center gap-2 p-2 rounded-xl bg-white border border-slate-200 hover:border-accent-300 cursor-pointer transition-all">
                       <input
                         type="radio"
                         name="import-mode"
                         value="update_active"
                         checked={importMode === 'update_active'}
                         onChange={() => setImportMode('update_active')}
-                        className="text-emerald-600 focus:ring-emerald-500"
+                        className="text-accent-600 focus:ring-accent-500"
                       />
                       <div className="min-w-0 flex-1">
                         <div className="font-bold text-slate-900 text-xs">
@@ -449,12 +449,12 @@ export const TaskImportExportModal: React.FC<TaskImportExportModalProps> = ({
               <div
                 className={`p-3 rounded-xl flex items-center gap-2 font-bold text-xs animate-fade-in ${
                   importStatus.type === 'success'
-                    ? 'bg-emerald-100 text-emerald-950 border border-emerald-300'
+                    ? 'bg-accent-100 text-accent-950 border border-accent-300'
                     : 'bg-rose-100 text-rose-950 border border-rose-300'
                 }`}
               >
                 {importStatus.type === 'success' ? (
-                  <Check className="w-4 h-4 text-emerald-700 flex-shrink-0" />
+                  <Check className="w-4 h-4 text-accent-700 flex-shrink-0" />
                 ) : (
                   <AlertCircle className="w-4 h-4 text-rose-700 flex-shrink-0" />
                 )}

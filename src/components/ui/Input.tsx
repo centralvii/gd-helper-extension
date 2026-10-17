@@ -30,7 +30,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
 
     const sizeClasses = {
       sm: 'px-2.5 py-1 text-xs rounded-lg min-h-[30px]',
-      md: 'px-3 py-2 text-[13px] rounded-[10px] min-h-[36px]',
+      md: 'px-3 py-2 text-[13px] rounded-xl min-h-[36px]',
     };
 
     return (
@@ -51,7 +51,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
             id={inputId}
             className={twMerge(
               clsx(
-                'block w-full bg-gd-fill border border-transparent text-slate-900 placeholder-slate-400 transition-all focus:bg-white focus:border-gd-green focus:ring-4 focus:ring-emerald-500/15 focus:outline-none disabled:opacity-50 font-normal',
+                'block w-full bg-gd-fill border border-transparent text-slate-900 placeholder-slate-400 transition-all focus:bg-white focus:border-gd-accent focus:ring-4 focus:ring-accent-500/15 focus:outline-none disabled:opacity-50 font-normal',
                 sizeClasses[size],
                 leftElement && 'pl-8',
                 rightElement && 'pr-8',

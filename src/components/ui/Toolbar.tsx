@@ -16,7 +16,7 @@ export const Toolbar: React.FC<ToolbarProps> & {
   return (
     <div
       className={twMerge(
-        'flex items-center justify-between gap-1.5 p-1.5 bg-white rounded-xl',
+        'gd-card flex items-center justify-between gap-1.5 p-1.5 !rounded-[22px]',
         className
       )}
       {...props}
@@ -50,7 +50,7 @@ export const ToolbarTitle: React.FC<ToolbarTitleProps> = ({
       {icon && (
         <div
           title={titleAttr || (typeof title === 'string' ? title : undefined)}
-          className="w-7 h-7 rounded-[8px] bg-gd-green text-white flex items-center justify-center flex-shrink-0 font-bold [&_svg]:text-white"
+          className="w-7 h-7 rounded-[9px] bg-gd-accent text-white flex items-center justify-center flex-shrink-0 font-bold [&_svg]:text-white"
         >
           {icon}
         </div>
@@ -107,8 +107,8 @@ export const ToolbarButton: React.FC<ToolbarButtonProps> = ({
         clsx(
           'relative inline-flex items-center justify-center gap-1 h-7 px-2.5 sm:px-3 rounded-full text-[12px] font-semibold leading-none transition-colors cursor-pointer whitespace-nowrap select-none',
           isActive
-            ? 'bg-gd-green-light text-gd-green'
-            : 'bg-gd-fill hover:bg-slate-200 text-slate-900'
+            ? 'bg-gd-accent-light text-gd-accent'
+            : 'bg-white/75 hover:bg-white text-slate-900'
         ),
         className
       )}
@@ -120,7 +120,7 @@ export const ToolbarButton: React.FC<ToolbarButtonProps> = ({
       {dot && (
         <span
           className={clsx(
-            'w-1.5 h-1.5 rounded-full bg-gd-green',
+            'w-1.5 h-1.5 rounded-full bg-gd-accent',
             !children ? 'absolute top-1 right-1' : ''
           )}
         />
@@ -144,7 +144,7 @@ export const ToolbarIconButton: React.FC<ToolbarIconButtonProps> = ({
       type="button"
       className={twMerge(
         clsx(
-          'h-7 w-7 inline-flex items-center justify-center rounded-full bg-gd-fill transition-colors cursor-pointer flex-shrink-0',
+          'h-7 w-7 inline-flex items-center justify-center rounded-full bg-white/75 transition-colors cursor-pointer flex-shrink-0',
           variant === 'danger'
             ? 'text-slate-600 hover:text-[#ff3b30] hover:bg-[#ff3b30]/10'
             : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200'

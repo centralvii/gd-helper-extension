@@ -111,7 +111,7 @@ export const YouTrackIssueDetail: React.FC<YouTrackIssueDetailProps> = ({
   };
 
   const copyIcon = (done: boolean) =>
-    done ? <Check className="w-3.5 h-3.5 text-gd-green animate-pop-in" strokeWidth={2.75} /> : <Copy className="w-3.5 h-3.5" />;
+    done ? <Check className="w-3.5 h-3.5 text-gd-accent animate-pop-in" strokeWidth={2.75} /> : <Copy className="w-3.5 h-3.5" />;
 
   return (
     <div className="space-y-5 animate-screen-in">
@@ -120,7 +120,7 @@ export const YouTrackIssueDetail: React.FC<YouTrackIssueDetailProps> = ({
         <button
           type="button"
           onClick={onBack}
-          className="inline-flex items-center gap-0.5 -ml-1.5 pl-0.5 pr-2 h-8 rounded-full text-[15px] font-medium text-gd-green hover:bg-gd-green-light cursor-pointer"
+          className="inline-flex items-center gap-0.5 -ml-1.5 pl-0.5 pr-2 h-8 rounded-full text-[15px] font-medium text-gd-accent hover:bg-gd-accent-light cursor-pointer"
           title="Вернуться к списку задач"
         >
           <ChevronLeft className="w-5 h-5" strokeWidth={2.5} />
@@ -139,7 +139,7 @@ export const YouTrackIssueDetail: React.FC<YouTrackIssueDetailProps> = ({
       {/* Заголовок задачи */}
       <div className="px-1 space-y-2">
         <div className="flex items-center gap-1.5 flex-wrap">
-          <span className="font-mono text-[13px] font-semibold text-gd-green select-all">{issue.id}</span>
+          <span className="font-mono text-[13px] font-semibold text-gd-accent select-all">{issue.id}</span>
           {tfsNumber && (
             <span className="font-mono text-[12px] text-gd-muted select-all" title={`Номер TFS (US/BP): ${tfsNumber}`}>
               · {tfsNumber}
@@ -244,7 +244,7 @@ export const YouTrackIssueDetail: React.FC<YouTrackIssueDetailProps> = ({
         <button type="button" onClick={handleCopyMd} title="Скопировать Markdown ссылку" className="gd-row gd-row--tap w-full text-left">
           <span className="flex-1 text-[14px] text-slate-900">Ссылка Markdown</span>
           <span className="text-gd-muted">
-            {copiedMd ? <Check className="w-3.5 h-3.5 text-gd-green animate-pop-in" strokeWidth={2.75} /> : <Share2 className="w-3.5 h-3.5" />}
+            {copiedMd ? <Check className="w-3.5 h-3.5 text-gd-accent animate-pop-in" strokeWidth={2.75} /> : <Share2 className="w-3.5 h-3.5" />}
           </span>
         </button>
       </div>
@@ -253,7 +253,7 @@ export const YouTrackIssueDetail: React.FC<YouTrackIssueDetailProps> = ({
       <div>
         <div className="gd-section-title">
           <span>Перенос в задачу GreenData</span>
-          <span className={`inline-flex items-center gap-1.5 normal-case tracking-normal text-[12px] font-medium ${isGreenDataModalActive ? 'text-gd-green' : ''}`}>
+          <span className={`inline-flex items-center gap-1.5 normal-case tracking-normal text-[12px] font-medium ${isGreenDataModalActive ? 'text-gd-accent' : ''}`}>
             <span className={`w-2 h-2 rounded-full ${isGreenDataModalActive ? 'bg-[#34c759] animate-pulse' : 'bg-slate-300'}`} />
             {isGreenDataModalActive ? 'Форма открыта' : 'Форма не открыта'}
           </span>

@@ -124,7 +124,7 @@ export const PackageSelector: React.FC<PackageSelectorProps> = ({
                     }
                   }}
                   title={`Привязан к задаче "${activeLinkedTask.taskNumber}: ${activeLinkedTask.title}". Нажмите для перехода.`}
-                  className="inline-flex items-center gap-1 px-2 py-px rounded-full bg-gd-green-light hover:bg-emerald-500/20 text-gd-green text-[11px] font-semibold transition-colors flex-shrink-0 cursor-pointer whitespace-nowrap"
+                  className="inline-flex items-center gap-1 px-2 py-px rounded-full bg-gd-accent-light hover:bg-accent-500/20 text-gd-accent text-[11px] font-semibold transition-colors flex-shrink-0 cursor-pointer whitespace-nowrap"
                 >
                   <FileCode className="w-3 h-3" />
                   {activeLinkedTask.taskNumber}
@@ -138,7 +138,7 @@ export const PackageSelector: React.FC<PackageSelectorProps> = ({
           </span>
           <ChevronsUpDown
             className={`w-4 h-4 text-gd-faint flex-shrink-0 transition-transform duration-300 ${
-              isOpenList ? 'rotate-180 text-gd-green' : ''
+              isOpenList ? 'rotate-180 text-gd-accent' : ''
             }`}
           />
         </button>
@@ -178,7 +178,7 @@ export const PackageSelector: React.FC<PackageSelectorProps> = ({
                       className="group/row flex items-center gap-2.5 px-2 py-2 rounded-[10px] cursor-pointer hover:bg-gd-fill-2"
                     >
                       <span className="w-5 flex justify-center flex-shrink-0">
-                        {isActive && <Check className="w-4 h-4 text-gd-green" strokeWidth={2.75} />}
+                        {isActive && <Check className="w-4 h-4 text-gd-accent" strokeWidth={2.75} />}
                       </span>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-1.5 min-w-0">
@@ -241,7 +241,7 @@ export const PackageSelector: React.FC<PackageSelectorProps> = ({
               <button
                 type="button"
                 onClick={handleOpenCreateModal}
-                className="flex items-center gap-2.5 px-3.5 py-2.5 border-t border-gd-border text-[13.5px] font-medium text-gd-green hover:bg-gd-fill-2 cursor-pointer"
+                className="flex items-center gap-2.5 px-3.5 py-2.5 border-t border-gd-border text-[13.5px] font-medium text-gd-accent hover:bg-gd-fill-2 cursor-pointer"
               >
                 <Plus className="w-4 h-4" strokeWidth={2.5} />
                 Новый пакет
@@ -331,7 +331,7 @@ export const PackageSelector: React.FC<PackageSelectorProps> = ({
 
           <div>
             <label className="block text-xs font-semibold text-slate-700 mb-1 flex items-center gap-1.5">
-              <FileCode className="w-3.5 h-3.5 text-emerald-600" />
+              <FileCode className="w-3.5 h-3.5 text-accent-600" />
               <span>Привязать к задаче реализации (опционально):</span>
             </label>
             <Select
@@ -394,7 +394,7 @@ export const PackageSelector: React.FC<PackageSelectorProps> = ({
 
           <div>
             <label className="block text-xs font-semibold text-slate-700 mb-1 flex items-center gap-1.5">
-              <FileCode className="w-3.5 h-3.5 text-emerald-600" />
+              <FileCode className="w-3.5 h-3.5 text-accent-600" />
               <span>Привязанная задача реализации:</span>
             </label>
             <Select
@@ -416,7 +416,7 @@ export const PackageSelector: React.FC<PackageSelectorProps> = ({
                   setPackageToRename(null);
                   onNavigateToTask(renameTaskId);
                 }}
-                className="mt-1.5 inline-flex items-center gap-1 text-[11px] text-emerald-700 hover:text-emerald-800 hover:underline font-semibold"
+                className="mt-1.5 inline-flex items-center gap-1 text-[11px] text-accent-700 hover:text-accent-800 hover:underline font-semibold"
               >
                 <span>Перейти к задаче реализации</span>
                 <ExternalLink className="w-3 h-3" />

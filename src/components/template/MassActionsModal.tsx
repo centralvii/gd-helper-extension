@@ -117,7 +117,7 @@ export const MassActionsModal: React.FC<MassActionsModalProps> = ({
           <div className="rounded-xl border border-slate-200 bg-white p-3 space-y-2.5 shadow-2xs">
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-bold text-slate-800 flex items-center gap-1.5">
-                <Wand2 className="w-3.5 h-3.5 text-emerald-600" />
+                <Wand2 className="w-3.5 h-3.5 text-accent-600" />
                 Шаблон имени файлов:
               </span>
             </div>
@@ -129,7 +129,7 @@ export const MassActionsModal: React.FC<MassActionsModalProps> = ({
                 value={template}
                 onChange={(e) => onSetTemplate(e.target.value)}
                 placeholder="{indexPad6}_{type}_{module}_{task}_{cleanName}"
-                className="w-full rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2 font-mono text-xs font-bold text-emerald-800 outline-none transition-all placeholder:text-slate-400 focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-500/15 shadow-2xs"
+                className="w-full rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2 font-mono text-xs font-bold text-accent-800 outline-none transition-all placeholder:text-slate-400 focus:border-accent-500 focus:bg-white focus:ring-2 focus:ring-accent-500/15 shadow-2xs"
               />
             </div>
 
@@ -146,7 +146,7 @@ export const MassActionsModal: React.FC<MassActionsModalProps> = ({
                     type="button"
                     onClick={() => insertTag(tag)}
                     title={`${tag} — ${desc}. Нажмите для вставки в шаблон`}
-                    className="rounded-lg border border-slate-200 bg-slate-50/90 hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-900 px-2 py-1 font-mono text-[11px] font-semibold text-slate-700 transition-all active:scale-95 shadow-2xs cursor-pointer"
+                    className="rounded-lg border border-slate-200 bg-slate-50/90 hover:bg-accent-50 hover:border-accent-300 hover:text-accent-900 px-2 py-1 font-mono text-[11px] font-semibold text-slate-700 transition-all active:scale-95 shadow-2xs cursor-pointer"
                   >
                     {tag}
                   </button>
@@ -170,12 +170,12 @@ export const MassActionsModal: React.FC<MassActionsModalProps> = ({
           </div>
         )}
 
-        <div className="rounded-xl border border-emerald-200/90 bg-emerald-50/60 p-3 shadow-2xs">
-          <p className="text-emerald-950 text-[11px] leading-relaxed font-medium">
+        <div className="rounded-xl border border-accent-200/90 bg-accent-50/60 p-3 shadow-2xs">
+          <p className="text-accent-950 text-[11px] leading-relaxed font-medium">
             Значения тегов автоматически подставляются в шаблон имени файлов (например,{' '}
-            <span className="font-mono font-bold text-emerald-900 bg-white px-1.5 py-0.5 rounded border border-emerald-300">{'{type}'}</span>,{' '}
-            <span className="font-mono font-bold text-emerald-900 bg-white px-1.5 py-0.5 rounded border border-emerald-300">{'{module}'}</span>,{' '}
-            <span className="font-mono font-bold text-emerald-900 bg-white px-1.5 py-0.5 rounded border border-emerald-300">{'{task}'}</span>
+            <span className="font-mono font-bold text-accent-900 bg-white px-1.5 py-0.5 rounded border border-accent-300">{'{type}'}</span>,{' '}
+            <span className="font-mono font-bold text-accent-900 bg-white px-1.5 py-0.5 rounded border border-accent-300">{'{module}'}</span>,{' '}
+            <span className="font-mono font-bold text-accent-900 bg-white px-1.5 py-0.5 rounded border border-accent-300">{'{task}'}</span>
             ) для всех файлов активного пакета.
           </p>
         </div>
@@ -191,13 +191,13 @@ export const MassActionsModal: React.FC<MassActionsModalProps> = ({
             return (
               <div
                 key={v.key}
-                className="flex flex-col sm:flex-row sm:items-center gap-2.5 p-3 rounded-xl bg-white border border-slate-200 shadow-2xs hover:border-emerald-300 transition-all"
+                className="flex flex-col sm:flex-row sm:items-center gap-2.5 p-3 rounded-xl bg-white border border-slate-200 shadow-2xs hover:border-accent-300 transition-all"
               >
                 {/* Left label & quick buttons */}
                 <div className="sm:w-36 flex-shrink-0 flex items-center justify-between sm:block">
                   <div className="flex items-center gap-1.5">
-                    <Tag className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
-                    <span className="font-mono text-emerald-800 font-bold text-xs">
+                    <Tag className="w-3.5 h-3.5 text-accent-600 flex-shrink-0" />
+                    <span className="font-mono text-accent-800 font-bold text-xs">
                       {`{${v.key}}`}
                     </span>
                     {v.label && v.label !== v.key && (
@@ -213,9 +213,9 @@ export const MassActionsModal: React.FC<MassActionsModalProps> = ({
                       type="button"
                       onClick={() => handleValueChange('task', linkedTask.taskNumber)}
                       title={`Вставить номер связанной задачи ${linkedTask.taskNumber}`}
-                      className="mt-1.5 inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold bg-emerald-100/90 text-emerald-900 border border-emerald-300/80 hover:bg-emerald-200 transition-all shadow-2xs cursor-pointer"
+                      className="mt-1.5 inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold bg-accent-100/90 text-accent-900 border border-accent-300/80 hover:bg-accent-200 transition-all shadow-2xs cursor-pointer"
                     >
-                      <Sparkles className="w-2.5 h-2.5 text-emerald-700" />
+                      <Sparkles className="w-2.5 h-2.5 text-accent-700" />
                       <span>+{linkedTask.taskNumber}</span>
                     </button>
                   )}
@@ -236,7 +236,7 @@ export const MassActionsModal: React.FC<MassActionsModalProps> = ({
                     }
                     value={currentVal}
                     onChange={(e) => handleValueChange(v.key, e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-1.5 text-xs text-slate-900 placeholder:text-slate-400 outline-none transition-all focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-500/10 shadow-2xs"
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-1.5 text-xs text-slate-900 placeholder:text-slate-400 outline-none transition-all focus:border-accent-500 focus:bg-white focus:ring-2 focus:ring-accent-500/10 shadow-2xs"
                   />
                 </div>
 
@@ -267,14 +267,14 @@ export const MassActionsModal: React.FC<MassActionsModalProps> = ({
                 placeholder="Имя тега (напр. version)"
                 value={newVarKey}
                 onChange={(e) => setNewVarKey(e.target.value)}
-                className="rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-900 outline-none focus:border-emerald-500 shadow-2xs"
+                className="rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-900 outline-none focus:border-accent-500 shadow-2xs"
               />
               <input
                 type="text"
                 placeholder="Описание (необязательно)"
                 value={newVarLabel}
                 onChange={(e) => setNewVarLabel(e.target.value)}
-                className="rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-900 outline-none focus:border-emerald-500 shadow-2xs"
+                className="rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-900 outline-none focus:border-accent-500 shadow-2xs"
               />
             </div>
             <Button
@@ -282,7 +282,7 @@ export const MassActionsModal: React.FC<MassActionsModalProps> = ({
               variant="secondary"
               size="sm"
               disabled={!newVarKey.trim()}
-              leftIcon={<Plus className="w-3.5 h-3.5 text-emerald-600" />}
+              leftIcon={<Plus className="w-3.5 h-3.5 text-accent-600" />}
             >
               Добавить
             </Button>

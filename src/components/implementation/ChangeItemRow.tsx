@@ -127,8 +127,8 @@ export const ChangeItemRow: React.FC<ChangeItemRowProps> = React.memo(({
           data-icon-anim="pop"
           className={`mt-0.5 grid h-[22px] w-[22px] flex-shrink-0 place-items-center rounded-full border-[1.5px] transition-colors duration-200 cursor-pointer ${
             item.isCollected
-              ? 'border-gd-green bg-gd-green text-white'
-              : 'border-slate-300 hover:border-gd-green'
+              ? 'border-gd-accent bg-gd-accent text-white'
+              : 'border-slate-300 hover:border-gd-accent'
           }`}
         >
           {item.isCollected && <Check className="h-3.5 w-3.5 animate-pop-in" strokeWidth={3} />}
@@ -198,7 +198,7 @@ export const ChangeItemRow: React.FC<ChangeItemRowProps> = React.memo(({
                     target="_blank"
                     rel="noreferrer"
                     title={`Открыть в GreenData: ${item.linkTitle ? `${item.linkTitle} (${item.linkUrl})` : item.linkUrl}`}
-                    className="inline-flex items-center gap-1 min-w-0 max-w-full font-medium text-gd-green hover:underline cursor-pointer"
+                    className="inline-flex items-center gap-1 min-w-0 max-w-full font-medium text-gd-accent hover:underline cursor-pointer"
                   >
                     <LinkIcon className="w-3 h-3 flex-shrink-0" />
                     <span className="truncate">{item.linkTitle || item.linkUrl}</span>
@@ -230,7 +230,7 @@ export const ChangeItemRow: React.FC<ChangeItemRowProps> = React.memo(({
                     onClick={() => handleAutoParseNumber()}
                     disabled={isParsingNumber}
                     title="Автопарсинг номера последнего файла из таблицы «Прикрепленные файлы» в GreenData"
-                    className="inline-flex items-center gap-0.5 font-medium text-gd-muted hover:text-gd-green cursor-pointer disabled:opacity-60 flex-shrink-0"
+                    className="inline-flex items-center gap-0.5 font-medium text-gd-muted hover:text-gd-accent cursor-pointer disabled:opacity-60 flex-shrink-0"
                   >
                     <Hash className={`w-3 h-3 ${isParsingNumber ? 'animate-spin' : ''}`} />
                     {isParsingNumber ? 'Парсинг…' : 'Номер'}
@@ -254,7 +254,7 @@ export const ChangeItemRow: React.FC<ChangeItemRowProps> = React.memo(({
                 className={`inline-flex items-center gap-1 rounded-full px-2 py-px text-[11px] font-semibold flex-shrink-0 ${
                   item.isCollected
                     ? 'bg-[#007aff]/10 text-[#0062cc] cursor-default'
-                    : 'bg-[#007aff]/10 text-[#0062cc] hover:bg-gd-green-light hover:text-gd-green cursor-pointer'
+                    : 'bg-[#007aff]/10 text-[#0062cc] hover:bg-gd-accent-light hover:text-gd-accent cursor-pointer'
                 }`}
               >
                 <Package className="w-3 h-3" />В пакете #{matchingPackageFile.order}
@@ -265,7 +265,7 @@ export const ChangeItemRow: React.FC<ChangeItemRowProps> = React.memo(({
         )}
 
         {parseFeedback && (
-          <p className={`text-[11.5px] font-medium animate-fade-in ${parseFeedback.isError ? 'text-[#d70015]' : 'text-gd-green'}`}>
+          <p className={`text-[11.5px] font-medium animate-fade-in ${parseFeedback.isError ? 'text-[#d70015]' : 'text-gd-accent'}`}>
             {parseFeedback.message}
           </p>
         )}
@@ -278,7 +278,7 @@ export const ChangeItemRow: React.FC<ChangeItemRowProps> = React.memo(({
           variant="ghost"
           onClick={handleCopy}
           title="Копировать пункт"
-          icon={copied ? <Check className="w-3.5 h-3.5 text-gd-green animate-pop-in" strokeWidth={2.75} /> : <Copy className="w-3.5 h-3.5" />}
+          icon={copied ? <Check className="w-3.5 h-3.5 text-gd-accent animate-pop-in" strokeWidth={2.75} /> : <Copy className="w-3.5 h-3.5" />}
         />
         {isUpdatePackage ? (
           <span

@@ -1,3 +1,5 @@
+import type { ReactNode } from 'react';
+
 export interface FileRow {
   id: string;
   order: number;
@@ -91,7 +93,7 @@ export interface StoredAppState {
   updatedAt?: number;
 }
 
-export type ActiveTool = 'packer' | 'implementation' | 'youtrack' | 'extra' | 'ai';
+export type ActiveTool = 'packer' | 'implementation' | 'youtrack' | 'extra';
 
 export interface YouTrackIssue {
   id: string; // e.g. "REZ_FIN-8241"
@@ -144,48 +146,14 @@ export interface YouTrackParsedResult {
   syncedAt: number;
 }
 
-export interface AiChatMessage {
-  id: string;
-  role: 'user' | 'assistant' | 'system';
-  content: string;
-  timestamp: number;
-  model?: string;
-  isStreaming?: boolean;
-  error?: boolean;
-  reasoningContent?: string;
-}
-
 export type AiAuthType = 'bearer' | 'api-key' | 'x-api-key' | 'none';
 
-export interface AiStarterSuggestion {
-  title: string;
-  desc: string;
-  prompt: string;
-  icon?: string;
-}
-
-export interface AiAgent {
-  id: string;
-  name: string;
-  shortName: string;
-  role: string;
-  avatarIcon: 'code' | 'bot' | 'database' | 'package' | 'sparkles';
-  badgeColor: 'emerald' | 'indigo' | 'purple' | 'sky' | 'amber';
-  description: string;
-  systemPrompt: string;
-  starterSuggestions: AiStarterSuggestion[];
-}
-
+/** Подключение к OpenAI-совместимому API (генерация ID алгоритмов во вкладке «Утилиты») */
 export interface AiSettings {
   baseUrl: string;
   apiKey: string;
   authType?: AiAuthType;
   model: string;
-  selectedAgentId?: string;
-  systemPrompt: string;
-  temperature: number;
-  stream: boolean;
-  maxTokens?: number;
   customHeadersJson?: string;
 }
 
@@ -319,4 +287,16 @@ type MathQuillFactory = (el: HTMLElement) => MathQuillField | null;
 /** window страницы GreenData с глобальным MathQuill */
 export interface MathQuillWindow {
   MathQuill?: MathQuillFactory & { getInterface?: (version: number) => MathQuillFactory };
+}
+
+/** Команда командной палитры (Ctrl/⌘ + K) */
+export interface PaletteCommand {
+  id: string;
+  group: string; // Заголовок группы: «Перейти», «Действия», «Задачи», «Пакеты»
+  title: string;
+  subtitle?: string;
+  icon: ReactNode;
+  shortcut?: string;
+  keywords?: string; // Дополнительные слова для поиска
+  run: () => void;
 }
