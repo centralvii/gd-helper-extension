@@ -18,6 +18,7 @@ import confetti from 'canvas-confetti';
 import { ImplementationChangeItem, StoredPackageMeta } from '../types';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
+import { Select } from '../components/ui/Select';
 import { formatTaskToMarkdown, DEFAULT_IMPLEMENTATION_SECTIONS, extractCardIdFromUrl } from '../utils/tabUtils';
 import { loadAppStateFromDB } from '../utils/indexedDB';
 import { useImplementationTasks } from '../hooks/useImplementationTasks';
@@ -264,17 +265,18 @@ export const ChecklistPage: React.FC = () => {
           <div className="flex items-center gap-2 flex-shrink-0">
             {/* Task selector dropdown if multiple tasks exist */}
             {tasks.length > 1 && (
-              <select
+              <Select
+                size="sm"
                 value={task.id}
-                onChange={(e) => selectTask(e.target.value)}
-                className="text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1.5 text-slate-700 hover:bg-slate-100 cursor-pointer"
-              >
-                {tasks.map((t) => (
-                  <option key={t.id} value={t.id}>
-                    {t.taskNumber ? `${t.taskNumber} — ${t.title}` : t.title}
-                  </option>
-                ))}
-              </select>
+                onChange={selectTask}
+                options={tasks.map((t) => ({
+                  value: t.id,
+                  label: t.taskNumber ? `${t.taskNumber} — ${t.title}` : t.title,
+                }))}
+                aria-label="Задача"
+                className="w-56"
+                dropdownClassName="w-72"
+              />
             )}
 
             <Button

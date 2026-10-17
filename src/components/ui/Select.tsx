@@ -1,4 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useLayoutEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { ChevronDown, Check } from 'lucide-react';
 
 export interface SelectOption {
@@ -23,6 +24,8 @@ export interface SelectProps {
   leftIcon?: React.ReactNode;
   id?: string;
   name?: string;
+  title?: string;
+  'aria-label'?: string;
 }
 
 export const Select: React.FC<SelectProps> = ({
@@ -37,9 +40,13 @@ export const Select: React.FC<SelectProps> = ({
   size = 'md',
   leftIcon,
   id,
+  title,
+  'aria-label': ariaLabel,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const [menuPos, setMenuPos] = useState<React.CSSProperties | null>(null);
 
   // Find selected option
   const selectedOption = options.find((opt) => opt.value === value);
@@ -47,7 +54,8 @@ export const Select: React.FC<SelectProps> = ({
   // Close dropdown on outside click
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+      const target = event.target as Node;
+      if (!containerRef.current?.contains(target) && !menuRef.current?.contains(target)) {
         setIsOpen(false);
       }
     };
@@ -76,6 +84,47 @@ export const Select: React.FC<SelectProps> = ({
     };
   }, [isOpen]);
 
+  // Меню рендерится в портале с fixed-позицией: стеклянные группы (overflow: hidden)
+  // его не обрезают. Если снизу мало места — раскрывается вверх.
+  useLayoutEffect(() => {
+    if (!isOpen) {
+      setMenuPos(null);
+      return;
+    }
+    const update = () => {
+      const trigger = containerRef.current?.getBoundingClientRect();
+      if (!trigger) return;
+      const gap = 6;
+      const margin = 8;
+      const menuHeight = Math.min(menuRef.current?.scrollHeight ?? 256, 256);
+      const spaceBelow = window.innerHeight - trigger.bottom - margin;
+      const openUp = spaceBelow < menuHeight && trigger.top > spaceBelow;
+      // Выравнивание по левому краю триггера; не влезает — по правому
+      const menuWidth = Math.max(trigger.width, menuRef.current?.offsetWidth ?? 0);
+      const fitsRight = trigger.left + menuWidth <= window.innerWidth - margin;
+      const left = Math.max(margin, fitsRight ? trigger.left : trigger.right - menuWidth);
+      setMenuPos({
+        position: 'fixed',
+        left,
+        minWidth: trigger.width,
+        maxWidth: window.innerWidth - margin * 2,
+        maxHeight: Math.max(120, Math.min(256, openUp ? trigger.top - gap - margin : spaceBelow - gap)),
+        ...(openUp
+          ? { bottom: window.innerHeight - trigger.top + gap }
+          : { top: trigger.bottom + gap }),
+      });
+    };
+    update();
+    const raf = requestAnimationFrame(update);
+    window.addEventListener('resize', update);
+    document.addEventListener('scroll', update, true);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener('resize', update);
+      document.removeEventListener('scroll', update, true);
+    };
+  }, [isOpen]);
+
   const handleSelect = (optValue: string, optDisabled?: boolean) => {
     if (optDisabled) return;
     onChange(optValue);
@@ -93,6 +142,10 @@ export const Select: React.FC<SelectProps> = ({
       <button
         type="button"
         id={id}
+        title={title}
+        aria-label={ariaLabel}
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
         disabled={disabled}
         onClick={() => !disabled && setIsOpen((prev) => !prev)}
         className={`gd-select-trigger w-full flex items-center justify-between gap-2 border text-left transition-all cursor-pointer ${
@@ -131,9 +184,12 @@ export const Select: React.FC<SelectProps> = ({
       </button>
 
       {/* Dropdown Menu */}
-      {isOpen && (
+      {isOpen && createPortal(
         <div
-          className={`gd-menu absolute left-0 right-0 z-50 mt-1.5 p-1 overflow-y-auto max-h-64 animate-slide-down origin-top ${dropdownClassName}`}
+          ref={menuRef}
+          role="listbox"
+          style={menuPos ?? { position: 'fixed', visibility: 'hidden' }}
+          className={`gd-menu z-[70] p-1 overflow-y-auto animate-slide-down origin-top ${dropdownClassName}`}
         >
           {options.length === 0 ? (
             <div className="px-3 py-2 text-center text-slate-400 text-[11px]">
@@ -146,6 +202,8 @@ export const Select: React.FC<SelectProps> = ({
                 <button
                   key={opt.value}
                   type="button"
+                  role="option"
+                  aria-selected={isSelected}
                   disabled={opt.disabled}
                   onClick={() => handleSelect(opt.value, opt.disabled)}
                   className={`w-full flex items-center justify-between gap-2 px-2.5 py-2 rounded-lg text-left text-[13px] transition-colors cursor-pointer ${
@@ -175,7 +233,8 @@ export const Select: React.FC<SelectProps> = ({
               );
             })
           )}
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

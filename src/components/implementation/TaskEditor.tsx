@@ -821,18 +821,20 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
             className="min-w-0 flex-1 bg-transparent py-1.5 text-[13px] text-slate-900 outline-none placeholder:text-gd-faint"
           />
           {sections.length > 0 && (
-            <select
+            <Select
+              size="sm"
               value={quickAddSectionId}
-              onChange={(e) => setQuickAddSectionId(e.target.value)}
+              onChange={setQuickAddSectionId}
+              options={[
+                ...sections.map((sec) => ({ value: sec.id, label: sec.name })),
+                { value: '', label: 'Без раздела' },
+              ]}
               aria-label="Раздел для нового пункта"
               title="Раздел для нового пункта"
-              className="max-w-[96px] flex-shrink-0 truncate rounded-full bg-white/75 px-2 py-1 text-[11.5px] font-medium text-slate-700 outline-none cursor-pointer"
-            >
-              {sections.map((sec) => (
-                <option key={sec.id} value={sec.id}>{sec.name}</option>
-              ))}
-              <option value="">Без раздела</option>
-            </select>
+              className="w-[104px] flex-shrink-0"
+              buttonClassName="!min-h-[28px] !rounded-full !bg-white/75 !border-transparent !px-2.5 !py-0 !text-[11.5px] !ring-0"
+              dropdownClassName="w-56"
+            />
           )}
           <button
             type="button"
