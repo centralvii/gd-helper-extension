@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { useCopyToClipboard } from '../../hooks/useCopyToClipboard';
 import {
   ExternalLink,
   CheckCircle2,
@@ -39,7 +40,8 @@ export const TaskChecklistModal: React.FC<TaskChecklistModalProps> = ({
   onSetAllCollected,
   linkedPackages = [],
 }) => {
-  const [copiedMd, setCopiedMd] = useState(false);
+  const { copy, isCopied } = useCopyToClipboard();
+  const copiedMd = isCopied();
   const prevCollectedCountRef = useRef(0);
 
   const linkedFilesByCardId = useMemo(() => {
@@ -187,9 +189,7 @@ export const TaskChecklistModal: React.FC<TaskChecklistModalProps> = ({
       ...task,
       linkedPackages,
     });
-    navigator.clipboard.writeText(md);
-    setCopiedMd(true);
-    setTimeout(() => setCopiedMd(false), 2000);
+    void copy(md);
   };
 
   const handleOpenStandalone = () => {

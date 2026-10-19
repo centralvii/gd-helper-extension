@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { useCopyToClipboard } from '../../hooks/useCopyToClipboard';
 import { Check, Download, FileText, Code, FileJson } from 'lucide-react';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
@@ -19,7 +20,7 @@ export const TaskExportPreviewModal: React.FC<TaskExportPreviewModalProps> = ({
   task,
   packages = [],
 }) => {
-  const [copiedFormat, setCopiedFormat] = useState<string | null>(null);
+  const { copy, copiedKey: copiedFormat } = useCopyToClipboard(2500);
 
   if (!task) return null;
 
@@ -41,9 +42,7 @@ export const TaskExportPreviewModal: React.FC<TaskExportPreviewModalProps> = ({
   );
 
   const handleCopy = (format: string, text: string) => {
-    navigator.clipboard.writeText(text);
-    setCopiedFormat(format);
-    setTimeout(() => setCopiedFormat(null), 2500);
+    void copy(text, format);
   };
 
   const handleDownloadMd = () => {

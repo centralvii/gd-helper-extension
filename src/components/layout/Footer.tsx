@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
     Archive,
     Download,
@@ -34,6 +34,8 @@ export const Footer: React.FC<FooterProps> = ({
 }) => {
     const [isEditingName, setIsEditingName] = useState(false);
     const [tempName, setTempName] = useState(archiveName);
+    // Esc отменяет переименование: blur после этого не должен сохранять
+    const cancelEditRef = useRef(false);
 
     const handleExport = async () => {
         if (validation.hasErrors || fileCount === 0 || isExporting) return;
@@ -69,10 +71,28 @@ export const Footer: React.FC<FooterProps> = ({
                         type="text"
                         value={tempName}
                         onChange={(e) => setTempName(e.target.value)}
-                        onBlur={handleSaveArchiveName}
+                        onBlur={() => {
+                            if (cancelEditRef.current) {
+                                cancelEditRef.current = false;
+                                return;
+                            }
+                            handleSaveArchiveName();
+                        }}
                         onKeyDown={(e) => {
-                            if (e.key === 'Enter') handleSaveArchiveName();
-                            if (e.key === 'Escape') setIsEditingName(false);
+                            if (e.key === 'Enter') {
+                                e.preventDefault();
+                                handleSaveArchiveName();
+                            }
+                            if (e.key === 'Escape') {
+                                e.preventDefault();
+                                cancelEditRef.current = true;
+                                setIsEditingName(false);
+                            }
+                        }}
+                        onFocus={(e) => {
+                            // Выделяем имя без расширения — сразу можно печатать новое
+                            const dot = e.currentTarget.value.toLowerCase().lastIndexOf('.zip');
+                            e.currentTarget.setSelectionRange(0, dot > 0 ? dot : e.currentTarget.value.length);
                         }}
                         autoFocus
                         aria-label="Имя архива"
@@ -121,7 +141,11 @@ export const Footer: React.FC<FooterProps> = ({
                     isLoading={isExporting}
                     disabled={validation.hasErrors || fileCount === 0}
                     onClick={handleExport}
-                    title={`Экспорт ZIP · ${fileCount} ${pluralizeRu(fileCount, FILE_FORMS)}`}
+                    title={
+                        validation.hasErrors
+                            ? 'Экспорт недоступен: исправьте ошибки в именах файлов'
+                            : `Экспорт ZIP · ${fileCount} ${pluralizeRu(fileCount, FILE_FORMS)}`
+                    }
                     leftIcon={<Download className="h-4 w-4" />}
                 >
                     {isExporting ? 'Сборка…' : 'Экспорт ZIP'}

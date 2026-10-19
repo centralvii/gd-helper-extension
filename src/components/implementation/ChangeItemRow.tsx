@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { useCopyToClipboard } from '../../hooks/useCopyToClipboard';
+import { useEscapeKey } from '../../hooks/useEscapeKey';
 import {
   MoreHorizontal,
   Edit2,
@@ -46,7 +48,8 @@ export const ChangeItemRow: React.FC<ChangeItemRowProps> = React.memo(({
   matchingPackageFile,
   onApplyPackageNumber,
 }) => {
-  const [copied, setCopied] = useState(false);
+  const { copy, isCopied } = useCopyToClipboard();
+  const copied = isCopied();
   const [isParsingNumber, setIsParsingNumber] = useState(false);
   const [parseFeedback, setParseFeedback] = useState<{ message: string; isError?: boolean } | null>(null);
   const [urlInput, setUrlInput] = useState(item.linkUrl || '');
@@ -103,14 +106,13 @@ export const ChangeItemRow: React.FC<ChangeItemRowProps> = React.memo(({
       item.linkUrl,
       item.isCollected
     );
-    navigator.clipboard.writeText(formatted);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    void copy(formatted);
   };
 
   const cardId = extractCardIdFromUrl(item.linkUrl);
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  useEscapeKey(isMenuOpen, () => setIsMenuOpen(false));
   const menuItemClass =
     'w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] text-slate-900 hover:bg-gd-fill-2 disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer';
 
@@ -156,11 +158,16 @@ export const ChangeItemRow: React.FC<ChangeItemRowProps> = React.memo(({
                   <input
                     type="url"
                     value={urlInput}
+                    autoFocus={isEditingUrl}
                     onChange={(e) => setUrlInput(e.target.value)}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
                         e.preventDefault();
                         handleAutoParseNumber(urlInput);
+                      } else if (e.key === 'Escape' && item.linkUrl) {
+                        e.preventDefault();
+                        setUrlInput(item.linkUrl);
+                        setIsEditingUrl(false);
                       }
                     }}
                     placeholder="Ссылка на релизный пакет: https://expo.greendatasoft.ru/#/card/…"

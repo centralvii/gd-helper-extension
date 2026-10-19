@@ -59,6 +59,13 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
     }
   }, [initialPackageUrl]);
 
+  // Подсказка под полем исчезает сама через 6 с (таймер сбрасывается при новой подсказке)
+  useEffect(() => {
+    if (!parseFeedback) return;
+    const timer = setTimeout(() => setParseFeedback(null), 6000);
+    return () => clearTimeout(timer);
+  }, [parseFeedback]);
+
   const handleFetchUrlFromActiveTab = async () => {
     try {
       const tabInfo = await getActiveTabInfo();
@@ -67,9 +74,13 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
         try {
           localStorage.setItem('gd_last_package_url', tabInfo.url);
         } catch {}
+        setParseFeedback({ type: 'success', text: 'Ссылка из вкладки вставлена — нажмите №' });
+      } else {
+        setParseFeedback({ type: 'error', text: 'Не удалось получить ссылку активной вкладки' });
       }
     } catch (e) {
       console.warn('Failed to fetch active tab URL:', e);
+      setParseFeedback({ type: 'error', text: 'Не удалось получить ссылку активной вкладки' });
     }
   };
 
@@ -111,7 +122,6 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
       });
     } finally {
       setIsParsing(false);
-      setTimeout(() => setParseFeedback(null), 6000);
     }
   };
 

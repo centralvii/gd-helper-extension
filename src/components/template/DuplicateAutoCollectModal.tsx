@@ -37,6 +37,7 @@ export const DuplicateAutoCollectModal: React.FC<DuplicateAutoCollectModalProps>
       onClose={onClose}
       title="Файл уже есть в пакете"
       maxWidth="md"
+      initialFocus="sheet"
       footer={
         <>
           <Button variant="secondary" size="sm" onClick={onClose}>

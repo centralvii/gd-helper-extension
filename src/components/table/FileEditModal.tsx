@@ -43,6 +43,7 @@ export const FileEditModal: React.FC<FileEditModalProps> = ({
       onClose={onClose}
       title={`Редактирование файла #${file.order}`}
       maxWidth="md"
+      onSubmit={handleSave}
       footer={
         <>
           <Button variant="secondary" size="sm" onClick={onClose}>

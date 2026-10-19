@@ -104,6 +104,13 @@ export const FileTable: React.FC<FileTableProps> = ({
                         placeholder="Поиск по файлам"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Escape' && searchQuery) {
+                                e.preventDefault();
+                                setSearchQuery('');
+                            }
+                        }}
+                        aria-label="Поиск по файлам"
                         className="gd-field !pl-8 !bg-[rgba(118,118,128,0.12)]"
                     />
                 </div>

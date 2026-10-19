@@ -44,8 +44,8 @@ export const TaskSelector: React.FC<TaskSelectorProps> = ({
     setRenameTitle(t.title);
   };
 
-  const handleConfirmRename = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleConfirmRename = (e?: React.FormEvent) => {
+    e?.preventDefault();
     if (taskToRename) {
       const taskNumber = renameTaskNumber.trim() || 'GD-000';
       const title = renameTitle.trim() || 'Без названия';
@@ -58,6 +58,18 @@ export const TaskSelector: React.FC<TaskSelectorProps> = ({
       }
     }
     setTaskToRename(null);
+  };
+
+  const confirmDelete = () => {
+    if (taskToDelete) {
+      onDeleteTask(taskToDelete.id);
+    }
+    setTaskToDelete(null);
+  };
+
+  const openTask = (id: string) => {
+    onSelectTask(id);
+    onChangeView('detail');
   };
 
   const filteredTasks = tasks.filter((t) => {
@@ -121,6 +133,16 @@ export const TaskSelector: React.FC<TaskSelectorProps> = ({
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && searchQuery.trim() && filteredTasks[0]) {
+                  e.preventDefault();
+                  openTask(filteredTasks[0].id);
+                } else if (e.key === 'Escape' && searchQuery) {
+                  e.preventDefault();
+                  setSearchQuery('');
+                }
+              }}
+              aria-label="Поиск задач"
               placeholder="Поиск по номеру или названию"
               className="gd-field !pl-8 !bg-[rgba(118,118,128,0.12)]"
             />
@@ -139,9 +161,14 @@ export const TaskSelector: React.FC<TaskSelectorProps> = ({
                   <div
                     key={t.id}
                     role="button"
-                    onClick={() => {
-                      onSelectTask(t.id);
-                      onChangeView('detail');
+                    tabIndex={0}
+                    aria-current={isActive ? 'true' : undefined}
+                    onClick={() => openTask(t.id)}
+                    onKeyDown={(e) => {
+                      if (e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ')) {
+                        e.preventDefault();
+                        openTask(t.id);
+                      }
                     }}
                     className="gd-row gd-row--tap group/row !py-2.5"
                   >
@@ -228,6 +255,8 @@ export const TaskSelector: React.FC<TaskSelectorProps> = ({
         onClose={() => setTaskToDelete(null)}
         title="Удалить задачу реализации?"
         maxWidth="sm"
+        initialFocus="sheet"
+        onSubmit={confirmDelete}
         footer={
           <>
             <Button
@@ -241,12 +270,7 @@ export const TaskSelector: React.FC<TaskSelectorProps> = ({
               variant="danger"
               size="sm"
               leftIcon={<Trash2 className="w-3.5 h-3.5" />}
-              onClick={() => {
-                if (taskToDelete) {
-                  onDeleteTask(taskToDelete.id);
-                }
-                setTaskToDelete(null);
-              }}
+              onClick={confirmDelete}
             >
               Удалить
             </Button>
@@ -266,6 +290,7 @@ export const TaskSelector: React.FC<TaskSelectorProps> = ({
         onClose={() => setTaskToRename(null)}
         title="Номер и название задачи"
         maxWidth="sm"
+        onSubmit={handleConfirmRename}
         footer={
           <>
             <Button

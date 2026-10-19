@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { FileText, Eye, Check } from 'lucide-react';
 import { Modal, Button, SegmentedControl, Textarea } from '../ui';
 import { FileRow } from '../../types';
@@ -22,6 +22,15 @@ export const ReadmeEditorModal: React.FC<ReadmeEditorModalProps> = ({
   const [text, setText] = useState(readmeContent);
   const [activeTab, setActiveTab] = useState<'edit' | 'preview'>('edit');
 
+  // Каждое открытие — актуальный текст пакета (после «Отмены» или смены пакета не остаётся черновик)
+  useEffect(() => {
+    if (isOpen) {
+      setText(readmeContent);
+      setActiveTab('edit');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
+
   const previewOutput = buildReadmeContent(files, text);
 
   const handleSave = () => {
@@ -35,6 +44,7 @@ export const ReadmeEditorModal: React.FC<ReadmeEditorModalProps> = ({
       onClose={onClose}
       title="Редактор README.txt"
       maxWidth="lg"
+      onSubmit={handleSave}
       footer={
         <>
           <Button variant="secondary" size="sm" onClick={onClose}>

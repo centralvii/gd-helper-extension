@@ -309,6 +309,17 @@
         text-transform: uppercase;
         color: var(--gd-muted);
     }
+    /* Текстовые ссылки в подписи секции («Очистить», «Пресеты»): зона нажатия ≥ 28px без сдвига вёрстки */
+    .gd-section-title > button,
+    .gd-section-title > span > button {
+        position: relative;
+    }
+    .gd-section-title > button::after,
+    .gd-section-title > span > button::after {
+        content: "";
+        position: absolute;
+        inset: -8px -8px;
+    }
 
     /* Поле ввода с заливкой */
     .gd-field {

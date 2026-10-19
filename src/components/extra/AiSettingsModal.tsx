@@ -34,7 +34,6 @@ export const AiSettingsModal: React.FC<AiSettingsModalProps> = ({
   onClose,
   settings,
   onSave,
-  onReset,
   onTestConnection,
 }) => {
   const [baseUrl, setBaseUrl] = useState(settings.baseUrl);
@@ -79,8 +78,8 @@ export const AiSettingsModal: React.FC<AiSettingsModalProps> = ({
     }
   };
 
-  const handleSave = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSave = (e?: React.FormEvent) => {
+    e?.preventDefault();
     onSave({
       baseUrl: baseUrl.trim(),
       apiKey: apiKey.trim(),
@@ -97,13 +96,14 @@ export const AiSettingsModal: React.FC<AiSettingsModalProps> = ({
       onClose={onClose}
       title="Подключение ИИ для генерации ID"
       maxWidth="md"
+      onSubmit={handleSave}
       footer={
         <div className="flex items-center justify-between w-full">
           <Button
             variant="secondary"
             size="sm"
+            // Сбрасывает только поля формы: настройки (и ключ API) меняются лишь после «Сохранить»
             onClick={() => {
-              onReset();
               setBaseUrl(DEFAULT_AI_SETTINGS.baseUrl);
               setApiKey('');
               setAuthType('bearer');

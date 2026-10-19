@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { useCopyToClipboard } from '../hooks/useCopyToClipboard';
 import {
   ExternalLink,
   CheckCircle2,
@@ -33,19 +34,28 @@ export const ChecklistPage: React.FC = () => {
     setAllChangeItemsCollected,
   } = useImplementationTasks();
 
-  const [copiedMd, setCopiedMd] = useState(false);
+  const { copy, isCopied } = useCopyToClipboard();
+  const copiedMd = isCopied();
   const prevCollectedCountRef = useRef(0);
 
-  // Read initial taskId from URL search params if present
+  // Read initial taskId from URL search params if present — один раз:
+  // иначе каждое изменение задач (отметка пункта) снова переключало активную задачу
+  const urlTaskAppliedRef = useRef(false);
   useEffect(() => {
+    if (urlTaskAppliedRef.current) return;
     try {
       const params = new URLSearchParams(window.location.search);
       const taskIdFromUrl = params.get('taskId');
-      if (taskIdFromUrl && tasks.some((t) => t.id === taskIdFromUrl)) {
+      if (!taskIdFromUrl) {
+        urlTaskAppliedRef.current = true;
+        return;
+      }
+      if (tasks.some((t) => t.id === taskIdFromUrl)) {
         selectTask(taskIdFromUrl);
+        urlTaskAppliedRef.current = true;
       }
     } catch {
-      // ignore
+      urlTaskAppliedRef.current = true;
     }
   }, [tasks, selectTask]);
 
@@ -212,9 +222,7 @@ export const ChecklistPage: React.FC = () => {
   const handleCopyMarkdown = () => {
     if (!task) return;
     const md = formatTaskToMarkdown(task);
-    navigator.clipboard.writeText(md);
-    setCopiedMd(true);
-    setTimeout(() => setCopiedMd(false), 2000);
+    void copy(md);
   };
 
   if (!task) {

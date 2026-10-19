@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useCopyToClipboard } from '../../hooks/useCopyToClipboard';
 import { User, Tag, Sparkles, Check, RotateCcw, Copy, CornerDownLeft } from 'lucide-react';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
@@ -27,14 +28,14 @@ export const AlgorithmHeaderSettingsModal: React.FC<AlgorithmHeaderSettingsModal
   const [author, setAuthor] = useState(settings.author);
   const [defaultRelease, setDefaultRelease] = useState(settings.defaultRelease || '');
   const [insertNewline, setInsertNewline] = useState(settings.insertNewline);
-  const [copiedPreview, setCopiedPreview] = useState(false);
+  const { copy, isCopied } = useCopyToClipboard();
+  const copiedPreview = isCopied();
 
   useEffect(() => {
     if (isOpen) {
       setAuthor(settings.author || DEFAULT_ALGORITHM_HEADER_SETTINGS.author);
       setDefaultRelease(settings.defaultRelease || '');
       setInsertNewline(settings.insertNewline ?? true);
-      setCopiedPreview(false);
     }
   }, [isOpen, settings]);
 
@@ -45,9 +46,7 @@ export const AlgorithmHeaderSettingsModal: React.FC<AlgorithmHeaderSettingsModal
   });
 
   const handleCopyPreview = () => {
-    navigator.clipboard.writeText(previewComment + (insertNewline ? '\n' : ''));
-    setCopiedPreview(true);
-    setTimeout(() => setCopiedPreview(false), 2000);
+    void copy(previewComment + (insertNewline ? '\n' : ''));
   };
 
   const handleReset = () => {
@@ -56,8 +55,8 @@ export const AlgorithmHeaderSettingsModal: React.FC<AlgorithmHeaderSettingsModal
     setInsertNewline(true);
   };
 
-  const handleSave = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSave = (e?: React.FormEvent) => {
+    e?.preventDefault();
     onSave({
       author: author.trim() || 'Кучин В.В.',
       defaultRelease: defaultRelease.trim(),
@@ -72,6 +71,7 @@ export const AlgorithmHeaderSettingsModal: React.FC<AlgorithmHeaderSettingsModal
       onClose={onClose}
       title="Настройки шапки алгоритма"
       maxWidth="md"
+      onSubmit={handleSave}
       footer={
         <div className="flex items-center justify-between w-full">
           <Button

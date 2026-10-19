@@ -47,6 +47,8 @@ import { Select } from '../ui/Select';
 import { ToolRow } from '../ui/ToolRow';
 import { ProgressRing } from '../ui/ProgressRing';
 import { ChangeItemRow } from './ChangeItemRow';
+import { useCopyToClipboard } from '../../hooks/useCopyToClipboard';
+import { useEscapeKey } from '../../hooks/useEscapeKey';
 import { AddChangeItemModal } from './AddChangeItemModal';
 import { TaskExportPreviewModal } from './TaskExportPreviewModal';
 import {
@@ -139,7 +141,8 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
   const [isChecklistModalOpen, setIsChecklistModalOpen] = useState(false);
-  const [quickCopied, setQuickCopied] = useState(false);
+  const { copy, isCopied } = useCopyToClipboard();
+  const quickCopied = isCopied('md');
   const [isTabFetching, setIsTabFetching] = useState(false);
 
   const collectedCount = useMemo(
@@ -186,7 +189,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
 
   const [isInjecting, setIsInjecting] = useState(false);
   const [injectResult, setInjectResult] = useState<{ success: boolean; message: string } | null>(null);
-  const [copiedHeader, setCopiedHeader] = useState(false);
+  const copiedHeader = isCopied('header');
 
   // Live comment string
   const headerCommentText = useMemo(() => {
@@ -199,13 +202,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
 
   const handleCopyHeaderComment = async () => {
     const full = headerCommentText + (headerSettings.insertNewline ? '\n' : '');
-    try {
-      await navigator.clipboard.writeText(full);
-      setCopiedHeader(true);
-      setTimeout(() => setCopiedHeader(false), 2000);
-    } catch (e) {
-      console.warn('Copy failed:', e);
-    }
+    await copy(full, 'header');
   };
 
   const handleInsertHeaderComment = async () => {
@@ -217,10 +214,6 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
         success: res.success,
         message: res.message,
       });
-      if (res.copiedToClipboard) {
-        setCopiedHeader(true);
-        setTimeout(() => setCopiedHeader(false), 2500);
-      }
     } catch (err) {
       setInjectResult({
         success: false,
@@ -241,6 +234,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
 
   // Section 3-dots Menu State
   const [openSectionMenuId, setOpenSectionMenuId] = useState<string | null>(null);
+  useEscapeKey(openSectionMenuId !== null, () => setOpenSectionMenuId(null));
 
   const getStorageKey = (taskId: string) => `gd_collapsed_sections_${taskId}`;
 
@@ -482,19 +476,31 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
     onDeleteChangeItem(task.id, itemId);
   }, [task.id, onDeleteChangeItem]);
 
-  const handleMoveUpItem = useCallback((itemId: string) => {
-    const idx = task.items.findIndex((i) => i.id === itemId);
-    if (idx > 0) {
-      onReorderChangeItems(task.id, idx, idx - 1);
-    }
-  }, [task.id, task.items, onReorderChangeItems]);
+  // «Выше / ниже» — в пределах того же раздела: соседом считается ближайший пункт этого раздела
+  // (раньше пункт менялся местами с пунктом другого раздела и визуально не двигался)
+  const getItemGroupKey = useCallback(
+    (item: ImplementationChangeItem) =>
+      item.sectionId && sections.some((sec) => sec.id === item.sectionId) ? item.sectionId : '__unsectioned__',
+    [sections]
+  );
 
-  const handleMoveDownItem = useCallback((itemId: string) => {
-    const idx = task.items.findIndex((i) => i.id === itemId);
-    if (idx !== -1 && idx < task.items.length - 1) {
-      onReorderChangeItems(task.id, idx, idx + 1);
-    }
-  }, [task.id, task.items, onReorderChangeItems]);
+  const moveItemWithinGroup = useCallback(
+    (itemId: string, direction: -1 | 1) => {
+      const idx = task.items.findIndex((i) => i.id === itemId);
+      if (idx === -1) return;
+      const group = getItemGroupKey(task.items[idx]);
+      for (let j = idx + direction; j >= 0 && j < task.items.length; j += direction) {
+        if (getItemGroupKey(task.items[j]) === group) {
+          onReorderChangeItems(task.id, idx, j);
+          return;
+        }
+      }
+    },
+    [task.id, task.items, getItemGroupKey, onReorderChangeItems]
+  );
+
+  const handleMoveUpItem = useCallback((itemId: string) => moveItemWithinGroup(itemId, -1), [moveItemWithinGroup]);
+  const handleMoveDownItem = useCallback((itemId: string) => moveItemWithinGroup(itemId, 1), [moveItemWithinGroup]);
 
   const handleOpenAddWithTab = async (sectionId?: string) => {
     setIsTabFetching(true);
@@ -615,6 +621,13 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
     setEditingItem(null);
   };
 
+  const confirmDeleteSection = () => {
+    if (sectionToDelete) {
+      onDeleteSection(task.id, sectionToDelete.id);
+      setSectionToDelete(null);
+    }
+  };
+
   // Section Modal Handlers
   const handleOpenCreateSection = () => {
     setEditingSection(null);
@@ -628,8 +641,8 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
     setIsSectionModalOpen(true);
   };
 
-  const handleSaveSection = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSaveSection = (e?: React.FormEvent) => {
+    e?.preventDefault();
     if (!sectionNameInput.trim()) return;
 
     if (editingSection) {
@@ -648,9 +661,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
       ...task,
       linkedPackages: linkedPackages.map((p) => ({ name: p.name, files: p.files })),
     });
-    navigator.clipboard.writeText(md);
-    setQuickCopied(true);
-    setTimeout(() => setQuickCopied(false), 2000);
+    void copy(md, 'md');
   };
 
   const progressPct = task.items.length ? Math.round((collectedCount / task.items.length) * 100) : 0;
@@ -688,7 +699,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
     const sectionId = sections.some((sec) => sec.id === quickAddSectionId) ? quickAddSectionId : undefined;
     onAddChangeItem(task.id, { description, sectionId });
     if (sectionId) {
-      setCollapsedSections((prev) => ({ ...prev, [sectionId]: false }));
+      updateCollapsedSections((prev) => ({ ...prev, [sectionId]: false }));
     }
     setQuickAddText('');
   };
@@ -775,7 +786,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
             <Button
               variant="outline"
               size="sm"
-              disabled={isInjecting}
+              isLoading={isInjecting}
               onClick={handleInsertHeaderComment}
               leftIcon={<Code2 className="w-3.5 h-3.5" />}
               title="Вставить комментарий в редактор алгоритма в активной вкладке"
@@ -910,6 +921,25 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
             <p className="mx-auto mt-1 max-w-[260px] text-[13px] leading-snug text-gd-muted">
               Опишите, что изменено, и прикрепите ссылки на алгоритмы, формы и модули.
             </p>
+            <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => handleOpenAddNew()}
+                leftIcon={<Plus className="w-3.5 h-3.5" strokeWidth={2.5} />}
+              >
+                Добавить пункт
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => handleOpenAddWithTab()}
+                isLoading={isTabFetching}
+                leftIcon={<Sparkles className="w-3.5 h-3.5" />}
+              >
+                С вкладки
+              </Button>
+            </div>
           </div>
         ) : (
           <div className="space-y-3">
@@ -1173,6 +1203,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
       <Modal
         isOpen={isSectionModalOpen}
         onClose={() => setIsSectionModalOpen(false)}
+        onSubmit={handleSaveSection}
         title={editingSection ? 'Переименовать раздел' : 'Новый раздел'}
         maxWidth="sm"
         footer={
@@ -1230,6 +1261,8 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
       <Modal
         isOpen={Boolean(sectionToDelete)}
         onClose={() => setSectionToDelete(null)}
+        initialFocus="sheet"
+        onSubmit={confirmDeleteSection}
         title="Удалить раздел?"
         maxWidth="sm"
         footer={
@@ -1245,12 +1278,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
               variant="danger"
               size="sm"
               leftIcon={<Trash2 className="w-3.5 h-3.5" />}
-              onClick={() => {
-                if (sectionToDelete) {
-                  onDeleteSection(task.id, sectionToDelete.id);
-                  setSectionToDelete(null);
-                }
-              }}
+              onClick={confirmDeleteSection}
             >
               Удалить
             </Button>
@@ -1277,6 +1305,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
       <Modal
         isOpen={Boolean(duplicateCandidate)}
         onClose={() => setDuplicateCandidate(null)}
+        onSubmit={handleConfirmReplaceDuplicate}
         title="Ссылка уже есть в задаче"
         maxWidth="md"
         footer={

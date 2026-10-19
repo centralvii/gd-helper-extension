@@ -37,6 +37,7 @@ export const ValidationPanel: React.FC<ValidationPanelProps> = ({
       onClose={onClose}
       title="Ошибки в именах файлов"
       maxWidth="md"
+      initialFocus="sheet"
       footer={
         <Button variant="secondary" size="sm" onClick={onClose}>
           Закрыть

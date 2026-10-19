@@ -179,12 +179,27 @@ export const Modal: React.FC<ModalProps> = ({
       return;
     }
 
+    if (e.key !== 'Enter' || e.nativeEvent.isComposing) return;
     const submit = onSubmitRef.current;
-    if (e.key !== 'Enter' || !submit || e.nativeEvent.isComposing) return;
     const target = e.target as HTMLElement;
-    const isSingleLineInput =
-      target instanceof HTMLInputElement && SINGLE_LINE_INPUT_TYPES.has(target.type);
-    if (isModKey(e) || (isSingleLineInput && !e.shiftKey && !e.altKey)) {
+
+    // Ctrl/⌘ + Enter — основное действие шторки из любого поля
+    if (isModKey(e)) {
+      if (submit) {
+        e.preventDefault();
+        submit();
+      }
+      return;
+    }
+
+    if (!(target instanceof HTMLInputElement) || !SINGLE_LINE_INPUT_TYPES.has(target.type)) return;
+    if (e.shiftKey || e.altKey) return;
+    // Enter в поле формы отправляет именно эту форму (даже без кнопки type="submit"),
+    // вне формы — основное действие шторки
+    if (target.form) {
+      e.preventDefault();
+      target.form.requestSubmit();
+    } else if (submit) {
       e.preventDefault();
       submit();
     }

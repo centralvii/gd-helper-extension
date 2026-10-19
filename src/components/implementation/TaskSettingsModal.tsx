@@ -65,6 +65,7 @@ export const TaskSettingsModal: React.FC<TaskSettingsModalProps> = ({
       onClose={onClose}
       title="Параметры задачи"
       maxWidth="md"
+      onSubmit={onClose}
       footer={
         <div className="flex items-center justify-end gap-2 w-full">
           <Button

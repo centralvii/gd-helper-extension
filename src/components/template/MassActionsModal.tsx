@@ -95,6 +95,7 @@ export const MassActionsModal: React.FC<MassActionsModalProps> = ({
       onClose={onClose}
       title="Теги и шаблон"
       maxWidth="md"
+      onSubmit={handleSaveAndApply}
       footer={
         <>
           <Button variant="secondary" size="sm" onClick={onClose}>

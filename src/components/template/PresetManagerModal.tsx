@@ -41,6 +41,7 @@ export const PresetManagerModal: React.FC<PresetManagerModalProps> = ({
       onClose={onClose}
       title="Пресеты шаблонов"
       maxWidth="md"
+      initialFocus="sheet"
       footer={
         <Button variant="secondary" size="sm" onClick={onClose}>
           Закрыть

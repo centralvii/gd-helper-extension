@@ -1,4 +1,5 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import { useCopyToClipboard } from '../../hooks/useCopyToClipboard';
 import {
   Download,
   Upload,
@@ -40,9 +41,15 @@ export const TaskImportExportModal: React.FC<TaskImportExportModalProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<'export' | 'import'>(defaultTab);
 
+  // Каждое открытие начинается с запрошенной вкладки (а не с последней открытой)
+  useEffect(() => {
+    if (isOpen) setActiveTab(defaultTab);
+  }, [isOpen, defaultTab]);
+
   // ── Export State ──
   const [exportScope, setExportScope] = useState<'current' | 'all'>('current');
-  const [copiedExport, setCopiedExport] = useState(false);
+  const { copy, isCopied } = useCopyToClipboard();
+  const copiedExport = isCopied();
 
   // ── Import State ──
   const [importJsonText, setImportJsonText] = useState('');
@@ -85,9 +92,7 @@ export const TaskImportExportModal: React.FC<TaskImportExportModalProps> = ({
   const exportJSONString = getExportJSON();
 
   const handleCopyExport = () => {
-    navigator.clipboard.writeText(exportJSONString);
-    setCopiedExport(true);
-    setTimeout(() => setCopiedExport(false), 2000);
+    void copy(exportJSONString);
   };
 
   const handleDownloadExport = () => {
@@ -154,6 +159,7 @@ export const TaskImportExportModal: React.FC<TaskImportExportModalProps> = ({
       onClose={onClose}
       title="Импорт и экспорт задач"
       maxWidth="lg"
+      initialFocus="sheet"
       footer={
         <div className="flex items-center justify-between w-full">
           <span className="text-[11px] text-slate-400">

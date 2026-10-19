@@ -118,7 +118,10 @@ export const FileRowItem: React.FC<FileRowItemProps> = React.memo(({
                 tabIndex={0}
                 onClick={() => onEdit(file)}
                 onKeyDown={(e) => {
-                    if (e.key === 'Enter') onEdit(file);
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        onEdit(file);
+                    }
                 }}
                 title={`${file.newName || file.originalName}\nИсходное: ${file.originalName}\nНажмите, чтобы изменить`}
                 className="min-w-0 flex-1 cursor-pointer !scale-100"

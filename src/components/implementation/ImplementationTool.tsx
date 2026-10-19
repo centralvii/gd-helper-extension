@@ -1,9 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
+import { RotateCcw, Trash2, Upload } from 'lucide-react';
+import { useToast } from '../../hooks/useToast';
+import { pluralizeRu, CHANGE_FORMS } from '../../utils/pluralize';
 import { useImplementationTasks } from '../../hooks/useImplementationTasks';
 import { TaskSelector } from './TaskSelector';
 import { TaskEditor } from './TaskEditor';
 import { TaskImportExportModal } from './TaskImportExportModal';
-import { BuildPackage } from '../../types';
+import { BuildPackage, ImplementationTask } from '../../types';
 
 interface ImplementationToolProps {
   packages?: BuildPackage[];
@@ -40,7 +43,89 @@ export const ImplementationTool: React.FC<ImplementationToolProps> = ({
     reorderChangeItems,
     moveChangeItem,
     importTasks,
+    restoreTask,
+    restoreChangeItem,
+    replaceAllTasks,
+    markItemsCollectedByIds,
   } = tasksState;
+
+  const toast = useToast();
+
+  // Удаление задачи — с возможностью отменить из уведомления
+  const handleDeleteTask = useCallback(
+    (id: string) => {
+      const index = tasks.findIndex((t) => t.id === id);
+      if (index === -1) return;
+      const snapshot = tasks[index];
+      deleteTask(id);
+      toast.show({
+        icon: <Trash2 />,
+        title: 'Задача удалена',
+        detail: `${snapshot.taskNumber} · ${snapshot.title}`,
+        action: { label: 'Отменить', onClick: () => restoreTask(snapshot, index) },
+      });
+    },
+    [tasks, deleteTask, restoreTask, toast]
+  );
+
+  // Удаление пункта изменения — тоже с отменой
+  const handleDeleteChangeItem = useCallback(
+    (taskId: string, itemId: string) => {
+      const task = tasks.find((t) => t.id === taskId);
+      const index = task ? task.items.findIndex((i) => i.id === itemId) : -1;
+      if (!task || index === -1) return;
+      const item = task.items[index];
+      deleteChangeItem(taskId, itemId);
+      toast.show({
+        icon: <Trash2 />,
+        title: 'Пункт удалён',
+        detail: item.description,
+        action: { label: 'Отменить', onClick: () => restoreChangeItem(taskId, item, index) },
+      });
+    },
+    [tasks, deleteChangeItem, restoreChangeItem, toast]
+  );
+
+  // Сброс отметок «собрано» — с возможностью вернуть их
+  const handleSetAllCollected = useCallback(
+    (taskId: string, isCollected: boolean) => {
+      const task = tasks.find((t) => t.id === taskId);
+      const collectedIds = task ? task.items.filter((i) => i.isCollected).map((i) => i.id) : [];
+      setAllChangeItemsCollected(taskId, isCollected);
+      if (!isCollected && collectedIds.length > 0) {
+        toast.show({
+          icon: <RotateCcw />,
+          title: 'Отметки сброшены',
+          detail: `${collectedIds.length} ${pluralizeRu(collectedIds.length, CHANGE_FORMS)}`,
+          action: { label: 'Отменить', onClick: () => markItemsCollectedByIds(taskId, collectedIds) },
+        });
+      }
+    },
+    [tasks, setAllChangeItemsCollected, markItemsCollectedByIds, toast]
+  );
+
+  // Импорт меняет задачи — можно откатить к состоянию до импорта
+  const handleImport = useCallback(
+    (
+      importedTasks: ImplementationTask[],
+      mode: 'merge' | 'replace' | 'update_active',
+      targetTaskId?: string
+    ) => {
+      const snapshot = tasks;
+      const prevActiveId = activeTask?.id;
+      const result = importTasks(importedTasks, mode, targetTaskId);
+      if (result.success) {
+        toast.show({
+          icon: <Upload />,
+          tone: 'success',
+          title: `Импортировано задач: ${result.count}`,
+          action: { label: 'Отменить', onClick: () => replaceAllTasks(snapshot, prevActiveId) },
+        });
+      }
+      return result;
+    },
+    [tasks, activeTask?.id, importTasks, replaceAllTasks, toast]
+  );
 
   const [isImportExportOpen, setIsImportExportOpen] = useState(false);
   // Навигация iOS: список задач ↔ открытая задача
@@ -67,7 +152,7 @@ export const ImplementationTool: React.FC<ImplementationToolProps> = ({
         onSelectTask={selectTask}
         onCreateTask={() => createTask()}
         onDuplicateTask={duplicateTask}
-        onDeleteTask={deleteTask}
+        onDeleteTask={handleDeleteTask}
         onUpdateTask={updateTask}
         onOpenImportExport={handleOpenImportExport}
         view={view}
@@ -88,9 +173,9 @@ export const ImplementationTool: React.FC<ImplementationToolProps> = ({
           onReorderSections={reorderSections}
           onAddChangeItem={addChangeItem}
           onUpdateChangeItem={updateChangeItem}
-          onDeleteChangeItem={deleteChangeItem}
+          onDeleteChangeItem={handleDeleteChangeItem}
           onToggleChangeItemCollected={toggleChangeItemCollected}
-          onSetAllChangeItemsCollected={setAllChangeItemsCollected}
+          onSetAllChangeItemsCollected={handleSetAllCollected}
           onReorderChangeItems={reorderChangeItems}
           onMoveChangeItem={moveChangeItem}
           onOpenImportExport={handleOpenImportExport}
@@ -106,7 +191,7 @@ export const ImplementationTool: React.FC<ImplementationToolProps> = ({
         onClose={() => setIsImportExportOpen(false)}
         tasks={tasks}
         activeTask={activeTask}
-        onImport={importTasks}
+        onImport={handleImport}
         defaultTab={importExportDefaultTab}
       />
     </div>

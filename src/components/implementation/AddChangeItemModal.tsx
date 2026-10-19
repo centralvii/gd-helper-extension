@@ -3,6 +3,7 @@ import { Plus, Link as LinkIcon, Sparkles, Check, ExternalLink, Layers, FolderPl
 import { Modal, Button, Input, Select, Textarea } from '../ui';
 import { getActiveTabInfo, matchSectionForType, formatTitleInQuotes, isSameUrl, isGreenDataUpdatePackage, parseLastPackageFileNumberFromGreenData } from '../../utils/tabUtils';
 import { ImplementationChangeItem, ImplementationSection } from '../../types';
+import { MOD_KEY_LABEL } from '../../utils/shortcuts';
 
 interface AddChangeItemModalProps {
   isOpen: boolean;
@@ -236,8 +237,8 @@ export const AddChangeItemModal: React.FC<AddChangeItemModalProps> = ({
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = (e?: React.FormEvent) => {
+    e?.preventDefault();
     if (!description.trim()) return;
 
     const isPkg =
@@ -262,6 +263,7 @@ export const AddChangeItemModal: React.FC<AddChangeItemModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
+      onSubmit={handleSubmit}
       title={initialItem ? 'Редактирование пункта' : 'Новый пункт'}
       maxWidth="md"
       footer={
@@ -274,6 +276,7 @@ export const AddChangeItemModal: React.FC<AddChangeItemModalProps> = ({
             size="sm"
             disabled={!description.trim()}
             onClick={handleSubmit}
+            title={description.trim() ? `${MOD_KEY_LABEL} + Enter` : 'Введите описание изменения'}
             leftIcon={initialItem ? <Check className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}
           >
             {initialItem ? 'Сохранить' : 'Добавить'}
@@ -414,6 +417,17 @@ export const AddChangeItemModal: React.FC<AddChangeItemModalProps> = ({
               <Input
                 value={newSectionName}
                 onChange={(e) => setNewSectionName(e.target.value)}
+                onKeyDown={(e) => {
+                  // Enter создаёт раздел (а не отправляет всю форму пункта), Esc — отмена
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleCreateSectionSubmit();
+                  } else if (e.key === 'Escape') {
+                    e.preventDefault();
+                    setIsCreatingNewSection(false);
+                    setNewSectionName('');
+                  }
+                }}
                 placeholder="Название раздела (например, Отчёты)"
                 className="flex-1"
                 autoFocus

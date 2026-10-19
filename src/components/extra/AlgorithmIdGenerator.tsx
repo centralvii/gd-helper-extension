@@ -1,4 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useCopyToClipboard } from '../../hooks/useCopyToClipboard';
+import { useToast } from '../../hooks/useToast';
+import { isModKey, MOD_KEY_LABEL } from '../../utils/shortcuts';
 import {
   Copy,
   Check,
@@ -11,6 +14,7 @@ import {
   Sparkles,
   Zap,
   Settings,
+  X,
 } from 'lucide-react';
 import {
   generateAlgorithmId,
@@ -99,8 +103,9 @@ export const AlgorithmIdGenerator: React.FC = () => {
   const [newEnCode, setNewEnCode] = useState('');
   const [dictSearch, setDictSearch] = useState('');
 
-  const [copied, setCopied] = useState(false);
-  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const { copy, copiedKey: copiedId } = useCopyToClipboard();
+  const copied = copiedId !== null;
+  const toast = useToast();
   const [history, setHistory] = useState<AlgorithmHistoryItem[]>([]);
 
   // Load history on mount
@@ -174,9 +179,7 @@ export const AlgorithmIdGenerator: React.FC = () => {
     setNewEnCode('');
   };
 
-  const handleDeleteCustomTerm = (ruWord: string) => {
-    const updated = { ...customDict };
-    delete updated[ruWord.toLowerCase()];
+  const persistCustomDict = (updated: Record<string, string>) => {
     setCustomDict(updated);
     try {
       localStorage.setItem(CUSTOM_DICT_STORAGE_KEY, JSON.stringify(updated));
@@ -186,6 +189,19 @@ export const AlgorithmIdGenerator: React.FC = () => {
     } catch {
       // ignore
     }
+  };
+
+  const handleDeleteCustomTerm = (ruWord: string) => {
+    const previous = customDict;
+    const updated = { ...customDict };
+    delete updated[ruWord.toLowerCase()];
+    persistCustomDict(updated);
+    toast.show({
+      icon: <Trash2 />,
+      title: 'Термин удалён',
+      detail: `${ruWord} → ${previous[ruWord.toLowerCase()] ?? ''}`,
+      action: { label: 'Отменить', onClick: () => persistCustomDict(previous) },
+    });
   };
 
   const parsed = useMemo(() => {
@@ -210,21 +226,17 @@ export const AlgorithmIdGenerator: React.FC = () => {
   const currentDetectedType: AlgorithmType =
     activeSource === 'ai' && aiResult?.detectedType ? aiResult.detectedType : parsed.detectedType;
 
-  const handleCopy = (idToCopy?: string, itemType?: AlgorithmType) => {
+  const handleCopy = async (idToCopy?: string, itemType?: AlgorithmType, russianName?: string) => {
     const textToCopy = idToCopy || currentGeneratedId;
     if (!textToCopy) return;
 
-    navigator.clipboard.writeText(textToCopy);
-    setCopied(true);
-    setCopiedId(textToCopy);
-    setTimeout(() => {
-      setCopied(false);
-      setCopiedId(null);
-    }, 2000);
+    const ok = await copy(textToCopy, textToCopy);
+    if (!ok) return;
 
     saveToHistory({
       id: crypto.randomUUID(),
-      russianName: inputText.trim(),
+      // Копирование из истории сохраняет исходное название, а не текущий текст поля
+      russianName: russianName ?? inputText.trim(),
       generatedId: textToCopy,
       type: itemType || currentDetectedType,
       createdAt: Date.now(),
@@ -243,12 +255,28 @@ export const AlgorithmIdGenerator: React.FC = () => {
   };
 
   const handleClearHistory = () => {
+    const snapshot = history;
     setHistory([]);
     try {
       localStorage.removeItem(HISTORY_STORAGE_KEY);
     } catch {
       // ignore
     }
+    toast.show({
+      icon: <Trash2 />,
+      title: 'История очищена',
+      action: {
+        label: 'Отменить',
+        onClick: () => {
+          setHistory(snapshot);
+          try {
+            localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(snapshot));
+          } catch {
+            // ignore
+          }
+        },
+      },
+    });
   };
 
   const getTypeBadgeVariant = (type: AlgorithmType) => {
@@ -314,6 +342,14 @@ export const AlgorithmIdGenerator: React.FC = () => {
         <Textarea
           value={inputText}
           onChange={(e) => handleSetInputText(e.target.value)}
+          onKeyDown={(e) => {
+            // Ctrl/⌘ + Enter — сгенерировать с ИИ
+            if (e.key === 'Enter' && isModKey(e)) {
+              e.preventDefault();
+              if (!isAiLoading && inputText.trim()) void handleGenerateAi();
+            }
+          }}
+          aria-label="Название алгоритма"
           placeholder="Например: Лимиты. Рассчитать VaR по портфелю"
           rows={2}
           showClear
@@ -338,6 +374,7 @@ export const AlgorithmIdGenerator: React.FC = () => {
             size="md"
             onClick={handleGenerateAi}
             disabled={isAiLoading || !inputText.trim()}
+            title={inputText.trim() ? `Сгенерировать с ИИ (${MOD_KEY_LABEL} + Enter)` : 'Введите название алгоритма'}
             className="w-full sm:w-auto flex-shrink-0"
             leftIcon={
               isAiLoading ? (
@@ -623,9 +660,10 @@ export const AlgorithmIdGenerator: React.FC = () => {
                     type="button"
                     onClick={() => handleDeleteCustomTerm(ru)}
                     title="Удалить из словаря"
-                    className="text-slate-300 hover:text-rose-600 ml-0.5 cursor-pointer"
+                    aria-label={`Удалить «${ru}» из словаря`}
+                    className="relative -my-1 -mr-1.5 grid h-6 w-6 place-items-center rounded-full text-slate-400 hover:text-[#e5484d] hover:bg-[#e5484d]/[0.08] cursor-pointer after:absolute after:-inset-0.5 after:content-['']"
                   >
-                    ×
+                    <X className="w-3 h-3" strokeWidth={2.5} />
                   </button>
                 </span>
               ))}
@@ -718,8 +756,9 @@ export const AlgorithmIdGenerator: React.FC = () => {
                 key={item.id}
                 className="flex items-center justify-between gap-2 p-2 rounded-xl bg-slate-50 hover:bg-accent-50/50 border border-slate-200 transition-colors text-xs"
               >
-                <div
-                  className="min-w-0 flex-1 cursor-pointer"
+                <button
+                  type="button"
+                  className="min-w-0 flex-1 text-left cursor-pointer !scale-100"
                   onClick={() => {
                     handleSetInputText(item.russianName);
                     setIsHistoryOpen(false);
@@ -732,14 +771,19 @@ export const AlgorithmIdGenerator: React.FC = () => {
                   <div className="text-[10px] text-slate-500 truncate">
                     {item.russianName}
                   </div>
-                </div>
+                </button>
                 <button
                   type="button"
-                  onClick={() => handleCopy(item.generatedId, item.type)}
+                  onClick={() => void handleCopy(item.generatedId, item.type, item.russianName)}
                   title="Копировать"
-                  className="p-1 text-slate-400 hover:text-accent-700 cursor-pointer"
+                  aria-label={`Копировать ${item.generatedId}`}
+                  className="icon-btn icon-btn--plain !w-7 !h-7 text-slate-400 hover:text-accent-700"
                 >
-                  <Copy className="w-3.5 h-3.5" />
+                  {copiedId === item.generatedId ? (
+                    <Check className="w-3.5 h-3.5 text-gd-accent animate-pop-in" strokeWidth={2.75} />
+                  ) : (
+                    <Copy className="w-3.5 h-3.5" />
+                  )}
                 </button>
               </div>
             ))}
