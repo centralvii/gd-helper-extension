@@ -80,7 +80,7 @@ export const AlgorithmHeaderSettingsModal: React.FC<AlgorithmHeaderSettingsModal
             onClick={handleReset}
             leftIcon={<RotateCcw className="w-3.5 h-3.5" />}
           >
-            Сброс
+            Сбросить
           </Button>
 
           <div className="flex items-center gap-2">
@@ -113,7 +113,7 @@ export const AlgorithmHeaderSettingsModal: React.FC<AlgorithmHeaderSettingsModal
             required
           />
           <span className="text-[10.5px] text-slate-400 mt-1 block">
-            Укажите вашу фамилию и инициалы, которые будут автоматически подставляться во все комментарии к алгоритмам.
+            Подставляются автоматически во все комментарии к алгоритмам.
           </span>
         </div>
 
@@ -121,7 +121,7 @@ export const AlgorithmHeaderSettingsModal: React.FC<AlgorithmHeaderSettingsModal
         <div>
           <label className="block text-[11px] font-bold text-slate-700 mb-1 flex items-center gap-1.5">
             <Tag className="w-3.5 h-3.5 text-accent-600" />
-            <span>Номер релиза по умолчанию (опционально)</span>
+            <span>Номер релиза по умолчанию (необязательно)</span>
           </label>
           <Input
             value={defaultRelease}
@@ -188,7 +188,7 @@ export const AlgorithmHeaderSettingsModal: React.FC<AlgorithmHeaderSettingsModal
           </div>
 
           <p className="text-[10px] text-accent-700 leading-normal">
-            💡 Номер задачи (<code>{currentTask?.taskNumber || 'TASK-1234'}</code>) и номер релиза берутся автоматически из текущей карточки реализации.
+            💡 Номер задачи (<code>{currentTask?.taskNumber || 'TASK-1234'}</code>) и номер релиза берутся автоматически из текущей задачи реализации.
           </p>
         </div>
       </form>

@@ -62,7 +62,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
                     className="!h-[34px]"
                     leftIcon={<Plus className="w-4 h-4" strokeWidth={2.5} />}
                     onClick={() => addGufInputRef.current?.click()}
-                    title="Добавить .guf файлы в пакет"
+                    title="Добавить файлы .guf в пакет"
                 >
                     .guf
                 </Button>

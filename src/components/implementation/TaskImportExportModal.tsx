@@ -133,7 +133,7 @@ export const TaskImportExportModal: React.FC<TaskImportExportModalProps> = ({
     if (result.success) {
       setImportStatus({
         type: 'success',
-        message: `Успешно импортировано задач: ${result.count}!`,
+        message: `Импортировано задач: ${result.count}`,
       });
       setTimeout(() => {
         onClose();
@@ -143,7 +143,7 @@ export const TaskImportExportModal: React.FC<TaskImportExportModalProps> = ({
     } else {
       setImportStatus({
         type: 'error',
-        message: result.error || 'Произошла ошибка при импорте',
+        message: result.error || 'Не удалось импортировать задачи. Проверьте JSON',
       });
     }
   };
@@ -152,12 +152,12 @@ export const TaskImportExportModal: React.FC<TaskImportExportModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Резервное копирование, Экспорт и Импорт реализации"
+      title="Импорт и экспорт задач"
       maxWidth="lg"
       footer={
         <div className="flex items-center justify-between w-full">
           <span className="text-[11px] text-slate-400">
-            Формат данных: JSON (совместим с резервными копиями GD Helper)
+            Формат: JSON (резервная копия GD Helper)
           </span>
           <Button variant="secondary" size="sm" onClick={onClose}>
             Закрыть
@@ -176,12 +176,12 @@ export const TaskImportExportModal: React.FC<TaskImportExportModalProps> = ({
             options={[
               {
                 value: 'export',
-                label: 'Экспорт / Сохранить в файл',
+                label: 'Экспорт',
                 icon: <Download className="w-4 h-4 text-accent-600" />,
               },
               {
                 value: 'import',
-                label: 'Импорт / Загрузить обратно',
+                label: 'Импорт',
                 icon: <Upload className="w-4 h-4 text-accent-600" />,
               },
             ]}
@@ -216,7 +216,7 @@ export const TaskImportExportModal: React.FC<TaskImportExportModalProps> = ({
                       {activeTask?.taskNumber || 'Текущая задача'}
                     </div>
                     <div className="text-[10px] text-slate-500 truncate">
-                      {activeTask?.title || 'Без названия'} • {activeTask?.items.length || 0} пунктов
+                      {activeTask?.title || 'Без названия'} · пунктов: {activeTask?.items.length || 0}
                     </div>
                   </div>
                 </button>
@@ -234,7 +234,7 @@ export const TaskImportExportModal: React.FC<TaskImportExportModalProps> = ({
                   <div className="min-w-0 flex-1">
                     <div className="font-bold text-xs">Все задачи ({tasks.length})</div>
                     <div className="text-[10px] text-slate-500">
-                      Полный бэкап всех задач реализации
+                      Резервная копия всех задач
                     </div>
                   </div>
                 </button>
@@ -250,7 +250,7 @@ export const TaskImportExportModal: React.FC<TaskImportExportModalProps> = ({
                 leftIcon={<ArrowDownToLine className="w-4 h-4" />}
                 className="justify-center"
               >
-                Скачать .json файл
+                Скачать .json
               </Button>
 
               <Button
@@ -260,7 +260,7 @@ export const TaskImportExportModal: React.FC<TaskImportExportModalProps> = ({
                 leftIcon={copiedExport ? <Check className="w-4 h-4 text-accent-600" /> : <Copy className="w-4 h-4" />}
                 className="justify-center"
               >
-                {copiedExport ? 'Скопировано в буфер!' : 'Скопировать JSON'}
+                {copiedExport ? 'Скопировано' : 'Копировать JSON'}
               </Button>
             </div>
 
@@ -269,9 +269,9 @@ export const TaskImportExportModal: React.FC<TaskImportExportModalProps> = ({
               <div className="flex items-center justify-between text-[11px] text-slate-500">
                 <span className="font-semibold text-slate-700 flex items-center gap-1.5">
                   <FileJson className="w-3.5 h-3.5 text-accent-600" />
-                  Предпросмотр JSON структуры:
+                  Предпросмотр JSON:
                 </span>
-                <span>{exportJSONString.split('\n').length} строк</span>
+                <span>строк: {exportJSONString.split('\n').length}</span>
               </div>
               <pre className="p-3 bg-slate-50/80 text-slate-800 border border-slate-200 rounded-xl font-mono text-[11px] leading-relaxed max-h-48 overflow-y-auto select-all">
                 {exportJSONString}
@@ -304,13 +304,13 @@ export const TaskImportExportModal: React.FC<TaskImportExportModalProps> = ({
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-accent-50 text-accent-800 border border-accent-300 rounded-xl font-bold text-xs transition-all shadow-2xs cursor-pointer mt-1"
               >
                 <FolderPlus className="w-3.5 h-3.5" />
-                <span>Выбрать файл с диска</span>
+                <span>Выбрать файл…</span>
               </label>
             </div>
 
             {/* Direct Paste Textarea */}
             <Textarea
-              label="Или вставьте JSON текст напрямую:"
+              label="Или вставьте JSON:"
               value={importJsonText}
               onChange={(e) => {
                 setImportJsonText(e.target.value);
@@ -334,10 +334,10 @@ export const TaskImportExportModal: React.FC<TaskImportExportModalProps> = ({
                     <div className="flex items-center justify-between font-bold text-accent-950">
                       <span className="flex items-center gap-1.5">
                         <Sparkles className="w-4 h-4 text-accent-600 flex-shrink-0" />
-                        <span>Файл корректен! Найдено задач: {parsedImport.tasks.length}</span>
+                        <span>JSON корректен · задач: {parsedImport.tasks.length}</span>
                       </span>
                       <span className="px-2 py-0.5 rounded-lg bg-accent-100 text-accent-800 text-[10.5px] font-bold">
-                        {parsedImport.tasks.reduce((sum, t) => sum + t.items.length, 0)} пунктов изменений
+                        пунктов: {parsedImport.tasks.reduce((sum, t) => sum + t.items.length, 0)}
                       </span>
                     </div>
 
@@ -356,7 +356,7 @@ export const TaskImportExportModal: React.FC<TaskImportExportModalProps> = ({
                             </span>
                           </div>
                           <span className="text-slate-500 text-[10px] flex-shrink-0">
-                            {t.items.length} изм. • {t.sections?.length || 0} разд.
+                            пунктов: {t.items.length} · разделов: {t.sections?.length || 0}
                           </span>
                         </div>
                       ))}
@@ -393,10 +393,10 @@ export const TaskImportExportModal: React.FC<TaskImportExportModalProps> = ({
                     />
                     <div className="min-w-0 flex-1">
                       <div className="font-bold text-slate-900 text-xs">
-                        ➕ Добавить к существующим задачам (Merge)
+                        ➕ Добавить к текущим задачам
                       </div>
                       <div className="text-[10.5px] text-slate-500">
-                        Текущие задачи сохранятся, новые задачи будут добавлены в список
+                        Текущие задачи сохранятся, новые добавятся в список
                       </div>
                     </div>
                   </label>
@@ -413,10 +413,10 @@ export const TaskImportExportModal: React.FC<TaskImportExportModalProps> = ({
                       />
                       <div className="min-w-0 flex-1">
                         <div className="font-bold text-slate-900 text-xs">
-                          ✏️ Обновить текущую открытую задачу ({activeTask.taskNumber})
+                          ✏️ Обновить открытую задачу ({activeTask.taskNumber})
                         </div>
                         <div className="text-[10.5px] text-slate-500">
-                          Заменит разделы и пункты только в текущей открытой задаче
+                          Заменит разделы и пункты только в открытой задаче
                         </div>
                       </div>
                     </label>
@@ -433,7 +433,7 @@ export const TaskImportExportModal: React.FC<TaskImportExportModalProps> = ({
                     />
                     <div className="min-w-0 flex-1">
                       <div className="font-bold text-rose-950 text-xs">
-                        🔄 Заменить все задачи (Полное восстановление)
+                        🔄 Заменить все задачи (восстановление)
                       </div>
                       <div className="text-[10.5px] text-rose-700">
                         Внимание: текущий список задач будет полностью перезаписан
@@ -471,7 +471,7 @@ export const TaskImportExportModal: React.FC<TaskImportExportModalProps> = ({
               leftIcon={<Upload className="w-4 h-4" />}
               className="w-full justify-center"
             >
-              Импортировать {parsedImport?.valid ? `(${parsedImport.tasks.length} зад.)` : ''}
+              Импортировать {parsedImport?.valid ? `(${parsedImport.tasks.length})` : ''}
             </Button>
           </div>
         )}

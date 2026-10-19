@@ -300,3 +300,26 @@ export interface PaletteCommand {
   keywords?: string; // Дополнительные слова для поиска
   run: () => void;
 }
+
+/** Оттенок всплывающего уведомления */
+export type ToastTone = 'accent' | 'success' | 'warning' | 'danger';
+
+/** Кнопка действия в уведомлении (например, «Отменить») */
+export interface ToastAction {
+  label: string;
+  onClick: () => void;
+}
+
+/** Параметры всплывающего уведомления (`useToast().show`) */
+export interface ToastOptions {
+  title: ReactNode;
+  /** Строка под заголовком (имя файла и т.п.) — моноширинная */
+  detail?: string;
+  /** Метки справа от заголовка */
+  meta?: ReactNode;
+  icon?: ReactNode;
+  tone?: ToastTone;
+  action?: ToastAction;
+  /** Сколько показывать, мс (по умолчанию 3500, с действием — 6000) */
+  duration?: number;
+}

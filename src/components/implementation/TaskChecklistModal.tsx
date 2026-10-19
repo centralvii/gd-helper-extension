@@ -212,7 +212,7 @@ export const TaskChecklistModal: React.FC<TaskChecklistModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Чеклист сбора объектов реализации"
+      title="Чек-лист сбора объектов"
       maxWidth="lg"
       footer={
         <div className="flex flex-wrap items-center justify-between gap-2.5 w-full">
@@ -236,9 +236,9 @@ export const TaskChecklistModal: React.FC<TaskChecklistModalProps> = ({
                   <Copy className="w-3.5 h-3.5" />
                 )
               }
-              title="Скопировать обновленный Markdown"
+              title="Копировать Markdown с отметками"
             >
-              {copiedMd ? 'Скопировано!' : 'Копировать MD'}
+              {copiedMd ? 'Скопировано' : 'Копировать MD'}
             </Button>
 
             <Button variant="emerald" size="sm" onClick={onClose}>
@@ -264,7 +264,7 @@ export const TaskChecklistModal: React.FC<TaskChecklistModalProps> = ({
                 )}
                 {isAllCollected ? (
                   <Badge variant="success" className="font-bold">
-                    Все собраны ✅
+                    Всё собрано ✅
                   </Badge>
                 ) : (
                   <Badge variant="default">
@@ -281,11 +281,11 @@ export const TaskChecklistModal: React.FC<TaskChecklistModalProps> = ({
             <button
               type="button"
               onClick={handleOpenStandalone}
-              title="Открыть чеклист в отдельной полноэкранной вкладке браузера"
+              title="Открыть чек-лист в отдельной вкладке"
               className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold text-slate-700 bg-white hover:bg-accent-50 border border-slate-200 hover:border-accent-300 rounded-xl transition-all shadow-2xs cursor-pointer"
             >
               <Maximize2 className="w-3.5 h-3.5 text-accent-600" />
-              <span>В отдельном окне</span>
+              <span>В отдельной вкладке</span>
             </button>
           </div>
 
@@ -311,7 +311,7 @@ export const TaskChecklistModal: React.FC<TaskChecklistModalProps> = ({
               <div className="flex items-center gap-2 min-w-0">
                 <CheckCircle2 className="w-4 h-4 text-accent-700 flex-shrink-0" />
                 <span className="truncate">
-                  Все объекты собраны! Markdown автоматически обновлен с чекбоксами [x] и статусами.
+                  Все объекты собраны — в Markdown проставлены отметки [x].
                 </span>
               </div>
             </div>
@@ -325,7 +325,7 @@ export const TaskChecklistModal: React.FC<TaskChecklistModalProps> = ({
               <button
                 type="button"
                 onClick={handleCollectAllInPackage}
-                title="Отметить как собранные все объекты, которые уже есть в связанном пакете сборки"
+                title="Отметить собранными объекты, которые уже есть в привязанном пакете"
                 className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold text-sky-900 bg-sky-50 hover:bg-sky-100 border border-sky-300 rounded-xl transition-all shadow-2xs cursor-pointer animate-pulse-subtle"
               >
                 <Package className="w-3.5 h-3.5 text-sky-600" />
@@ -337,7 +337,7 @@ export const TaskChecklistModal: React.FC<TaskChecklistModalProps> = ({
               type="button"
               onClick={() => onSetAllCollected(task.id, true)}
               disabled={totalCount === 0 || isAllCollected}
-              title="Отметить все объекты задачи как собранные"
+              title="Отметить собранными все объекты задачи"
               className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold text-accent-800 bg-accent-50 hover:bg-accent-100 border border-accent-200/90 rounded-xl transition-all shadow-2xs disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
             >
               <CheckCheck className="w-3.5 h-3.5 text-accent-600" />
@@ -387,7 +387,7 @@ export const TaskChecklistModal: React.FC<TaskChecklistModalProps> = ({
                     : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                 }`}
               >
-                <span>Не собранные</span>
+                <span>Несобранные</span>
                 <span
                   className={`px-1.5 py-px rounded-full text-[10px] font-bold ${
                     filterStatus === 'uncollected'
@@ -431,8 +431,8 @@ export const TaskChecklistModal: React.FC<TaskChecklistModalProps> = ({
               }
               title={
                 sortOrder === 'uncollected_first'
-                  ? 'Сортировка: сначала не собранные (нажмите для сброса)'
-                  : 'Сортировать: сначала не собранные'
+                  ? 'Сначала несобранные. Нажмите, чтобы сбросить'
+                  : 'Показать сначала несобранные'
               }
               className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-xs font-semibold transition-all cursor-pointer ${
                 sortOrder === 'uncollected_first'
@@ -441,7 +441,7 @@ export const TaskChecklistModal: React.FC<TaskChecklistModalProps> = ({
               }`}
             >
               <ArrowDownUp className="w-3.5 h-3.5 text-amber-600" />
-              <span>Сначала не собранные</span>
+              <span>Сначала несобранные</span>
               {sortOrder === 'uncollected_first' && (
                 <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
               )}
@@ -454,10 +454,10 @@ export const TaskChecklistModal: React.FC<TaskChecklistModalProps> = ({
           <div className="py-8 px-4 text-center border-2 border-dashed border-slate-200 rounded-xl bg-slate-50/50">
             <Info className="w-8 h-8 text-slate-400 mx-auto mb-2" />
             <p className="text-xs font-bold text-slate-800 mb-1">
-              В задаче нет пунктов изменений
+              В задаче нет пунктов
             </p>
             <p className="text-[11px] text-slate-500 max-w-sm mx-auto">
-              Добавьте изменения со ссылками на объекты GreenData в редакторе реализации, чтобы они появились в чеклисте сбора.
+              Добавьте пункты со ссылками на объекты GreenData во вкладке «Реализация» — они появятся в чек-листе.
             </p>
           </div>
         )}
@@ -469,9 +469,9 @@ export const TaskChecklistModal: React.FC<TaskChecklistModalProps> = ({
             {filterStatus === 'uncollected' && uncollectedCount === 0 && (
               <div className="py-6 px-3 text-center bg-accent-50/50 border border-accent-200/80 rounded-xl space-y-1.5 animate-fade-in">
                 <CheckCircle2 className="w-6 h-6 text-accent-600 mx-auto" />
-                <p className="text-xs font-bold text-accent-950">Все объекты собраны!</p>
+                <p className="text-xs font-bold text-accent-950">Все объекты собраны</p>
                 <p className="text-[11px] text-accent-800">
-                  По фильтру «Не собранные» нет элементов.
+                  В фильтре «Несобранные» пусто.
                 </p>
                 <button
                   type="button"
@@ -558,7 +558,7 @@ export const TaskChecklistModal: React.FC<TaskChecklistModalProps> = ({
                             <button
                               type="button"
                               onClick={() => onToggleItemCollected(task.id, item.id)}
-                              title={isCollected ? 'Отметить как не собранный' : 'Отметить как собранный'}
+                              title={isCollected ? 'Отметить как несобранный' : 'Отметить как собранный'}
                               className="mt-0.5 text-accent-600 hover:text-accent-700 transition-transform p-0.5 rounded cursor-pointer flex-shrink-0"
                             >
                               {isCollected ? (
@@ -585,7 +585,7 @@ export const TaskChecklistModal: React.FC<TaskChecklistModalProps> = ({
                                 {matchingFile && (
                                   <span
                                     className="inline-flex items-center gap-1 text-[10px] font-bold text-sky-800 bg-sky-100/90 px-1.5 py-0.5 rounded border border-sky-300"
-                                    title={`Файл найден в связанном пакете: #${matchingFile.order} ${matchingFile.newName || matchingFile.originalName}`}
+                                    title={`Файл есть в привязанном пакете: #${matchingFile.order} ${matchingFile.newName || matchingFile.originalName}`}
                                   >
                                     📦 В пакете #{matchingFile.order}
                                   </span>
@@ -641,7 +641,7 @@ export const TaskChecklistModal: React.FC<TaskChecklistModalProps> = ({
                                 size="sm"
                                 onClick={() => onToggleItemCollected(task.id, item.id)}
                                 leftIcon={<Check className="w-3.5 h-3.5" />}
-                                title={`Файл #${matchingFile.order} уже находится в пакете сборки! Нажмите, чтобы сразу отметить объект как собранный без перехода по ссылке`}
+                                title={`Файл #${matchingFile.order} уже есть в пакете. Нажмите, чтобы отметить объект собранным без перехода по ссылке`}
                                 className="text-xs px-2.5 py-1 whitespace-nowrap shadow-2xs font-bold"
                               >
                                 Собрать
@@ -652,7 +652,7 @@ export const TaskChecklistModal: React.FC<TaskChecklistModalProps> = ({
                                 size="sm"
                                 onClick={() => handleOpenAndCollect(item)}
                                 leftIcon={<ExternalLink className="w-3.5 h-3.5" />}
-                                title="Открыть ссылку объекта в браузере и пометить как собранный"
+                                title="Открыть объект и отметить собранным"
                                 className={`text-xs px-2.5 py-1 whitespace-nowrap shadow-2xs ${
                                   isCollected ? 'text-slate-700 font-medium' : 'font-bold'
                                 }`}
@@ -686,7 +686,7 @@ export const TaskChecklistModal: React.FC<TaskChecklistModalProps> = ({
                   <div className="flex items-center gap-2 min-w-0">
                     <Layers className="w-3.5 h-3.5 text-slate-500 flex-shrink-0" />
                     <span className="font-bold text-xs text-slate-800 truncate">
-                      Прочее / Без раздела
+                      Без раздела
                     </span>
                   </div>
 
@@ -717,7 +717,7 @@ export const TaskChecklistModal: React.FC<TaskChecklistModalProps> = ({
                           <button
                             type="button"
                             onClick={() => onToggleItemCollected(task.id, item.id)}
-                            title={isCollected ? 'Отметить как не собранный' : 'Отметить как собранный'}
+                            title={isCollected ? 'Отметить как несобранный' : 'Отметить как собранный'}
                             className="mt-0.5 text-accent-600 hover:text-accent-700 transition-transform p-0.5 rounded cursor-pointer flex-shrink-0"
                           >
                             {isCollected ? (
@@ -744,7 +744,7 @@ export const TaskChecklistModal: React.FC<TaskChecklistModalProps> = ({
                               {matchingFile && (
                                 <span
                                   className="inline-flex items-center gap-1 text-[10px] font-bold text-sky-800 bg-sky-100/90 px-1.5 py-0.5 rounded border border-sky-300"
-                                  title={`Файл найден в связанном пакете: #${matchingFile.order} ${matchingFile.newName || matchingFile.originalName}`}
+                                  title={`Файл есть в привязанном пакете: #${matchingFile.order} ${matchingFile.newName || matchingFile.originalName}`}
                                 >
                                   📦 В пакете #{matchingFile.order}
                                 </span>
@@ -798,7 +798,7 @@ export const TaskChecklistModal: React.FC<TaskChecklistModalProps> = ({
                               size="sm"
                               onClick={() => onToggleItemCollected(task.id, item.id)}
                               leftIcon={<Check className="w-3.5 h-3.5" />}
-                              title={`Файл #${matchingFile.order} уже находится в пакете сборки! Нажмите, чтобы сразу отметить объект как собранный без перехода по ссылке`}
+                              title={`Файл #${matchingFile.order} уже есть в пакете. Нажмите, чтобы отметить объект собранным без перехода по ссылке`}
                               className="text-xs px-2.5 py-1 whitespace-nowrap shadow-2xs font-bold"
                             >
                               Собрать
@@ -809,7 +809,7 @@ export const TaskChecklistModal: React.FC<TaskChecklistModalProps> = ({
                               size="sm"
                               onClick={() => handleOpenAndCollect(item)}
                               leftIcon={<ExternalLink className="w-3.5 h-3.5" />}
-                              title="Открыть ссылку объекта в браузере и пометить как собранный"
+                              title="Открыть объект и отметить собранным"
                               className={`text-xs px-2.5 py-1 whitespace-nowrap shadow-2xs ${
                                 isCollected ? 'text-slate-700 font-medium' : 'font-bold'
                               }`}

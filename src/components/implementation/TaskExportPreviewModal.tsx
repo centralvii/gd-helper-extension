@@ -63,7 +63,7 @@ export const TaskExportPreviewModal: React.FC<TaskExportPreviewModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Экспорт и копирование описания реализации"
+      title="Экспорт описания"
       maxWidth="lg"
       footer={
         <div className="flex items-center justify-between w-full flex-wrap gap-2">
@@ -101,7 +101,7 @@ export const TaskExportPreviewModal: React.FC<TaskExportPreviewModalProps> = ({
             {copiedFormat === 'md' ? (
               <>
                 <Check className="w-4 h-4 text-accent-600" />
-                <span>Скопировано!</span>
+                <span>Скопировано</span>
               </>
             ) : (
               <>
@@ -123,12 +123,12 @@ export const TaskExportPreviewModal: React.FC<TaskExportPreviewModalProps> = ({
             {copiedFormat === 'plain' ? (
               <>
                 <Check className="w-4 h-4 text-accent-600" />
-                <span>Скопировано!</span>
+                <span>Скопировано</span>
               </>
             ) : (
               <>
                 <FileText className="w-4 h-4 text-slate-600" />
-                <span>Чистый текст</span>
+                <span>Простой текст</span>
               </>
             )}
           </button>
@@ -140,12 +140,12 @@ export const TaskExportPreviewModal: React.FC<TaskExportPreviewModalProps> = ({
             {copiedFormat === 'json' ? (
               <>
                 <Check className="w-4 h-4 text-accent-600" />
-                <span>Скопировано!</span>
+                <span>Скопировано</span>
               </>
             ) : (
               <>
                 <FileJson className="w-4 h-4 text-accent-600" />
-                <span>JSON бэкап</span>
+                <span>JSON</span>
               </>
             )}
           </button>
@@ -155,10 +155,10 @@ export const TaskExportPreviewModal: React.FC<TaskExportPreviewModalProps> = ({
         <div>
           <div className="flex items-center justify-between mb-1.5">
             <span className="font-semibold text-slate-700 text-[11px]">
-              Предпросмотр сформированного описания:
+              Предпросмотр:
             </span>
             <span className="text-[10px] text-slate-400">
-              {markdownText.split('\n').length} строк • {markdownText.length} символов
+              строк: {markdownText.split('\n').length} · символов: {markdownText.length}
             </span>
           </div>
 

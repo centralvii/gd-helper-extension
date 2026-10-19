@@ -87,7 +87,7 @@ export const TaskSelector: React.FC<TaskSelectorProps> = ({
             <span className="ml-1 text-[12px] font-semibold text-gd-muted tabular-nums">{tasks.length}</span>
           </button>
           <div className="flex items-center gap-1.5">
-            <button type="button" onClick={onCreateTask} title="Создать новую задачу" className="icon-btn !bg-gd-accent-light !text-gd-accent">
+            <button type="button" onClick={onCreateTask} title="Новая задача" className="icon-btn !bg-gd-accent-light !text-gd-accent">
               <Plus className="w-4 h-4" strokeWidth={2.5} />
             </button>
             {activeTask && (
@@ -172,7 +172,7 @@ export const TaskSelector: React.FC<TaskSelectorProps> = ({
                       <button type="button" onClick={() => onDuplicateTask(t.id)} title="Дублировать задачу" className="icon-btn icon-btn--plain w-7 h-7">
                         <Copy className="w-3.5 h-3.5" />
                       </button>
-                      <button type="button" onClick={() => handleOpenRename(t)} title="Редактировать номер/название" className="icon-btn icon-btn--plain w-7 h-7">
+                      <button type="button" onClick={() => handleOpenRename(t)} title="Изменить номер и название" className="icon-btn icon-btn--plain w-7 h-7">
                         <Edit2 className="w-3.5 h-3.5" />
                       </button>
                       {tasks.length > 1 && (
@@ -208,13 +208,13 @@ export const TaskSelector: React.FC<TaskSelectorProps> = ({
               <button
                 type="button"
                 onClick={() => onOpenImportExport('export')}
-                title="Резервное копирование, экспорт и импорт в формате JSON"
+                title="Импорт и экспорт задач в JSON"
                 className="gd-row gd-row--tap w-full text-left"
               >
                 <span className="gd-row-icon">
                   <ArrowDownUp />
                 </span>
-                <span className="flex-1 text-[14px] text-slate-900">Импорт и экспорт</span>
+                <span className="flex-1 text-[14px] text-slate-900">Импорт и экспорт…</span>
                 <ChevronRight className="w-4 h-4 text-gd-faint" />
               </button>
             )}
@@ -254,9 +254,9 @@ export const TaskSelector: React.FC<TaskSelectorProps> = ({
         }
       >
         <p className="text-xs text-slate-700">
-          Вы уверены, что хотите удалить задачу{' '}
-          <strong className="text-slate-900">"{taskToDelete?.taskNumber}"</strong> (
-          {taskToDelete?.title}) и все записанные в ней изменения ({taskToDelete?.items.length} шт.)?
+          Удалить задачу{' '}
+          <strong className="text-slate-900">«{taskToDelete?.taskNumber}»</strong> (
+          {taskToDelete?.title}) вместе со всеми пунктами ({taskToDelete?.items.length})?
         </p>
       </Modal>
 
@@ -264,7 +264,7 @@ export const TaskSelector: React.FC<TaskSelectorProps> = ({
       <Modal
         isOpen={Boolean(taskToRename)}
         onClose={() => setTaskToRename(null)}
-        title="Редактировать параметры задачи"
+        title="Номер и название задачи"
         maxWidth="sm"
         footer={
           <>
@@ -288,7 +288,7 @@ export const TaskSelector: React.FC<TaskSelectorProps> = ({
         <form onSubmit={handleConfirmRename} className="space-y-3">
           <div>
             <label className="block text-xs font-medium text-slate-700 mb-1">
-              Номер задачи (Jira / Task ID):
+              Номер задачи:
             </label>
             <Input
               value={renameTaskNumber}
@@ -304,7 +304,7 @@ export const TaskSelector: React.FC<TaskSelectorProps> = ({
             <Input
               value={renameTitle}
               onChange={(e) => setRenameTitle(e.target.value)}
-              placeholder="Доработка модуля согласования"
+              placeholder="Например: Доработка модуля согласования"
             />
           </div>
         </form>

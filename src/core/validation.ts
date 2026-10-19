@@ -72,7 +72,7 @@ export function validateFiles(files: FileRow[]): ValidationSummary {
           fileId: id,
           fileName: matchingFile?.newName || lowerName,
           type: 'duplicate',
-          message: `Дубликат имени: "${matchingFile?.newName || lowerName}" совпадает с другим файлом`,
+          message: `Имя «${matchingFile?.newName || lowerName}» уже есть у другого файла`,
         });
       }
     }

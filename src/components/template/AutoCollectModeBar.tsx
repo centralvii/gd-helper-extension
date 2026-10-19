@@ -23,7 +23,7 @@ export const AutoCollectModeBar: React.FC<AutoCollectModeBarProps> = ({
   <div className="gd-row">
     <span
       className={`gd-row-icon transition-colors duration-300 ${isAutoCollectEnabled ? 'gd-row-icon--accent' : ''}`}
-      title={isAutoCollectEnabled ? 'Скачанные .guf добавляются в пакет' : 'Автосбор на паузе'}
+      title={isAutoCollectEnabled ? 'Скачанные файлы .guf добавляются в пакет' : 'Автосбор на паузе'}
     >
       <Zap className={isAutoCollectEnabled ? 'fill-current' : ''} />
     </span>
@@ -51,7 +51,7 @@ export const AutoCollectModeBar: React.FC<AutoCollectModeBarProps> = ({
       aria-checked={isAutoCollectEnabled}
       aria-label="Автосбор скачиваний"
       onClick={onToggleAutoCollect}
-      title={isAutoCollectEnabled ? 'Автосбор активен. Нажмите для паузы' : 'Автосбор на паузе. Нажмите для включения'}
+      title={isAutoCollectEnabled ? 'Автосбор включён. Нажмите, чтобы приостановить' : 'Автосбор на паузе. Нажмите, чтобы включить'}
       className="gd-switch"
     />
   </div>

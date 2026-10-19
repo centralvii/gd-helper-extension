@@ -35,7 +35,7 @@ export const DuplicateAutoCollectModal: React.FC<DuplicateAutoCollectModalProps>
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Дубликат файла по ссылке"
+      title="Файл уже есть в пакете"
       maxWidth="md"
       footer={
         <>
@@ -47,7 +47,7 @@ export const DuplicateAutoCollectModal: React.FC<DuplicateAutoCollectModalProps>
             variant="secondary"
             size="sm"
             onClick={onAppend}
-            title="Добавить файл как новый в конец пакета"
+            title="Добавить как новый файл в конец пакета"
             className="gap-1.5"
             leftIcon={<Plus className="w-3.5 h-3.5 text-slate-500" />}
           >
@@ -58,7 +58,7 @@ export const DuplicateAutoCollectModal: React.FC<DuplicateAutoCollectModalProps>
             variant="emerald"
             size="sm"
             onClick={onReplace}
-            title="Убрать старый файл и поставить новый на его позицию"
+            title="Поставить новый файл на место старого"
             className="gap-1.5 font-bold"
             leftIcon={<RefreshCw className="w-3.5 h-3.5" />}
           >
@@ -76,7 +76,7 @@ export const DuplicateAutoCollectModal: React.FC<DuplicateAutoCollectModalProps>
               Файл с этой страницы уже добавлен в пакет
             </p>
             <p className="text-amber-800 text-[11px] mt-0.5 leading-relaxed">
-              Вы можете <strong>заменить</strong> текущий файл в пакете на свежевыгруженный (на той же позиции #{existingFile.order}) или добавить его в самый конец.
+              Можно <strong>заменить</strong> файл в пакете новой выгрузкой (позиция #{existingFile.order} сохранится) или добавить её в конец.
             </p>
           </div>
         </div>
@@ -116,7 +116,7 @@ export const DuplicateAutoCollectModal: React.FC<DuplicateAutoCollectModalProps>
               className="text-[10px] text-slate-400 truncate"
               title={existingFile.originalName}
             >
-              исх: {existingFile.originalName}
+              исх.: {existingFile.originalName}
             </p>
           </div>
 
@@ -135,7 +135,7 @@ export const DuplicateAutoCollectModal: React.FC<DuplicateAutoCollectModalProps>
               className="text-[10px] text-accent-700/80 truncate"
               title={newFile.name}
             >
-              исх: {newFile.name}
+              исх.: {newFile.name}
             </p>
           </div>
         </div>

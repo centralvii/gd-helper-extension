@@ -87,10 +87,10 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
             number: res.lastNumber,
           });
         }
-        const currentInfo = res.currentLastNumber ? ` (в пакете: ${res.currentLastNumber})` : '';
+        const currentInfo = res.currentLastNumber ? ` (последний: ${res.currentLastNumber})` : '';
         setParseFeedback({
           type: 'success',
-          text: `Спарсен след. № ${res.lastNumber}${currentInfo}: ${res.lastFileName || ''}`,
+          text: `Следующий № ${res.lastNumber}${currentInfo}: ${res.lastFileName || ''}`,
         });
         if (target) {
           try {
@@ -100,14 +100,14 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
       } else {
         setParseFeedback({
           type: 'error',
-          text: res.error || 'Не удалось найти файлы .guf в таблице пакета',
+          text: res.error || 'В релизном пакете не найдены файлы .guf. Проверьте ссылку',
         });
       }
     } catch (err) {
       console.warn('Error auto-parsing package number:', err);
       setParseFeedback({
         type: 'error',
-        text: 'Ошибка при выполнении парсинга номера',
+        text: 'Не удалось получить номер. Откройте карточку релизного пакета и повторите',
       });
     } finally {
       setIsParsing(false);
@@ -129,7 +129,7 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
             <button
               type="button"
               onClick={() => onSetPrimaryTemplate(template)}
-              title="Сделать текущий шаблон основным по умолчанию"
+              title="Сделать шаблон основным (по умолчанию)"
               className="text-gd-faint hover:text-[#f59e3b] cursor-pointer"
             >
               <Star className="h-3 w-3" />
@@ -140,7 +140,7 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
           <button
             type="button"
             onClick={onOpenPresets}
-            title="Пресеты шаблонов наименования"
+            title="Пресеты шаблонов имён"
             className="normal-case tracking-normal text-[12px] font-semibold text-accent-700 cursor-pointer"
           >
             Пресеты{presetsCount ? ` · ${presetsCount}` : ''}
@@ -216,7 +216,7 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
             type="button"
             onClick={handleFetchUrlFromActiveTab}
             disabled={isParsing}
-            title="Вставить ссылку из текущей открытой вкладки Chrome"
+            title="Вставить ссылку из активной вкладки"
             className="icon-btn !w-8 !h-8 disabled:opacity-40"
           >
             <Sparkles className="h-3.5 w-3.5" />
@@ -227,7 +227,7 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
             onClick={handleAutoParseNumber}
             disabled={isParsing}
             isLoading={isParsing}
-            title="Спарсить последний номер .guf файла по ссылке и подставить следующий"
+            title="Получить последний номер файла .guf из релизного пакета и подставить следующий"
             leftIcon={!isParsing ? <Hash className="h-3.5 w-3.5" /> : undefined}
           >
             {isParsing ? '…' : '№'}

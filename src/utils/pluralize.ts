@@ -12,4 +12,4 @@ export function pluralizeRu(count: number, forms: [one: string, few: string, man
 
 export const FILE_FORMS: [string, string, string] = ['файл', 'файла', 'файлов'];
 export const ERROR_FORMS: [string, string, string] = ['ошибка', 'ошибки', 'ошибок'];
-export const CHANGE_FORMS: [string, string, string] = ['изменение', 'изменения', 'изменений'];
+export const CHANGE_FORMS: [string, string, string] = ['пункт', 'пункта', 'пунктов'];

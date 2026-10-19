@@ -40,8 +40,8 @@ export async function injectAlgorithmComment(
       editorFound: false,
       copiedToClipboard,
       message: copiedToClipboard
-        ? 'Комментарий скопирован в буфер обмена (расширение не имеет доступа к scripting)'
-        : 'Не удалось получить доступ к вкладке',
+        ? 'Нет доступа к вкладке — комментарий скопирован в буфер обмена'
+        : 'Нет доступа к вкладке. Обновите страницу и повторите',
     };
   }
 
@@ -53,8 +53,8 @@ export async function injectAlgorithmComment(
         editorFound: false,
         copiedToClipboard,
         message: copiedToClipboard
-          ? 'Комментарий скопирован в буфер обмена (нет активной вкладки)'
-          : 'Активная вкладка не найдена',
+          ? 'Активная вкладка не найдена — комментарий скопирован в буфер обмена'
+          : 'Активная вкладка не найдена. Откройте алгоритм в GreenData',
       };
     }
 
@@ -272,7 +272,7 @@ export async function injectAlgorithmComment(
         success: true,
         editorFound: true,
         copiedToClipboard,
-        message: `Комментарий успешно добавлен ${posText}!`,
+        message: `Комментарий вставлен ${posText}`,
       };
     }
 
@@ -281,8 +281,8 @@ export async function injectAlgorithmComment(
       editorFound: false,
       copiedToClipboard,
       message: copiedToClipboard
-        ? 'Редактор алгоритма на странице не найден, но комментарий скопирован в буфер обмена!'
-        : 'Редактор формулы/алгоритма не найден на открытой странице.',
+        ? 'Редактор алгоритма не найден — комментарий скопирован в буфер обмена'
+        : 'Редактор алгоритма не найден. Откройте алгоритм в GreenData и повторите',
     };
   } catch (err) {
     return {
@@ -290,8 +290,8 @@ export async function injectAlgorithmComment(
       editorFound: false,
       copiedToClipboard,
       message: copiedToClipboard
-        ? `Скопировано в буфер (ошибка страницы: ${getErrorMessage(err, 'нет доступа')})`
-        : `Ошибка: ${getErrorMessage(err, 'Не удалось вставить комментарий')}`,
+        ? `Не удалось вставить (${getErrorMessage(err, 'нет доступа')}) — комментарий скопирован в буфер обмена`
+        : `Не удалось вставить комментарий: ${getErrorMessage(err, 'неизвестная ошибка')}`,
     };
   }
 }

@@ -75,19 +75,19 @@ export const ReadmeEditorModal: React.FC<ReadmeEditorModalProps> = ({
         {activeTab === 'edit' ? (
           <div className="space-y-2">
             <p className="text-[11px] text-slate-500">
-              Введите общий текст примечаний к релизу / обновлению. Описания отдельных файлов добавятся автоматически перед вашим текстом.
+              Общий текст примечаний к релизу. Описания отдельных файлов добавятся автоматически перед ним.
             </p>
             <Textarea
               rows={8}
               value={text}
               onChange={(e) => setText(e.target.value)}
-              placeholder="Например: Обновление конфигурации и сценариев GreenData..."
+              placeholder="Например: обновление конфигурации и сценариев GreenData…"
             />
           </div>
         ) : (
           <div className="space-y-2">
             <p className="text-[11px] text-slate-500">
-              Так будет выглядеть итоговый файл <code className="text-accent-700 font-bold font-mono">README.txt</code> внутри ZIP архива:
+              Так будет выглядеть итоговый файл <code className="text-accent-700 font-bold font-mono">README.txt</code> внутри ZIP-архива:
             </p>
             <pre className="w-full max-h-64 overflow-y-auto bg-slate-50/80 border border-slate-200 rounded-xl p-3 font-mono text-[11px] text-slate-800 whitespace-pre-wrap select-all shadow-2xs">
               {previewOutput || '(Файл README.txt пуст)'}

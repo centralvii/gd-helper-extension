@@ -101,8 +101,8 @@ export const FileRowItem: React.FC<FileRowItemProps> = React.memo(({
                 type="button"
                 {...attributes}
                 {...listeners}
-                title="Перетащите для изменения порядка"
-                aria-label={`Файл ${file.order}: перетащите для изменения порядка`}
+                title="Перетащите, чтобы изменить порядок"
+                aria-label={`Файл ${file.order}: перетащите, чтобы изменить порядок`}
                 data-icon-anim="none"
                 className="relative grid h-7 w-7 flex-shrink-0 place-items-center rounded-lg text-gd-faint hover:bg-white/70 cursor-grab active:cursor-grabbing select-none touch-none"
             >
@@ -120,7 +120,7 @@ export const FileRowItem: React.FC<FileRowItemProps> = React.memo(({
                 onKeyDown={(e) => {
                     if (e.key === 'Enter') onEdit(file);
                 }}
-                title={`${file.newName || file.originalName}\nИсходное: ${file.originalName}\nНажмите для редактирования`}
+                title={`${file.newName || file.originalName}\nИсходное: ${file.originalName}\nНажмите, чтобы изменить`}
                 className="min-w-0 flex-1 cursor-pointer !scale-100"
             >
                 <div className="flex min-w-0 items-center gap-1.5">
@@ -174,7 +174,7 @@ export const FileRowItem: React.FC<FileRowItemProps> = React.memo(({
                         )
                     }
                     onClick={handleDownload}
-                    title="Скачать этот GUF-файл"
+                    title="Скачать файл .guf"
                 />
                 <IconButton
                     size="sm"

@@ -73,7 +73,7 @@ export const AiSettingsModal: React.FC<AiSettingsModalProps> = ({
       });
       setTestResult(res);
     } catch (err) {
-      setTestResult({ ok: false, message: getErrorMessage(err, 'Ошибка тестирования') });
+      setTestResult({ ok: false, message: getErrorMessage(err, 'Не удалось проверить соединение') });
     } finally {
       setIsTesting(false);
     }
@@ -112,7 +112,7 @@ export const AiSettingsModal: React.FC<AiSettingsModalProps> = ({
             }}
             leftIcon={<RotateCcw className="w-3.5 h-3.5" />}
           >
-            Сброс
+            Сбросить
           </Button>
 
           <div className="flex items-center gap-2">
@@ -157,10 +157,10 @@ export const AiSettingsModal: React.FC<AiSettingsModalProps> = ({
                 value={authType}
                 onChange={(val) => setAuthType(val as AiAuthType)}
                 options={[
-                  { value: 'bearer', label: 'Bearer токен (Authorization: Bearer)' },
+                  { value: 'bearer', label: 'Bearer-токен (Authorization)' },
                   { value: 'api-key', label: 'api-key (Azure OpenAI / шлюзы)' },
-                  { value: 'x-api-key', label: 'X-API-Key (Заголовок X-API-Key)' },
-                  { value: 'none', label: 'Без заголовка (None — по IP / VPN)' },
+                  { value: 'x-api-key', label: 'Заголовок X-API-Key' },
+                  { value: 'none', label: 'Без заголовка (по IP / VPN)' },
                 ]}
               />
             </div>
@@ -168,13 +168,13 @@ export const AiSettingsModal: React.FC<AiSettingsModalProps> = ({
             <div>
               <label className="block text-[11px] font-semibold text-slate-700 mb-1 flex items-center gap-1.5">
                 <Key className="w-3.5 h-3.5 text-accent-600" />
-                <span>API-ключ / Токен</span>
+                <span>API-ключ или токен</span>
               </label>
               <Input
                 type={showApiKey ? 'text' : 'password'}
                 value={apiKey}
                 onChange={(e) => setApiKey(e.target.value)}
-                placeholder={authType === 'none' ? 'Не требуется для сети' : 'sk-... или токен'}
+                placeholder={authType === 'none' ? 'Не требуется' : 'sk-… или токен'}
                 rightElement={
                   <button
                     type="button"
@@ -190,7 +190,7 @@ export const AiSettingsModal: React.FC<AiSettingsModalProps> = ({
           </div>
 
           <p className="text-[10px] text-slate-500 leading-normal">
-            💡 Если вы в подсети GreenData и сервер авторизует без ключа — выберите «Без заголовка (None)» и оставьте поле ключа пустым.
+            💡 Если вы в подсети GreenData и сервер авторизует без ключа — выберите тип авторизации «Без заголовка» и оставьте ключ пустым.
           </p>
         </div>
 
@@ -199,7 +199,7 @@ export const AiSettingsModal: React.FC<AiSettingsModalProps> = ({
           <div className="flex items-center justify-between mb-1">
             <label className="text-[11px] font-semibold text-slate-700 flex items-center gap-1.5">
               <Cpu className="w-3.5 h-3.5 text-accent-600" />
-              <span>Название модели (Model ID)</span>
+              <span>ID модели</span>
             </label>
             <span className="text-[10px] text-slate-400">Например: deepseek-coder, gpt-4o-mini</span>
           </div>
@@ -249,11 +249,11 @@ export const AiSettingsModal: React.FC<AiSettingsModalProps> = ({
               disabled={isTesting}
               leftIcon={<Activity className={`w-3.5 h-3.5 text-sky-600 ${isTesting ? 'animate-spin' : ''}`} />}
             >
-              {isTesting ? 'Проверка соединения...' : 'Проверить соединение'}
+              {isTesting ? 'Проверка соединения…' : 'Проверить соединение'}
             </Button>
 
             <span className="text-[10px] text-slate-400">
-              Тестовый пинг к серверу
+              Тестовый запрос к серверу
             </span>
           </div>
 

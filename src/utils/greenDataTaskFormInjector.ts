@@ -10,6 +10,7 @@ export interface GreenDataTaskFillResult {
     name: string;
   };
   missingFields?: string[];
+  moduleStatus?: GreenDataModuleStatus;
 }
 
 /**
@@ -88,8 +89,20 @@ export async function checkGreenDataTaskModalActive(): Promise<boolean> {
   return false;
 }
 
+/** Модуль, который выбирается в форме задачи GreenData при переносе из YouTrack */
+export const GREENDATA_DEFAULT_MODULE = 'Финансовый модуль';
+
+export type GreenDataModuleStatus = 'selected' | 'already' | 'field_not_found' | 'option_not_found';
+
 /**
  * Injects YouTrack issue data into the active GreenData task creation modal on the active tab.
+ *
+ * Поля заполняются «как пользователь»: фокус → посимвольный ввод через
+ * document.execCommand('insertText') (браузер генерирует доверенные события
+ * beforeinput/input) с keydown/keypress/keyup → change → blur. Простая подмена
+ * value не снимает красную подсветку обязательных полей: форма GreenData
+ * отмечает поле заполненным только по реальному вводу и потере фокуса.
+ * Затем в поле «Модуль» выбирается GREENDATA_DEFAULT_MODULE через его окно выбора.
  */
 export async function injectYouTrackIntoGreenDataTask(
   issue: YouTrackIssue
@@ -97,176 +110,296 @@ export async function injectYouTrackIntoGreenDataTask(
   const tfsNumber = extractTfsNumberFromSummary(issue.summary);
   const ytGit = issue.id || '';
   const taskName = (issue.summary || '').trim();
+  const filled = { tfs: tfsNumber, yt: ytGit, name: taskName };
 
   if (typeof chrome === 'undefined' || !chrome.tabs || !chrome.scripting) {
-    return {
-      success: false,
-      message: 'Расширение не имеет доступа к API Chrome tabs/scripting',
-      filled: { tfs: tfsNumber, yt: ytGit, name: taskName },
-    };
+    return { success: false, message: 'Нет доступа к вкладкам браузера (chrome.tabs / chrome.scripting)', filled };
   }
 
   try {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     if (!tab || !tab.id) {
-      return {
-        success: false,
-        message: 'Активная вкладка браузера не найдена',
-        filled: { tfs: tfsNumber, yt: ytGit, name: taskName },
-      };
+      return { success: false, message: 'Активная вкладка браузера не найдена', filled };
     }
 
     const results = await chrome.scripting.executeScript({
       target: { tabId: tab.id, allFrames: true },
-      args: [tfsNumber, ytGit, taskName],
-      func: (tfsVal: string, ytVal: string, nameVal: string) => {
-        // Helper to update React-controlled inputs
-        function setReactValue(element: HTMLInputElement | HTMLTextAreaElement, value: string) {
-          element.focus();
-
-          const nativeInputSetter = Object.getOwnPropertyDescriptor(
-            window.HTMLInputElement.prototype,
-            'value'
-          )?.set;
-          const nativeTextareaSetter = Object.getOwnPropertyDescriptor(
-            window.HTMLTextAreaElement.prototype,
-            'value'
-          )?.set;
-
-          if (element instanceof HTMLTextAreaElement && nativeTextareaSetter) {
-            nativeTextareaSetter.call(element, value);
-          } else if (nativeInputSetter) {
-            nativeInputSetter.call(element, value);
-          } else {
-            element.value = value;
-          }
-
-          // Dispatch input & change events for React/Redux listeners
-          element.dispatchEvent(new Event('input', { bubbles: true, cancelable: true }));
-          element.dispatchEvent(new Event('change', { bubbles: true, cancelable: true }));
-
-          // Animate brief emerald highlight
-          const origBg = element.style.backgroundColor;
-          const origBorder = element.style.borderColor;
-          const origBoxShadow = element.style.boxShadow;
-          const origTransition = element.style.transition;
-
-          element.style.transition = 'all 0.3s ease';
-          element.style.backgroundColor = '#ecfdf5'; // light emerald
-          element.style.borderColor = '#10b981';
-          element.style.boxShadow = '0 0 0 2px rgba(16, 185, 129, 0.3)';
-
-          setTimeout(() => {
-            element.style.backgroundColor = origBg || '';
-            element.style.borderColor = origBorder || '';
-            element.style.boxShadow = origBoxShadow || '';
-            element.style.transition = origTransition || '';
-          }, 1500);
-
-          element.blur();
-        }
-
-        // 1. Locate TFS (US/BP) input: data-ident="TFS_STR"
-        let tfsInput = document.querySelector<HTMLInputElement>(
-          '[data-ident="TFS_STR"] input, [data-ident="TFS_STR"] .base-theme-input'
-        );
-        if (!tfsInput) {
-          // Label search fallback
-          const allWrappers = Array.from(document.querySelectorAll('.visual-group-attribute, .control-wrapper'));
-          for (const w of allWrappers) {
-            if ((w.textContent || '').includes('TFS (US/BP)')) {
-              tfsInput = w.querySelector<HTMLInputElement>('input');
-              if (tfsInput) break;
-            }
-          }
-        }
-
-        // 2. Locate YT/Git input: data-ident="YT_STR"
-        let ytInput = document.querySelector<HTMLInputElement>(
-          '[data-ident="YT_STR"] input, [data-ident="YT_STR"] .base-theme-input'
-        );
-        if (!ytInput) {
-          const allWrappers = Array.from(document.querySelectorAll('.visual-group-attribute, .control-wrapper'));
-          for (const w of allWrappers) {
-            if ((w.textContent || '').includes('YT/Git') || (w.textContent || '').includes('YT/GIT')) {
-              ytInput = w.querySelector<HTMLInputElement>('input');
-              if (ytInput) break;
-            }
-          }
-        }
-
-        // 3. Locate Наименование задачи input: data-ident="NAME_TASK_STR"
-        let nameInput = document.querySelector<HTMLInputElement | HTMLTextAreaElement>(
-          '[data-ident="NAME_TASK_STR"] input, [data-ident="NAME_TASK_STR"] textarea, [data-ident="NAME_TASK_STR"] .base-theme-input'
-        );
-        if (!nameInput) {
-          const allWrappers = Array.from(document.querySelectorAll('.visual-group-attribute, .control-wrapper'));
-          for (const w of allWrappers) {
-            if ((w.textContent || '').includes('Наименование задачи')) {
-              nameInput = w.querySelector<HTMLInputElement | HTMLTextAreaElement>('input, textarea');
-              if (nameInput) break;
-            }
-          }
-        }
-
-        // If none of the fields found in this frame, return false
-        if (!tfsInput && !ytInput && !nameInput) {
-          return { found: false };
-        }
-
-        let filledCount = 0;
-        const missing: string[] = [];
-
-        if (tfsInput && tfsVal) {
-          setReactValue(tfsInput, tfsVal);
-          filledCount++;
-        } else if (!tfsInput) {
-          missing.push('TFS (US/BP)');
-        }
-
-        if (ytInput && ytVal) {
-          setReactValue(ytInput, ytVal);
-          filledCount++;
-        } else if (!ytInput) {
-          missing.push('YT/Git');
-        }
-
-        if (nameInput && nameVal) {
-          setReactValue(nameInput, nameVal);
-          filledCount++;
-        } else if (!nameInput) {
-          missing.push('Наименование задачи');
-        }
-
-        return {
-          found: true,
-          filledCount,
-          missing,
+      args: [tfsNumber, ytGit, taskName, GREENDATA_DEFAULT_MODULE],
+      func: async (tfsVal: string, ytVal: string, nameVal: string, moduleName: string) => {
+        const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+        const norm = (t: string | null | undefined) => (t || '').replace(/\s+/g, ' ').trim().toLowerCase();
+        const isVisible = (el: Element) => {
+          const rect = (el as HTMLElement).getBoundingClientRect();
+          const style = getComputedStyle(el as HTMLElement);
+          return rect.width > 0 && rect.height > 0 && style.visibility !== 'hidden' && style.display !== 'none';
         };
+
+        type Field = HTMLInputElement | HTMLTextAreaElement;
+
+        const setNativeValue = (el: Field, value: string) => {
+          const proto = el instanceof HTMLTextAreaElement ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype;
+          const setter = Object.getOwnPropertyDescriptor(proto, 'value')?.set;
+          if (setter) setter.call(el, value);
+          else el.value = value;
+        };
+
+        const keyEvent = (el: Element, type: string, key: string) =>
+          el.dispatchEvent(
+            new KeyboardEvent(type, {
+              key,
+              code: key.length === 1 ? `Key${key.toUpperCase()}` : key,
+              bubbles: true,
+              cancelable: true,
+              composed: true,
+            })
+          );
+
+        const focusField = (el: HTMLElement) => {
+          el.scrollIntoView({ block: 'nearest' });
+          el.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
+          el.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+          el.focus();
+          // Если окно страницы не в фокусе (фокус в боковой панели), браузер не шлёт focus — шлём сами
+          el.dispatchEvent(new FocusEvent('focus'));
+          el.dispatchEvent(new FocusEvent('focusin', { bubbles: true }));
+          el.dispatchEvent(new PointerEvent('pointerup', { bubbles: true }));
+          el.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }));
+          el.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        };
+
+        const blurField = (el: HTMLElement) => {
+          el.dispatchEvent(new Event('change', { bubbles: true }));
+          el.blur();
+          el.dispatchEvent(new FocusEvent('blur'));
+          el.dispatchEvent(new FocusEvent('focusout', { bubbles: true }));
+        };
+
+        /** Посимвольный «ручной» ввод значения в поле */
+        const typeInto = async (el: Field, value: string) => {
+          focusField(el);
+          // Очистка текущего значения как пользователем: выделить всё → удалить
+          if (el.value) {
+            el.select();
+            keyEvent(el, 'keydown', 'Delete');
+            if (!document.execCommand('delete')) {
+              setNativeValue(el, '');
+              el.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'deleteContentBackward' }));
+            }
+            keyEvent(el, 'keyup', 'Delete');
+          }
+          for (const ch of value) {
+            keyEvent(el, 'keydown', ch);
+            keyEvent(el, 'keypress', ch);
+            const before = el.value;
+            const inserted = document.activeElement === el && document.execCommand('insertText', false, ch);
+            if (!inserted || el.value === before) {
+              setNativeValue(el, before + ch);
+              el.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText', data: ch }));
+            }
+            keyEvent(el, 'keyup', ch);
+          }
+          await sleep(20);
+          blurField(el);
+
+          // Короткая подсветка заполненного поля в цвете расширения
+          const prev = { bg: el.style.backgroundColor, sh: el.style.boxShadow, tr: el.style.transition };
+          el.style.transition = 'background-color .3s ease, box-shadow .3s ease';
+          el.style.backgroundColor = '#eef0ff';
+          el.style.boxShadow = '0 0 0 2px rgba(79, 91, 213, 0.35)';
+          setTimeout(() => {
+            el.style.backgroundColor = prev.bg;
+            el.style.boxShadow = prev.sh;
+            el.style.transition = prev.tr;
+          }, 1500);
+          return el.value === value;
+        };
+
+        const wrappers = () => Array.from(document.querySelectorAll('.visual-group-attribute, .control-wrapper, [data-ident]'));
+
+        const findWrapper = (ident: string, labelTest: (text: string) => boolean): Element | null => {
+          const byIdent = document.querySelector(`[data-ident="${ident}"]`);
+          if (byIdent) return byIdent;
+          const labels = Array.from(document.querySelectorAll('label, .card-attr-label-container'));
+          for (const l of labels) {
+            if (labelTest(norm(l.textContent))) {
+              const w = l.closest('.visual-group-attribute, .control-wrapper, [data-ident]') || l.parentElement;
+              if (w) return w;
+            }
+          }
+          return wrappers().find((w) => labelTest(norm(w.textContent))) || null;
+        };
+
+        const findField = (ident: string, labelTest: (text: string) => boolean): Field | null => {
+          const w = findWrapper(ident, labelTest);
+          return w ? w.querySelector<Field>('textarea, input:not([type=hidden]):not([type=checkbox])') : null;
+        };
+
+        const tfsInput = findField('TFS_STR', (t) => t.includes('tfs (us/bp)'));
+        const ytInput = findField('YT_STR', (t) => t.includes('yt/git'));
+        const nameInput = findField('NAME_TASK_STR', (t) => t.includes('наименование задачи'));
+
+        if (!tfsInput && !ytInput && !nameInput) return { found: false };
+
+        const missing: string[] = [];
+        const notTyped: string[] = [];
+        let filledCount = 0;
+
+        const fields: Array<[Field | null, string, string]> = [
+          [tfsInput, tfsVal, 'TFS (US/BP)'],
+          [ytInput, ytVal, 'YT/Git'],
+          [nameInput, nameVal, 'Наименование задачи'],
+        ];
+        for (const [el, val, label] of fields) {
+          if (!el) {
+            missing.push(label);
+            continue;
+          }
+          if (!val) continue;
+          if (await typeInto(el, val)) filledCount++;
+          else notTyped.push(label);
+          await sleep(40);
+        }
+
+        // ── Модуль: выбор значения через окно выбора ──
+        const target = norm(moduleName);
+        const clickLikeUser = (el: Element) => {
+          const opts = { bubbles: true, cancelable: true, view: window };
+          el.dispatchEvent(new PointerEvent('pointerdown', opts));
+          el.dispatchEvent(new MouseEvent('mousedown', opts));
+          el.dispatchEvent(new PointerEvent('pointerup', opts));
+          el.dispatchEvent(new MouseEvent('mouseup', opts));
+          el.dispatchEvent(new MouseEvent('click', opts));
+        };
+        const waitFor = async <T,>(fn: () => T | null | undefined, timeoutMs: number): Promise<T | null> => {
+          const started = Date.now();
+          while (Date.now() - started < timeoutMs) {
+            const res = fn();
+            if (res) return res;
+            await sleep(100);
+          }
+          return null;
+        };
+
+        let moduleStatus: 'selected' | 'already' | 'field_not_found' | 'option_not_found' = 'field_not_found';
+        const moduleWrapper = (() => {
+          const byIdent = Array.from(document.querySelectorAll('[data-ident]')).find((el) =>
+            /MODUL/i.test(el.getAttribute('data-ident') || '')
+          );
+          if (byIdent) return byIdent;
+          return findWrapper('__none__', (t) => t.startsWith('модуль'));
+        })();
+
+        if (moduleWrapper) {
+          const currentText = norm(
+            moduleWrapper.textContent +
+              ' ' +
+              Array.from(moduleWrapper.querySelectorAll('input')).map((i) => i.value).join(' ')
+          );
+          if (currentText.includes(target)) {
+            moduleStatus = 'already';
+          } else {
+            const before = new Set(Array.from(document.querySelectorAll('body *')));
+            const isOption = (el: Element) =>
+              (el.textContent || '').length < 120 &&
+              norm(el.textContent) === target &&
+              !moduleWrapper.contains(el) &&
+              isVisible(el);
+            const findOption = () => {
+              // Самый глубокий видимый элемент с точным текстом модуля вне самого поля;
+              // приоритет — элементам, появившимся после открытия окна выбора
+              const candidates = Array.from(
+                document.querySelectorAll('td, li, [role=option], [role=row], [role=gridcell], div, span, a, label')
+              ).filter(isOption);
+              const deepest = candidates.filter((c) => !candidates.some((o) => o !== c && c.contains(o)));
+              return deepest.find((c) => !visibleBefore.has(c)) || null;
+            };
+            // Совпадения, видимые ещё до открытия окна (например, в таблице на фоне), не выбираем
+            const visibleBefore = new Set<Element>();
+            Array.from(
+              document.querySelectorAll('td, li, [role=option], [role=row], [role=gridcell], div, span, a, label')
+            )
+              .filter(isOption)
+              .forEach((el) => visibleBefore.add(el));
+
+            // Открыть окно выбора: кнопка/иконка поля, иначе клик по самому полю
+            const trigger =
+              Array.from(moduleWrapper.querySelectorAll('button, [role=button], .btn, [class*="icon"], [class*="select"]'))
+                .filter(isVisible)
+                .pop() ||
+              moduleWrapper.querySelector('input:not([type=hidden])') ||
+              moduleWrapper;
+            const moduleInput = moduleWrapper.querySelector<HTMLInputElement>('input:not([type=hidden])');
+            clickLikeUser(trigger);
+            if (moduleInput && trigger !== moduleInput) clickLikeUser(moduleInput);
+
+            let option = await waitFor(findOption, 2500);
+
+            // Не нашли — пробуем поиск: в появившемся окне или в самом поле (если оно редактируемое)
+            if (!option) {
+              const searchInput =
+                Array.from(document.querySelectorAll<HTMLInputElement>('input[type=text], input:not([type]), input[type=search]'))
+                  .filter((i) => !before.has(i) && isVisible(i) && !i.readOnly)
+                  .pop() || (moduleInput && !moduleInput.readOnly ? moduleInput : null);
+              if (searchInput) {
+                await typeInto(searchInput, moduleName.split(' ')[0]);
+                option = await waitFor(findOption, 2500);
+              }
+            }
+
+            if (option) {
+              const row = option.closest('tr, li, [role=option], [role=row]') || option;
+              clickLikeUser(row);
+              row.dispatchEvent(new MouseEvent('dblclick', { bubbles: true, cancelable: true, view: window }));
+              await sleep(250);
+              // Подтверждение выбора в окне, если оно осталось открытым
+              const confirmBtn = Array.from(document.querySelectorAll('button, [role=button]')).find(
+                (b) =>
+                  !before.has(b) &&
+                  isVisible(b) &&
+                  !(b as HTMLButtonElement).disabled &&
+                  ['выбрать', 'ок', 'ok', 'применить', 'подтвердить'].includes(norm(b.textContent))
+              );
+              if (confirmBtn) {
+                clickLikeUser(confirmBtn);
+                await sleep(250);
+              }
+              moduleStatus = 'selected';
+            } else {
+              moduleStatus = 'option_not_found';
+              // Закрыть открытое окно выбора, чтобы не мешать
+              document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+            }
+          }
+        }
+
+        return { found: true, filledCount, missing, notTyped, moduleStatus };
       },
     });
 
-    const successfulFrame = results?.find((r) => r.result?.found === true)?.result;
+    const frame = results?.find((r) => r.result?.found === true)?.result;
 
-    if (successfulFrame) {
+    if (frame) {
+      const moduleNote: Record<string, string> = {
+        selected: `модуль: ${GREENDATA_DEFAULT_MODULE}`,
+        already: `модуль уже выбран`,
+        field_not_found: 'поле «Модуль» не найдено',
+        option_not_found: `«${GREENDATA_DEFAULT_MODULE}» не найден в списке — выберите модуль вручную`,
+      };
+      const problems = [...(frame.missing ?? []), ...(frame.notTyped ?? [])];
       return {
-        success: true,
-        message: `Поля задачи заполнены в GreenData (TFS: ${tfsNumber || '—'}, YT: ${ytGit})`,
-        filled: { tfs: tfsNumber, yt: ytGit, name: taskName },
-        missingFields: successfulFrame.missing,
+        success: problems.length === 0,
+        message:
+          problems.length === 0
+            ? `Задача заполнена (TFS: ${tfsNumber || '—'}, YT: ${ytGit}); ${moduleNote[frame.moduleStatus ?? 'field_not_found']}`
+            : `Не удалось заполнить: ${problems.join(', ')}; ${moduleNote[frame.moduleStatus ?? 'field_not_found']}`,
+        filled,
+        missingFields: problems,
+        moduleStatus: frame.moduleStatus,
       };
     }
 
-    return {
-      success: false,
-      message: 'Модальное окно создания задачи не найдено на открытой странице GreenData',
-      filled: { tfs: tfsNumber, yt: ytGit, name: taskName },
-    };
+    return { success: false, message: 'Окно создания задачи GreenData не найдено на открытой странице', filled };
   } catch (err) {
-    return {
-      success: false,
-      message: getErrorMessage(err, 'Ошибка заполнения полей задачи в GreenData'),
-      filled: { tfs: tfsNumber, yt: ytGit, name: taskName },
-    };
+    return { success: false, message: getErrorMessage(err, 'Не удалось заполнить задачу в GreenData'), filled };
   }
 }

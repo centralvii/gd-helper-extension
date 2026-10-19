@@ -113,17 +113,17 @@ export async function generateAlgorithmIdViaAi(
 ): Promise<AiAlgorithmIdResult> {
   const trimmed = inputText.trim();
   if (!trimmed) {
-    throw new Error('Введите наименование алгоритма на русском языке');
+    throw new Error('Введите название алгоритма на русском');
   }
 
   const settings = getStoredAiSettings();
   if (!settings.baseUrl) {
-    throw new Error('Не настроен адрес сервера AI (Base URL). Перейдите во вкладку «AI Чат» и укажите настройки.');
+    throw new Error('Не указан адрес сервера ИИ (Base URL). Откройте «Подключение ИИ» во вкладке «Утилиты»');
   }
 
   const auth = settings.authType || 'bearer';
   if (auth !== 'none' && !settings.apiKey?.trim()) {
-    throw new Error('Не указан API-ключ для модели AI. Перейдите во вкладку «AI Чат» и укажите ключ.');
+    throw new Error('Не указан API-ключ. Откройте «Подключение ИИ» во вкладке «Утилиты»');
   }
 
   const endpoint = resolveApiEndpoint(settings.baseUrl);
@@ -165,14 +165,14 @@ export async function generateAlgorithmIdViaAi(
     } catch {
       // ignore
     }
-    throw new Error(`Ошибка AI модели (${response.status}): ${errMessage}`);
+    throw new Error(`Модель ИИ вернула ошибку ${response.status}: ${errMessage}`);
   }
 
   const data = await response.json();
   const rawContent = data.choices?.[0]?.message?.content;
 
   if (!rawContent || typeof rawContent !== 'string') {
-    throw new Error('Пустой ответ от модели AI');
+    throw new Error('Модель ИИ вернула пустой ответ. Повторите запрос');
   }
 
   // Extract JSON from potential code fences ```json ... ```
@@ -192,16 +192,16 @@ export async function generateAlgorithmIdViaAi(
       try {
         parsed = JSON.parse(objectMatch[0]);
       } catch (inner) {
-        throw new Error('Не удалось разобрать JSON-ответ от модели');
+        throw new Error('Не удалось разобрать ответ модели. Повторите запрос');
       }
     } else {
-      throw new Error('Модель вернула ответ не в формате JSON');
+      throw new Error('Модель ответила не в формате JSON. Повторите запрос или выберите другую модель');
     }
   }
 
   const primaryId = sanitizeId(parsed.primaryId || parsed.id || '', postfix);
   if (!primaryId) {
-    throw new Error('Модель не смогла сформировать идентификатор');
+    throw new Error('Модель не смогла сформировать ID. Уточните название и повторите');
   }
 
   const validTypes: AlgorithmType[] = ['general', 'card_action', 'filter_condition', 'validation', 'calculation'];
@@ -228,7 +228,7 @@ export async function generateAlgorithmIdViaAi(
   return {
     primaryId,
     detectedType,
-    explanation: parsed.explanation || 'Семантический идентификатор сформирован моделью AI по стандартам GreenData',
+    explanation: parsed.explanation || 'ID сформирован моделью ИИ по стандартам GreenData',
     variants: uniqueVariants,
     source: 'ai',
   };

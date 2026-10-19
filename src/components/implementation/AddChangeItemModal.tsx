@@ -118,11 +118,11 @@ export const AddChangeItemModal: React.FC<AddChangeItemModalProps> = ({
           setLinkTitle(`Релизный пакет ${res.lastNumber}`);
         }
       } else {
-        setPackageParseError(res.error || 'Не удалось найти файлы .guf в таблице пакета');
+        setPackageParseError(res.error || 'В релизном пакете не найдены файлы .guf. Проверьте ссылку');
       }
     } catch (err) {
       console.warn('Error parsing package in modal:', err);
-      setPackageParseError('Ошибка при обращении к вкладке пакета');
+      setPackageParseError('Нет доступа к вкладке релизного пакета. Обновите её и повторите');
     } finally {
       setIsParsingPackage(false);
     }
@@ -185,13 +185,13 @@ export const AddChangeItemModal: React.FC<AddChangeItemModalProps> = ({
           });
         }
 
-        setTabLoadedMessage(`Получена вкладка: ${tabInfo.cleanTitle || tabInfo.title}`);
+        setTabLoadedMessage(`Данные со вкладки: ${tabInfo.cleanTitle || tabInfo.title}`);
       } else {
-        setTabLoadedMessage('Не удалось определить открытую вкладку');
+        setTabLoadedMessage('Не удалось прочитать активную вкладку. Обновите её и повторите');
       }
     } catch (err) {
       console.warn('Error fetching tab info:', err);
-      setTabLoadedMessage('Ошибка получения данных вкладки');
+      setTabLoadedMessage('Не удалось получить данные вкладки. Обновите её и повторите');
     } finally {
       setIsLoadingTab(false);
       setTimeout(() => setTabLoadedMessage(null), 4000);
@@ -262,7 +262,7 @@ export const AddChangeItemModal: React.FC<AddChangeItemModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={initialItem ? 'Редактировать пункт изменения' : 'Добавить пункт изменения'}
+      title={initialItem ? 'Редактирование пункта' : 'Новый пункт'}
       maxWidth="md"
       footer={
         <>
@@ -287,14 +287,14 @@ export const AddChangeItemModal: React.FC<AddChangeItemModalProps> = ({
           <div className="flex items-center justify-between gap-2 flex-wrap">
             <label className="font-bold text-slate-800 flex items-center gap-1.5">
               <Layers className="w-3.5 h-3.5 text-accent-600" />
-              <span>Раздел (категория)</span>
+              <span>Раздел</span>
             </label>
 
             {detectedBadge && !isBadgeExpanded && (
               <button
                 type="button"
                 onClick={() => setIsBadgeExpanded(true)}
-                title="Нажмите, чтобы развернуть подробности сопоставления"
+                title="Нажмите, чтобы узнать, как выбран раздел"
                 className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg bg-accent-100/90 hover:bg-accent-200/90 text-accent-950 text-[10.5px] font-bold border border-accent-300/80 transition-all shadow-2xs max-w-[240px] cursor-pointer"
               >
                 <Sparkles className="w-3 h-3 text-accent-700 flex-shrink-0" />
@@ -313,7 +313,7 @@ export const AddChangeItemModal: React.FC<AddChangeItemModalProps> = ({
               <div className="flex items-center justify-between gap-2 font-bold border-b border-accent-200/80 pb-1">
                 <span className="flex items-center gap-1.5 text-accent-900">
                   <Sparkles className="w-3.5 h-3.5 text-accent-700 flex-shrink-0" />
-                  Авто-определение раздела
+                  Автоопределение раздела
                 </span>
                 <button
                   type="button"
@@ -351,7 +351,7 @@ export const AddChangeItemModal: React.FC<AddChangeItemModalProps> = ({
               <div className="min-w-0 flex-1">
                 <div className="text-[11px] font-bold text-amber-950 flex items-center gap-1.5 truncate">
                   <Sparkles className="w-3.5 h-3.5 text-amber-600 flex-shrink-0" />
-                  <span>Определен тип: «{unmatchedDetectedType}»</span>
+                  <span>Определён тип: «{unmatchedDetectedType}»</span>
                 </div>
                 <div className="text-[10px] text-amber-700 truncate">
                   Такого раздела нет в задаче. Создать его?
@@ -399,12 +399,12 @@ export const AddChangeItemModal: React.FC<AddChangeItemModalProps> = ({
                   : []),
                 {
                   value: '__create_new__',
-                  label: '+ Создать свой раздел...',
+                  label: '+ Новый раздел…',
                   isAction: true,
                 },
               ]}
               className="flex-1"
-              placeholder="Выберите раздел..."
+              placeholder="Выберите раздел…"
             />
           </div>
 
@@ -414,7 +414,7 @@ export const AddChangeItemModal: React.FC<AddChangeItemModalProps> = ({
               <Input
                 value={newSectionName}
                 onChange={(e) => setNewSectionName(e.target.value)}
-                placeholder="Название нового раздела (напр. Отчёты)"
+                placeholder="Название раздела (например, Отчёты)"
                 className="flex-1"
                 autoFocus
               />
@@ -435,11 +435,11 @@ export const AddChangeItemModal: React.FC<AddChangeItemModalProps> = ({
         {/* Description textarea */}
         <Textarea
           label="Описание изменения *"
-          helperText="Что было изменено/доработано"
+          helperText="Что изменено или доработано"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           onBlur={handleDescriptionBlur}
-          placeholder="Например: Изменен алгоритм ЖЦ до сохранения НПП контракты, добавлена проверка типа ЗИ..."
+          placeholder="Например: изменён алгоритм ЖЦ до сохранения НПП контракты, добавлена проверка типа ЗИ"
           rows={3}
           autoFocus
         />
@@ -449,7 +449,7 @@ export const AddChangeItemModal: React.FC<AddChangeItemModalProps> = ({
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-1.5 text-slate-700 font-semibold min-w-0">
               <LinkIcon className="w-3.5 h-3.5 text-accent-600 flex-shrink-0" />
-              <span className="truncate text-xs font-bold">Ссылка на объект (опционально)</span>
+              <span className="truncate text-xs font-bold">Ссылка на объект (необязательно)</span>
             </div>
             <Button
               type="button"
@@ -457,10 +457,10 @@ export const AddChangeItemModal: React.FC<AddChangeItemModalProps> = ({
               size="xs"
               onClick={handleFetchActiveTab}
               disabled={isLoadingTab}
-              title="Получить заголовок, тип объекта и адрес текущей открытой вкладки Chrome"
+              title="Взять заголовок, тип объекта и адрес из активной вкладки"
               leftIcon={<Sparkles className="w-3 h-3 text-accent-600 flex-shrink-0" />}
             >
-              {isLoadingTab ? 'Считывание...' : 'С активной вкладки'}
+              {isLoadingTab ? 'Чтение…' : 'С активной вкладки'}
             </Button>
           </div>
 
@@ -506,7 +506,7 @@ export const AddChangeItemModal: React.FC<AddChangeItemModalProps> = ({
                     disabled={isParsingPackage}
                     leftIcon={<Hash className={`w-3 h-3 text-accent-600 ${isParsingPackage ? 'animate-spin' : ''}`} />}
                   >
-                    {isParsingPackage ? 'Парсинг...' : 'Спарсить № из ссылки'}
+                    {isParsingPackage ? 'Загрузка…' : 'Получить №'}
                   </Button>
                 </div>
 
@@ -514,7 +514,7 @@ export const AddChangeItemModal: React.FC<AddChangeItemModalProps> = ({
                   <div className="text-[11px] bg-accent-50 text-accent-900 border border-accent-200 px-2.5 py-1.5 rounded-xl flex items-center gap-2">
                     <Check className="w-3.5 h-3.5 text-accent-600 flex-shrink-0" />
                     <div className="min-w-0 flex-1">
-                      <span className="font-bold">Спарсен след. № {parsedPackageNumber.number}</span>
+                      <span className="font-bold">Следующий № {parsedPackageNumber.number}</span>
                       {parsedPackageNumber.fileName && (
                         <span className="text-accent-700 ml-1.5 font-mono text-[10px] truncate block">
                           {parsedPackageNumber.fileName}
@@ -540,9 +540,9 @@ export const AddChangeItemModal: React.FC<AddChangeItemModalProps> = ({
               <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
               <div className="min-w-0 flex-1 space-y-0.5">
                 <div className="font-bold text-[11px] flex items-center justify-between">
-                  <span>Эта ссылка уже добавлена в реализацию</span>
+                  <span>Эта ссылка уже есть в задаче</span>
                   <span className="text-[9.5px] font-bold text-amber-800 bg-amber-200/70 px-1.5 py-0.5 rounded-md">
-                    Уже существует
+                    Дубликат
                   </span>
                 </div>
                 <p className="text-[10.5px] text-amber-800 line-clamp-2 leading-relaxed">
@@ -554,7 +554,7 @@ export const AddChangeItemModal: React.FC<AddChangeItemModalProps> = ({
                   )}
                 </p>
                 <span className="text-[10px] text-amber-700 block">
-                  При нажатии «Сохранить» вам будет предложено заменить существующую запись на новую.
+                  После сохранения можно будет заменить существующий пункт.
                 </span>
               </div>
             </div>
@@ -565,7 +565,7 @@ export const AddChangeItemModal: React.FC<AddChangeItemModalProps> = ({
         {description.trim() && (
           <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-1 shadow-2xs">
             <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-              Предпросмотр записи:
+              Предпросмотр пункта:
             </div>
             <div className="text-xs text-slate-800 break-words font-medium">
               <span>{description}</span>

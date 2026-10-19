@@ -39,7 +39,7 @@ const POSTFIX_OPTIONS = [
   { value: '_FILTER_ALG', label: '_FILTER_ALG (Фильтр)' },
   { value: '_CARD_ALG', label: '_CARD_ALG (Карточка)' },
   { value: '_VALID_ALG', label: '_VALID_ALG (Валидация)' },
-  { value: '_CALC_ALG', label: '_CALC_ALG (Расчет)' },
+  { value: '_CALC_ALG', label: '_CALC_ALG (Расчёт)' },
   { value: '', label: 'Без постфикса' },
 ];
 
@@ -148,7 +148,7 @@ export const AlgorithmIdGenerator: React.FC = () => {
       setAiResult(res);
       setActiveSource('ai');
     } catch (err) {
-      setAiError(getErrorMessage(err, 'Не удалось сгенерировать ID через AI модель.'));
+      setAiError(getErrorMessage(err, 'Не удалось сгенерировать ID с помощью ИИ. Проверьте настройки подключения'));
     } finally {
       setIsAiLoading(false);
     }
@@ -273,7 +273,7 @@ export const AlgorithmIdGenerator: React.FC = () => {
       case 'card_action':
         return 'Карточка';
       case 'calculation':
-        return 'Расчет';
+        return 'Расчёт';
       case 'validation':
         return 'Валидация';
       default:
@@ -314,7 +314,7 @@ export const AlgorithmIdGenerator: React.FC = () => {
         <Textarea
           value={inputText}
           onChange={(e) => handleSetInputText(e.target.value)}
-          placeholder="Например: Лимиты. Рассчитать VaR по портфелю..."
+          placeholder="Например: Лимиты. Рассчитать VaR по портфелю"
           rows={2}
           showClear
           onClear={() => handleSetInputText('')}
@@ -363,7 +363,7 @@ export const AlgorithmIdGenerator: React.FC = () => {
               onClick={() => setIsAiSettingsOpen(true)}
               className="text-[10px] font-bold text-rose-700 underline hover:text-rose-900 whitespace-nowrap flex-shrink-0 cursor-pointer"
             >
-              Настройки AI
+              Настройки ИИ…
             </button>
           </div>
         )}
@@ -422,7 +422,7 @@ export const AlgorithmIdGenerator: React.FC = () => {
                     e.stopPropagation();
                     handleCopy();
                   }}
-                  title="Скопировать идентификатор"
+                  title="Копировать ID"
                   className={`absolute top-2.5 right-2.5 h-7 w-7 rounded-full flex items-center justify-center transition-colors cursor-pointer ${
                     copied && (!copiedId || copiedId === currentGeneratedId)
                       ? 'bg-gd-accent text-white'
@@ -454,7 +454,7 @@ export const AlgorithmIdGenerator: React.FC = () => {
                 <span>
                   {copied && (!copiedId || copiedId === currentGeneratedId)
                     ? 'Скопировано'
-                    : 'Копировать идентификатор'}
+                    : 'Копировать ID'}
                 </span>
               </Button>
 
@@ -494,7 +494,7 @@ export const AlgorithmIdGenerator: React.FC = () => {
               {activeVariants.length > 0 && (
                 <div className="pt-2 border-t border-slate-100 space-y-1.5">
                   <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
-                    Варианты (клик для копирования):
+                    Варианты (нажмите, чтобы скопировать):
                   </div>
                   <div className="flex flex-wrap gap-1.5">
                     {activeVariants.map((v) => (
@@ -524,7 +524,7 @@ export const AlgorithmIdGenerator: React.FC = () => {
             </>
           ) : (
             <div className="text-center py-5 text-xs text-slate-400">
-              Введите русское название алгоритма выше для генерации идентификатора
+              Введите название алгоритма на русском — здесь появится ID
             </div>
           )}
         </div>
@@ -557,8 +557,8 @@ export const AlgorithmIdGenerator: React.FC = () => {
           value={isAiConfigured() ? aiSettings.model || 'Подключено' : 'Не настроено'}
           title={
             isAiConfigured()
-              ? `Параметры AI (${aiSettings.model || 'OpenAI'} подключен)`
-              : 'Настройка подключения AI'
+              ? `Подключение ИИ: ${aiSettings.model || 'OpenAI'}`
+              : 'Настроить подключение ИИ'
           }
           onClick={() => setIsAiSettingsOpen(true)}
         />
@@ -580,13 +580,13 @@ export const AlgorithmIdGenerator: React.FC = () => {
             <Input
               value={newRuWord}
               onChange={(e) => setNewRuWord(e.target.value)}
-              placeholder="Русское слово (напр. сппр)"
+              placeholder="Слово (например, сппр)"
               className="flex-1 text-xs"
             />
             <Input
               value={newEnCode}
               onChange={(e) => setNewEnCode(e.target.value)}
-              placeholder="Код (напр. SPPR)"
+              placeholder="Код (например, SPPR)"
               className="flex-1 text-xs font-mono uppercase"
             />
             <Button
@@ -606,7 +606,7 @@ export const AlgorithmIdGenerator: React.FC = () => {
               type="text"
               value={dictSearch}
               onChange={(e) => setDictSearch(e.target.value)}
-              placeholder="Поиск по терминам..."
+              placeholder="Поиск по терминам"
               className="w-full px-2.5 py-1.5 text-xs border border-slate-200 rounded-xl bg-slate-50 focus:bg-white focus:border-accent-500 outline-none"
             />
 
@@ -682,7 +682,7 @@ export const AlgorithmIdGenerator: React.FC = () => {
           <div className="rounded-xl bg-slate-50 p-2.5 border border-slate-200 space-y-1">
             <div className="font-bold text-slate-900 flex items-center gap-1.5">
               <span className="flex h-4 w-4 items-center justify-center rounded-full bg-accent-600 text-[9px] text-white font-bold">4</span>
-              Расчеты и валидации:
+              Расчёты и проверки:
             </div>
             <p className="text-[11px] text-slate-600">
               Для проверок используется ключевой токен <code className="font-mono font-bold text-amber-700">CHECK</code> (постфикс <code className="font-mono font-bold">_VALID_ALG</code>). Для вычислений — токен <code className="font-mono font-bold text-accent-700">CALC</code> (постфикс <code className="font-mono font-bold">_CALC_ALG</code>).
@@ -736,7 +736,7 @@ export const AlgorithmIdGenerator: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => handleCopy(item.generatedId, item.type)}
-                  title="Скопировать"
+                  title="Копировать"
                   className="p-1 text-slate-400 hover:text-accent-700 cursor-pointer"
                 >
                   <Copy className="w-3.5 h-3.5" />

@@ -83,7 +83,7 @@ export const Footer: React.FC<FooterProps> = ({
                         type="button"
                         onClick={() => { setTempName(archiveName); setIsEditingName(true); }}
                         className="group flex min-w-0 flex-1 items-center gap-1.5 text-left cursor-pointer !scale-100"
-                        title="Нажмите для изменения имени архива"
+                        title="Нажмите, чтобы переименовать архив"
                     >
                         <Archive className="h-3.5 w-3.5 flex-shrink-0 text-gd-muted" />
                         <span className="truncate font-mono text-[11.5px] text-gd-muted transition-colors group-hover:text-gd-accent">
