@@ -188,7 +188,7 @@ export async function executeInTabYouTrackExtraction(queryStr: string): Promise<
     return {
       success: false,
       issues: [],
-      error: 'Вы находитесь на странице входа в YouTrack. Пожалуйста, выполните вход в аккаунт.',
+      error: 'Открыта страница входа в YouTrack. Войдите в аккаунт и нажмите «Обновить»',
       source: 'api',
     };
   }
@@ -352,7 +352,7 @@ export async function executeInTabYouTrackExtraction(queryStr: string): Promise<
   return {
     success: false,
     issues: [],
-    error: 'Задачи не найдены в YouTrack по данному запросу.',
+    error: 'По запросу в YouTrack задач не найдено',
     source: 'api',
   };
 }
@@ -498,7 +498,7 @@ export async function parseYouTrackIssues(
       source: 'cache',
       syncedAt: cached.lastSyncedAt,
       error:
-        'Не удалось подключиться к YouTrack (проверьте VPN / авторизацию). Отображены ранее сохраненные задачи из кэша.',
+        'Нет связи с YouTrack (проверьте VPN и вход). Показаны задачи из кэша',
     };
   }
 
@@ -511,7 +511,7 @@ export async function parseYouTrackIssues(
       source: 'api',
       syncedAt: now,
       error:
-        'Вы не авторизованы в YouTrack. Нажмите «Войти в YouTrack», выполните вход в браузере, а затем нажмите «Обновить».',
+        'Вы не вошли в YouTrack. Нажмите «Войти в YouTrack», войдите в браузере и нажмите «Обновить»',
     };
   }
 
@@ -522,6 +522,6 @@ export async function parseYouTrackIssues(
     source: 'api',
     syncedAt: now,
     error:
-      'Не удалось загрузить задачи из YouTrack (HTTP 401 / нет доступа). Убедитесь, что вы авторизованы на https://youtrack.greendatasoft.ru и подключены к корпоративному контуру (VPN).',
+      'Нет доступа к YouTrack (HTTP 401). Войдите на youtrack.greendatasoft.ru и проверьте VPN',
   };
 }

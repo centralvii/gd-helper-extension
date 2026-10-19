@@ -4,13 +4,15 @@ import { YouTrackIssue } from '../../types';
 import { Badge } from '../ui/Badge';
 import { IconButton } from '../ui/IconButton';
 import { extractTfsNumberFromSummary } from '../../utils/greenDataTaskFormInjector';
+import { useCopyToClipboard } from '../../hooks/useCopyToClipboard';
 
 interface YouTrackIssueTileProps {
   issue: YouTrackIssue;
   onSelect: (issue: YouTrackIssue) => void;
   onTransferToImplementation?: (issue: YouTrackIssue) => void;
   isGreenDataModalActive?: boolean;
-  onTransferToGreenData?: (issue: YouTrackIssue) => void;
+  /** Возвращает true при успешном переносе (тогда кнопка показывает «Перенесено») */
+  onTransferToGreenData?: (issue: YouTrackIssue) => void | Promise<boolean>;
 }
 
 export const YouTrackIssueTile: React.FC<YouTrackIssueTileProps> = ({
@@ -20,24 +22,32 @@ export const YouTrackIssueTile: React.FC<YouTrackIssueTileProps> = ({
   isGreenDataModalActive = false,
   onTransferToGreenData,
 }) => {
-  const [copied, setCopied] = useState(false);
+  const { copy, isCopied } = useCopyToClipboard();
+  const copied = isCopied();
   const [justTransferred, setJustTransferred] = useState(false);
+  const [isTransferring, setIsTransferring] = useState(false);
 
   const tfsNumber = extractTfsNumberFromSummary(issue.summary);
 
-  const handleTransferToGreenData = (e: React.MouseEvent) => {
+  const handleTransferToGreenData = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!isGreenDataModalActive) return;
-    onTransferToGreenData?.(issue);
-    setJustTransferred(true);
-    setTimeout(() => setJustTransferred(false), 2000);
+    if (!isGreenDataModalActive || isTransferring || !onTransferToGreenData) return;
+    setIsTransferring(true);
+    try {
+      const ok = await onTransferToGreenData(issue);
+      // «Перенесено» — только если перенос действительно удался
+      if (ok !== false) {
+        setJustTransferred(true);
+        setTimeout(() => setJustTransferred(false), 2000);
+      }
+    } finally {
+      setIsTransferring(false);
+    }
   };
 
   const handleCopyId = (e: React.MouseEvent) => {
     e.stopPropagation();
-    navigator.clipboard.writeText(issue.id);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    void copy(issue.id);
   };
 
   const handleOpenExternal = (e: React.MouseEvent) => {
@@ -88,7 +98,15 @@ export const YouTrackIssueTile: React.FC<YouTrackIssueTileProps> = ({
   return (
     <div
       onClick={() => onSelect(issue)}
+      onKeyDown={(e) => {
+        if (e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ')) {
+          e.preventDefault();
+          onSelect(issue);
+        }
+      }}
       role="button"
+      tabIndex={0}
+      aria-label={`${issue.id}: ${issue.summary || 'Без названия'}`}
       className="group gd-group !overflow-visible p-3.5 cursor-pointer flex flex-col gap-2 transition-shadow hover:shadow-md"
     >
       {/* ID, статус, приоритет */}
@@ -162,12 +180,13 @@ export const YouTrackIssueTile: React.FC<YouTrackIssueTileProps> = ({
         {onTransferToGreenData && (
           <button
             type="button"
-            disabled={!isGreenDataModalActive}
+            disabled={!isGreenDataModalActive || isTransferring}
+            aria-busy={isTransferring}
             onClick={handleTransferToGreenData}
             title={
               isGreenDataModalActive
                 ? `Перенести в форму создания задачи GreenData:\n• TFS: ${tfsNumber || '—'}\n• YT: ${issue.id}\n• Название: ${issue.summary}`
-                : 'Откройте модальное окно создания задачи в GreenData, чтобы перенести данные'
+                : 'Откройте в GreenData окно создания задачи, чтобы перенести данные'
             }
             className={`h-8 px-3 rounded-full text-[12.5px] font-semibold flex items-center gap-1.5 select-none transition-colors ${
               justTransferred
@@ -194,7 +213,7 @@ export const YouTrackIssueTile: React.FC<YouTrackIssueTileProps> = ({
           <button
             type="button"
             onClick={handleTransfer}
-            title="Создать или привязать задачу в Реализации"
+            title="Создать или открыть задачу во вкладке «Реализация»"
             className="h-8 px-3 rounded-full text-[12.5px] font-semibold bg-gd-accent-light text-gd-accent hover:bg-accent-500/20 flex items-center gap-1 cursor-pointer"
           >
             В реализацию
@@ -206,7 +225,7 @@ export const YouTrackIssueTile: React.FC<YouTrackIssueTileProps> = ({
           icon={<ExternalLink className="w-3.5 h-3.5" />}
           size="sm"
           variant="ghost"
-          title="Открыть задачу в YouTrack (новой вкладке)"
+          title="Открыть задачу в YouTrack в новой вкладке"
           onClick={handleOpenExternal}
         />
       </div>

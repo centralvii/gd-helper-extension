@@ -119,7 +119,7 @@ export const FileTable: React.FC<FileTableProps> = ({
                         <button
                             type="button"
                             onClick={onClearFiles}
-                            title="Очистить все файлы в активном пакете"
+                            title="Удалить все файлы из пакета"
                             className="normal-case tracking-normal text-[12.5px] font-medium text-[#ff3b30] cursor-pointer"
                         >
                             Очистить

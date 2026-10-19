@@ -96,7 +96,7 @@ export const FileEditModal: React.FC<FileEditModalProps> = ({
         {variables.length > 0 && (
           <div className="space-y-2">
             <label className="block text-xs font-bold text-slate-800">
-              Индивидуальные переменные файла:
+              Теги этого файла:
             </label>
             <div className="grid grid-cols-1 gap-2">
               {variables.map((v) => (
@@ -123,7 +123,7 @@ export const FileEditModal: React.FC<FileEditModalProps> = ({
           rows={3}
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          placeholder="Краткое описание назначения скрипта/файла..."
+          placeholder="Кратко: зачем нужен файл…"
         />
       </div>
     </Modal>

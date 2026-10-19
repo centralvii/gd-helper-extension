@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef, useLayoutEffect } from 'react';
 import {
   RefreshCw,
   Search,
@@ -9,6 +9,7 @@ import {
   Sparkles,
   AlertTriangle,
   LogIn,
+  Check,
 } from 'lucide-react';
 import { YouTrackIssue, YouTrackParsedResult } from '../../types';
 import {
@@ -24,16 +25,28 @@ import { YouTrackIssueTile } from './YouTrackIssueTile';
 import { YouTrackIssueDetail } from './YouTrackIssueDetail';
 import { Button } from '../ui/Button';
 import { getErrorMessage } from '../../utils/errorUtils';
+import { useToast } from '../../hooks/useToast';
 
 interface YouTrackToolProps {
   onTransferToImplementation?: (issue: YouTrackIssue) => void;
-  onShowToast?: (message: string) => void;
+  /** Раздел виден: только тогда опрашиваем вкладку на открытую форму GreenData */
+  isActive?: boolean;
 }
 
 export const YouTrackTool: React.FC<YouTrackToolProps> = ({
   onTransferToImplementation,
-  onShowToast,
+  isActive = true,
 }) => {
+  const toast = useToast();
+  const onShowToast = useCallback(
+    (message: string, isError = false) =>
+      toast.show({
+        icon: isError ? <AlertTriangle /> : <Check />,
+        tone: isError ? 'danger' : 'success',
+        title: message,
+      }),
+    [toast]
+  );
   const [issues, setIssues] = useState<YouTrackIssue[]>(() => {
     const cached = loadYouTrackCache();
     return cached?.issues || [];
@@ -58,7 +71,9 @@ export const YouTrackTool: React.FC<YouTrackToolProps> = ({
   const [isGreenDataModalActive, setIsGreenDataModalActive] = useState<boolean>(false);
 
   // Monitor GreenData task creation modal state in active browser tab
+  // (только пока раздел YouTrack открыт — скрипт во вкладке не запускается зря)
   useEffect(() => {
+    if (!isActive) return;
     let isMounted = true;
 
     const checkModal = async () => {
@@ -96,34 +111,37 @@ export const YouTrackTool: React.FC<YouTrackToolProps> = ({
       }
       window.removeEventListener('focus', onTabEvent);
     };
-  }, []);
+  }, [isActive]);
 
   // Transfer issue fields directly into active GreenData task modal
   const handleTransferToGreenData = useCallback(
-    async (issue: YouTrackIssue) => {
+    async (issue: YouTrackIssue): Promise<boolean> => {
       try {
         const result = await injectYouTrackIntoGreenDataTask(issue);
         if (result.success) {
           setSyncNotice(result.message);
           setHasSyncError(false);
-          onShowToast?.(result.message);
+          onShowToast(result.message);
         } else {
           setSyncNotice(result.message);
           setHasSyncError(true);
-          onShowToast?.(result.message);
+          onShowToast(result.message, true);
         }
+        return result.success;
       } catch (err) {
-        const msg = getErrorMessage(err, 'Ошибка переноса данных в GreenData');
+        const msg = getErrorMessage(err, 'Не удалось перенести данные в GreenData. Проверьте, что окно создания задачи открыто');
         setSyncNotice(msg);
         setHasSyncError(true);
-        onShowToast?.(msg);
+        onShowToast(msg, true);
+        return false;
       }
     },
     [onShowToast]
   );
 
   // Handler for parsing YouTrack link
-  const handleRefresh = useCallback(async () => {
+  // manual — нажата кнопка: итог показывается тостом (автообновление при запуске — без тоста)
+  const handleRefresh = useCallback(async (manual = false) => {
     setIsLoading(true);
     setSyncNotice(null);
     setHasSyncError(false);
@@ -135,26 +153,26 @@ export const YouTrackTool: React.FC<YouTrackToolProps> = ({
         setLastSyncSource(result.source === 'cache' ? 'cache' : result.source === 'dom' ? 'dom' : 'api');
         const sourceLabel =
           result.source === 'api'
-            ? 'YouTrack API'
+            ? 'API'
             : result.source === 'dom'
-            ? 'Контур DOM'
-            : 'Кэш';
-        const msg = `Загружено ${result.issues.length} реальных задач (${sourceLabel})`;
+            ? 'страница YouTrack'
+            : 'кэш';
+        const msg = `Загружено задач: ${result.issues.length} (${sourceLabel})`;
         setSyncNotice(msg);
-        onShowToast?.(msg);
+        if (manual) onShowToast(msg);
       } else {
         const errorMsg =
           result.error ||
-          'Не удалось получить данные из YouTrack. Проверьте VPN и авторизацию.';
+          'Не удалось получить задачи из YouTrack. Проверьте VPN и вход в YouTrack';
         setSyncNotice(errorMsg);
         setHasSyncError(true);
-        onShowToast?.(errorMsg);
+        if (manual) onShowToast(errorMsg, true);
       }
     } catch (e) {
-      const errorMsg = getErrorMessage(e, 'Ошибка парсинга YouTrack');
+      const errorMsg = getErrorMessage(e, 'Не удалось разобрать ответ YouTrack. Повторите позже');
       setSyncNotice(errorMsg);
       setHasSyncError(true);
-      onShowToast?.(errorMsg);
+      if (manual) onShowToast(errorMsg, true);
     } finally {
       setIsLoading(false);
     }
@@ -169,7 +187,7 @@ export const YouTrackTool: React.FC<YouTrackToolProps> = ({
       setLastSyncSource('cache');
     }
     // Always trigger fresh real parse
-    handleRefresh();
+    void handleRefresh();
   }, [handleRefresh]);
 
   const handleOpenSearchUrl = () => {
@@ -229,6 +247,23 @@ export const YouTrackTool: React.FC<YouTrackToolProps> = ({
     }
   }, [lastSyncedAt]);
 
+  // Детали задачи открываются сверху, а при возврате список остаётся на прежней позиции
+  const listScrollRef = useRef(0);
+  const handleOpenIssue = useCallback((issue: YouTrackIssue) => {
+    listScrollRef.current = document.getElementById('root')?.scrollTop ?? 0;
+    setSelectedIssue(issue);
+  }, []);
+  useLayoutEffect(() => {
+    const scroller = document.getElementById('root');
+    if (scroller) scroller.scrollTop = selectedIssue ? 0 : listScrollRef.current;
+  }, [selectedIssue]);
+
+  const isFiltered = Boolean(searchQuery.trim()) || selectedStateFilter !== 'all';
+  const handleResetFilters = () => {
+    setSearchQuery('');
+    setSelectedStateFilter('all');
+  };
+
   // Render detail view if a tile was selected
   if (selectedIssue) {
     return (
@@ -242,7 +277,7 @@ export const YouTrackTool: React.FC<YouTrackToolProps> = ({
     );
   }
 
-  const sourceLabel = lastSyncSource === 'api' ? 'API' : lastSyncSource === 'dom' ? 'Контур' : 'Кэш';
+  const sourceLabel = lastSyncSource === 'api' ? 'API' : lastSyncSource === 'dom' ? 'Страница' : 'Кэш';
 
   return (
     <div className="space-y-4">
@@ -271,9 +306,9 @@ export const YouTrackTool: React.FC<YouTrackToolProps> = ({
           </button>
           <button
             type="button"
-            onClick={handleRefresh}
+            onClick={() => void handleRefresh(true)}
             disabled={isLoading}
-            title="Спарсить задачи из YouTrack (в корпоративном контуре)"
+            title="Обновить задачи из YouTrack (нужен VPN)"
             data-icon-anim="spin"
             className="icon-btn !bg-gd-accent !text-white hover:!bg-gd-accent-dark disabled:opacity-60"
           >
@@ -286,7 +321,7 @@ export const YouTrackTool: React.FC<YouTrackToolProps> = ({
           title={
             isGreenDataModalActive
               ? 'Окно создания задачи GreenData открыто — перенос доступен'
-              : 'Откройте модальное окно создания задачи в GreenData для автозаполнения полей'
+              : 'Откройте в GreenData окно создания задачи, чтобы заполнить его из YouTrack'
           }
         >
           <span className={`gd-row-icon transition-colors duration-300 ${isGreenDataModalActive ? 'gd-row-icon--accent' : ''}`}>
@@ -338,6 +373,13 @@ export const YouTrackTool: React.FC<YouTrackToolProps> = ({
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Escape' && searchQuery) {
+                  e.preventDefault();
+                  setSearchQuery('');
+                }
+              }}
+              aria-label="Поиск задач YouTrack"
               placeholder="Поиск по ID или названию"
               className="gd-field !pl-8 !pr-8 !bg-[rgba(118,118,128,0.12)]"
             />
@@ -345,10 +387,13 @@ export const YouTrackTool: React.FC<YouTrackToolProps> = ({
               <button
                 type="button"
                 onClick={() => setSearchQuery('')}
-                className="absolute right-2 top-1/2 -translate-y-1/2 w-5 h-5 grid place-items-center rounded-full bg-slate-400 text-white cursor-pointer"
-                title="Очистить"
+                className="absolute right-1 top-1/2 -translate-y-1/2 w-7 h-7 grid place-items-center rounded-full cursor-pointer group/clear"
+                title="Очистить (Esc)"
+                aria-label="Очистить поиск"
               >
-                <X className="w-3 h-3" strokeWidth={3} />
+                <span className="w-5 h-5 grid place-items-center rounded-full bg-slate-400 group-hover/clear:bg-slate-500 text-white">
+                  <X className="w-3 h-3" strokeWidth={3} />
+                </span>
               </button>
             )}
           </div>
@@ -389,7 +434,7 @@ export const YouTrackTool: React.FC<YouTrackToolProps> = ({
           <div className="space-y-1">
             <h4 className="text-[15px] font-semibold text-slate-900">Загрузка задач…</h4>
             <p className="text-[12.5px] text-gd-muted max-w-xs mx-auto">
-              Парсинг youtrack.greendatasoft.ru по запросу
+              Запрос к youtrack.greendatasoft.ru:
               <br />
               <span className="font-mono text-[11.5px] text-slate-700">Исполнитель: Кучин_В_В проект: РЭЦ_Fin</span>
             </p>
@@ -401,7 +446,7 @@ export const YouTrackTool: React.FC<YouTrackToolProps> = ({
             <YouTrackIssueTile
               key={issue.id}
               issue={issue}
-              onSelect={setSelectedIssue}
+              onSelect={handleOpenIssue}
               onTransferToImplementation={onTransferToImplementation}
               isGreenDataModalActive={isGreenDataModalActive}
               onTransferToGreenData={handleTransferToGreenData}
@@ -415,19 +460,26 @@ export const YouTrackTool: React.FC<YouTrackToolProps> = ({
           </div>
           <div className="space-y-1">
             <h4 className="text-[15px] font-semibold text-slate-900">
-              {searchQuery ? 'Задачи не найдены' : 'Задачи не загружены'}
+              {issues.length > 0 && isFiltered ? 'Задачи не найдены' : 'Задачи не загружены'}
             </h4>
             <p className="text-[12.5px] text-gd-muted max-w-[280px] mx-auto leading-snug">
-              {searchQuery
+              {issues.length > 0 && isFiltered
                 ? 'Измените запрос или сбросьте фильтр статуса.'
                 : 'Подключитесь к корпоративной сети (VPN) и войдите в YouTrack в этом браузере.'}
             </p>
           </div>
+          {issues.length > 0 && isFiltered ? (
+            <div className="flex items-center justify-center pt-1">
+              <Button size="md" variant="secondary" onClick={handleResetFilters} leftIcon={<X className="w-4 h-4" />}>
+                Сбросить фильтры
+              </Button>
+            </div>
+          ) : (
           <div className="flex items-center justify-center gap-2 pt-1 flex-wrap">
             <Button
               size="md"
               variant="primary"
-              onClick={handleRefresh}
+              onClick={() => void handleRefresh(true)}
               isLoading={isLoading}
               leftIcon={!isLoading ? <RefreshCw className="w-4 h-4" /> : undefined}
             >
@@ -442,6 +494,7 @@ export const YouTrackTool: React.FC<YouTrackToolProps> = ({
               Войти в YouTrack
             </Button>
           </div>
+          )}
         </div>
       )}
     </div>

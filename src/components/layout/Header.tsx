@@ -86,7 +86,7 @@ export const Header: React.FC<HeaderProps> = ({ title, subtitle, onOpenPalette, 
         <button
           type="button"
           onClick={handleOpenFullscreen}
-          title="Открыть во весь экран (в новой вкладке)"
+          title="Открыть в отдельной вкладке во весь экран"
           aria-label="Во весь экран"
           className="icon-btn"
         >

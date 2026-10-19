@@ -475,7 +475,7 @@ export function matchSectionForType(
       if (matchedSection) {
         return {
           section: matchedSection,
-          reason: `По названию в кавычках «${quotedTarget}» -> раздел «${matchedSection.name}»`,
+          reason: `Название «${quotedTarget}» → раздел «${matchedSection.name}»`,
         };
       }
     }
@@ -493,8 +493,8 @@ export function matchSectionForType(
       return {
         section: visualsSection,
         reason: quotedTarget
-          ? `Раздел для «${quotedTarget}» не найден -> распределено как визуал («${visualsSection.name}»)`
-          : `Визуальная форма -> раздел «${visualsSection.name}»`,
+          ? `Раздела для «${quotedTarget}» нет → как визуал, раздел «${visualsSection.name}»`
+          : `Визуальная форма → раздел «${visualsSection.name}»`,
       };
     }
   }
@@ -1218,7 +1218,7 @@ export async function parseLastPackageFileNumberFromGreenData(
     console.warn('Could not parse package file numbers from GreenData tab:', err);
     return {
       success: false,
-      error: 'Ошибка обращения к вкладке браузера: ' + (err instanceof Error ? err.message : String(err)),
+      error: 'Нет доступа к вкладке браузера: ' + (err instanceof Error ? err.message : String(err)),
     };
   }
 
@@ -1241,7 +1241,7 @@ export async function parseLastPackageFileNumberFromGreenData(
 
   return {
     success: false,
-    error: 'Вкладка с карточкой пакета GreenData не найдена. Укажите корректную ссылку на карточку.',
+    error: 'Вкладка с релизным пакетом GreenData не найдена. Откройте карточку пакета или укажите ссылку на неё',
   };
 }
 

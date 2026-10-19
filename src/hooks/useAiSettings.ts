@@ -154,7 +154,7 @@ export function useAiSettings() {
         const latencyMs = Date.now() - startTime;
 
         if (res.ok) {
-          return { ok: true, message: `Успешно подключено! (Отклик: ${latencyMs}мс)`, latencyMs };
+          return { ok: true, message: `Подключено · отклик ${latencyMs} мс`, latencyMs };
         }
 
         let errDetail = `${res.status} ${res.statusText}`;
@@ -179,17 +179,17 @@ export function useAiSettings() {
         if (res.status === 403) {
           return {
             ok: false,
-            message: `Ошибка 403 (Доступ запрещен):\n${errDetail}\n\n💡 Совет для сети GreenData: Если сервер авторизует по IP/сети, выберите «Тип авторизации: Без заголовка (None)» и очистите поле API-ключа, либо укажите точный заголовок (api-key / Bearer).`,
+            message: `Ошибка 403: доступ запрещён.\n${errDetail}\n\n💡 Если сервер в сети GreenData авторизует по IP, выберите тип авторизации «Без заголовка» и очистите API-ключ. Иначе укажите нужный заголовок (api-key / Bearer).`,
             latencyMs,
           };
         }
 
-        return { ok: false, message: `Ошибка сервера: ${errDetail}`, latencyMs };
+        return { ok: false, message: `Сервер вернул ошибку: ${errDetail}`, latencyMs };
       } catch (err) {
         const latencyMs = Date.now() - startTime;
         return {
           ok: false,
-          message: `Ошибка сети / CORS: ${getErrorMessage(err, 'Сервер недоступен по указанному адресу')}`,
+          message: `Нет связи с сервером (сеть или CORS): ${getErrorMessage(err, 'сервер недоступен по указанному адресу')}. Проверьте Base URL и VPN`,
           latencyMs,
         };
       }

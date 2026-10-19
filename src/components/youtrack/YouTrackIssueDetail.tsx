@@ -233,15 +233,15 @@ export const YouTrackIssueDetail: React.FC<YouTrackIssueDetailProps> = ({
 
       {/* Копирование */}
       <div className="gd-group">
-        <button type="button" onClick={handleCopyId} title="Скопировать ID" className="gd-row gd-row--tap w-full text-left">
-          <span className="flex-1 text-[14px] text-slate-900">Скопировать ID</span>
+        <button type="button" onClick={handleCopyId} title="Копировать ID" className="gd-row gd-row--tap w-full text-left">
+          <span className="flex-1 text-[14px] text-slate-900">Копировать ID</span>
           <span className="text-gd-muted">{copyIcon(copiedId)}</span>
         </button>
-        <button type="button" onClick={handleCopySummary} title="Скопировать название задачи" className="gd-row gd-row--tap w-full text-left">
-          <span className="flex-1 text-[14px] text-slate-900">Скопировать название</span>
+        <button type="button" onClick={handleCopySummary} title="Копировать название задачи" className="gd-row gd-row--tap w-full text-left">
+          <span className="flex-1 text-[14px] text-slate-900">Копировать название</span>
           <span className="text-gd-muted">{copyIcon(copiedSummary)}</span>
         </button>
-        <button type="button" onClick={handleCopyMd} title="Скопировать Markdown ссылку" className="gd-row gd-row--tap w-full text-left">
+        <button type="button" onClick={handleCopyMd} title="Копировать Markdown-ссылку" className="gd-row gd-row--tap w-full text-left">
           <span className="flex-1 text-[14px] text-slate-900">Ссылка Markdown</span>
           <span className="text-gd-muted">
             {copiedMd ? <Check className="w-3.5 h-3.5 text-gd-accent animate-pop-in" strokeWidth={2.75} /> : <Share2 className="w-3.5 h-3.5" />}

@@ -4,11 +4,11 @@ import { Modal, Button, IconButton } from '../ui';
 import { VariableDefinition } from '../../types';
 
 export const BUILT_IN_TAGS = [
-  { tag: '{indexPad6}', desc: '000001 (номер 6 знаков)' },
+  { tag: '{indexPad6}', desc: '000001 (номер из 6 цифр)' },
   { tag: '{cleanName}', desc: 'Очищенное имя файла' },
-  { tag: '{type}', desc: 'Тип (algo, form, struct...)' },
+  { tag: '{type}', desc: 'Тип (algo, form, struct…)' },
   { tag: '{module}', desc: 'Модуль' },
-  { tag: '{task}', desc: 'Задача (FINAPP-...)' },
+  { tag: '{task}', desc: 'Задача (FINAPP-…)' },
   { tag: '{date}', desc: 'YYYY-MM-DD' },
   { tag: '{time}', desc: 'HH-MM-SS' },
   { tag: '{index}', desc: '1 (без ведущих нулей)' },
@@ -93,7 +93,7 @@ export const MassActionsModal: React.FC<MassActionsModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Настройка тегов и шаблона"
+      title="Теги и шаблон"
       maxWidth="md"
       footer={
         <>
@@ -145,7 +145,7 @@ export const MassActionsModal: React.FC<MassActionsModalProps> = ({
                     key={tag}
                     type="button"
                     onClick={() => insertTag(tag)}
-                    title={`${tag} — ${desc}. Нажмите для вставки в шаблон`}
+                    title={`${tag} — ${desc}. Нажмите, чтобы вставить в шаблон`}
                     className="rounded-lg border border-slate-200 bg-slate-50/90 hover:bg-accent-50 hover:border-accent-300 hover:text-accent-900 px-2 py-1 font-mono text-[11px] font-semibold text-slate-700 transition-all active:scale-95 shadow-2xs cursor-pointer"
                   >
                     {tag}
@@ -159,7 +159,7 @@ export const MassActionsModal: React.FC<MassActionsModalProps> = ({
                       key={v.key}
                       type="button"
                       onClick={() => insertTag(`{${v.key}}`)}
-                      title={`Пользовательская переменная: {${v.key}}. Нажмите для вставки в шаблон`}
+                      title={`Свой тег {${v.key}}. Нажмите, чтобы вставить в шаблон`}
                       className="rounded-lg border border-sky-200 bg-sky-50 px-2 py-1 font-mono text-[11px] font-semibold text-sky-800 transition-all hover:border-sky-300 hover:bg-sky-100 active:scale-95 shadow-2xs cursor-pointer"
                     >
                       {`{${v.key}}`}
@@ -212,7 +212,7 @@ export const MassActionsModal: React.FC<MassActionsModalProps> = ({
                     <button
                       type="button"
                       onClick={() => handleValueChange('task', linkedTask.taskNumber)}
-                      title={`Вставить номер связанной задачи ${linkedTask.taskNumber}`}
+                      title={`Вставить номер привязанной задачи ${linkedTask.taskNumber}`}
                       className="mt-1.5 inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold bg-accent-100/90 text-accent-900 border border-accent-300/80 hover:bg-accent-200 transition-all shadow-2xs cursor-pointer"
                     >
                       <Sparkles className="w-2.5 h-2.5 text-accent-700" />
@@ -227,12 +227,12 @@ export const MassActionsModal: React.FC<MassActionsModalProps> = ({
                     type="text"
                     placeholder={
                       isType
-                        ? 'Например: algo, form, struct...'
+                        ? 'Например: algo, form, struct'
                         : isTask
                         ? 'Например: FINAPP-5638'
                         : isModule
                         ? 'Например: CORE, FIN, CRM'
-                        : `Значение для {${v.key}}...`
+                        : `Значение {${v.key}}`
                     }
                     value={currentVal}
                     onChange={(e) => handleValueChange(v.key, e.target.value)}
@@ -258,13 +258,13 @@ export const MassActionsModal: React.FC<MassActionsModalProps> = ({
         {/* Add custom tag section */}
         <div className="p-3.5 rounded-xl bg-slate-50/90 border border-slate-200 space-y-2.5 shadow-2xs">
           <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">
-            + Добавить свой тег (переменную):
+            + Свой тег:
           </span>
           <form onSubmit={handleAddNewVariable} className="flex gap-2">
             <div className="flex-1 grid grid-cols-2 gap-2">
               <input
                 type="text"
-                placeholder="Имя тега (напр. version)"
+                placeholder="Имя тега (например, version)"
                 value={newVarKey}
                 onChange={(e) => setNewVarKey(e.target.value)}
                 className="rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-900 outline-none focus:border-accent-500 shadow-2xs"

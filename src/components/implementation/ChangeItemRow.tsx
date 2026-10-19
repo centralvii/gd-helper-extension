@@ -73,21 +73,21 @@ export const ChangeItemRow: React.FC<ChangeItemRowProps> = React.memo(({
           isUpdatePackage: true,
         };
         onApplyPackageNumber?.(updatedItem, result.lastNumber, result.lastFileName);
-        const currentInfo = result.currentLastNumber ? ` (в пакете: ${result.currentLastNumber})` : '';
+        const currentInfo = result.currentLastNumber ? ` (последний: ${result.currentLastNumber})` : '';
         setParseFeedback({
-          message: `Спарсен след. № ${result.lastNumber}${currentInfo}: ${result.lastFileName || ''}`,
+          message: `Следующий № ${result.lastNumber}${currentInfo}: ${result.lastFileName || ''}`,
           isError: false,
         });
         setIsEditingUrl(false);
       } else {
         setParseFeedback({
-          message: result.error || 'Не удалось спарсить номер файла из GreenData',
+          message: result.error || 'Не удалось получить номер файла. Проверьте ссылку на релизный пакет',
           isError: true,
         });
       }
     } catch {
       setParseFeedback({
-        message: 'Ошибка при парсинге номера файла',
+        message: 'Не удалось получить номер. Откройте карточку релизного пакета и повторите',
         isError: true,
       });
     } finally {
@@ -217,7 +217,7 @@ export const ChangeItemRow: React.FC<ChangeItemRowProps> = React.memo(({
                 )}
                 {isUpdatePackage && (
                   <span
-                    title="Пакет обновления GreenData (только для чтения)"
+                    title="Релизный пакет GreenData (только для чтения)"
                     className="inline-flex items-center gap-1 font-medium text-[#c26a00] flex-shrink-0 select-none"
                   >
                     <Package className="w-3 h-3" />
@@ -229,15 +229,15 @@ export const ChangeItemRow: React.FC<ChangeItemRowProps> = React.memo(({
                     type="button"
                     onClick={() => handleAutoParseNumber()}
                     disabled={isParsingNumber}
-                    title="Автопарсинг номера последнего файла из таблицы «Прикрепленные файлы» в GreenData"
+                    title="Получить номер последнего файла из таблицы «Прикрепленные файлы» в GreenData"
                     className="inline-flex items-center gap-0.5 font-medium text-gd-muted hover:text-gd-accent cursor-pointer disabled:opacity-60 flex-shrink-0"
                   >
                     <Hash className={`w-3 h-3 ${isParsingNumber ? 'animate-spin' : ''}`} />
-                    {isParsingNumber ? 'Парсинг…' : 'Номер'}
+                    {isParsingNumber ? 'Загрузка…' : 'Номер'}
                   </button>
                 )}
                 {item.lastFileNumber !== undefined && (
-                  <Badge variant="success" size="xs" className="font-mono" title={`Спарсенный номер последнего файла: ${item.lastFileName || item.lastFileNumber}`}>
+                  <Badge variant="success" size="xs" className="font-mono" title={`Номер из релизного пакета: ${item.lastFileName || item.lastFileNumber}`}>
                     № {item.lastFileNumber}
                   </Badge>
                 )}
@@ -250,7 +250,7 @@ export const ChangeItemRow: React.FC<ChangeItemRowProps> = React.memo(({
                 onClick={() => {
                   if (!item.isCollected && onToggleCollected) onToggleCollected(item.id);
                 }}
-                title={`Файл найден в связанном пакете сборки под номером #${matchingPackageFile.order}: ${matchingPackageFile.newName || matchingPackageFile.originalName}${!item.isCollected ? '. Нажмите, чтобы отметить собранным' : ''}`}
+                title={`Файл есть в привязанном пакете: #${matchingPackageFile.order} ${matchingPackageFile.newName || matchingPackageFile.originalName}${!item.isCollected ? '. Нажмите, чтобы отметить собранным' : ''}`}
                 className={`inline-flex items-center gap-1 rounded-full px-2 py-px text-[11px] font-semibold flex-shrink-0 ${
                   item.isCollected
                     ? 'bg-[#007aff]/10 text-[#0062cc] cursor-default'
@@ -282,7 +282,7 @@ export const ChangeItemRow: React.FC<ChangeItemRowProps> = React.memo(({
         />
         {isUpdatePackage ? (
           <span
-            title="Релизный пакет GreenData защищен от редактирования в расширении"
+            title="Релизный пакет GreenData нельзя изменить в расширении"
             className="grid w-7 h-7 place-items-center text-[#ff9500] cursor-not-allowed select-none"
           >
             <Lock className="w-3.5 h-3.5" />
@@ -292,7 +292,7 @@ export const ChangeItemRow: React.FC<ChangeItemRowProps> = React.memo(({
             size="sm"
             variant="ghost"
             onClick={() => onEdit(item)}
-            title="Редактировать"
+            title="Изменить пункт"
             icon={<Edit2 className="w-3.5 h-3.5" />}
           />
         )}

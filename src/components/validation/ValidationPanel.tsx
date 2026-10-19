@@ -35,7 +35,7 @@ export const ValidationPanel: React.FC<ValidationPanelProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Ошибки валидации имён"
+      title="Ошибки в именах файлов"
       maxWidth="md"
       footer={
         <Button variant="secondary" size="sm" onClick={onClose}>
@@ -46,12 +46,12 @@ export const ValidationPanel: React.FC<ValidationPanelProps> = ({
       <div className="space-y-3">
         {validation.errors.length === 0 ? (
           <div className="text-center py-6 text-accent-700 font-semibold">
-            Все имена файлов корректны и готовы к экспорту!
+            Все имена файлов корректны — можно экспортировать.
           </div>
         ) : (
           <>
             <p className="text-xs text-slate-600">
-              Перед экспортом архива необходимо исправить следующие конфликты в именах файлов:
+              Перед экспортом исправьте имена файлов:
             </p>
             <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
               {validation.errors.map((err, idx) => (

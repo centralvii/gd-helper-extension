@@ -136,6 +136,8 @@ export function useAppState() {
 
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isExporting, setIsExporting] = useState<boolean>(false);
+  // Импорт ZIP идёт в фоне: интерфейс не подменяется экраном загрузки
+  const [isImporting, setIsImporting] = useState<boolean>(false);
   const isInitialLoadedRef = useRef<boolean>(false);
   const primaryTemplateRef = useRef(primaryTemplate);
   primaryTemplateRef.current = primaryTemplate;
@@ -533,7 +535,7 @@ export function useAppState() {
   // File loading actions
   const loadZip = useCallback(
     async (file: File) => {
-      setIsLoading(true);
+      setIsImporting(true);
       try {
         const result = await extractZip(file, file.name);
         saveBlobsToDB(result.files.map((f) => ({ id: f.id, blob: f.file })));
@@ -549,7 +551,7 @@ export function useAppState() {
         console.error('Failed to extract ZIP:', err);
         throw err;
       } finally {
-        setIsLoading(false);
+        setIsImporting(false);
       }
     },
     [updateActivePackage]
@@ -795,6 +797,42 @@ export function useAppState() {
     });
   }, [updateActivePackage]);
 
+  /**
+   * Отмена удаления файлов: возвращает строки на прежние места (по индексам до удаления)
+   * и заново сохраняет их бинарники. `extra` — поля пакета, сброшенные очисткой.
+   */
+  const restoreFiles = useCallback(
+    (
+      packageId: string,
+      rows: FileRow[],
+      indices: number[],
+      extra?: Partial<Pick<BuildPackage, 'readmeContent' | 'variableValues' | 'archiveName'>>
+    ) => {
+      if (rows.length === 0) return;
+      saveBlobsToDB(rows.map((f) => ({ id: f.id, blob: f.file })));
+      setPackages((prev) =>
+        prev.map((pkg) => {
+          if (pkg.id !== packageId) return pkg;
+          const existingIds = new Set(pkg.files.map((f) => f.id));
+          const result = [...pkg.files];
+          rows
+            .map((row, i) => ({ row, index: indices[i] ?? result.length }))
+            .filter(({ row }) => !existingIds.has(row.id))
+            .sort((a, b) => a.index - b.index)
+            .forEach(({ row, index }) => result.splice(Math.min(index, result.length), 0, row));
+          const merged = { ...pkg, ...extra };
+          return {
+            ...merged,
+            files: recalculateAllNames(result, merged.template, merged.startNumber, merged.variableValues),
+            updatedAt: Date.now(),
+          };
+        })
+      );
+      setActivePackageId(packageId);
+    },
+    []
+  );
+
   const savePreset = useCallback(
     (name: string, isPrimary: boolean = false) => {
       const newPreset: TemplatePreset = {
@@ -819,6 +857,16 @@ export function useAppState() {
 
   const deletePreset = useCallback((id: string) => {
     setPresets((prev) => prev.filter((p) => p.id !== id));
+  }, []);
+
+  /** Отмена удаления пресета: возвращает его на прежнее место */
+  const restorePreset = useCallback((preset: TemplatePreset, index: number) => {
+    setPresets((prev) => {
+      if (prev.some((p) => p.id === preset.id)) return prev;
+      const next = [...prev];
+      next.splice(Math.min(index, next.length), 0, preset);
+      return next;
+    });
   }, []);
 
   const setPresetAsPrimary = useCallback(
@@ -909,6 +957,7 @@ export function useAppState() {
     presets,
     isLoading,
     isExporting,
+    isImporting,
     validation,
     setTemplate,
     setPrimaryTemplate,
@@ -931,8 +980,10 @@ export function useAppState() {
     removeFile,
     removeFiles,
     clearFiles,
+    restoreFiles,
     savePreset,
     deletePreset,
+    restorePreset,
     setPresetAsPrimary,
     loadPreset,
     exportZip,

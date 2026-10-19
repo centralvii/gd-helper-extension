@@ -17,10 +17,10 @@ interface TabItem {
 }
 
 const TABS: TabItem[] = [
-  { id: 'packer', label: 'Упаковка', title: 'Упаковка GUF файлов', Icon: Archive },
-  { id: 'implementation', label: 'Реализация', title: 'Инструмент описания реализации', Icon: ListChecks },
-  { id: 'youtrack', label: 'YouTrack', title: 'Задачи YouTrack (РЭЦ_Fin)', Icon: SquareCheckBig },
-  { id: 'extra', label: 'Утилиты', title: 'Утилиты: генератор ID алгоритмов', Icon: Zap },
+  { id: 'packer', label: 'Упаковка', title: 'Упаковка файлов .guf (Alt + 1)', Icon: Archive },
+  { id: 'implementation', label: 'Реализация', title: 'Описание реализации задач (Alt + 2)', Icon: ListChecks },
+  { id: 'youtrack', label: 'YouTrack', title: 'Задачи YouTrack · РЭЦ_Fin (Alt + 3)', Icon: SquareCheckBig },
+  { id: 'extra', label: 'Утилиты', title: 'Генератор ID алгоритмов (Alt + 4)', Icon: Zap },
 ];
 
 /**

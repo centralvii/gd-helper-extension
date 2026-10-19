@@ -1,5 +1,5 @@
-import React, { useState, useMemo, useCallback, useRef } from 'react';
-import { UploadCloud, Zap, Bookmark, FileEdit, Hash, Tag, Archive, ListChecks, SquareCheckBig, Plus, FileArchive, Download, AlertTriangle, Package, ListPlus } from 'lucide-react';
+import React, { useState, useMemo, useCallback, useRef, useLayoutEffect } from 'react';
+import { UploadCloud, Zap, Bookmark, FileEdit, Hash, Tag, Archive, ListChecks, SquareCheckBig, Plus, FileArchive, Download, AlertTriangle, Package, ListPlus, Trash2, Check, ArrowRight } from 'lucide-react';
 import { useAppState, getFormattedArchiveName } from '../hooks/useAppState';
 import { useGlobalFileDrop } from '../hooks/useGlobalFileDrop';
 import { useAutoCollector } from '../hooks/useAutoCollector';
@@ -9,6 +9,8 @@ import { TabBar } from '../components/layout/TabBar';
 import { Toast } from '../components/layout/Toast';
 import { CommandPalette } from '../components/layout/CommandPalette';
 import { usePaletteShortcuts } from '../hooks/usePaletteShortcuts';
+import { ToastContext, useToastController } from '../hooks/useToast';
+import { getErrorMessage } from '../utils/errorUtils';
 import { pluralizeRu, FILE_FORMS } from '../utils/pluralize';
 import { Badge } from '../components/ui/Badge';
 import { Footer } from '../components/layout/Footer';
@@ -28,7 +30,7 @@ import { FileEditModal } from '../components/table/FileEditModal';
 import { DuplicateAutoCollectModal } from '../components/template/DuplicateAutoCollectModal';
 import { isSameUrl, extractCardIdFromUrl, isGreenDataUpdatePackage } from '../utils/tabUtils';
 import { AutoCollectedMeta } from '../hooks/useAutoCollector';
-import { FileRow, ActiveTool, YouTrackIssue, PaletteCommand } from '../types';
+import { FileRow, ActiveTool, YouTrackIssue, PaletteCommand, TemplatePreset } from '../types';
 
 const TOOL_TITLES: Record<ActiveTool, string> = {
     packer: 'Упаковка',
@@ -76,8 +78,10 @@ export const App: React.FC = () => {
         reorderFiles,
         removeFile,
         clearFiles,
+        restoreFiles,
         savePreset,
         deletePreset,
+        restorePreset,
         setPresetAsPrimary,
         loadPreset,
         exportZip,
@@ -98,7 +102,16 @@ export const App: React.FC = () => {
         return 'packer';
     });
 
+    // Позиция прокрутки каждого раздела: при возврате на вкладку список не «прыгает» наверх
+    const scrollByToolRef = useRef<Partial<Record<ActiveTool, number>>>({});
+    const activeToolRef = useRef(activeTool);
+
     const handleSelectTool = useCallback((tool: ActiveTool) => {
+        const scroller = document.getElementById('root');
+        if (scroller && tool !== activeToolRef.current) {
+            scrollByToolRef.current[activeToolRef.current] = scroller.scrollTop;
+        }
+        activeToolRef.current = tool;
         setActiveTool(tool);
         try {
             localStorage.setItem('gd-helper-active-tool', tool);
@@ -107,17 +120,35 @@ export const App: React.FC = () => {
         }
     }, []);
 
+    useLayoutEffect(() => {
+        const scroller = document.getElementById('root');
+        if (scroller) scroller.scrollTop = scrollByToolRef.current[activeTool] ?? 0;
+    }, [activeTool]);
+
+    // ── Уведомления (тосты) ──
+    const { toast, api: toastApi, pause: pauseToast, resume: resumeToast } = useToastController();
+
     const handleTransferYouTrackToImplementation = useCallback(
         (issue: YouTrackIssue) => {
-            const taskId = implTasks.createTask(issue.id, issue.summary);
-            if (issue.description) {
-                implTasks.updateTask(taskId, {
-                    summary: issue.description,
-                });
+            // Задача с таким номером уже есть — открываем её, а не создаём дубликат
+            const existing = implTasks.tasks.find(
+                (t) => t.taskNumber.trim().toLowerCase() === issue.id.trim().toLowerCase()
+            );
+            if (existing) {
+                implTasks.selectTask(existing.id);
+                toastApi.show({ icon: <ArrowRight />, title: 'Задача уже есть в реализации', detail: `${existing.taskNumber} · ${existing.title}` });
+            } else {
+                const taskId = implTasks.createTask(issue.id, issue.summary);
+                if (issue.description) {
+                    implTasks.updateTask(taskId, {
+                        summary: issue.description,
+                    });
+                }
+                toastApi.show({ icon: <Check />, tone: 'success', title: 'Задача создана в реализации', detail: issue.id });
             }
             handleSelectTool('implementation');
         },
-        [implTasks]
+        [implTasks, toastApi, handleSelectTool]
     );
 
     const activePackageTask = useMemo(() => {
@@ -231,8 +262,7 @@ export const App: React.FC = () => {
     // Global Drag and Drop (active only when in packer tool)
     const { isDraggingOver } = useGlobalFileDrop({
         onDropZip: (zipFile) => {
-            handleSelectTool('packer');
-            loadZip(zipFile);
+            void handleLoadZip(zipFile);
         },
         onDropGufFiles: (droppedFiles) => {
             handleSelectTool('packer');
@@ -244,17 +274,104 @@ export const App: React.FC = () => {
         },
     });
 
-    const [packageNumberNotification, setPackageNumberNotification] = useState<{
-        fileName: string;
-        number: number;
-    } | null>(null);
-
     const showPackageNumberToast = useCallback((notif: { fileName: string; number: number }) => {
-        setPackageNumberNotification(notif);
-        setTimeout(() => {
-            setPackageNumberNotification((prev) => (prev?.number === notif.number ? null : prev));
-        }, 4000);
-    }, []);
+        toastApi.show({
+            icon: <Hash />,
+            title: 'Следующий номер пакета',
+            detail: notif.fileName,
+            meta: (
+                <Badge variant="success" size="xs" className="font-mono flex-shrink-0">
+                    № {notif.number}
+                </Badge>
+            ),
+            duration: 4000,
+        });
+    }, [toastApi]);
+
+    // ── Действия с обратной связью ──
+    const handleLoadZip = useCallback(async (zipFile: File) => {
+        handleSelectTool('packer');
+        toastApi.show({ icon: <FileArchive />, title: 'Распаковка архива…', detail: zipFile.name, duration: 60000 });
+        try {
+            await loadZip(zipFile);
+            toastApi.show({ icon: <Check />, tone: 'success', title: 'Архив загружен', detail: zipFile.name });
+        } catch (err) {
+            toastApi.show({
+                icon: <AlertTriangle />,
+                tone: 'danger',
+                title: 'Не удалось открыть ZIP-архив',
+                detail: getErrorMessage(err, zipFile.name),
+            });
+        }
+    }, [handleSelectTool, loadZip, toastApi]);
+
+    const handleExportZip = useCallback(async () => {
+        try {
+            await exportZip(activePackageTask);
+            toastApi.show({
+                icon: <Download />,
+                tone: 'success',
+                title: 'Архив собран',
+                detail: getFormattedArchiveName(activePackage, activePackageTask),
+            });
+        } catch (err) {
+            toastApi.show({
+                icon: <AlertTriangle />,
+                tone: 'danger',
+                title: 'Не удалось собрать архив',
+                detail: getErrorMessage(err, 'Попробуйте ещё раз'),
+            });
+            throw err;
+        }
+    }, [exportZip, activePackage, activePackageTask, toastApi]);
+
+    const handleRemoveFile = useCallback((id: string) => {
+        const index = files.findIndex((f) => f.id === id);
+        if (index === -1) return;
+        const row = files[index];
+        const packageId = activePackage.id;
+        removeFile(id);
+        toastApi.show({
+            icon: <Trash2 />,
+            title: 'Файл удалён',
+            detail: row.newName || row.originalName,
+            action: { label: 'Отменить', onClick: () => restoreFiles(packageId, [row], [index]) },
+        });
+    }, [files, activePackage.id, removeFile, restoreFiles, toastApi]);
+
+    const handleClearFiles = useCallback(() => {
+        if (files.length === 0) return;
+        const snapshot = files;
+        const { id: packageId, readmeContent: prevReadme, variableValues: prevVars, archiveName: prevArchive } = activePackage;
+        clearFiles();
+        toastApi.show({
+            icon: <Trash2 />,
+            title: 'Пакет очищен',
+            detail: `${snapshot.length} ${pluralizeRu(snapshot.length, FILE_FORMS)} · ${activePackage.name}`,
+            action: {
+                label: 'Отменить',
+                onClick: () =>
+                    restoreFiles(packageId, snapshot, snapshot.map((_, i) => i), {
+                        readmeContent: prevReadme,
+                        variableValues: prevVars,
+                        archiveName: prevArchive,
+                    }),
+            },
+        });
+    }, [files, activePackage, clearFiles, restoreFiles, toastApi]);
+
+    const handleDeletePreset = useCallback((id: string) => {
+        const index = presets.findIndex((p) => p.id === id);
+        if (index === -1) return;
+        const preset: TemplatePreset = presets[index];
+        deletePreset(id);
+        toastApi.show({
+            icon: <Trash2 />,
+            title: 'Пресет удалён',
+            detail: preset.name,
+            action: { label: 'Отменить', onClick: () => restorePreset(preset, index) },
+        });
+    }, [presets, deletePreset, restorePreset, toastApi]);
 
     const headerSubtitle = useMemo(() => {
         switch (activeTool) {
@@ -263,7 +380,7 @@ export const App: React.FC = () => {
             case 'implementation':
                 return implTasks.activeTask
                     ? [implTasks.activeTask.taskNumber, implTasks.activeTask.title].filter(Boolean).join(' · ')
-                    : 'Задачи и изменения';
+                    : 'Задачи реализации';
             case 'youtrack':
                 return 'Мои задачи · РЭЦ_Fin';
             case 'extra':
@@ -287,20 +404,20 @@ export const App: React.FC = () => {
             { id: 'go-impl', group: 'Перейти', title: 'Реализация', icon: <ListChecks />, shortcut: 'Alt 2', run: () => handleSelectTool('implementation') },
             { id: 'go-yt', group: 'Перейти', title: 'YouTrack', icon: <SquareCheckBig />, shortcut: 'Alt 3', run: () => handleSelectTool('youtrack') },
             { id: 'go-extra', group: 'Перейти', title: 'Утилиты', subtitle: 'генератор ID алгоритмов', icon: <Zap />, shortcut: 'Alt 4', run: () => handleSelectTool('extra') },
-            { id: 'add-guf', group: 'Действия', title: 'Добавить .guf файлы', keywords: 'загрузить файл', icon: <Plus />, run: () => paletteGufInputRef.current?.click() },
-            { id: 'load-zip', group: 'Действия', title: 'Загрузить ZIP-архив', keywords: 'импорт архив', icon: <FileArchive />, run: () => paletteZipInputRef.current?.click() },
+            { id: 'add-guf', group: 'Действия', title: 'Добавить файлы .guf…', keywords: 'загрузить файл', icon: <Plus />, run: () => paletteGufInputRef.current?.click() },
+            { id: 'load-zip', group: 'Действия', title: 'Загрузить ZIP-архив…', keywords: 'импорт архив', icon: <FileArchive />, run: () => paletteZipInputRef.current?.click() },
         ];
         if (files.length > 0 && !validation.hasErrors) {
-            cmds.push({ id: 'export', group: 'Действия', title: 'Экспорт ZIP', subtitle: activePackage.name, keywords: 'скачать архив', icon: <Download />, run: () => { void exportZip(activePackageTask); } });
+            cmds.push({ id: 'export', group: 'Действия', title: 'Экспорт ZIP', subtitle: activePackage.name, keywords: 'скачать архив', icon: <Download />, run: () => { handleExportZip().catch(() => undefined); } });
         }
         if (validation.hasErrors) {
-            cmds.push({ id: 'validation', group: 'Действия', title: 'Ошибки имён файлов', subtitle: `${validation.errors.length}`, keywords: 'проверка валидация', icon: <AlertTriangle />, run: () => setIsValidationOpen(true) });
+            cmds.push({ id: 'validation', group: 'Действия', title: 'Ошибки в именах файлов…', subtitle: `${validation.errors.length}`, keywords: 'проверка валидация', icon: <AlertTriangle />, run: () => setIsValidationOpen(true) });
         }
         cmds.push(
-            { id: 'tags', group: 'Действия', title: 'Теги и шаблон', keywords: 'переменные module type task', icon: <Tag />, run: () => { handleSelectTool('packer'); setIsMassActionsOpen(true); } },
-            { id: 'presets', group: 'Действия', title: 'Пресеты шаблонов', icon: <Bookmark />, run: () => { handleSelectTool('packer'); setIsPresetsOpen(true); } },
-            { id: 'readme', group: 'Действия', title: 'Редактор README.txt', icon: <FileEdit />, run: () => { handleSelectTool('packer'); setIsReadmeOpen(true); } },
-            { id: 'new-package', group: 'Действия', title: 'Новый пакет сборки', icon: <Package />, run: () => { createPackage(); handleSelectTool('packer'); } },
+            { id: 'tags', group: 'Действия', title: 'Теги и шаблон…', keywords: 'переменные module type task', icon: <Tag />, run: () => { handleSelectTool('packer'); setIsMassActionsOpen(true); } },
+            { id: 'presets', group: 'Действия', title: 'Пресеты шаблонов…', icon: <Bookmark />, run: () => { handleSelectTool('packer'); setIsPresetsOpen(true); } },
+            { id: 'readme', group: 'Действия', title: 'Редактор README.txt…', icon: <FileEdit />, run: () => { handleSelectTool('packer'); setIsReadmeOpen(true); } },
+            { id: 'new-package', group: 'Действия', title: 'Новый пакет', icon: <Package />, run: () => { createPackage(); handleSelectTool('packer'); } },
             { id: 'new-task', group: 'Действия', title: 'Новая задача реализации', icon: <ListPlus />, run: () => { implTasks.createTask(); handleSelectTool('implementation'); } },
         );
         implTasks.tasks.forEach((t) => {
@@ -325,7 +442,7 @@ export const App: React.FC = () => {
             });
         });
         return cmds;
-    }, [files.length, validation, activePackage.name, activePackageTask, exportZip, createPackage, implTasks, packages, selectPackage, handleSelectTool]);
+    }, [files.length, validation, activePackage.name, handleExportZip, createPackage, implTasks, packages, selectPackage, handleSelectTool]);
 
     const handleSaveFileEdit = (
         id: string,
@@ -347,12 +464,13 @@ export const App: React.FC = () => {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                 </svg>
-                <span className="text-sm font-medium text-gd-muted">Загрузка GD Helper...</span>
+                <span className="text-sm font-medium text-gd-muted">Загрузка GD Helper…</span>
             </div>
         );
     }
 
     return (
+        <ToastContext.Provider value={toastApi}>
         <div
             className="flex flex-col relative min-h-full pb-[var(--tabbar-h)]"
         >
@@ -366,60 +484,61 @@ export const App: React.FC = () => {
                         Отпустите файлы здесь
                     </h2>
                     <p className="text-xs text-slate-500">
-                        ZIP-архив или пачка .guf файлов будет импортирована
+                        ZIP-архив или файлы .guf
                     </p>
                 </div>
             )}
 
-            {/* Тост: перехвачен .guf */}
-            {autoCollectNotification && (
-                <Toast
-                    icon={<Zap className="fill-current" />}
-                    title="Перехвачен .guf"
-                    detail={autoCollectNotification.fileName}
-                    meta={
-                        <>
-                            {autoCollectNotification.cardId && (
-                                <Badge
-                                    variant="success"
-                                    size="xs"
-                                    className="font-mono flex-shrink-0"
-                                    title={`ID карточки в GreenData: ${autoCollectNotification.cardId}`}
+            {/* Уведомления: перехваченный .guf и общие тосты (результаты действий, «Отменить») */}
+            <div className="fixed top-2 inset-x-3 z-[65] flex flex-col items-center gap-1.5 pointer-events-none">
+                {autoCollectNotification && (
+                    <Toast
+                        icon={<Zap className="fill-current" />}
+                        title="Файл .guf добавлен"
+                        detail={autoCollectNotification.fileName}
+                        meta={
+                            <>
+                                {autoCollectNotification.cardId && (
+                                    <Badge
+                                        variant="success"
+                                        size="xs"
+                                        className="font-mono flex-shrink-0"
+                                        title={`ID карточки в GreenData: ${autoCollectNotification.cardId}`}
+                                    >
+                                        ID {autoCollectNotification.cardId}
+                                    </Badge>
+                                )}
+                                {autoCollectNotification.mode && (
+                                    <Badge variant="default" size="xs" className="flex-shrink-0">
+                                        {autoCollectNotification.mode === 'original' ? 'исходный' : 'со страницы'}
+                                    </Badge>
+                                )}
+                                <span
+                                    className="text-[10.5px] text-gd-muted truncate ml-auto max-w-[90px]"
+                                    title={`Добавлен в пакет «${activePackage.name}»`}
                                 >
-                                    ID {autoCollectNotification.cardId}
-                                </Badge>
-                            )}
-                            {autoCollectNotification.mode && (
-                                <Badge variant="default" size="xs" className="flex-shrink-0">
-                                    {autoCollectNotification.mode === 'original' ? 'исходный' : 'со страницы'}
-                                </Badge>
-                            )}
-                            <span
-                                className="text-[10.5px] text-gd-muted truncate ml-auto max-w-[90px]"
-                                title={`Добавлен в пакет: ${activePackage.name}`}
-                            >
-                                → {activePackage.name}
-                            </span>
-                        </>
-                    }
-                    onClose={clearNotification}
-                />
-            )}
-
-            {/* Тост: спарсен следующий номер пакета */}
-            {packageNumberNotification && (
-                <Toast
-                    icon={<Hash />}
-                    title="Следующий номер пакета"
-                    detail={packageNumberNotification.fileName}
-                    meta={
-                        <Badge variant="success" size="xs" className="font-mono flex-shrink-0">
-                            № {packageNumberNotification.number}
-                        </Badge>
-                    }
-                    onClose={() => setPackageNumberNotification(null)}
-                />
-            )}
+                                    → {activePackage.name}
+                                </span>
+                            </>
+                        }
+                        onClose={clearNotification}
+                    />
+                )}
+                {toast && (
+                    <Toast
+                        key={toast.id}
+                        icon={toast.icon ?? <Check />}
+                        title={toast.title}
+                        detail={toast.detail}
+                        meta={toast.meta}
+                        tone={toast.tone}
+                        action={toast.action}
+                        onClose={() => toastApi.dismiss(toast.id)}
+                        onMouseEnter={pauseToast}
+                        onMouseLeave={resumeToast}
+                    />
+                )}
+            </div>
 
             {/* Header */}
             <Header
@@ -454,8 +573,7 @@ export const App: React.FC = () => {
                 onChange={(e) => {
                     const zip = e.target.files?.[0];
                     if (zip) {
-                        handleSelectTool('packer');
-                        void loadZip(zip);
+                        void handleLoadZip(zip);
                     }
                     e.target.value = '';
                 }}
@@ -485,6 +603,7 @@ export const App: React.FC = () => {
                 {/* YouTrack Tool View */}
                 <div className={activeTool === 'youtrack' ? 'space-y-3 animate-screen-in' : 'hidden'}>
                     <YouTrackTool
+                        isActive={activeTool === 'youtrack'}
                         onTransferToImplementation={handleTransferYouTrackToImplementation}
                     />
                 </div>
@@ -519,7 +638,7 @@ export const App: React.FC = () => {
 
                     {files.length === 0 ? (
                         <FileUploader
-                            onLoadZip={loadZip}
+                            onLoadZip={handleLoadZip}
                             onLoadGufFiles={loadGufFiles}
                         />
                     ) : (
@@ -545,7 +664,7 @@ export const App: React.FC = () => {
                                             type="button"
                                             className="gd-chip"
                                             onClick={() => setIsMassActionsOpen(true)}
-                                            title="Массовые действия и заполнение тегов (переменных) для файлов"
+                                            title="Теги и шаблон имён файлов"
                                         >
                                             <Tag className="h-3.5 w-3.5 text-accent-600" />
                                             Теги
@@ -560,7 +679,7 @@ export const App: React.FC = () => {
                                             <FileEdit className="h-3.5 w-3.5 text-accent-600" />
                                             README
                                             {readmeContent && readmeContent.trim().length > 0 && (
-                                                <span className="h-1.5 w-1.5 rounded-full bg-gd-success" aria-label="заполнен" />
+                                                <span className="h-1.5 w-1.5 rounded-full bg-gd-success" aria-label="README заполнен" />
                                             )}
                                         </button>
                                     </>
@@ -574,9 +693,9 @@ export const App: React.FC = () => {
                                 taskItems={activePackageTask?.items}
                                 onReorder={reorderFiles}
                                 onEditFile={(file) => setEditingFile(file)}
-                                onDeleteFile={removeFile}
+                                onDeleteFile={handleRemoveFile}
                                 onAddFiles={addFiles}
-                                onClearFiles={clearFiles}
+                                onClearFiles={handleClearFiles}
                             />
                         </>
                     )}
@@ -594,7 +713,7 @@ export const App: React.FC = () => {
                     )}
                     isExporting={isExporting}
                     onSetArchiveName={setArchiveName}
-                    onExportZip={() => exportZip(activePackageTask)}
+                    onExportZip={handleExportZip}
                     onOpenValidation={() => setIsValidationOpen(true)}
                 />
             )}
@@ -631,7 +750,7 @@ export const App: React.FC = () => {
                 currentTemplate={template}
                 onLoadPreset={loadPreset}
                 onSavePreset={savePreset}
-                onDeletePreset={deletePreset}
+                onDeletePreset={handleDeletePreset}
                 onSetPresetAsPrimary={setPresetAsPrimary}
             />
 
@@ -670,5 +789,6 @@ export const App: React.FC = () => {
                 />
             )}
         </div>
+        </ToastContext.Provider>
     );
 };

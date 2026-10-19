@@ -46,13 +46,13 @@ export const TaskSettingsModal: React.FC<TaskSettingsModalProps> = ({
         if (onSetStartNumber) {
           onSetStartNumber(res.lastNumber);
         }
-        const currentInfo = res.currentLastNumber ? ` (в пакете: ${res.currentLastNumber})` : '';
-        setParseFeedback(`Спарсен след. № ${res.lastNumber}${currentInfo}`);
+        const currentInfo = res.currentLastNumber ? ` (последний: ${res.currentLastNumber})` : '';
+        setParseFeedback(`Следующий № ${res.lastNumber}${currentInfo}`);
       } else {
-        setParseFeedback(res.error || 'Ошибка парсинга');
+        setParseFeedback(res.error || 'Не удалось получить номер. Проверьте ссылку на релизный пакет');
       }
     } catch {
-      setParseFeedback('Ошибка парсинга');
+      setParseFeedback('Не удалось получить номер. Проверьте ссылку на релизный пакет');
     } finally {
       setIsParsingPackage(false);
       setTimeout(() => setParseFeedback(null), 4000);
@@ -63,7 +63,7 @@ export const TaskSettingsModal: React.FC<TaskSettingsModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Параметры реализации"
+      title="Параметры задачи"
       maxWidth="md"
       footer={
         <div className="flex items-center justify-end gap-2 w-full">
@@ -112,7 +112,7 @@ export const TaskSettingsModal: React.FC<TaskSettingsModalProps> = ({
           <Input
             value={task.title}
             onChange={(e) => onUpdateTask(task.id, { title: e.target.value })}
-            placeholder="Например: Светофор ченджи"
+            placeholder="Например: Доработка модуля согласования"
           />
         </div>
 
@@ -124,7 +124,7 @@ export const TaskSettingsModal: React.FC<TaskSettingsModalProps> = ({
             </label>
             {task.lastFileNumber !== undefined && (
               <span className="text-[10px] font-mono font-bold text-accent-800 bg-accent-100/90 px-1.5 py-0.5 rounded border border-accent-200">
-                Спарсен № {task.lastFileNumber}
+                Следующий № {task.lastFileNumber}
               </span>
             )}
           </div>
@@ -145,7 +145,7 @@ export const TaskSettingsModal: React.FC<TaskSettingsModalProps> = ({
               isLoading={isParsingPackage}
               leftIcon={<Hash className="w-3.5 h-3.5" />}
             >
-              Спарсить №
+              Получить №
             </Button>
           </div>
           {parseFeedback && (
@@ -158,7 +158,7 @@ export const TaskSettingsModal: React.FC<TaskSettingsModalProps> = ({
           <div className="flex items-center justify-between gap-1.5 font-bold text-accent-950 text-[11px] min-w-0">
             <div className="flex items-center gap-1.5 min-w-0">
               <Package className="w-3.5 h-3.5 text-accent-600 flex-shrink-0" />
-              <span className="truncate">Пакеты сборки</span>
+              <span className="truncate">Пакеты</span>
             </div>
             {linkedPackages.length > 0 && (
               <span className="px-1.5 py-0.5 bg-accent-100/80 text-accent-800 rounded-md font-bold text-[10px]">
@@ -184,7 +184,7 @@ export const TaskSettingsModal: React.FC<TaskSettingsModalProps> = ({
                       onClose();
                     }
                   }}
-                  title={`Открыть пакет "${pkg.name}" во вкладке Упаковка`}
+                  title={`Открыть пакет «${pkg.name}» во вкладке «Упаковка»`}
                   className="w-full flex items-center justify-between gap-1.5 px-2.5 py-1.5 rounded-xl bg-white hover:bg-accent-100/70 border border-accent-200 text-accent-900 font-bold text-xs transition-all shadow-2xs group cursor-pointer"
                 >
                   <span className="font-mono text-accent-800 truncate min-w-0 flex-1 text-left">
@@ -202,11 +202,11 @@ export const TaskSettingsModal: React.FC<TaskSettingsModalProps> = ({
 
         {/* Task Summary / Description */}
         <Textarea
-          label="Описание / Заметка"
+          label="Заметка"
           helperText="Краткая суть и детали"
           value={task.summary}
           onChange={(e) => onUpdateTask(task.id, { summary: e.target.value })}
-          placeholder="Опишите общую суть решения, архитектурные особенности или примечания для тестировщиков..."
+          placeholder="Опишите общую суть решения, архитектурные особенности или примечания для тестировщиков…"
           rows={3}
         />
       </div>

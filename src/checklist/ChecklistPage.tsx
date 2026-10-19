@@ -224,7 +224,7 @@ export const ChecklistPage: React.FC = () => {
           <Info className="w-10 h-10 text-slate-400 mx-auto mb-2" />
           <h2 className="text-base font-bold text-slate-900 mb-1">Задача не найдена</h2>
           <p className="text-xs text-slate-600 mb-4">
-            В списке задач реализации нет доступных элементов. Создайте задачу в боковой панели GD Helper.
+            Задач реализации пока нет. Создайте задачу в боковой панели GD Helper.
           </p>
         </div>
       </div>
@@ -252,12 +252,12 @@ export const ChecklistPage: React.FC = () => {
                 )}
                 {isAllCollected && (
                   <Badge variant="success" className="font-bold text-xs">
-                    Все собраны ✅
+                    Всё собрано ✅
                   </Badge>
                 )}
               </div>
               <h1 className="text-xs text-slate-600 font-medium truncate max-w-lg">
-                {task.title || 'Чеклист сбора объектов'}
+                {task.title || 'Чек-лист сбора объектов'}
               </h1>
             </div>
           </div>
@@ -290,9 +290,9 @@ export const ChecklistPage: React.FC = () => {
                   <Copy className="w-3.5 h-3.5" />
                 )
               }
-              title="Скопировать Markdown"
+              title="Копировать Markdown"
             >
-              {copiedMd ? 'Скопировано!' : 'Копировать MD'}
+              {copiedMd ? 'Скопировано' : 'Копировать MD'}
             </Button>
           </div>
         </div>
@@ -306,7 +306,7 @@ export const ChecklistPage: React.FC = () => {
             <div>
               <h2 className="text-sm font-bold text-slate-900">Прогресс сбора объектов</h2>
               <p className="text-xs text-slate-500">
-                Нажимайте «Открыть и собрать» для открытия объекта в браузере и автоматической отметки статуса.
+                Нажмите «Открыть и собрать», чтобы открыть объект и сразу отметить его собранным.
               </p>
             </div>
             <div className="text-right">
@@ -330,7 +330,7 @@ export const ChecklistPage: React.FC = () => {
               <div className="flex items-center gap-2 min-w-0">
                 <CheckCircle2 className="w-5 h-5 text-accent-600 flex-shrink-0" />
                 <span>
-                  Все объекты собраны! Итоговый Markdown обновлен и зафиксирован с отметками готовности к релизу.
+                  Все объекты собраны — в Markdown проставлены отметки готовности.
                 </span>
               </div>
               <Button
@@ -340,7 +340,7 @@ export const ChecklistPage: React.FC = () => {
                 leftIcon={<Copy className="w-3.5 h-3.5" />}
                 className="whitespace-nowrap px-3 py-1 text-xs font-bold"
               >
-                {copiedMd ? 'Скопировано!' : 'Копировать MD'}
+                {copiedMd ? 'Скопировано' : 'Копировать MD'}
               </Button>
             </div>
           )}
@@ -352,7 +352,7 @@ export const ChecklistPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={handleCollectAllInPackage}
-                  title="Отметить как собранные все объекты, которые уже есть в связанном пакете сборки"
+                  title="Отметить собранными объекты, которые уже есть в привязанном пакете"
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-sky-900 bg-sky-50 hover:bg-sky-100 border border-sky-300 rounded-xl transition-all shadow-2xs cursor-pointer animate-pulse-subtle"
                 >
                   <Package className="w-3.5 h-3.5 text-sky-600" />
@@ -413,7 +413,7 @@ export const ChecklistPage: React.FC = () => {
                     : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                 }`}
               >
-                <span>Не собранные</span>
+                <span>Несобранные</span>
                 <span
                   className={`px-1.5 py-px rounded-full text-[10px] font-bold ${
                     filterStatus === 'uncollected'
@@ -457,8 +457,8 @@ export const ChecklistPage: React.FC = () => {
               }
               title={
                 sortOrder === 'uncollected_first'
-                  ? 'Сортировка: сначала не собранные (нажмите для сброса)'
-                  : 'Сортировать: сначала не собранные'
+                  ? 'Сначала несобранные. Нажмите, чтобы сбросить'
+                  : 'Показать сначала несобранные'
               }
               className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-all cursor-pointer ${
                 sortOrder === 'uncollected_first'
@@ -467,7 +467,7 @@ export const ChecklistPage: React.FC = () => {
               }`}
             >
               <ArrowDownUp className="w-3.5 h-3.5 text-amber-600" />
-              <span>Сначала не собранные</span>
+              <span>Сначала несобранные</span>
               {sortOrder === 'uncollected_first' && (
                 <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
               )}
@@ -479,9 +479,9 @@ export const ChecklistPage: React.FC = () => {
         {totalCount === 0 && (
           <div className="py-12 px-4 text-center border-2 border-dashed border-slate-200 rounded-xl bg-white">
             <Info className="w-10 h-10 text-slate-400 mx-auto mb-2" />
-            <h3 className="text-sm font-bold text-slate-800 mb-1">Список изменений пуст</h3>
+            <h3 className="text-sm font-bold text-slate-800 mb-1">Пунктов пока нет</h3>
             <p className="text-xs text-slate-500 max-w-sm mx-auto">
-              В этой задаче пока нет добавленных пунктов изменений. Добавьте их в расширении GD Helper.
+              В задаче пока нет пунктов. Добавьте их во вкладке «Реализация» в GD Helper.
             </p>
           </div>
         )}
@@ -547,7 +547,7 @@ export const ChecklistPage: React.FC = () => {
                             <button
                               type="button"
                               onClick={() => toggleChangeItemCollected(task.id, item.id)}
-                              title={isCollected ? 'Отметить как не собранный' : 'Отметить как собранный'}
+                              title={isCollected ? 'Отметить как несобранный' : 'Отметить как собранный'}
                               className="mt-0.5 text-accent-600 hover:text-accent-700 transition-transform p-0.5 rounded cursor-pointer flex-shrink-0"
                             >
                               {isCollected ? (
@@ -574,7 +574,7 @@ export const ChecklistPage: React.FC = () => {
                                 {matchingFile && (
                                   <span
                                     className="inline-flex items-center gap-1 text-[10px] font-bold text-sky-800 bg-sky-100/90 px-1.5 py-0.5 rounded border border-sky-300"
-                                    title={`Файл найден в связанном пакете: #${matchingFile.order} ${matchingFile.newName || matchingFile.originalName}`}
+                                    title={`Файл есть в привязанном пакете: #${matchingFile.order} ${matchingFile.newName || matchingFile.originalName}`}
                                   >
                                     📦 В пакете #{matchingFile.order}
                                   </span>
@@ -626,7 +626,7 @@ export const ChecklistPage: React.FC = () => {
                                 onClick={() => toggleChangeItemCollected(task.id, item.id)}
                                 leftIcon={<Check className="w-3.5 h-3.5" />}
                                 className="text-xs px-3 py-1.5 font-bold shadow-2xs bg-accent-600 hover:bg-accent-700 text-white"
-                                title="Файл уже есть в сборке. Нажмите, чтобы сразу отметить объект как собранный"
+                                title="Файл уже есть в пакете. Нажмите, чтобы отметить объект собранным"
                               >
                                 Собрать
                               </Button>
@@ -669,7 +669,7 @@ export const ChecklistPage: React.FC = () => {
                   <div className="flex items-center gap-2 min-w-0">
                     <Layers className="w-4 h-4 text-slate-500 flex-shrink-0" />
                     <h3 className="font-bold text-xs text-slate-800 truncate">
-                      Прочее / Без раздела
+                      Без раздела
                     </h3>
                   </div>
 
@@ -699,7 +699,7 @@ export const ChecklistPage: React.FC = () => {
                           <button
                             type="button"
                             onClick={() => toggleChangeItemCollected(task.id, item.id)}
-                            title={isCollected ? 'Отметить как не собранный' : 'Отметить как собранный'}
+                            title={isCollected ? 'Отметить как несобранный' : 'Отметить как собранный'}
                             className="mt-0.5 text-accent-600 hover:text-accent-700 transition-transform p-0.5 rounded cursor-pointer flex-shrink-0"
                           >
                             {isCollected ? (
@@ -726,7 +726,7 @@ export const ChecklistPage: React.FC = () => {
                               {matchingFile && (
                                 <span
                                   className="inline-flex items-center gap-1 text-[10px] font-bold text-sky-800 bg-sky-100/90 px-1.5 py-0.5 rounded border border-sky-300"
-                                  title={`Файл найден в связанном пакете: #${matchingFile.order} ${matchingFile.newName || matchingFile.originalName}`}
+                                  title={`Файл есть в привязанном пакете: #${matchingFile.order} ${matchingFile.newName || matchingFile.originalName}`}
                                 >
                                   📦 В пакете #{matchingFile.order}
                                 </span>
@@ -778,7 +778,7 @@ export const ChecklistPage: React.FC = () => {
                               onClick={() => toggleChangeItemCollected(task.id, item.id)}
                               leftIcon={<Check className="w-3.5 h-3.5" />}
                               className="text-xs px-3 py-1.5 font-bold shadow-2xs bg-accent-600 hover:bg-accent-700 text-white"
-                              title="Файл уже есть в сборке. Нажмите, чтобы сразу отметить объект как собранный"
+                              title="Файл уже есть в пакете. Нажмите, чтобы отметить объект собранным"
                             >
                               Собрать
                             </Button>

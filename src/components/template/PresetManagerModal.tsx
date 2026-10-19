@@ -80,7 +80,7 @@ export const PresetManagerModal: React.FC<PresetManagerModalProps> = ({
                     size="xs"
                     variant="ghost"
                     onClick={() => onSetPresetAsPrimary(preset.id)}
-                    title="Сделать основным шаблоном по умолчанию"
+                    title="Сделать основным (по умолчанию)"
                     icon={<Star className="w-3.5 h-3.5 text-slate-400 hover:text-amber-600" />}
                   />
                 )}

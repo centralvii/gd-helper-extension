@@ -224,7 +224,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
     } catch (err) {
       setInjectResult({
         success: false,
-        message: getErrorMessage(err, 'Ошибка вставки комментария'),
+        message: getErrorMessage(err, 'Не удалось вставить комментарий'),
       });
     } finally {
       setIsInjecting(false);
@@ -700,7 +700,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
         <button
           type="button"
           onClick={() => setIsChecklistModalOpen(true)}
-          title="Чеклист сбора объектов (открыть ссылку, отслеживать прогресс)"
+          title="Чек-лист сбора объектов: ссылки и прогресс"
           className="gd-row gd-row--tap w-full text-left !py-2.5"
         >
           <ProgressRing value={progressPct} label={`${collectedCount}/${task.items.length}`} />
@@ -712,7 +712,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
                   ? 'Всё собрано'
                   : `Собрано ${collectedCount} из ${task.items.length}`}
             </span>
-            <span className="block text-[11.5px] text-gd-muted">Чеклист сбора объектов</span>
+            <span className="block text-[11.5px] text-gd-muted">Чек-лист сбора объектов</span>
           </span>
           <ChevronRight className="w-4 h-4 text-gd-faint flex-shrink-0" />
         </button>
@@ -735,8 +735,8 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
         {onOpenImportExport && (
           <ToolRow
             icon={<FileJson />}
-            label="Бэкап и импорт JSON"
-            title="Резервное копирование и экспорт в JSON"
+            label="Импорт и экспорт JSON"
+            title="Импорт и экспорт задач в JSON"
             onClick={() => onOpenImportExport('export')}
           />
         )}
@@ -749,10 +749,10 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
           <button
             type="button"
             onClick={() => setIsHeaderSettingsOpen(true)}
-            title="Настройки шапки (Фамилия И.О., релиз)"
+            title="Настройки шапки: автор и релиз"
             className="normal-case tracking-normal text-[12.5px] font-medium text-gd-accent cursor-pointer"
           >
-            Настроить
+            Настроить…
           </button>
         </div>
         <div className="gd-group">
@@ -763,7 +763,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
             <button
               type="button"
               onClick={handleCopyHeaderComment}
-              title="Скопировать комментарий в буфер обмена"
+              title="Копировать комментарий в буфер обмена"
               className="icon-btn w-8 h-8"
             >
               {copiedHeader ? (
@@ -778,7 +778,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
               disabled={isInjecting}
               onClick={handleInsertHeaderComment}
               leftIcon={<Code2 className="w-3.5 h-3.5" />}
-              title="Вставить комментарий в редактор алгоритма на открытой вкладке"
+              title="Вставить комментарий в редактор алгоритма в активной вкладке"
             >
               {isInjecting ? 'Вставка…' : injectResult?.success ? 'Вставлено' : 'Вставить'}
             </Button>
@@ -817,7 +817,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
             value={quickAddText}
             onChange={(e) => setQuickAddText(e.target.value)}
             placeholder="Что изменено? ↵"
-            aria-label="Описание нового изменения"
+            aria-label="Описание нового пункта"
             className="min-w-0 flex-1 bg-transparent py-1.5 text-[13px] text-slate-900 outline-none placeholder:text-gd-faint"
           />
           {sections.length > 0 && (
@@ -840,7 +840,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
             type="button"
             onClick={() => handleOpenAddWithTab()}
             disabled={isTabFetching}
-            title="Добавить пункт со ссылкой на открытую вкладку"
+            title="Добавить пункт со ссылкой на активную вкладку"
             className="flex h-8 flex-shrink-0 items-center gap-1 rounded-full bg-gd-accent-light px-2.5 text-[12px] font-semibold text-accent-700 cursor-pointer disabled:opacity-40"
           >
             <Sparkles className="h-3.5 w-3.5" />
@@ -857,13 +857,13 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
             title="Добавить пункт с полной формой: раздел, ссылка, описание"
             leftIcon={<Plus className="w-4 h-4" strokeWidth={2.5} />}
           >
-            Подробно
+            Подробно…
           </Button>
           <span className="flex-1" />
           <button
             type="button"
             onClick={handleOpenCreateSection}
-            title="Создать новый раздел (категорию)"
+            title="Новый раздел"
             className="icon-btn"
           >
             <FolderPlus className="w-3.5 h-3.5" />
@@ -872,7 +872,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
             <button
               type="button"
               onClick={() => setFilterStatus((prev) => (prev === 'all' ? 'uncollected' : 'all'))}
-              title={filterStatus === 'uncollected' ? 'Показать все пункты' : 'Показать только не собранные'}
+              title={filterStatus === 'uncollected' ? 'Показать все пункты' : 'Показать только несобранные'}
               className={`icon-btn relative ${filterStatus === 'uncollected' ? '!bg-[#ff9500]/15 !text-[#c26a00]' : ''}`}
             >
               <Filter className="w-3.5 h-3.5" />
@@ -897,7 +897,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
 
         {filterStatus === 'uncollected' && (
           <p className="px-1 text-[12px] font-medium text-[#c26a00] animate-fade-in">
-            Показаны только не собранные пункты
+            Показаны только несобранные пункты
           </p>
         )}
 
@@ -906,9 +906,9 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
             <div className="mx-auto mb-3 grid h-12 w-12 place-items-center rounded-full bg-gd-fill text-gd-muted">
               <Info className="w-6 h-6" />
             </div>
-            <p className="text-[15px] font-semibold text-slate-900">Изменений пока нет</p>
+            <p className="text-[15px] font-semibold text-slate-900">Пунктов пока нет</p>
             <p className="mx-auto mt-1 max-w-[260px] text-[13px] leading-snug text-gd-muted">
-              Зафиксируйте, что было изменено, и прикрепите ссылки на алгоритмы, формы и модули.
+              Опишите, что изменено, и прикрепите ссылки на алгоритмы, формы и модули.
             </p>
           </div>
         ) : (
@@ -945,7 +945,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
                       <button
                         type="button"
                         onClick={() => handleOpenAddNew(sec.id)}
-                        title={`Добавить пункт в раздел "${sec.name}"`}
+                        title={`Добавить пункт в раздел «${sec.name}»`}
                         className="inline-flex items-center gap-0.5 px-2 h-7 rounded-full text-[12.5px] font-medium text-gd-accent hover:bg-gd-accent-light cursor-pointer"
                       >
                         <Plus className="w-3.5 h-3.5" strokeWidth={2.5} />
@@ -954,7 +954,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
                       <button
                         type="button"
                         onClick={() => setOpenSectionMenuId(openSectionMenuId === sec.id ? null : sec.id)}
-                        title="Опции раздела"
+                        title="Действия с разделом"
                         className={`icon-btn icon-btn--plain w-7 h-7 ${openSectionMenuId === sec.id ? '!bg-gd-fill !text-slate-900' : ''}`}
                       >
                         <MoreHorizontal className="w-4 h-4" />
@@ -983,7 +983,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
                               className={menuItemClass}
                             >
                               <ChevronUp className="w-4 h-4 text-gd-muted" />
-                              Поднять выше
+                              Переместить выше
                             </button>
                             <button
                               type="button"
@@ -995,7 +995,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
                               className={menuItemClass}
                             >
                               <ChevronDown className="w-4 h-4 text-gd-muted" />
-                              Опустить ниже
+                              Переместить ниже
                             </button>
                             <button
                               type="button"
@@ -1006,7 +1006,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
                               className={menuItemClass}
                             >
                               <Edit2 className="w-4 h-4 text-gd-muted" />
-                              Переименовать
+                              Переименовать…
                             </button>
                             <div className="h-px bg-gd-border my-1 mx-2" />
                             <button
@@ -1116,7 +1116,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
             leftIcon={<Eye className="w-4 h-4" />}
             title="Просмотр и экспорт описания"
           >
-            Экспорт
+            Экспорт…
           </Button>
         </div>
       </div>
@@ -1173,7 +1173,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
       <Modal
         isOpen={isSectionModalOpen}
         onClose={() => setIsSectionModalOpen(false)}
-        title={editingSection ? 'Переименовать раздел' : 'Создать новый раздел'}
+        title={editingSection ? 'Переименовать раздел' : 'Новый раздел'}
         maxWidth="sm"
         footer={
           <>
@@ -1204,7 +1204,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
             <Input
               value={sectionNameInput}
               onChange={(e) => setSectionNameInput(e.target.value)}
-              placeholder="Например: Алгоритмы, Визуалы, Типы объекта..."
+              placeholder="Например: Алгоритмы, Визуалы, Типы объекта"
               autoFocus
             />
           </div>
@@ -1258,9 +1258,9 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
         }
       >
         <p className="text-xs text-slate-700">
-          Вы уверены, что хотите удалить раздел{' '}
-          <strong className="text-slate-900">"{sectionToDelete?.name}"</strong>?
-          Пункты из этого раздела не удалятся, а переместятся в список «Без раздела».
+          Удалить раздел{' '}
+          <strong className="text-slate-900">«{sectionToDelete?.name}»</strong>?
+          Пункты раздела не удалятся, а перейдут в «Без раздела».
         </p>
       </Modal>
 
@@ -1277,7 +1277,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
       <Modal
         isOpen={Boolean(duplicateCandidate)}
         onClose={() => setDuplicateCandidate(null)}
-        title="Ссылка уже добавлена в реализацию"
+        title="Ссылка уже есть в задаче"
         maxWidth="md"
         footer={
           <div className="flex items-center justify-between w-full">
@@ -1322,10 +1322,10 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
               <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
               <div className="space-y-0.5 min-w-0 flex-1">
                 <span className="font-bold text-xs block">
-                  Эта ссылка уже добавлена в текущую реализацию!
+                  Эта ссылка уже есть в задаче
                 </span>
                 <p className="text-[11px] text-amber-900 leading-relaxed">
-                  Отредактируйте комментарий к изменениям ниже и нажмите «Заменить», либо сохраните как отдельную копию.
+                  Измените описание ниже и нажмите «Заменить» или «Добавить копию».
                 </p>
               </div>
             </div>
@@ -1335,7 +1335,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
                   <Layers className="w-3 h-3 text-slate-400" />
-                  Существующая запись в реализации:
+                  Существующий пункт:
                 </span>
                 {duplicateCandidate.existingItem.sectionId && (
                   <span className="text-[10px] font-semibold text-slate-600 bg-white border border-slate-200 px-1.5 py-0.5 rounded">
@@ -1359,7 +1359,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
               <div>
                 <label className="font-bold text-slate-800 text-[11px] mb-1 flex items-center gap-1.5">
                   <Layers className="w-3 h-3 text-accent-600" />
-                  <span>Раздел (категория)</span>
+                  <span>Раздел</span>
                 </label>
                 <Select
                   value={replaceSectionId}
@@ -1386,7 +1386,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
             <div className="space-y-1.5">
               <div className="flex items-center justify-between gap-1 flex-wrap">
                 <label className="font-bold text-slate-800 text-[11px] flex items-center gap-1">
-                  <span>Текст изменений / комментарий</span>
+                  <span>Описание изменения</span>
                   <span className="text-rose-500">*</span>
                 </label>
 
@@ -1406,7 +1406,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
                         }
                       }}
                       className="text-accent-700 hover:text-accent-900 font-semibold cursor-pointer underline bg-accent-50 px-1.5 py-0.5 rounded border border-accent-200"
-                      title="Добавить новый пункт к существующему описанию"
+                      title="Добавить строку к существующему описанию"
                     >
                       + Дополнить старое
                     </button>
@@ -1417,7 +1417,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
                       type="button"
                       onClick={() => setReplaceDescription(duplicateCandidate.existingItem.description)}
                       className="text-slate-600 hover:text-slate-900 font-medium cursor-pointer underline bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200"
-                      title="Восстановить текст существующей записи"
+                      title="Восстановить описание существующего пункта"
                     >
                       Вернуть старое
                     </button>
@@ -1443,7 +1443,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
               <textarea
                 value={replaceDescription}
                 onChange={(e) => setReplaceDescription(e.target.value)}
-                placeholder="Опишите внесенные изменения или добавьте комментарий..."
+                placeholder="Опишите изменения…"
                 rows={3}
                 autoFocus
                 className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-accent-500/10 focus:border-accent-500 text-xs resize-y shadow-2xs"
@@ -1452,7 +1452,7 @@ export const TaskEditor: React.FC<TaskEditorProps> = ({
 
             {/* Optional link to open full editor */}
             <div className="flex items-center justify-between text-[11px] pt-1 border-t border-slate-100 text-slate-500">
-              <span>Нужно детально изменить поля ссылки?</span>
+              <span>Нужно изменить поля ссылки?</span>
               <button
                 type="button"
                 onClick={handleOpenInFullEditor}

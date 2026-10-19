@@ -504,6 +504,40 @@ export function useImplementationTasks() {
     []
   );
 
+  // ── Отмена удаления (тост «Отменить») ─────────────────────────────────────
+
+  /** Вернуть удалённую задачу на прежнее место и сделать её активной */
+  const restoreTask = useCallback((task: ImplementationTask, index: number) => {
+    setTasks((prev) => {
+      if (prev.some((t) => t.id === task.id)) return prev;
+      const next = [...prev];
+      next.splice(Math.min(index, next.length), 0, task);
+      return next;
+    });
+    setActiveTaskId(task.id);
+  }, []);
+
+  /** Вернуть удалённый пункт изменения на прежнее место */
+  const restoreChangeItem = useCallback(
+    (taskId: string, item: ImplementationChangeItem, index: number) => {
+      setTasks((prev) =>
+        prev.map((t) => {
+          if (t.id !== taskId || t.items.some((i) => i.id === item.id)) return t;
+          const items = [...t.items];
+          items.splice(Math.min(index, items.length), 0, item);
+          return { ...t, items, updatedAt: Date.now() };
+        })
+      );
+    },
+    []
+  );
+
+  /** Полностью заменить список задач (откат импорта) */
+  const replaceAllTasks = useCallback((snapshot: ImplementationTask[], activeId?: string) => {
+    setTasks(snapshot.length > 0 ? snapshot : [INITIAL_TASK]);
+    if (activeId) setActiveTaskId(activeId);
+  }, []);
+
   // Clear all change items for a task
   const clearTaskItems = useCallback((taskId: string) => {
     setTasks((prev) =>
@@ -568,7 +602,7 @@ export function useImplementationTasks() {
           const taskToApply = importedTasks[0];
           const targetId = targetTaskId || activeTaskId;
           if (!targetId || !taskToApply) {
-            return { success: false, count: 0, error: 'Не указана целевая задача' };
+            return { success: false, count: 0, error: 'Не выбрана задача для обновления. Откройте задачу и повторите' };
           }
 
           setTasks((prev) =>
@@ -604,7 +638,7 @@ export function useImplementationTasks() {
 
         return { success: true, count: newTasks.length };
       } catch (err: unknown) {
-        const msg = err instanceof Error ? err.message : 'Ошибка импорта';
+        const msg = err instanceof Error ? err.message : 'Не удалось импортировать задачи';
         return { success: false, count: 0, error: msg };
       }
     },
@@ -634,6 +668,9 @@ export function useImplementationTasks() {
     reorderChangeItems,
     moveChangeItem,
     clearTaskItems,
+    restoreTask,
+    restoreChangeItem,
+    replaceAllTasks,
     exportAllTasksJSON,
     exportTaskJSON,
     importTasks,
@@ -652,7 +689,7 @@ export function parseTasksFromImport(jsonString: string): {
   try {
     const trimmed = jsonString.trim();
     if (!trimmed) {
-      return { valid: false, tasks: [], error: 'Введен пустой текст' };
+      return { valid: false, tasks: [], error: 'Вставьте JSON или выберите файл' };
     }
 
     const parsed = JSON.parse(trimmed);
@@ -674,14 +711,14 @@ export function parseTasksFromImport(jsonString: string): {
         rawTasks = [parsed];
         sourceType = 'single';
       } else {
-        return { valid: false, tasks: [], error: 'Не найдены задачи в структуре JSON' };
+        return { valid: false, tasks: [], error: 'В JSON нет задач. Ожидается { "tasks": [...] } или объект задачи' };
       }
     } else {
-      return { valid: false, tasks: [], error: 'Некорректный JSON формат' };
+      return { valid: false, tasks: [], error: 'Неверный формат JSON' };
     }
 
     if (rawTasks.length === 0) {
-      return { valid: false, tasks: [], error: 'Список задач пуст' };
+      return { valid: false, tasks: [], error: 'Список задач в JSON пуст' };
     }
 
     const normalized: ImplementationTask[] = rawTasks.map((raw: unknown, idx: number) => {
@@ -743,11 +780,11 @@ export function parseTasksFromImport(jsonString: string): {
       sourceType,
     };
   } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : 'Некорректный синтаксис';
+    const msg = err instanceof Error ? err.message : 'синтаксическая ошибка';
     return {
       valid: false,
       tasks: [],
-      error: `Ошибка парсинга JSON: ${msg}`,
+      error: `Не удалось прочитать JSON: ${msg}`,
     };
   }
 }

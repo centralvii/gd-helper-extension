@@ -32,7 +32,7 @@ export const Select: React.FC<SelectProps> = ({
   value,
   onChange,
   options,
-  placeholder = 'Выберите...',
+  placeholder = 'Выберите…',
   disabled = false,
   className = '',
   buttonClassName = '',
@@ -46,6 +46,7 @@ export const Select: React.FC<SelectProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
   const [menuPos, setMenuPos] = useState<React.CSSProperties | null>(null);
 
   // Find selected option
@@ -68,11 +69,13 @@ export const Select: React.FC<SelectProps> = ({
     };
   }, [isOpen]);
 
-  // Handle escape key
+  // Esc закрывает только список (событие помечается обработанным — шторка под ним остаётся открытой)
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape' && isOpen) {
+        event.preventDefault();
         setIsOpen(false);
+        triggerRef.current?.focus();
       }
     };
 
@@ -129,6 +132,48 @@ export const Select: React.FC<SelectProps> = ({
     if (optDisabled) return;
     onChange(optValue);
     setIsOpen(false);
+    triggerRef.current?.focus();
+  };
+
+  // Клавиатура: при открытии фокус на выбранном пункте, ↑↓ / Home / End — навигация
+  const getOptionButtons = () =>
+    Array.from(menuRef.current?.querySelectorAll<HTMLButtonElement>('[role="option"]:not(:disabled)') ?? []);
+
+  useEffect(() => {
+    if (!isOpen || !menuPos) return;
+    const buttons = getOptionButtons();
+    const selected = menuRef.current?.querySelector<HTMLButtonElement>('[role="option"][aria-selected="true"]:not(:disabled)');
+    (selected ?? buttons[0])?.focus({ preventScroll: false });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, Boolean(menuPos)]);
+
+  const handleTriggerKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
+    if (disabled || isOpen) return;
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      setIsOpen(true);
+    }
+  };
+
+  const handleMenuKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    const buttons = getOptionButtons();
+    if (buttons.length === 0) return;
+    const idx = buttons.indexOf(document.activeElement as HTMLButtonElement);
+    let next = -1;
+    if (e.key === 'ArrowDown') next = idx < 0 ? 0 : (idx + 1) % buttons.length;
+    else if (e.key === 'ArrowUp') next = idx < 0 ? buttons.length - 1 : (idx - 1 + buttons.length) % buttons.length;
+    else if (e.key === 'Home') next = 0;
+    else if (e.key === 'End') next = buttons.length - 1;
+    else if (e.key === 'Tab') {
+      e.preventDefault();
+      setIsOpen(false);
+      triggerRef.current?.focus();
+      return;
+    }
+    if (next >= 0) {
+      e.preventDefault();
+      buttons[next].focus();
+    }
   };
 
   const sizeClasses =
@@ -140,6 +185,7 @@ export const Select: React.FC<SelectProps> = ({
     <div ref={containerRef} className={`relative select-none ${className}`}>
       {/* Trigger Button */}
       <button
+        ref={triggerRef}
         type="button"
         id={id}
         title={title}
@@ -148,6 +194,7 @@ export const Select: React.FC<SelectProps> = ({
         aria-expanded={isOpen}
         disabled={disabled}
         onClick={() => !disabled && setIsOpen((prev) => !prev)}
+        onKeyDown={handleTriggerKeyDown}
         className={`gd-select-trigger w-full flex items-center justify-between gap-2 border text-left transition-all cursor-pointer ${
           isOpen
             ? 'bg-white border-gd-accent ring-4 ring-accent-500/15'
@@ -188,6 +235,7 @@ export const Select: React.FC<SelectProps> = ({
         <div
           ref={menuRef}
           role="listbox"
+          onKeyDown={handleMenuKeyDown}
           style={menuPos ?? { position: 'fixed', visibility: 'hidden' }}
           className={`gd-menu z-[70] p-1 overflow-y-auto animate-slide-down origin-top ${dropdownClassName}`}
         >
@@ -206,7 +254,7 @@ export const Select: React.FC<SelectProps> = ({
                   aria-selected={isSelected}
                   disabled={opt.disabled}
                   onClick={() => handleSelect(opt.value, opt.disabled)}
-                  className={`w-full flex items-center justify-between gap-2 px-2.5 py-2 rounded-lg text-left text-[13px] transition-colors cursor-pointer ${
+                  className={`w-full flex items-center justify-between gap-2 px-2.5 py-2 rounded-lg text-left text-[13px] transition-colors cursor-pointer outline-none focus-visible:bg-gd-fill ${
                     opt.disabled
                       ? 'opacity-40 cursor-not-allowed bg-slate-50'
                       : opt.isAction
