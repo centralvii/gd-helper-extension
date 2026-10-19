@@ -1,7 +1,7 @@
 {
   "name": "gd-helper-extension",
   "private": true,
-  "version": "1.0.0",
+  "version": "2.1.0",
   "description": "GD Helper: Chrome Side Panel Extension for GreenData platform",
   "type": "module",
   "scripts": {
