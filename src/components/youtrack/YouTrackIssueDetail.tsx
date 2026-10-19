@@ -275,7 +275,7 @@ export const YouTrackIssueDetail: React.FC<YouTrackIssueDetailProps> = ({
           </div>
         </div>
         <p className="px-3.5 pt-1.5 text-[11.5px] text-gd-muted">
-          Поля GUF, Направление и Модуль остаются для ручного ввода.
+          Модуль выбирается автоматически: «Финансовый модуль». GUF и Направление заполните вручную.
         </p>
       </div>
 
