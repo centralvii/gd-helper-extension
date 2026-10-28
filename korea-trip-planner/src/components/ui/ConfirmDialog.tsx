@@ -8,9 +8,10 @@ interface Props {
   confirmLabel: string;
   onConfirm: () => void;
   onCancel: () => void;
+  danger?: boolean;
 }
 
-export function ConfirmDialog({ open, title, text, confirmLabel, onConfirm, onCancel }: Props) {
+export function ConfirmDialog({ open, title, text, confirmLabel, onConfirm, onCancel, danger = true }: Props) {
   return (
     <Modal open={open} onClose={onCancel} title={title} compact>
       <p className="text-[14px] text-slate-600">{text}</p>
@@ -18,7 +19,7 @@ export function ConfirmDialog({ open, title, text, confirmLabel, onConfirm, onCa
         <Button variant="ghost" onClick={onCancel}>
           Отмена
         </Button>
-        <Button variant="danger" onClick={onConfirm}>
+        <Button variant={danger ? 'danger' : 'primary'} onClick={onConfirm}>
           {confirmLabel}
         </Button>
       </div>
