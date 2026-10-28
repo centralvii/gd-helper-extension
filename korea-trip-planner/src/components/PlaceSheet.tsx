@@ -24,7 +24,7 @@ function LinkBtn({ href, icon, children }: { href: string; icon: React.ReactNode
     >
       {icon}
       {children}
-      <ExternalLink size={13} className="text-slate-500" aria-hidden="true" />
+      <ExternalLink size={13} className="text-slate-600" aria-hidden="true" />
     </a>
   );
 }

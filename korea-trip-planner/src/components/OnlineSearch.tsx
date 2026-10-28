@@ -16,6 +16,7 @@ type Status = 'idle' | 'loading' | 'done' | 'error';
 export function OnlineSearch({ query, inRouteKeys, onOpen, onToggle }: Props) {
   const [status, setStatus] = useState<Status>('idle');
   const [results, setResults] = useState<ResolvedPlace[]>([]);
+  const [source, setSource] = useState<'tour' | 'osm' | null>(null);
   const abort = useRef<AbortController | null>(null);
 
   useEffect(() => {
@@ -32,7 +33,8 @@ export function OnlineSearch({ query, inRouteKeys, onOpen, onToggle }: Props) {
     setStatus('loading');
     try {
       const found = await searchOnline(query.trim(), ctrl.signal);
-      setResults(found.map(resolveCustom));
+      setResults(found.places.map(resolveCustom));
+      setSource(found.source);
       setStatus('done');
     } catch (e) {
       if ((e as Error).name !== 'AbortError') setStatus('error');
@@ -42,11 +44,11 @@ export function OnlineSearch({ query, inRouteKeys, onOpen, onToggle }: Props) {
   return (
     <section className="gd-card p-4" aria-label="Поиск на карте">
       <p className="text-[13px] text-slate-600">
-        Не нашли в каталоге? Поищем по всей Корее в OpenStreetMap — найденное тоже можно добавить в маршрут.
+        Не нашли в каталоге? Поищем по всей Корее в базе Korea Tourism Organization и OpenStreetMap — найденное тоже можно добавить в маршрут.
       </p>
       <Button variant="tint" className="mt-3 w-full sm:w-auto" onClick={run} disabled={status === 'loading'}>
         {status === 'loading' ? <Loader2 size={16} className="animate-spin" /> : <Globe size={16} />}
-        Искать на карте (OpenStreetMap)
+        Искать онлайн
       </Button>
       {status === 'error' && (
         <p role="alert" className="mt-3 text-[13px] text-[var(--gd-red-ink)]">
@@ -55,6 +57,11 @@ export function OnlineSearch({ query, inRouteKeys, onOpen, onToggle }: Props) {
       )}
       {status === 'done' && results.length === 0 && (
         <p className="mt-3 text-[13px] text-slate-600">На карте ничего не найдено. Попробуйте другое написание.</p>
+      )}
+      {results.length > 0 && source && (
+        <p className="mt-3 text-[11.5px] text-slate-600">
+          Источник: {source === 'tour' ? 'Korea Tourism Organization' : 'OpenStreetMap'}
+        </p>
       )}
       {results.length > 0 && (
         <ul className="mt-3 space-y-2">
@@ -69,7 +76,7 @@ export function OnlineSearch({ query, inRouteKeys, onOpen, onToggle }: Props) {
                   aria-label={`Подробнее: ${r.nameRu}`}
                 >
                   <span className="block truncate text-[14px] font-semibold">{r.nameRu}</span>
-                  <span className="block truncate text-[12px] text-slate-500">{r.addressEn}</span>
+                  <span className="block truncate text-[12px] text-slate-600">{r.addressEn}</span>
                 </button>
                 <Button
                   variant={inRoute ? 'ghost' : 'primary'}

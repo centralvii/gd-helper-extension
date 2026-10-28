@@ -15,6 +15,9 @@ interface Props {
 /** Нижняя шторка на телефоне, модалка по центру на компьютере. */
 export function Modal({ open, onClose, title, children, compact }: Props) {
   const ref = useRef<HTMLDivElement>(null);
+  // onClose часто новая функция на каждый рендер — не должна перезапускать эффект (иначе фокус прыгает)
+  const closeRef = useRef(onClose);
+  closeRef.current = onClose;
 
   useEffect(() => {
     if (!open) return;
@@ -25,7 +28,7 @@ export function Modal({ open, onClose, title, children, compact }: Props) {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         e.stopPropagation();
-        onClose();
+        closeRef.current();
       }
       if (e.key === 'Tab' && ref.current) {
         const f = ref.current.querySelectorAll<HTMLElement>(
@@ -49,7 +52,7 @@ export function Modal({ open, onClose, title, children, compact }: Props) {
       document.body.style.overflow = overflow;
       prev?.focus?.();
     };
-  }, [open, onClose]);
+  }, [open]);
 
   if (!open) return null;
   return (

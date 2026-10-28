@@ -1,6 +1,7 @@
 import { Share2, Route } from 'lucide-react';
 import type { ResolvedPlace, Trip } from '../lib/model';
 import type { TripDispatch } from '../hooks/useTrip';
+import { placesWord } from '../lib/geo';
 import { DayList } from './DayList';
 import { Button } from './ui/Button';
 
@@ -28,7 +29,7 @@ export function RoutePanel({ trip, activeDayId, dispatch, onOpen, onShare, onGoS
         />
         <div className="mt-3 flex items-center gap-2">
           <p className="min-w-0 flex-1 text-[12.5px] text-slate-600">
-            {trip.days.length} дн. · {total} мест
+            {trip.days.length} дн. · {placesWord(total)}
           </p>
           <Button variant="primary" onClick={onShare}>
             <Share2 size={16} /> Поделиться

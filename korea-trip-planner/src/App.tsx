@@ -1,7 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useToasts } from './hooks/useToasts';
+import { useInputModality } from './hooks/useInputModality';
 import { MapPinned } from 'lucide-react';
 import { useTrip } from './hooks/useTrip';
 import { itemKey, newItem, type ResolvedPlace, type Trip } from './lib/model';
+import { placesWord } from './lib/geo';
 import { clearHash, copyText, readTripFromHash } from './lib/share';
 import { SearchPanel } from './components/SearchPanel';
 import { RoutePanel } from './components/RoutePanel';
@@ -9,7 +12,7 @@ import { PlaceSheet } from './components/PlaceSheet';
 import { ExportMenu } from './components/ExportMenu';
 import { BottomNav, type Tab } from './components/BottomNav';
 import { ConfirmDialog } from './components/ui/ConfirmDialog';
-import { Toasts, type ToastMsg } from './components/ui/Toast';
+import { Toasts } from './components/ui/Toast';
 
 const countItems = (t: Trip) => t.days.reduce((n, d) => n + d.items.length, 0);
 
@@ -20,13 +23,8 @@ export default function App() {
   const [shareOpen, setShareOpen] = useState(false);
   const [clearOpen, setClearOpen] = useState(false);
   const [pending, setPending] = useState<Trip | null>(() => readTripFromHash());
-  const [toasts, setToasts] = useState<ToastMsg[]>([]);
-
-  const notify = useCallback((text: string, error?: boolean) => {
-    const id = Date.now() + Math.random();
-    setToasts((t) => [...t.slice(-2), { id, text, error }]);
-    setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), 2800);
-  }, []);
+  const { toasts, notify } = useToasts();
+  useInputModality();
 
   useEffect(() => {
     const onHash = () => {
@@ -128,7 +126,7 @@ export default function App() {
         open={!!pending}
         danger={false}
         title="Открыть присланный маршрут?"
-        text={pending ? `«${pending.name}»: ${pending.days.length} дн., ${countItems(pending)} мест.${total ? ' Ваш текущий маршрут будет заменён.' : ''}` : ''}
+        text={pending ? `«${pending.name}»: ${pending.days.length} дн., ${placesWord(countItems(pending))}.${total ? ' Ваш текущий маршрут будет заменён.' : ''}` : ''}
         confirmLabel="Открыть"
         onCancel={closePending}
         onConfirm={() => {

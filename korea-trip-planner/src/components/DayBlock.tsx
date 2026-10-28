@@ -3,7 +3,7 @@ import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { ExternalLink, Trash2, CalendarDays } from 'lucide-react';
 import type { Day, ResolvedPlace } from '../lib/model';
 import { resolveItem } from '../lib/model';
-import { legDistances, formatKm, totalKm } from '../lib/geo';
+import { legDistances, formatKm, totalKm, placesWord } from '../lib/geo';
 import { googleDirectionsUrl, MAX_WAYPOINTS } from '../lib/links';
 import { RouteItem } from './RouteItem';
 import { cn } from '../lib/cn';
@@ -52,7 +52,7 @@ export function DayBlock({ day, dayIndex, dayCount, active, onActivate, onRemove
           День {dayIndex + 1}
         </button>
         <span className="min-w-0 flex-1 truncate text-[12px] text-slate-600">
-          {rows.length > 0 ? `${rows.length} мест` : ''}
+          {rows.length > 0 ? placesWord(rows.length) : ''}
           {rows.length > 1 && ` · ≈ ${formatKm(totalKm(points))}`}
         </span>
         <button
@@ -103,7 +103,7 @@ export function DayBlock({ day, dayIndex, dayCount, active, onActivate, onRemove
             Маршрут дня в Google Maps
           </a>
           {points.length > MAX_WAYPOINTS + 2 && (
-            <p className="mt-1 text-[11.5px] text-slate-500">Google Maps принимает до {MAX_WAYPOINTS} промежуточных точек — лишние не попадут в ссылку.</p>
+            <p className="mt-1 text-[11.5px] text-slate-600">Google Maps принимает до {MAX_WAYPOINTS} промежуточных точек — лишние не попадут в ссылку.</p>
           )}
         </div>
       )}

@@ -27,13 +27,13 @@ export function RouteItem({ item, place, index, legKm, dayCount, dayIndex, onOpe
   const showNote = noteOpen || !!item.note;
 
   return (
-    <li ref={setNodeRef} style={{ transform: CSS.Transform.toString(transform), transition }} className={cn(isDragging && 'relative z-20 opacity-80')}>
+    <li ref={setNodeRef} style={{ transform: CSS.Translate.toString(transform), transition }} className={cn(isDragging && 'opacity-40')}>
       {legKm !== null && (
-        <p className="py-1 pl-[26px] text-[11.5px] text-slate-500" aria-label={`Расстояние по прямой ${formatKm(legKm)}`}>
+        <p className="py-1 pl-[26px] text-[11.5px] text-slate-600" aria-label={`Расстояние по прямой ${formatKm(legKm)}`}>
           ↓ ≈ {formatKm(legKm)} по прямой
         </p>
       )}
-      <div className={cn('gd-card p-2', isDragging && 'shadow-xl')}>
+      <div className={cn('gd-card p-2', isDragging && 'border-dashed border-accent-600')}>
         <div className="flex items-center gap-1">
           <button
             ref={setActivatorNodeRef}
@@ -41,7 +41,7 @@ export function RouteItem({ item, place, index, legKm, dayCount, dayIndex, onOpe
             {...listeners}
             type="button"
             aria-label={`Перетащить: ${place.nameRu}. Пробел, затем стрелки для перемещения`}
-            className="flex h-11 w-9 shrink-0 cursor-grab touch-none items-center justify-center rounded-xl text-slate-500 hover:text-accent-700 active:cursor-grabbing"
+            className="flex h-11 w-9 shrink-0 cursor-grab touch-none items-center justify-center rounded-xl text-slate-600 hover:text-accent-700 active:cursor-grabbing"
           >
             <GripVertical size={18} />
           </button>
@@ -80,7 +80,7 @@ export function RouteItem({ item, place, index, legKm, dayCount, dayIndex, onOpe
             aria-label={`Заметка к месту ${place.nameRu}`}
             rows={2}
             maxLength={1000}
-            className="mt-1 w-full resize-y rounded-xl bg-white/70 px-3 py-2 text-[13.5px] outline-none placeholder:text-slate-500 focus-visible:ring-2 focus-visible:ring-accent-600"
+            className="mt-1 w-full resize-y rounded-xl bg-white/70 px-3 py-2 text-[13.5px] outline-none placeholder:text-slate-600 focus-visible:ring-2 focus-visible:ring-accent-600"
           />
         )}
         {dayCount > 1 && (

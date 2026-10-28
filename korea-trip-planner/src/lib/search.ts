@@ -168,7 +168,11 @@ export function searchPlaces(query: string, filters: SearchFilters = {}): Search
     }
     if (score > 0) results.push({ place: e.place, score });
   }
-  return results.sort((a, b) => b.score - a.score || a.place.nameRu.localeCompare(b.place.nameRu, 'ru'));
+  // если есть точные совпадения, нечёткие (опечатки) не показываем
+  const strong = results.some((r) => r.score >= 60);
+  return results
+    .filter((r) => !strong || r.score >= 55)
+    .sort((a, b) => b.score - a.score || a.place.nameRu.localeCompare(b.place.nameRu, 'ru'));
 }
 
 export interface Segment {

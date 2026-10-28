@@ -37,7 +37,7 @@ export function PlaceCard({ place, query = '', inRoute, onOpen, onToggle }: Prop
               <Highlight text={sub} query={query} />
             </span>
           )}
-          <span className="block truncate text-[12px] text-slate-500">
+          <span className="block truncate text-[12px] text-slate-600">
             {[place.cityName, cat?.label ?? 'Найдено на карте'].filter(Boolean).join(' · ')}
           </span>
         </span>

@@ -6,6 +6,7 @@ import type { PlaceCategory } from '../data/types';
 import { CATEGORIES } from '../lib/categories';
 import { searchPlaces } from '../lib/search';
 import { resolvePlace, type ResolvedPlace } from '../lib/model';
+import { placesWord } from '../lib/geo';
 import { PlaceCard } from './PlaceCard';
 import { OnlineSearch } from './OnlineSearch';
 import { Button } from './ui/Button';
@@ -52,17 +53,17 @@ export function SearchPanel({ inRouteKeys, onOpen, onToggle }: Props) {
   return (
     <div className="space-y-3">
       <div className="relative">
-        <Search size={18} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" aria-hidden="true" />
+        <Search size={18} className="pointer-events-none absolute left-4 z-10 top-1/2 -translate-y-1/2 text-slate-600" aria-hidden="true" />
         <input
           type="search"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Место, город или категория: Кёнбоккун, gyeongbok, 해운대"
+          placeholder="Кёнбоккун, gyeongbok, 해운대…"
           aria-label="Поиск мест"
           autoComplete="off"
           autoCorrect="off"
           spellCheck={false}
-          className="gd-card h-12 w-full rounded-full pl-11 pr-12 text-[15px] text-slate-900 outline-none placeholder:text-slate-500 focus-visible:ring-2 focus-visible:ring-accent-600 [&::-webkit-search-cancel-button]:hidden"
+          className="gd-card h-12 w-full rounded-full pl-11 pr-12 text-[15px] text-slate-900 outline-none placeholder:text-slate-600 focus-visible:ring-2 focus-visible:ring-accent-600 [&::-webkit-search-cancel-button]:hidden"
         />
         {input && (
           <button
@@ -110,7 +111,7 @@ export function SearchPanel({ inRouteKeys, onOpen, onToggle }: Props) {
                   <span className="block text-[15px] font-bold tracking-[-0.02em]">{c.nameRu}</span>
                   <span className="block text-[12px] text-slate-600">{c.nameEn} · {c.nameKo}</span>
                 </span>
-                <span className="text-[12px] text-slate-500">{counts.get(c.id) ?? 0} мест · {c.region}</span>
+                <span className="text-[12px] text-slate-600">{placesWord(counts.get(c.id) ?? 0)} · {c.region}</span>
               </button>
             ))}
           </div>

@@ -1,4 +1,4 @@
-import type { Place, PlaceCategory } from '../data/types';
+import type { PlaceCategory } from '../data/types';
 
 export interface OnlinePlace {
   id: string;
@@ -75,25 +75,10 @@ export async function searchOnline(
   try {
     let items = await searchTourApi(q, 'ru', signal);
     if (items.length === 0) items = await searchTourApi(q, 'en', signal);
-    return { items, source: 'tour' };
+    if (items.length > 0) return { items, source: 'tour' };
   } catch (e) {
     if (signal?.aborted) throw e;
-    return { items: await searchOsm(q, signal), source: 'osm' };
   }
+  return { items: await searchOsm(q, signal), source: 'osm' };
 }
 
-export function onlineToPlace(p: OnlinePlace): Place {
-  return {
-    id: p.id,
-    cityId: 'custom',
-    category: p.category,
-    nameRu: p.name,
-    nameEn: p.name,
-    nameKo: p.name,
-    addressEn: p.address,
-    addressKo: p.address,
-    lat: p.lat,
-    lng: p.lng,
-    description: '',
-  };
-}
